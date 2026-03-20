@@ -1,0 +1,121 @@
+{
+  "sources": {
+    "lowclassic_blazer": {
+      "asset_source_type": "real",
+      "asset_status": "resolved",
+      "thumbnail_url": "https://cafe24img.poxo.com/lowclassic/web/product/big/202603/695d09e279672a9dd0aa08a3d205f512.jpg"
+    },
+    "lowclassic_trouser": {
+      "asset_source_type": "real",
+      "asset_status": "resolved",
+      "thumbnail_url": "https://cafe24img.poxo.com/lowclassic/web/product/big/202303/f6c6a33112b0b6ad9ac1f1409830039c.jpg"
+    },
+    "lowclassic_pants": {
+      "asset_source_type": "generated",
+      "asset_status": "resolved",
+      "thumbnail_url": null
+    },
+    "amomento_shirt": {
+      "asset_source_type": "generated",
+      "asset_status": "resolved",
+      "thumbnail_url": null
+    },
+    "amomento_knit": {
+      "asset_source_type": "generated",
+      "asset_status": "resolved",
+      "thumbnail_url": null
+    },
+    "amomento_zip": {
+      "asset_source_type": "generated",
+      "asset_status": "resolved",
+      "thumbnail_url": null
+    },
+    "recto_pants": {
+      "asset_source_type": "generated",
+      "asset_status": "resolved",
+      "thumbnail_url": null
+    },
+    "recto_wide": {
+      "asset_source_type": "real",
+      "asset_status": "resolved",
+      "thumbnail_url": "https://etaseoul.com/cdn/shop/files/ETA_SEOUL_Centered_1200x628_82651da9-66c7-4324-ab9b-8b4134ad427e.png?v=1745076006"
+    },
+    "cos_trouser": {
+      "asset_source_type": "generated",
+      "asset_status": "resolved",
+      "thumbnail_url": null
+    },
+    "cos_wool_trouser": {
+      "asset_source_type": "generated",
+      "asset_status": "resolved",
+      "thumbnail_url": null
+    },
+    "cos_shirt": {
+      "asset_source_type": "generated",
+      "asset_status": "resolved",
+      "thumbnail_url": null
+    },
+    "cos_knit": {
+      "asset_source_type": "generated",
+      "asset_status": "resolved",
+      "thumbnail_url": null
+    },
+    "le17_coat": {
+      "asset_source_type": "generated",
+      "asset_status": "resolved",
+      "thumbnail_url": null
+    },
+    "le17_frontzip": {
+      "asset_source_type": "real",
+      "asset_status": "resolved",
+      "thumbnail_url": "https://images.garmentory.com/images/4161750/large/Le-17-Septembre-Front-Zipper-Coat-20200917011119.jpg?1600305087"
+    },
+    "marginsherwood_boston": {
+      "asset_source_type": "generated",
+      "asset_status": "resolved",
+      "thumbnail_url": null
+    },
+    "marginsherwood_baguette": {
+      "asset_source_type": "real",
+      "asset_status": "resolved",
+      "thumbnail_url": "https://cdn.shopify.com/s/files/1/0613/4235/1610/files/Master_Black_35a515c9-5b15-425a-8e6f-17fd2816bdfa.png?height=628&pad_color=fff&v=1664981114&width=1200"
+    },
+    "andyou_dress": {
+      "asset_source_type": "real",
+      "asset_status": "resolved",
+      "thumbnail_url": "https://en.brideandyou.com/web/product/big/202404/800931ba321057b07f523baf5463719c.jpg"
+    },
+    "andyou_dress_en": {
+      "asset_source_type": "real",
+      "asset_status": "resolved",
+      "thumbnail_url": "https://en.brideandyou.com/web/product/big/202404/800931ba321057b07f523baf5463719c.jpg"
+    },
+    "theopen_jacket": {
+      "asset_source_type": "real",
+      "asset_status": "resolved",
+      "thumbnail_url": "http://oeuvrofficial.com/cdn/shop/products/74f180163aaa5a9f1fd7f9d6e5933248.jpg?v=1666066424"
+    }
+  },
+  "posts": [
+    { "post_id": "T01", "required_evidence_type": "product_comparison", "asset_source_type": "mixed", "resolved_image_assets": ["le17_frontzip", "cos_trouser"], "asset_status": "resolved" },
+    { "post_id": "T02", "required_evidence_type": "styled_product_pair", "asset_source_type": "mixed", "resolved_image_assets": ["andyou_dress", "amomento_shirt"], "asset_status": "resolved" },
+    { "post_id": "T03", "required_evidence_type": "product_plus_accessory", "asset_source_type": "mixed", "resolved_image_assets": ["amomento_knit", "marginsherwood_boston"], "asset_status": "resolved" },
+    { "post_id": "T04", "required_evidence_type": "outerwear_pair", "asset_source_type": "mixed", "resolved_image_assets": ["le17_coat", "lowclassic_trouser"], "asset_status": "resolved" },
+    { "post_id": "T05", "required_evidence_type": "product_plus_bag", "asset_source_type": "real", "resolved_image_assets": ["recto_wide", "marginsherwood_baguette"], "asset_status": "resolved" },
+    { "post_id": "T06", "required_evidence_type": "shirt_and_pants", "asset_source_type": "mixed", "resolved_image_assets": ["lowclassic_pants", "cos_shirt"], "asset_status": "resolved" },
+    { "post_id": "T07", "required_evidence_type": "jacket_and_inner", "asset_source_type": "mixed", "resolved_image_assets": ["theopen_jacket", "cos_shirt"], "asset_status": "resolved" },
+    { "post_id": "T08", "required_evidence_type": "single_product_thumbnail", "asset_source_type": "generated", "resolved_image_assets": ["amomento_shirt"], "asset_status": "resolved" },
+    { "post_id": "T09", "required_evidence_type": "pants_comparison", "asset_source_type": "generated", "resolved_image_assets": ["recto_pants", "cos_wool_trouser"], "asset_status": "resolved" },
+    { "post_id": "T10", "required_evidence_type": "bag_comparison", "asset_source_type": "mixed", "resolved_image_assets": ["marginsherwood_boston", "marginsherwood_baguette"], "asset_status": "resolved" },
+    { "post_id": "T11", "required_evidence_type": "single_product_thumbnail", "asset_source_type": "real", "resolved_image_assets": ["lowclassic_blazer"], "asset_status": "resolved" },
+    { "post_id": "T12", "required_evidence_type": "single_product_thumbnail", "asset_source_type": "real", "resolved_image_assets": ["andyou_dress_en", "andyou_dress"], "asset_status": "resolved" },
+    { "post_id": "T13", "required_evidence_type": "pants_comparison", "asset_source_type": "mixed", "resolved_image_assets": ["recto_pants", "recto_wide"], "asset_status": "resolved" },
+    { "post_id": "T14", "required_evidence_type": "single_product_thumbnail", "asset_source_type": "generated", "resolved_image_assets": ["cos_shirt"], "asset_status": "resolved" },
+    { "post_id": "T15", "required_evidence_type": "pants_comparison", "asset_source_type": "mixed", "resolved_image_assets": ["lowclassic_trouser", "recto_wide"], "asset_status": "resolved" },
+    { "post_id": "T16", "required_evidence_type": "coat_comparison", "asset_source_type": "mixed", "resolved_image_assets": ["le17_coat", "le17_frontzip"], "asset_status": "resolved" },
+    { "post_id": "T17", "required_evidence_type": "knit_pair", "asset_source_type": "generated", "resolved_image_assets": ["amomento_knit", "amomento_zip"], "asset_status": "resolved" },
+    { "post_id": "T18", "required_evidence_type": "bag_comparison", "asset_source_type": "mixed", "resolved_image_assets": ["marginsherwood_boston", "marginsherwood_baguette"], "asset_status": "resolved" },
+    { "post_id": "T19", "required_evidence_type": "jacket_and_shirt", "asset_source_type": "mixed", "resolved_image_assets": ["lowclassic_blazer", "cos_shirt"], "asset_status": "resolved" },
+    { "post_id": "T20", "required_evidence_type": "knit_and_reference", "asset_source_type": "generated", "resolved_image_assets": ["cos_knit", "cos_wool_trouser"], "asset_status": "resolved" }
+  ]
+}
