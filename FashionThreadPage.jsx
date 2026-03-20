@@ -488,6 +488,54 @@ function seededNumber(key, mod, offset = 0) {
   ) + offset;
 }
 
+function shortenTitle(title) {
+  return title
+    .replace(/^BRIDE AND YOU\s+/i, "")
+    .replace(/^Marge Sherwood\s+/i, "")
+    .replace(/^LE 17 SEPTEMBRE\s+/i, "")
+    .replace(/^LOW CLASSIC\s+/i, "")
+    .replace(/^AMOMENTO\s+/i, "")
+    .replace(/^COS\s+/i, "")
+    .trim();
+}
+
+function buildSourceNarrative(topic, sources) {
+  if (sources.length === 0) {
+    return {
+      feedLine: "실제 출처 연결이 없는 임시 mock.",
+      detailLead: topic.hook,
+      imageAudit: "이미지-소스 매칭 검토 전 단계.",
+    };
+  }
+
+  const [primary, secondary] = sources;
+  const primaryName = shortenTitle(primary.title);
+  const compareLine = secondary
+    ? `${shortenTitle(secondary.title)}까지 같이 보면서 체감 차이를 따지는 흐름.`
+    : `${primary.source} 기준 정보만으로도 구매/핏 판단 포인트가 꽤 선명한 편.`;
+
+  return {
+    feedLine: `${primaryName} (${primary.price}) 기준으로 출처를 붙였고, ${compareLine}`,
+    detailLead: `${topic.hook} 참고한 1차 레퍼런스는 ${primary.title} (${primary.price})이고, ${secondary ? `${secondary.title}도 함께 보면서 비교 중.` : `${primary.note}`}`,
+    imageAudit: `현재 이미지는 분위기 mock 용 에디토리얼 컷이고, 실제 상품 컷 대체가 아니라 ${topic.tone} 무드를 전달하는 보조 이미지로 사용 중.`,
+  };
+}
+
+function buildImageAudit(topic, sources) {
+  if (sources.length === 0) {
+    return { status: "Needs source", note: "실제 제품 출처가 연결되기 전이라 이미지 적합성을 판단할 수 없음." };
+  }
+
+  const matchLevel = ["buy", "size", "review"].includes(topic.type) ? "Medium" : "Low";
+  return {
+    status: `${matchLevel} relevance`,
+    note:
+      matchLevel === "Medium"
+        ? "제품/핏 토픽이라 source card와의 연결은 충분하지만, 현재 이미지는 실제 상품 컷이 아니라서 최종 프로덕션 단계에서는 교체 여지가 있음."
+        : "코디 무드 중심 토픽이라 분위기 전달에는 맞지만, source item 자체를 보여주는 이미지는 아니라 참고성 visual로 보는 편이 안전함.",
+  };
+}
+
 function buildFeedPost(topic, index) {
   const image = IMAGE_POOL[index % IMAGE_POOL.length];
   const likes = 140 + seededNumber(topic.id, 700);
@@ -501,10 +549,13 @@ function buildFeedPost(topic, index) {
     "mood.and.fit",
     "womenfit.archive",
   ][index % 5];
+  const sources = (TOPIC_SOURCES[topic.id] || []).map((key) => SOURCE_LIBRARY[key]);
+  const narrative = buildSourceNarrative(topic, sources);
+  const imageAudit = buildImageAudit(topic, sources);
 
   return {
     ...topic,
-    sources: (TOPIC_SOURCES[topic.id] || []).map((key) => SOURCE_LIBRARY[key]),
+    sources,
     author,
     handle: `@${author}`,
     time,
@@ -512,6 +563,10 @@ function buildFeedPost(topic, index) {
     likes,
     replies,
     reposts,
+    detailLead: narrative.detailLead,
+    sourceFeedLine: narrative.feedLine,
+    imageAudit,
+    imageAuditLine: narrative.imageAudit,
     sampleReplies: [topic.expected, `${topic.debate.split(",")[0]} 얘기 많이 나올 듯`],
   };
 }
@@ -528,18 +583,23 @@ function authorInitials(author) {
 }
 
 function buildThreadSummary(post) {
+  const sourceLine =
+    post.sources.length > 0
+      ? `근거 출처는 ${post.sources.map((source) => `${shortenTitle(source.title)} (${source.price})`).join(" / ")}.`
+      : "근거 출처 연결 없음.";
+
   return [
     {
       title: "Overall sentiment",
-      content: `${TYPE_LABEL[post.type]} 성격의 스레드로 읽히며, 전체 반응은 "${post.expected}" 쪽으로 수렴한다.`,
+      content: `${TYPE_LABEL[post.type]} 성격의 스레드로 읽히며, 전체 반응은 "${post.expected}" 쪽으로 수렴한다. ${sourceLine}`,
     },
     {
       title: "Top repeated opinions",
-      content: `1. ${post.debate.split(",")[0]} 이 제일 많이 지적됨.\n2. ${post.brands.join(", ")} 특유의 무드 대비 실제 만족도를 따지는 반응이 많음.\n3. 칭찬보다 수정 조언형 댓글 비중이 높음.`,
+      content: `1. ${post.debate.split(",")[0]} 이 제일 많이 지적됨.\n2. ${post.brands.join(", ")} 특유의 무드 대비 실제 만족도를 따지는 반응이 많음.\n3. ${post.sources[0] ? `${shortenTitle(post.sources[0].title)} 기준 가격/정보가 댓글의 판단 근거로 반복됨.` : "칭찬보다 수정 조언형 댓글 비중이 높음."}`,
     },
     {
       title: "Actionable styling suggestions",
-      content: `1. ${post.debate.split(",")[0]} 중심으로 다시 보정하기.\n2. ${post.debate.split(",")[1] || "이너 톤"} 쪽을 한 단계 더 정리하기.\n3. 구매/착용 의사결정은 "${post.expected}" 기준으로 좁히기.`,
+      content: `1. ${post.debate.split(",")[0]} 중심으로 다시 보정하기.\n2. ${post.debate.split(",")[1] || "이너 톤"} 쪽을 한 단계 더 정리하기.\n3. 구매/착용 의사결정은 "${post.expected}" 기준으로 좁히고, ${post.sources[0] ? `${post.sources[0].source} 가격/노트까지 함께 보기.` : "추가 출처 확보하기."}`,
     },
   ];
 }
@@ -547,6 +607,11 @@ function buildThreadSummary(post) {
 function buildComments(post) {
   const baseLikes = seededNumber(post.id, 18, 6);
   const [p1, p2 = "가격값", p3 = "무드"] = post.debate.split(",").map((item) => item.trim());
+  const primarySource = post.sources[0];
+  const secondarySource = post.sources[1];
+  const sourceName = primarySource ? shortenTitle(primarySource.title) : post.brands[0];
+  const sourcePrice = primarySource?.price || "가격 미확인";
+  const compareName = secondarySource ? shortenTitle(secondarySource.title) : `${post.brands[0]} 다른 제품군`;
 
   return [
     {
@@ -555,7 +620,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[0].handle,
       avatar: COMMENT_PERSONAS[0].avatar,
       time: "1m",
-      text: `${post.hook} 이 문장부터 너무 현실적이네. ${post.expected}`,
+      text: `${post.hook} 이 문장부터 너무 현실적이네. ${sourceName}까지 붙여보면 더더욱 ${post.expected}`,
       likes: baseLikes + 16,
       type: COMMENT_PERSONAS[0].type,
       replyTo: null,
@@ -567,7 +632,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[1].handle,
       avatar: COMMENT_PERSONAS[1].avatar,
       time: "58s",
-      text: `${p1} 쪽이 제일 크게 보임. 지금 상태면 전체 무드는 맞는데 비율이 살짝 애매하게 끊길 수 있어.`,
+      text: `${p1} 쪽이 제일 크게 보임. ${sourceName} 가격이 ${sourcePrice}라서 더 냉정하게 보게 됨.`,
       likes: baseLikes + 9,
       type: COMMENT_PERSONAS[1].type,
       replyTo: null,
@@ -579,7 +644,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[2].handle,
       avatar: COMMENT_PERSONAS[2].avatar,
       time: "54s",
-      text: `${post.brands[0]} 쪽 무드는 나는데 ${p2} 때문에 생각보다 힘이 분산되는 느낌.`,
+      text: `${post.brands[0]} 쪽 무드는 나는데 ${compareName}까지 같이 보면 ${p2} 때문에 생각보다 힘이 분산되는 느낌.`,
       likes: baseLikes + 4,
       type: COMMENT_PERSONAS[2].type,
       replyTo: null,
@@ -591,7 +656,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[3].handle,
       avatar: COMMENT_PERSONAS[3].avatar,
       time: "49s",
-      text: `예쁘긴 한데 그냥 예쁜 저장룩에서 끝날 수도 있음. 실제로는 ${p1} 정리 안 하면 애매해 보여.`,
+      text: `예쁘긴 한데 그냥 예쁜 저장룩에서 끝날 수도 있음. 실제로는 ${p1} 정리 안 하면 ${primarySource?.source || "공식몰"} 제품 정보 봐도 애매해 보여.`,
       likes: baseLikes + 7,
       type: COMMENT_PERSONAS[3].type,
       replyTo: null,
@@ -603,7 +668,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[4].handle,
       avatar: COMMENT_PERSONAS[4].avatar,
       time: "44s",
-      text: `나도 ${post.brands[0]} 비슷한 무드로 입거나 사봤는데 제품컷/무드와 실제 만족도 차이 좀 있더라. ${post.expected}`,
+      text: `나도 ${post.brands[0]} 비슷한 무드로 입거나 사봤는데 ${sourceName} 같은 제품은 특히 제품컷/무드와 실제 만족도 차이 좀 있더라. ${post.expected}`,
       likes: baseLikes + 12,
       type: COMMENT_PERSONAS[4].type,
       replyTo: null,
@@ -615,7 +680,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[5].handle,
       avatar: COMMENT_PERSONAS[5].avatar,
       time: "40s",
-      text: `${p1} 먼저 손보고, 그 다음 ${p2} 쪽만 바꾸면 훨씬 정리될 듯.`,
+      text: `${p1} 먼저 손보고, 그 다음 ${p2} 쪽만 바꾸면 훨씬 정리될 듯. 굳이 사면 ${sourcePrice} 값 하는 포인트가 보여야 함.`,
       likes: baseLikes + 8,
       type: COMMENT_PERSONAS[5].type,
       replyTo: null,
@@ -627,7 +692,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[6].handle,
       avatar: COMMENT_PERSONAS[6].avatar,
       time: "36s",
-      text: `국내 도메스틱 좋아하면 ${post.brands.join(" / ")} 비교는 한 번쯤 다 하는 고민이라 공감됨.`,
+      text: `국내 도메스틱 좋아하면 ${post.brands.join(" / ")} 비교는 한 번쯤 다 하는 고민이라 공감됨. 이번엔 출처까지 붙어서 더 현실적임.`,
       likes: baseLikes + 3,
       type: COMMENT_PERSONAS[6].type,
       replyTo: null,
@@ -639,7 +704,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[7].handle,
       avatar: COMMENT_PERSONAS[7].avatar,
       time: "31s",
-      text: `ㄴ 맞음. 특히 ${p3}보다 ${p1}이 먼저 정리돼야 실제 착장에서 만족도가 올라감.`,
+      text: `ㄴ 맞음. 특히 ${p3}보다 ${p1}이 먼저 정리돼야 실제 착장에서 만족도가 올라감. 링크된 제품 정보 보고 더 그렇게 느낌.`,
       likes: baseLikes + 2,
       type: COMMENT_PERSONAS[7].type,
       replyTo: `${post.id}-7`,
@@ -945,9 +1010,22 @@ export default function FashionThreadPage() {
 
                       <p className="mt-3 text-[15px] font-medium leading-6 text-zinc-100">{post.title}</p>
                       <p className="mt-1 text-[15px] leading-6 text-zinc-300">{post.hook}</p>
+                      <p className="mt-2 text-sm leading-6 text-zinc-500">{post.sourceFeedLine}</p>
 
                       <div className="mt-3 grid grid-cols-[1fr_auto] gap-3">
                         <div className="min-w-0">
+                          {post.sources.length > 0 && (
+                            <div className="mb-3 flex flex-wrap gap-2">
+                              {post.sources.map((source) => (
+                                <span
+                                  key={`${post.id}-${source.title}`}
+                                  className="rounded-full border border-zinc-800 bg-black px-3 py-1 text-xs text-zinc-400"
+                                >
+                                  Ref: {shortenTitle(source.title)}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                           <div className="flex flex-wrap gap-2">
                             {post.sampleReplies.map((reply) => (
                               <span
@@ -1014,7 +1092,7 @@ export default function FashionThreadPage() {
 
                     <p className="mt-3 text-lg font-semibold leading-7 text-zinc-100">{activePost.title}</p>
                     <p className="mt-2 whitespace-pre-line text-[15px] leading-6 text-zinc-100">
-                      {activePost.hook}
+                      {activePost.detailLead}
                     </p>
 
                     <div className="mt-4 overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900">
@@ -1039,6 +1117,17 @@ export default function FashionThreadPage() {
                       논쟁 포인트: {activePost.debate} · 예상 댓글 방향: {activePost.expected}
                     </div>
 
+                    <div className="mt-3 rounded-2xl border border-amber-900/60 bg-amber-950/20 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-amber-100">Image audit</p>
+                        <span className="rounded-full border border-amber-900/70 px-2.5 py-1 text-[11px] text-amber-200">
+                          {activePost.imageAudit.status}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-amber-50/80">{activePost.imageAudit.note}</p>
+                      <p className="mt-2 text-xs leading-5 text-amber-100/60">{activePost.imageAuditLine}</p>
+                    </div>
+
                     {activePost.sources.length > 0 && (
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         {activePost.sources.map((source) => (
@@ -1055,6 +1144,7 @@ export default function FashionThreadPage() {
                             </div>
                             <p className="mt-2 text-sm font-medium leading-6 text-zinc-100">{source.title}</p>
                             <p className="mt-2 text-sm leading-6 text-zinc-400">{source.note}</p>
+                            <p className="mt-3 text-xs font-medium text-zinc-300">Open source link</p>
                           </a>
                         ))}
                       </div>

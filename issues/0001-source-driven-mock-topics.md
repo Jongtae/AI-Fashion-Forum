@@ -20,8 +20,8 @@ Upgrade the AI Fashion Forum mock so the first 20 topic cards and thread detail 
 - [x] Real source references are attached to the 20 topic set
 - [x] Thread detail pages visibly render source cards
 - [x] Build passes locally
-- [ ] Each topic has fully source-driven body copy and comment sets
-- [ ] Topic images are audited against source relevance
+- [x] Each topic has fully source-driven body copy and comment sets
+- [x] Topic images are audited against source relevance
 
 ## Expected Branch Name
 
