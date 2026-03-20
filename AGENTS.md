@@ -1,4 +1,4 @@
-## Issue-First Workflow
+## GitHub Issue Workflow
 - Treat any meaningful feature, refactor, bug fix, or content change as a GitHub Issue-sized unit of work.
 - Before starting implementation, first define the work as an issue with a clear title, summary, and completion criteria.
 - If the request is too large, split it into smaller issues before coding.

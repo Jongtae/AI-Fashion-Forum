@@ -36,10 +36,10 @@ Workflow file:
 
 `/.github/workflows/deploy-pages.yml`
 
-## Issue-first workflow
+## GitHub Issues workflow
 
-This repository uses an issue-first workflow for meaningful mock work.
+This repository tracks meaningful work through GitHub Issues only.
 
-- Workflow doc: [`/docs/issue-first-workflow.md`](./docs/issue-first-workflow.md)
-- Current tracked work item: [`/issues/0001-source-driven-mock-topics.md`](./issues/0001-source-driven-mock-topics.md)
+- Workflow doc: [`/docs/github-issue-workflow.md`](./docs/github-issue-workflow.md)
 - GitHub issue template: `/.github/ISSUE_TEMPLATE/mock-work-item.yml`
+- Open work in GitHub: `https://github.com/Jongtae/AI-Fashion-Forum/issues`
