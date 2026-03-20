@@ -15,7 +15,10 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import crawledImageManifest from "./src/data/crawledImageManifest.json";
 
-const IMAGE_POOL = crawledImageManifest.map((image) => `${import.meta.env.BASE_URL}${image.assetPath}`);
+const IMAGE_POOL = crawledImageManifest.map((image) => ({
+  ...image,
+  src: `${import.meta.env.BASE_URL}${image.assetPath}`,
+}));
 
 const TYPE_LABEL = {
   outfit: "오늘 내 코디 어떤지 봐줘",
@@ -23,6 +26,52 @@ const TYPE_LABEL = {
   buy: "이 제품 살지 말지",
   size: "사이즈/핏 도움 요청",
   review: "실착해보니 생각과 달랐던 후기",
+};
+
+const TOPIC_TYPE_MAP = {
+  outfit: "outfit_check",
+  awkward: "awkward_fit_check",
+  buy: "buy_decision",
+  size: "size_help",
+  review: "real_wear_review",
+};
+
+const ALIGNMENT_BLUEPRINTS = {
+  outfit: {
+    imageEvidenceType: "mirror_selfie",
+    imageEvidenceRole: "commute_outfit_balance_check",
+    validationStatus: "review_required",
+    visibleEvidenceNote: (topic) =>
+      `${topic.tone} 맥락에서 전신 비율, 상하 밸런스, 신발과 하의 연결감이 보여야 한다.`,
+  },
+  awkward: {
+    imageEvidenceType: "fit_comparison",
+    imageEvidenceRole: "fit_delta_comparison",
+    validationStatus: "review_required",
+    visibleEvidenceNote: (topic) =>
+      `${topic.debate.split(",")[0]}처럼 어색한 지점이 이미지 안에서 직접 비교 가능해야 한다.`,
+  },
+  buy: {
+    imageEvidenceType: "product_photo",
+    imageEvidenceRole: "product_shape_reference",
+    validationStatus: "review_required",
+    visibleEvidenceNote: () =>
+      "제품 실루엣, 가격값 판단 근거, 대체 가능성을 읽을 수 있는 제품 또는 착용 맥락이 필요하다.",
+  },
+  size: {
+    imageEvidenceType: "mirror_selfie",
+    imageEvidenceRole: "full_body_proportion_check",
+    validationStatus: "review_required",
+    visibleEvidenceNote: () =>
+      "허리, 힙, 기장, 어깨선처럼 실제 사이즈 판단에 필요한 신체 비율이 보여야 한다.",
+  },
+  review: {
+    imageEvidenceType: "review_snapshot",
+    imageEvidenceRole: "wear_and_texture_review",
+    validationStatus: "review_required",
+    visibleEvidenceNote: () =>
+      "실사용 흔적, 착용 후 만족도, 소재 변화나 수납/불편 포인트 같은 lived context가 보여야 한다.",
+  },
 };
 
 const SEARCH_RECENTS = [
@@ -678,8 +727,25 @@ function buildPriorityThreadRewrite(post) {
   }
 }
 
+function buildAlignmentMeta(topic, sources, imageAsset) {
+  const blueprint = ALIGNMENT_BLUEPRINTS[topic.type];
+  const expectedCommentAngle = topic.debate.split(",").map((item) => item.trim());
+  const imageMatchScore = imageAsset.image_evidence_type === blueprint.imageEvidenceType ? 4 : 3;
+
+  return {
+    topic_type: TOPIC_TYPE_MAP[topic.type],
+    text_intent: topic.hook,
+    expected_comment_angle: expectedCommentAngle,
+    image_evidence_type: blueprint.imageEvidenceType,
+    image_evidence_role: blueprint.imageEvidenceRole,
+    visible_evidence_note: blueprint.visibleEvidenceNote(topic),
+    validation_status: blueprint.validationStatus,
+    image_match_score: imageMatchScore,
+  };
+}
+
 function buildFeedPost(topic, index) {
-  const image = IMAGE_POOL[index % IMAGE_POOL.length];
+  const imageAsset = IMAGE_POOL[index % IMAGE_POOL.length];
   const likes = 140 + seededNumber(topic.id, 700);
   const replies = 11 + seededNumber(`${topic.id}-r`, 17);
   const reposts = 2 + seededNumber(`${topic.id}-rp`, 9);
@@ -693,9 +759,11 @@ function buildFeedPost(topic, index) {
   ][index % 5];
   const sources = (TOPIC_SOURCES[topic.id] || []).map((key) => SOURCE_LIBRARY[key]);
   const rewrite = buildPriorityThreadRewrite({ ...topic, sources });
+  const alignment = buildAlignmentMeta(topic, sources, imageAsset);
 
   return {
     ...topic,
+    alignment,
     sources,
     detailLead: rewrite?.detailLead || topic.hook,
     sourceFeedLine: rewrite?.feedLine || null,
@@ -703,7 +771,8 @@ function buildFeedPost(topic, index) {
     author,
     handle: `@${author}`,
     time,
-    image,
+    image: imageAsset.src,
+    imageAsset,
     likes,
     replies,
     reposts,
@@ -731,7 +800,7 @@ function buildSearchResult(post, index) {
     likes: post.likes + 20,
     replies: post.replies,
     saves: 48 + seededNumber(`${post.id}-save`, 120),
-    keywords,
+    keywords: [...keywords, post.alignment.topic_type],
     sourceLabel: primary ? `${shortenTitle(primary.title)} · ${primary.price}` : post.brands.join(" / "),
   };
 }
@@ -758,15 +827,15 @@ function buildThreadSummary(post) {
   return [
     {
       title: "Overall sentiment",
-      content: `${TYPE_LABEL[post.type]} 성격의 스레드로 읽히며, 전체 반응은 "${post.expected}" 쪽으로 수렴한다. ${sourceLine}`,
+      content: `${TYPE_LABEL[post.type]} / ${post.alignment.topic_type} 성격의 스레드로 읽히며, 전체 반응은 "${post.expected}" 쪽으로 수렴한다. ${sourceLine}`,
     },
     {
       title: "Top repeated opinions",
-      content: `1. ${post.debate.split(",")[0]} 이 제일 많이 지적됨.\n2. ${post.brands.join(", ")} 특유의 무드 대비 실제 만족도를 따지는 반응이 많음.\n3. ${post.sources[0] ? `${shortenTitle(post.sources[0].title)} 기준 가격/정보가 댓글 판단 근거로 반복됨.` : "칭찬보다 수정 조언형 댓글 비중이 높음."}`,
+      content: `1. ${post.alignment.expected_comment_angle[0]} 이 제일 많이 지적됨.\n2. ${post.brands.join(", ")} 특유의 무드 대비 실제 만족도를 따지는 반응이 많음.\n3. ${post.sources[0] ? `${shortenTitle(post.sources[0].title)} 기준 가격/정보가 댓글 판단 근거로 반복됨.` : "칭찬보다 수정 조언형 댓글 비중이 높음."}`,
     },
     {
       title: "Actionable styling suggestions",
-      content: `1. ${post.debate.split(",")[0]} 중심으로 다시 보정하기.\n2. ${post.debate.split(",")[1] || "이너 톤"} 쪽을 한 단계 더 정리하기.\n3. 구매/착용 의사결정은 "${post.expected}" 기준으로 좁히고, ${post.sources[0] ? `${post.sources[0].source} 기준 정보까지 함께 보기.` : "추가 출처 확보하기."}`,
+      content: `1. ${post.alignment.expected_comment_angle[0]} 중심으로 다시 보정하기.\n2. ${post.alignment.expected_comment_angle[1] || "이너 톤"} 쪽을 한 단계 더 정리하기.\n3. 구매/착용 의사결정은 "${post.expected}" 기준으로 좁히고, ${post.sources[0] ? `${post.sources[0].source} 기준 정보까지 함께 보기.` : "추가 출처 확보하기."}`,
     },
   ];
 }
@@ -1324,6 +1393,9 @@ export default function FashionThreadPage() {
                         <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
                           {TYPE_LABEL[post.type]}
                         </span>
+                        <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] text-zinc-400">
+                          {post.alignment.image_evidence_type}
+                        </span>
                         <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
                           {post.brands.join(" / ")}
                         </span>
@@ -1562,6 +1634,9 @@ export default function FashionThreadPage() {
                       <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
                         {TYPE_LABEL[activePost.type]}
                       </span>
+                      <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] text-zinc-400">
+                        {activePost.alignment.image_evidence_type}
+                      </span>
                       <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
                         {activePost.brands.join(" / ")}
                       </span>
@@ -1598,8 +1673,20 @@ export default function FashionThreadPage() {
                       </PostImage>
                     </div>
 
-                    <div className="mt-3 rounded-2xl border border-zinc-800 bg-black/40 p-3 text-sm text-zinc-400">
-                      논쟁 포인트: {activePost.debate} · 예상 댓글 방향: {activePost.expected}
+                    <div className="mt-3 rounded-2xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
+                      <p>논쟁 포인트: {activePost.debate} · 예상 댓글 방향: {activePost.expected}</p>
+                      <p className="mt-2">이미지 근거 역할: {activePost.alignment.image_evidence_role}</p>
+                      <p className="mt-2 leading-6">보이는 근거: {activePost.alignment.visible_evidence_note}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {activePost.alignment.expected_comment_angle.map((angle) => (
+                          <span
+                            key={`${activePost.id}-${angle}`}
+                            className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-[11px] text-zinc-300"
+                          >
+                            {angle}
+                          </span>
+                        ))}
+                      </div>
                     </div>
 
                     {activePost.sources.length > 0 && (
