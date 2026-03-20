@@ -98,5 +98,145 @@
       "Ownership context is believable.",
       "Would benefit from an additional detail shot before final approval."
     ]
+  },
+  {
+    "post_id": "AFF-ALIGN-004",
+    "topic_type": "size_help",
+    "text_intent": "슬랙스 S랑 M 중에 어느 쪽이 허벅지 부각이 덜한지 봐달라고 올린다.",
+    "scene_context": {
+      "setting": "pre-purchase try-on",
+      "location_hint": "fitting-room mirror comparison",
+      "audience_judgment": "thigh ease, rise balance, and hemming risk"
+    },
+    "brand_refs": ["MUSINSA STANDARD"],
+    "product_refs": [
+      {
+        "brand": "MUSINSA STANDARD",
+        "name": "wide hidden-banding slacks",
+        "source_label": "Musinsa"
+      }
+    ],
+    "price_anchor": {
+      "currency": "KRW",
+      "amount": 59900,
+      "comparison_note": "same-day store pickup available"
+    },
+    "image_id": "img-fit-compare-002",
+    "image_evidence_type": "fit_comparison",
+    "image_evidence_role": "fit_delta_comparison",
+    "visible_evidence_note": "같은 상의와 신발 기준으로 S/M 핏 차이, 허벅지 여유, 밑단 길이 차이를 비교할 수 있다.",
+    "wear_state": "tried_on",
+    "expected_comment_angle": ["size up or down", "hem alteration", "leg-line balance"],
+    "confidence_level": "high",
+    "validation_status": "approved",
+    "image_match_score": 5,
+    "validation_notes": [
+      "Direct side-by-side fit evidence supports a size recommendation.",
+      "Product and price anchors are concrete enough for shopping advice."
+    ]
+  },
+  {
+    "post_id": "AFF-ALIGN-005",
+    "topic_type": "awkward_fit_check",
+    "text_intent": "셔츠 어깨선이 내려와서 상체가 더 부해 보이는지 확인받고 싶다.",
+    "scene_context": {
+      "setting": "weekday office dressing",
+      "location_hint": "home mirror before leaving",
+      "audience_judgment": "shoulder drop, torso volume, and inner-layer balance"
+    },
+    "brand_refs": ["AMOMENTO", "UNIQLO"],
+    "product_refs": [
+      {
+        "brand": "AMOMENTO",
+        "name": "oversized cotton shirt, sky blue",
+        "source_label": "AMOMENTO official"
+      }
+    ],
+    "price_anchor": null,
+    "image_id": "img-mirror-upperbody-003",
+    "image_evidence_type": "mirror_selfie",
+    "image_evidence_role": "commute_outfit_balance_check",
+    "visible_evidence_note": "어깨선 위치, 셔츠 볼륨, 이너 톤 대비가 상체 쪽에서 분명하게 보인다.",
+    "wear_state": "worn",
+    "expected_comment_angle": ["shoulder fit", "inner-layer correction", "return or keep"],
+    "confidence_level": "high",
+    "validation_status": "approved",
+    "image_match_score": 4,
+    "validation_notes": [
+      "Upper-body mismatch is visible enough for diagnosis.",
+      "Comment scope should stay on fit correction, not fabric durability."
+    ]
+  },
+  {
+    "post_id": "AFF-ALIGN-006",
+    "topic_type": "real_wear_review",
+    "text_intent": "회사 들고 다니는 가방인데 지하철이랑 카페 이동할 때 생각보다 불편한지 공유하고 싶다.",
+    "scene_context": {
+      "setting": "daily commute and after-work cafe stop",
+      "location_hint": "subway platform snapshot with laptop and tumbler",
+      "audience_judgment": "carry comfort, opening usability, and real-life capacity"
+    },
+    "brand_refs": ["OSOI"],
+    "product_refs": [
+      {
+        "brand": "OSOI",
+        "name": "folder brocle bag",
+        "source_label": "29CM"
+      }
+    ],
+    "price_anchor": {
+      "currency": "KRW",
+      "amount": 328000,
+      "comparison_note": "work-bag replacement candidate"
+    },
+    "image_id": "img-bag-review-008",
+    "image_evidence_type": "review_snapshot",
+    "image_evidence_role": "bag_capacity_demonstration",
+    "visible_evidence_note": "노트북 파우치, 텀블러, 카드지갑이 실제로 어떻게 들어가고 손에 쥐었을 때 얼마나 번거로운지 보인다.",
+    "wear_state": "used",
+    "expected_comment_angle": ["daily practicality", "bag weight", "office commute suitability"],
+    "confidence_level": "high",
+    "validation_status": "approved",
+    "image_match_score": 5,
+    "validation_notes": [
+      "Daily-use context is visible, so the convenience complaint is evidence-backed.",
+      "The record avoids relying on a styling-only image for a practicality claim."
+    ]
+  },
+  {
+    "post_id": "AFF-ALIGN-007",
+    "topic_type": "size_help",
+    "text_intent": "팬츠 기장이 애매해서 수선할지 말지 물어보려 했지만 이미지는 제품 상세컷만 붙인 상태다.",
+    "scene_context": {
+      "setting": "shopping hesitation",
+      "location_hint": "saved product-detail image only",
+      "audience_judgment": "hem length and body proportion"
+    },
+    "brand_refs": ["COS"],
+    "product_refs": [
+      {
+        "brand": "COS",
+        "name": "tailored wool trousers",
+        "source_label": "COS KR"
+      }
+    ],
+    "price_anchor": {
+      "currency": "KRW",
+      "amount": 175000,
+      "comparison_note": "considering whether alterations add too much cost"
+    },
+    "image_id": "img-product-only-010",
+    "image_evidence_type": "product_photo",
+    "image_evidence_role": "product_shape_reference",
+    "visible_evidence_note": "제품 단독 실루엣은 보이지만 착용자의 다리 비율이나 실제 밑단 위치는 확인할 수 없다.",
+    "wear_state": "product_only",
+    "expected_comment_angle": ["insufficient evidence", "need worn photo", "cannot judge hemming yet"],
+    "confidence_level": "low",
+    "validation_status": "rejected",
+    "image_match_score": 1,
+    "validation_notes": [
+      "A product-only photo cannot validate a hemming or body-proportion question.",
+      "The post should be rejected until a worn full-length image is attached."
+    ]
   }
 ]

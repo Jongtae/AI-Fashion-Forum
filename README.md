@@ -49,3 +49,5 @@ This repository uses an issue-first workflow for meaningful mock work.
 - Content-image alignment model: [`/docs/content-image-alignment-data-model.md`](./docs/content-image-alignment-data-model.md)
 - Example aligned records: [`/src/data/contentImageAlignmentExamples.json`](./src/data/contentImageAlignmentExamples.json)
 - Generated image policy: [`/docs/generated-image-policy.md`](./docs/generated-image-policy.md)
+
+These alignment artifacts are the source of truth for validating whether mock post text, image evidence, and expected comments belong together.
