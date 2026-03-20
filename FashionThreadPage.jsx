@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -925,6 +925,107 @@ function Avatar({ initials, accent = "from-zinc-400 to-zinc-600" }) {
   );
 }
 
+const IMAGE_FALLBACK_COPY = {
+  outfit: {
+    label: "Outfit check",
+    title: "핏 판단용 이미지를 다시 불러오는 중",
+    body: "전신 비율과 출근룩 밸런스를 읽을 수 있는 이미지를 준비 중이에요.",
+  },
+  awkward: {
+    label: "Awkward fit",
+    title: "어색한 지점을 보여줄 이미지를 준비 중",
+    body: "상하 비율이나 이너/신발 미스를 확인할 수 있는 컷이 필요해요.",
+  },
+  buy: {
+    label: "Buy decision",
+    title: "제품 판단용 이미지를 다시 확인 중",
+    body: "가격값, 실루엣, 제품 인상을 읽을 수 있는 이미지가 비어 있어요.",
+  },
+  size: {
+    label: "Size help",
+    title: "사이즈 비교용 이미지가 잠시 비어 있어요",
+    body: "기장, 어깨선, 허리-힙 비율을 판단할 수 있는 컷이 필요해요.",
+  },
+  review: {
+    label: "Real wear review",
+    title: "실사용 맥락 이미지를 다시 불러오는 중",
+    body: "착용감, 보풀, 수납 같은 후기를 뒷받침할 이미지가 필요해요.",
+  },
+};
+
+function PostImage({
+  src,
+  alt,
+  postType,
+  title,
+  wrapperClassName,
+  imageClassName,
+  fallbackClassName,
+  compact = false,
+  tags = [],
+  children,
+}) {
+  const [hasError, setHasError] = useState(!src);
+
+  useEffect(() => {
+    setHasError(!src);
+  }, [src]);
+
+  const fallback = IMAGE_FALLBACK_COPY[postType] || IMAGE_FALLBACK_COPY.outfit;
+
+  return (
+    <div className={wrapperClassName}>
+      {!hasError ? (
+        <>
+          <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            onError={() => setHasError(true)}
+            className={imageClassName}
+          />
+          {children}
+        </>
+      ) : (
+        <div
+          role="img"
+          aria-label={`${title} fallback`}
+          className={fallbackClassName}
+        >
+          <div className="space-y-2">
+            <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-zinc-300">
+              {fallback.label}
+            </span>
+            <p className={`${compact ? "text-xs leading-5" : "text-sm leading-6"} font-medium text-zinc-100`}>
+              {fallback.title}
+            </p>
+            <p className={`${compact ? "text-[11px] leading-4" : "text-sm leading-6"} text-zinc-400`}>
+              {fallback.body}
+            </p>
+            {!compact && (
+              <p className="text-sm font-medium leading-6 text-zinc-300">
+                {title}
+              </p>
+            )}
+          </div>
+          {tags.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {tags.slice(0, compact ? 2 : 4).map((tag) => (
+                <span
+                  key={`${title}-${tag}`}
+                  className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] text-zinc-300"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ActionButton({ icon: Icon, label, active, onClick }) {
   return (
     <motion.button
@@ -1265,10 +1366,16 @@ export default function FashionThreadPage() {
                             <span>{post.reposts} reposts</span>
                           </div>
                         </div>
-                        <img
+                        <PostImage
                           src={post.image}
                           alt={post.title}
-                          className="h-24 w-24 rounded-2xl border border-zinc-800 object-cover sm:h-28 sm:w-28"
+                          postType={post.type}
+                          title={post.title}
+                          compact
+                          tags={post.description.split(",").map((tag) => tag.trim())}
+                          wrapperClassName="h-24 w-24 overflow-hidden rounded-2xl border border-zinc-800 sm:h-28 sm:w-28"
+                          imageClassName="h-full w-full object-cover"
+                          fallbackClassName="flex h-full w-full flex-col justify-between bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-3"
                         />
                       </div>
                     </div>
@@ -1377,10 +1484,16 @@ export default function FashionThreadPage() {
                     onClick={() => openPost(item.postId)}
                     className="flex w-full gap-3 rounded-[24px] border border-zinc-800 bg-black/30 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
                   >
-                    <img
+                    <PostImage
                       src={item.image}
                       alt={item.title}
-                      className="h-24 w-24 rounded-2xl border border-zinc-800 object-cover"
+                      postType={FEED_POSTS.find((post) => post.id === item.postId)?.type || "outfit"}
+                      title={item.title}
+                      compact
+                      tags={item.keywords}
+                      wrapperClassName="h-24 w-24 overflow-hidden rounded-2xl border border-zinc-800"
+                      imageClassName="h-full w-full object-cover"
+                      fallbackClassName="flex h-full w-full flex-col justify-between bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-3"
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -1460,8 +1573,16 @@ export default function FashionThreadPage() {
                     </p>
 
                     <div className="mt-4 overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900">
-                      <div className="relative">
-                        <img src={activePost.image} alt={activePost.title} className="h-[420px] w-full object-cover sm:h-[560px]" />
+                      <PostImage
+                        src={activePost.image}
+                        alt={activePost.title}
+                        postType={activePost.type}
+                        title={activePost.title}
+                        tags={activePost.description.split(",").map((tag) => tag.trim())}
+                        wrapperClassName="relative"
+                        imageClassName="h-[420px] w-full object-cover sm:h-[560px]"
+                        fallbackClassName="flex min-h-[420px] w-full flex-col justify-end bg-[radial-gradient(circle_at_top,_rgba(82,82,91,0.28),_rgba(9,9,11,1)_58%)] p-5 sm:min-h-[560px]"
+                      >
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/50 to-transparent p-4">
                           <div className="flex flex-wrap gap-2">
                             {activePost.description.split(",").map((tag) => (
@@ -1474,7 +1595,7 @@ export default function FashionThreadPage() {
                             ))}
                           </div>
                         </div>
-                      </div>
+                      </PostImage>
                     </div>
 
                     <div className="mt-3 rounded-2xl border border-zinc-800 bg-black/40 p-3 text-sm text-zinc-400">
