@@ -45,12 +45,12 @@ Each manifest record includes:
 - evidence tags
 - generated local file name
 - repo-local path
-- browser public path
+- app-relative asset path
 - download timestamp
 
 ## Frontend handoff
 
-The current mock reads `src/data/crawledImageManifest.json` and uses its `publicPath` values instead of hard-coded remote image URLs.
+The current mock reads `src/data/crawledImageManifest.json` and resolves each `assetPath` against the Vite `BASE_URL` instead of hard-coded remote image URLs.
 
 That means the development team can:
 

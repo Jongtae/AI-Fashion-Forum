@@ -15,7 +15,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import crawledImageManifest from "./src/data/crawledImageManifest.json";
 
-const IMAGE_POOL = crawledImageManifest.map((image) => image.publicPath);
+const IMAGE_POOL = crawledImageManifest.map((image) => `${import.meta.env.BASE_URL}${image.assetPath}`);
 
 const TYPE_LABEL = {
   outfit: "오늘 내 코디 어떤지 봐줘",

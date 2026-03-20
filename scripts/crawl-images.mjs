@@ -55,7 +55,7 @@ async function downloadImage(record) {
     content_type: contentType || "image/jpeg",
     file_name: fileName,
     localPath: `public/crawled-images/${fileName}`,
-    publicPath: `/crawled-images/${fileName}`,
+    assetPath: `crawled-images/${fileName}`,
     downloaded_at: new Date().toISOString(),
   };
 }
@@ -73,7 +73,7 @@ async function main() {
   for (const record of sources) {
     const downloaded = await downloadImage(record);
     manifest.push(downloaded);
-    console.log(`Downloaded ${downloaded.image_id} -> ${downloaded.publicPath}`);
+    console.log(`Downloaded ${downloaded.image_id} -> ${downloaded.assetPath}`);
   }
 
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);

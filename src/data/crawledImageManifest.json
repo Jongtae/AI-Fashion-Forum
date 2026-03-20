@@ -15,8 +15,8 @@
     "content_type": "image/jpeg",
     "file_name": "img-mirror-commute-001.jpg",
     "localPath": "public/crawled-images/img-mirror-commute-001.jpg",
-    "publicPath": "/crawled-images/img-mirror-commute-001.jpg",
-    "downloaded_at": "2026-03-20T11:53:04.928Z"
+    "assetPath": "crawled-images/img-mirror-commute-001.jpg",
+    "downloaded_at": "2026-03-20T12:00:43.729Z"
   },
   {
     "image_id": "img-fashion-street-002",
@@ -34,8 +34,8 @@
     "content_type": "image/jpeg",
     "file_name": "img-fashion-street-002.jpg",
     "localPath": "public/crawled-images/img-fashion-street-002.jpg",
-    "publicPath": "/crawled-images/img-fashion-street-002.jpg",
-    "downloaded_at": "2026-03-20T11:53:05.028Z"
+    "assetPath": "crawled-images/img-fashion-street-002.jpg",
+    "downloaded_at": "2026-03-20T12:00:43.757Z"
   },
   {
     "image_id": "img-detail-look-003",
@@ -53,8 +53,8 @@
     "content_type": "image/jpeg",
     "file_name": "img-detail-look-003.jpg",
     "localPath": "public/crawled-images/img-detail-look-003.jpg",
-    "publicPath": "/crawled-images/img-detail-look-003.jpg",
-    "downloaded_at": "2026-03-20T11:53:05.050Z"
+    "assetPath": "crawled-images/img-detail-look-003.jpg",
+    "downloaded_at": "2026-03-20T12:00:43.784Z"
   },
   {
     "image_id": "img-product-style-004",
@@ -72,8 +72,8 @@
     "content_type": "image/jpeg",
     "file_name": "img-product-style-004.jpg",
     "localPath": "public/crawled-images/img-product-style-004.jpg",
-    "publicPath": "/crawled-images/img-product-style-004.jpg",
-    "downloaded_at": "2026-03-20T11:53:05.066Z"
+    "assetPath": "crawled-images/img-product-style-004.jpg",
+    "downloaded_at": "2026-03-20T12:00:43.800Z"
   },
   {
     "image_id": "img-commute-fit-005",
@@ -91,8 +91,8 @@
     "content_type": "image/jpeg",
     "file_name": "img-commute-fit-005.jpg",
     "localPath": "public/crawled-images/img-commute-fit-005.jpg",
-    "publicPath": "/crawled-images/img-commute-fit-005.jpg",
-    "downloaded_at": "2026-03-20T11:53:05.090Z"
+    "assetPath": "crawled-images/img-commute-fit-005.jpg",
+    "downloaded_at": "2026-03-20T12:00:43.823Z"
   },
   {
     "image_id": "img-knit-review-006",
@@ -110,7 +110,7 @@
     "content_type": "image/jpeg",
     "file_name": "img-knit-review-006.jpg",
     "localPath": "public/crawled-images/img-knit-review-006.jpg",
-    "publicPath": "/crawled-images/img-knit-review-006.jpg",
-    "downloaded_at": "2026-03-20T11:53:05.113Z"
+    "assetPath": "crawled-images/img-knit-review-006.jpg",
+    "downloaded_at": "2026-03-20T12:00:43.847Z"
   }
 ]
