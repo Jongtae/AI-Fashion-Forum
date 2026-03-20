@@ -744,6 +744,25 @@ function buildAlignmentMeta(topic, sources, imageAsset) {
   };
 }
 
+function buildProductEvidenceMeta(sources, imageAsset) {
+  const bindings = sources.map((source, index) => ({
+    id: `${source.source}-${source.title}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    title: source.title,
+    source: source.source,
+    price: source.price,
+    note: source.note,
+    role: index === 0 ? "대표 근거" : "보조 근거",
+  }));
+
+  return {
+    has_named_product_refs: bindings.length > 0,
+    representative_mode: bindings.length > 1 ? "product_tile_gallery" : "single_product_tile",
+    fallback_mode: "product_reference_cards_only",
+    blocked_generic_image_id: imageAsset?.image_id ?? null,
+    bindings,
+  };
+}
+
 function buildFeedPost(topic, index) {
   const imageAsset = IMAGE_POOL[index % IMAGE_POOL.length];
   const likes = 140 + seededNumber(topic.id, 700);
@@ -760,10 +779,12 @@ function buildFeedPost(topic, index) {
   const sources = (TOPIC_SOURCES[topic.id] || []).map((key) => SOURCE_LIBRARY[key]);
   const rewrite = buildPriorityThreadRewrite({ ...topic, sources });
   const alignment = buildAlignmentMeta(topic, sources, imageAsset);
+  const productEvidence = buildProductEvidenceMeta(sources, imageAsset);
 
   return {
     ...topic,
     alignment,
+    productEvidence,
     sources,
     detailLead: rewrite?.detailLead || topic.hook,
     sourceFeedLine: rewrite?.feedLine || null,
@@ -802,6 +823,7 @@ function buildSearchResult(post, index) {
     saves: 48 + seededNumber(`${post.id}-save`, 120),
     keywords: [...keywords, post.alignment.topic_type],
     sourceLabel: primary ? `${shortenTitle(primary.title)} · ${primary.price}` : post.brands.join(" / "),
+    productEvidence: post.productEvidence,
   };
 }
 
@@ -1091,6 +1113,69 @@ function PostImage({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function ProductEvidencePreview({ post, compact = false, detail = false, className = "" }) {
+  const evidence = post.productEvidence;
+
+  if (!evidence?.has_named_product_refs) return null;
+
+  const visibleBindings = compact ? evidence.bindings.slice(0, 2) : evidence.bindings;
+
+  return (
+    <div
+      className={`overflow-hidden rounded-3xl border border-zinc-800 bg-[linear-gradient(160deg,rgba(24,24,27,0.96),rgba(9,9,11,0.98))] ${className}`}
+    >
+      <div className={`${detail ? "p-5 sm:p-6" : compact ? "p-3" : "p-4"}`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-emerald-800/70 bg-emerald-950/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.22em] text-emerald-200">
+              Named product evidence
+            </span>
+            <span className="rounded-full border border-zinc-700 bg-black/40 px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-zinc-400">
+              {evidence.representative_mode}
+            </span>
+          </div>
+          <span className="text-[11px] text-zinc-500">
+            무관한 히어로 이미지 대신 제품 증거 카드 사용
+          </span>
+        </div>
+
+        <div className={`mt-3 grid gap-3 ${visibleBindings.length > 1 ? "sm:grid-cols-2" : ""}`}>
+          {visibleBindings.map((binding) => (
+            <div
+              key={`${post.id}-${binding.id}`}
+              className="rounded-2xl border border-zinc-800 bg-black/40 p-4"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] text-zinc-500">{binding.role}</span>
+                <span className="text-[11px] text-zinc-400">{binding.price}</span>
+              </div>
+              <p className={`mt-2 font-medium leading-6 text-zinc-100 ${compact ? "text-sm" : "text-[15px]"}`}>
+                {binding.title}
+              </p>
+              <p className="mt-2 text-xs text-zinc-500">{binding.source}</p>
+              {!compact && (
+                <p className="mt-3 text-sm leading-6 text-zinc-400">
+                  {binding.note}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {compact && evidence.bindings.length > visibleBindings.length && (
+          <p className="mt-3 text-xs text-zinc-500">
+            + {evidence.bindings.length - visibleBindings.length}개 추가 제품 근거는 상세에서 확인
+          </p>
+        )}
+
+        <div className="mt-3 rounded-2xl border border-zinc-800 bg-black/30 px-3 py-3 text-xs leading-5 text-zinc-400">
+          fallback: {evidence.fallback_mode} · blocked generic image: {evidence.blocked_generic_image_id}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1438,17 +1523,25 @@ export default function FashionThreadPage() {
                             <span>{post.reposts} reposts</span>
                           </div>
                         </div>
-                        <PostImage
-                          src={post.image}
-                          alt={post.title}
-                          postType={post.type}
-                          title={post.title}
-                          compact
-                          tags={post.description.split(",").map((tag) => tag.trim())}
-                          wrapperClassName="h-24 w-24 overflow-hidden rounded-2xl border border-zinc-800 sm:h-28 sm:w-28"
-                          imageClassName="h-full w-full object-cover"
-                          fallbackClassName="flex h-full w-full flex-col justify-between bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-3"
-                        />
+                        {post.productEvidence.has_named_product_refs ? (
+                          <ProductEvidencePreview
+                            post={post}
+                            compact
+                            className="h-24 w-24 sm:h-28 sm:w-28"
+                          />
+                        ) : (
+                          <PostImage
+                            src={post.image}
+                            alt={post.title}
+                            postType={post.type}
+                            title={post.title}
+                            compact
+                            tags={post.description.split(",").map((tag) => tag.trim())}
+                            wrapperClassName="h-24 w-24 overflow-hidden rounded-2xl border border-zinc-800 sm:h-28 sm:w-28"
+                            imageClassName="h-full w-full object-cover"
+                            fallbackClassName="flex h-full w-full flex-col justify-between bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-3"
+                          />
+                        )}
                       </div>
                     </div>
                   </motion.button>
@@ -1556,17 +1649,25 @@ export default function FashionThreadPage() {
                     onClick={() => openPost(item.postId)}
                     className="flex w-full gap-3 rounded-[24px] border border-zinc-800 bg-black/30 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
                   >
-                    <PostImage
-                      src={item.image}
-                      alt={item.title}
-                      postType={FEED_POSTS.find((post) => post.id === item.postId)?.type || "outfit"}
-                      title={item.title}
-                      compact
-                      tags={item.keywords}
-                      wrapperClassName="h-24 w-24 overflow-hidden rounded-2xl border border-zinc-800"
-                      imageClassName="h-full w-full object-cover"
-                      fallbackClassName="flex h-full w-full flex-col justify-between bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-3"
-                    />
+                    {item.productEvidence.has_named_product_refs ? (
+                      <ProductEvidencePreview
+                        post={FEED_POSTS.find((post) => post.id === item.postId)}
+                        compact
+                        className="h-24 w-24"
+                      />
+                    ) : (
+                      <PostImage
+                        src={item.image}
+                        alt={item.title}
+                        postType={FEED_POSTS.find((post) => post.id === item.postId)?.type || "outfit"}
+                        title={item.title}
+                        compact
+                        tags={item.keywords}
+                        wrapperClassName="h-24 w-24 overflow-hidden rounded-2xl border border-zinc-800"
+                        imageClassName="h-full w-full object-cover"
+                        fallbackClassName="flex h-full w-full flex-col justify-between bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-3"
+                      />
+                    )}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-semibold text-zinc-100">{item.author}</span>
@@ -1647,36 +1748,42 @@ export default function FashionThreadPage() {
                       {activePost.detailLead}
                     </p>
 
-                    <div className="mt-4 overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900">
-                      <PostImage
-                        src={activePost.image}
-                        alt={activePost.title}
-                        postType={activePost.type}
-                        title={activePost.title}
-                        tags={activePost.description.split(",").map((tag) => tag.trim())}
-                        wrapperClassName="relative"
-                        imageClassName="h-[420px] w-full object-cover sm:h-[560px]"
-                        fallbackClassName="flex min-h-[420px] w-full flex-col justify-end bg-[radial-gradient(circle_at_top,_rgba(82,82,91,0.28),_rgba(9,9,11,1)_58%)] p-5 sm:min-h-[560px]"
-                      >
-                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/50 to-transparent p-4">
-                          <div className="flex flex-wrap gap-2">
-                            {activePost.description.split(",").map((tag) => (
-                              <span
-                                key={tag.trim()}
-                                className="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs text-zinc-200 backdrop-blur-sm"
-                              >
-                                {tag.trim()}
-                              </span>
-                            ))}
+                    {activePost.productEvidence.has_named_product_refs ? (
+                      <ProductEvidencePreview post={activePost} detail className="mt-4" />
+                    ) : (
+                      <div className="mt-4 overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900">
+                        <PostImage
+                          src={activePost.image}
+                          alt={activePost.title}
+                          postType={activePost.type}
+                          title={activePost.title}
+                          tags={activePost.description.split(",").map((tag) => tag.trim())}
+                          wrapperClassName="relative"
+                          imageClassName="h-[420px] w-full object-cover sm:h-[560px]"
+                          fallbackClassName="flex min-h-[420px] w-full flex-col justify-end bg-[radial-gradient(circle_at_top,_rgba(82,82,91,0.28),_rgba(9,9,11,1)_58%)] p-5 sm:min-h-[560px]"
+                        >
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/50 to-transparent p-4">
+                            <div className="flex flex-wrap gap-2">
+                              {activePost.description.split(",").map((tag) => (
+                                <span
+                                  key={tag.trim()}
+                                  className="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs text-zinc-200 backdrop-blur-sm"
+                                >
+                                  {tag.trim()}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      </PostImage>
-                    </div>
+                        </PostImage>
+                      </div>
+                    )}
 
                     <div className="mt-3 rounded-2xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
                       <p>논쟁 포인트: {activePost.debate} · 예상 댓글 방향: {activePost.expected}</p>
                       <p className="mt-2">이미지 근거 역할: {activePost.alignment.image_evidence_role}</p>
                       <p className="mt-2 leading-6">보이는 근거: {activePost.alignment.visible_evidence_note}</p>
+                      <p className="mt-2">대표 이미지 규칙: {activePost.productEvidence.representative_mode}</p>
+                      <p className="mt-2">제품 fallback 규칙: {activePost.productEvidence.fallback_mode}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {activePost.alignment.expected_comment_angle.map((angle) => (
                           <span
