@@ -471,6 +471,8 @@ const TOPIC_SOURCES = {
   T20: ["cos_knit", "cos_wool_trouser"],
 };
 
+const PRIORITY_THREAD_IDS = new Set(["T01", "T03", "T05", "T08", "T09", "T10", "T12", "T13", "T14", "T16", "T17", "T18"]);
+
 const COMMENT_PERSONAS = [
   { user: "min_archive", handle: "@min.archive", avatar: "MA", type: "Reactor" },
   { user: "fit_jina", handle: "@fit.jina", avatar: "FJ", type: "Practical Reviewer" },
@@ -488,6 +490,209 @@ function seededNumber(key, mod, offset = 0) {
   ) + offset;
 }
 
+function shortenTitle(title) {
+  return title
+    .replace(/^BRIDE AND YOU\s+/i, "")
+    .replace(/^Marge Sherwood\s+/i, "")
+    .replace(/^LE 17 SEPTEMBRE\s+/i, "")
+    .replace(/^Le 17 Septembre\s+/i, "")
+    .replace(/^LOW CLASSIC\s+/i, "")
+    .replace(/^AMOMENTO\s+/i, "")
+    .replace(/^COS\s+/i, "")
+    .trim();
+}
+
+function buildPriorityThreadRewrite(post) {
+  const [primary, secondary] = post.sources;
+  const primaryName = primary ? shortenTitle(primary.title) : post.brands[0];
+  const secondaryName = secondary ? shortenTitle(secondary.title) : post.brands[0];
+
+  switch (post.id) {
+    case "T01":
+      return {
+        feedLine: `${primaryName} 무드로 자켓 비율을 잡고, ${secondaryName} (${secondary?.price}) 기준 팬츠 길이 체감을 붙인 출근룩 고민.`,
+        detailLead: `${post.hook}\n지금은 ${primaryName} 쪽으로 어깨선이랑 상체 무드를 맞추고, 하의는 ${secondaryName} (${secondary?.price}) 같은 크롭 와이드 기준으로 보고 있어. 문제는 상체보다 팬츠 길이가 더 먼저 보여서 로퍼 위에서 발목이 끊겨 보인다는 점이고, 그래서 전체는 멀쩡한데 출근룩 비율만 살짝 아쉬운 상태.`,
+        comments: [
+          `${primaryName} 무드 자체는 맞는데 댓글 포인트가 왜 팬츠 길이에 몰리는지 알겠음. ${secondaryName}처럼 크롭감 있는 팬츠 기준이면 로퍼 위에서 더 끊겨 보여.`,
+          `${secondaryName}가 ${secondary?.price}라 기본 핏 기대치는 있는데도 지금 착장에선 발목 노출이 애매해서 신발까지 같이 짧아 보여.`,
+          `${primary?.source} 쪽 자켓 느낌은 잘 살아. 근데 하의가 그 무드를 못 받쳐줘서 출근룩 완성도가 덜 나오는 듯.`,
+          `이런 건 상체보다 하단 비율이 먼저 읽혀서, 팬츠 2~3cm만 길어도 훨씬 정리될 것 같아.`,
+          `나도 비슷하게 입었을 때 ${secondaryName}류 팬츠는 로퍼보다 스니커즈나 더 낮은 앞코 신발이 낫더라.`,
+          `가격 생각하면 ${secondaryName} 쪽은 핏에서 본전 느낌이 있어야 하는데 지금은 길이 때문에 그 장점이 묻힘.`,
+          `${post.brands.join(" / ")} 조합 자체는 되게 현실적인데, 댓글이 “전체는 괜찮은데 하단이 끊긴다”로 모일 만한 셋업임.`,
+          `ㄴ 맞아. 자켓 문제보다 팬츠-슈즈 경계가 먼저 보여서 실착 만족도가 깎이는 타입.`,
+        ],
+      };
+    case "T03":
+      return {
+        feedLine: `${primaryName} 니트 무드에 ${secondaryName} 같은 미니멀 액세서리 기준을 붙여서, 심심함 vs 세련됨을 따지는 올블랙 스레드.`,
+        detailLead: `${post.hook}\n상체는 ${primaryName} (${primary?.price})처럼 텍스처가 있는 블랙 니트 쪽으로 보고 있고, 포인트는 ${secondaryName}처럼 작게 들어가는 쪽이 맞나 고민 중이야. 올블랙이라 정리는 되는데 막상 실착으로 보면 가방이나 벨트 하나 없이 끝나서 너무 안전하게만 보이는지, 아니면 이 정도가 제일 세련된지 의견 듣고 싶음.`,
+        comments: [
+          `${primaryName} 같은 니트는 소재감으로 먹는 타입이라 아예 심심하진 않은데, 지금은 포인트가 너무 안 보여서 “잘 입었다”보다 “안전하다” 쪽으로 읽힘.`,
+          `${secondaryName} 같은 가방 하나만 들어가도 달라질 듯. 올블랙은 디테일 하나가 있고 없고 차이가 커.`,
+          `${primary?.price} 생각하면 니트 존재감은 충분한 편인데, 하의까지 무광 블랙이면 힘이 다 눌려 보여.`,
+          `무채색 미니멀 좋아하는 사람은 좋아할 룩인데 댓글에선 아마 “신발이나 가방 하나만 바꿔라” 얘기 반복될 듯.`,
+          `나도 ${post.brands[0]} 니트류는 단독으로 예쁜데 실착 사진 보면 악세서리 없으면 바로 밋밋해지더라.`,
+          `${secondary?.source} 쪽 백처럼 작게 반짝이는 포인트 하나 있으면 올블랙이 훨씬 산다.`,
+          `브랜드 무드는 잘 맞췄는데 지금 상태는 너무 정답처럼만 입은 느낌. 그래서 호불호 없이 그냥 지나갈 수 있음.`,
+          `ㄴ 맞음. 실패는 없는데 기억에 남는 포인트도 없는 쪽.`,
+        ],
+      };
+    case "T05":
+      return {
+        feedLine: `${primaryName} 팬츠 무드와 ${secondaryName} 액세서리 감도는 맞는데, 신발 선택 때문에 저장룩과 실착이 갈리는 케이스.`,
+        detailLead: `${post.hook}\n셔츠-롱스커트 쪽 무드는 계속 저장하던 결인데, 실제로 입어보니 ${primaryName}처럼 아래 볼륨이 있는 하체 라인을 가져갈수록 신발 영향이 더 크더라. 가방은 ${secondaryName} 쪽 무드로 잘 붙는데 로퍼가 들어오면서 밑에서 힘이 갑자기 무거워져서, 내가 생각한 미니멀한 흐름보다 더 답답하게 보이는지 궁금해.`,
+        comments: [
+          `이건 위보다 아래가 문제인 룩 같아. ${primaryName}처럼 하체 볼륨이 있는 무드일수록 로퍼가 들어오면 밑에서 확 막혀 보여.`,
+          `${secondaryName} 같은 가방 포인트는 잘 붙는데, 신발까지 광택 있는 쪽이면 저장룩 느낌이 아니라 과하게 힘준 느낌 남.`,
+          `실제로는 셔츠-롱스커트보다 신발이 제일 먼저 보여서 댓글이 다 거기로 몰릴 듯.`,
+          `${primary?.source} 기준 팬츠류 무드는 좋은데 지금 착장 해석은 너무 무거워. 차라리 메리제인이나 스니커즈가 더 맞았을 것 같아.`,
+          `나도 이런 룩 저장 많이 하는데 막상 입으면 밑에서 뜨는 이유가 거의 신발이더라.`,
+          `${secondary?.price} 가방까지 들어간 룩이면 신발은 오히려 힘을 빼야 균형이 맞는 듯.`,
+          `전체 무드는 있는데 실착 만족도가 떨어지는 전형적인 경우라 너무 현실적임.`,
+          `ㄴ 맞아. 상의보다 하체 무게감이 과해져서 저장한 이미지랑 다른 느낌이 남.`,
+        ],
+      };
+    case "T08":
+      return {
+        feedLine: `${primaryName} (${primary?.price}) 기준으로 원단/어깨선/브랜드값을 따지는 구매 고민 스레드.`,
+        detailLead: `${post.hook}\n찾아본 기준은 ${primary?.title}이고 가격은 ${primary?.price}. 제품 설명만 보면 crisp cotton이랑 박시한 어깨선 때문에 “기본 셔츠인데 확실히 다르다” 쪽으로 읽히는데, 막상 실착 후기 쪽은 이 가격이면 브랜드값도 꽤 들어간다는 얘기가 많더라. 진짜로 오래 입을 셔츠인지, 아니면 첫 인상만 좋은 셔츠인지가 제일 궁금함.`,
+        comments: [
+          `${primaryName}가 예쁜 건 맞는데 ${primary?.price}면 다들 원단 체감부터 따질 수밖에 없음. 그냥 “예쁘다”로 끝내기엔 가격대가 높아.`,
+          `${primary?.note} 이 설명만 보면 혹하는데, 실착 쪽은 어깨가 생각보다 과하게 박시해서 호불호 나뉠 듯.`,
+          `AMOMENTO 셔츠류 좋아하면 사는 이유는 이해돼도 가성비로 설득되진 않음.`,
+          `대체 가능한 셔츠 많아서 고민되는 거 완전 공감. 결국 핏 취향 맞는 사람이면 사고 아니면 브랜드값이라고 느낄 듯.`,
+          `나도 이 브랜드 탑류 몇 개 봤는데 제품컷은 늘 예쁨. 근데 실제로는 어깨선 때문에 “생각보다 과하다”는 말 나올 만해.`,
+          `${primary?.source} 기준 현재 노출 상품이면 시즌 지나도 비슷한 결 다시 나올 가능성 있어서, 급하게 살 이유는 또 애매함.`,
+          `20만원대면 그냥 무난한 셔츠 말고 “이건 아모멘토라서 산다”가 있어야 하는데 그 지점이 사람마다 다를 듯.`,
+          `ㄴ 맞음. 좋아하는 사람은 바로 알겠지만, 모르는 사람은 가격 보고 먼저 멈칫할 셔츠.`,
+        ],
+      };
+    case "T09":
+      return {
+        feedLine: `${primaryName}와 ${secondaryName} 가격/핏 체감을 같이 놓고, 렉토 팬츠 프리미엄이 실제로 느껴지는지 비교하는 스레드.`,
+        detailLead: `${post.hook}\n지금 비교 기준은 ${primaryName} (${primary?.price})랑 ${secondaryName} (${secondary?.price}) 쪽이야. 제품 정보만 보면 렉토 쪽이 확실히 더 정교해 보이는데, 결국 팬츠는 입었을 때 다리선이 어떻게 떨어지는지가 다라서 가격 차이가 체감될 정도인지 헷갈림. 옷 좋아하는 사람 눈에는 차이가 보이겠지만, 실착에서 그 차이가 확실한지 듣고 싶어.`,
+        comments: [
+          `${primaryName}가 확실히 정제된 느낌은 있는데 ${primary?.price}까지 감안하면 “한 벌로 시즌 끝난다”까지는 조금 과장 같아.`,
+          `${secondaryName}랑 나란히 놓고 보면 핏 차이는 있는데, 가성비는 오히려 COS 쪽 손 들어줄 사람 많을 듯.`,
+          `렉토 팬츠 좋아하는 사람은 턱이랑 떨어지는 선에서 돈값 느끼긴 함. 근데 일반적으로는 가격부터 장벽이 큼.`,
+          `${primary?.source} 쪽 제품이면 도메스틱 팬츠 좋아하는 사람 눈엔 차이 보여도, 아닌 사람은 그냥 잘 만든 검정 슬랙스로 볼 가능성 큼.`,
+          `나도 이런 류 팬츠 살 때 결국 실착 핏 때문에 사지 제품 설명 때문에 사지는 않더라.`,
+          `${secondary?.price} 생각하면 비교군이 너무 만만하지 않아서, 렉토 프리미엄이 더 냉정하게 보이는 것 같아.`,
+          `브랜드 만족도는 렉토가 높을 수 있는데 가성비 질문엔 다들 애매하다고 답할 듯.`,
+          `ㄴ 맞아. 아는 사람은 아는데 모르는 사람한텐 설명하기 어려운 가격대.`,
+        ],
+      };
+    case "T10":
+      return {
+        feedLine: `${primaryName}와 ${secondaryName}를 같이 보고, 마지셔우드 백이 지금 사기엔 늦었는지 실사용성까지 따지는 스레드.`,
+        detailLead: `${post.hook}\n찾아본 건 ${primaryName} (${primary?.price})랑 ${secondaryName} (${secondary?.price}) 두 쪽인데, 둘 다 여전히 쉐입은 예뻐 보여. 문제는 한때 너무 많이 보여서 지금 사면 “좀 늦은 감”이 드는지, 아니면 오히려 유행 지나고 나서 더 담백하게 들 수 있는지야. 디자인 만족도랑 별개로 손이 자주 갈지도 고민 중.`,
+        comments: [
+          `${primaryName} 같은 보스턴 계열은 완전 끝난 느낌까진 아닌데, 확실히 예전처럼 신선하진 않음.`,
+          `${secondaryName}까지 같이 보면 브랜드 시그니처는 알겠는데, 지금 사는 사람은 유행보다 그냥 취향으로 사야 할 듯.`,
+          `${primary?.price}면 “트렌드템으로 한철”은 절대 아니고, 오히려 본인 옷장에 오래 붙는지부터 봐야 함.`,
+          `예쁜 건 맞는데 실제로 자주 드냐고 물으면 다들 잠깐 멈출 것 같아.`,
+          `나도 마지셔우드 백은 들면 예쁜데 손은 잘 안 가더라. 특히 포인트용이면 더 그래.`,
+          `${primary?.source}나 ${secondary?.source}에서 보이는 제품컷은 여전히 예쁜데, 실생활 착장에선 존재감이 애매할 수 있음.`,
+          `완전 지난 건 아닌데 “지금 이걸 꼭?”이라는 질문엔 답이 갈릴 듯.`,
+          `ㄴ 맞음. 유행보다 취향이면 사도 되는데, 트렌드 기대하고 사면 늦었다고 느낄 수 있음.`,
+        ],
+      };
+    case "T12":
+      return {
+        feedLine: `${primaryName} / ${secondaryName} 기준으로, 제품컷 환상과 실제 체형 만족도가 얼마나 다른지 묻는 원피스 구매 스레드.`,
+        detailLead: `${post.hook}\n레퍼런스는 ${primaryName} (${primary?.price})랑 동일 제품 국내 페이지인 ${secondaryName} 쪽까지 같이 봤어. 제품컷에서는 드레이프랑 라인이 진짜 예쁜데, 실착 얘기 보면 허리나 어깨가 조금만 안 맞아도 갑자기 평범해진다는 말이 있더라. 그래서 이건 “사진 그대로 예쁜 옷”인지, 아니면 체형 맞는 사람만 만족도가 높은 옷인지가 궁금함.`,
+        comments: [
+          `${primaryName} 제품컷은 진짜 혹하게 생김. 근데 이런 건 체형 안 맞으면 바로 평범해져서 후기 갈리는 것도 이해돼.`,
+          `${secondaryName} 국내 페이지까지 같이 봐도 연출은 너무 좋은데, 실착은 어깨랑 허리 맞는 사람만 산다는 느낌이야.`,
+          `${primary?.price}면 원피스 한 벌에 기대치가 높아질 수밖에 없어서, 사진빨만 좋으면 더 실망 클 듯.`,
+          `브라이드앤유 쪽 특유의 예쁜 연출은 있는데 데일리 만족도랑은 또 다른 문제 같아.`,
+          `나도 이런 원피스류는 제품컷 보고 샀다가 내 몸에선 안 나온 적 많아서 조심하게 됨.`,
+          `${primary?.source} 기준으로는 굉장히 매끈한데, 실제 후기는 체형 타는 옷이라는 말이 나올 만함.`,
+          `사진 보고 기대한 만큼 실착이 안 나오면 “예쁜데 손 안 감”으로 가기 쉬운 가격대.`,
+          `ㄴ 맞아. 만족하는 사람은 엄청 만족하겠지만, 평균적으로는 체형 조건을 좀 탐.`,
+        ],
+      };
+    case "T13":
+      return {
+        feedLine: `${primaryName}와 ${secondaryName} 핏 기준으로, 렉토 팬츠 사이즈 1/2에서 허리보다 힙과 기장을 어떻게 볼지 묻는 스레드.`,
+        detailLead: `${post.hook}\n보고 있는 건 ${primaryName} (${primary?.price}) 기준인데, 후기들 보면 허리는 맞아도 힙이나 뒷부분 여유 때문에 한 사이즈 업하라는 말이 꽤 있더라. 반대로 ${secondaryName} 같은 와이드 쪽은 넉넉한데 내가 원하는 건 그 정도까지는 아니어서 더 애매해. 결국 허리 하나만 보고 갈지, 힙과 기장 때문에 한 업할지 의견 듣고 싶어.`,
+        comments: [
+          `${primaryName}는 허리만 맞는다고 끝나는 팬츠가 아니라서 사이즈 고민 이해됨. 힙이랑 기장 때문에 한 업 추천하는 사람 많을 듯.`,
+          `${secondaryName}까지 같이 보면 와이드 여유는 다른데, 네가 걱정하는 건 오히려 뒤에서 당기는 느낌 같아.`,
+          `${primary?.price} 생각하면 수선 전제보다 처음부터 편한 쪽으로 가는 게 낫지 않나 싶음.`,
+          `렉토 팬츠는 정면보다 옆/뒤에서 사이즈 티 나는 경우 많아서 허리만 믿고 가면 후회할 수도 있어.`,
+          `나였으면 2 사고 허리 잡는 쪽. 힙 불편한 팬츠는 손이 진짜 안 감.`,
+          `${primary?.source} 기준으로도 정교한 팬츠인 만큼 애매하면 작은 쪽보다 큰 쪽이 만족도 높을 것 같아.`,
+          `기장도 생각보다 중요해서, 한 업했을 때 떨어지는 선이 더 예쁠 가능성 큼.`,
+          `ㄴ 맞아. 허리는 고칠 수 있어도 힙이랑 여유 부족은 해결이 안 됨.`,
+        ],
+      };
+    case "T14":
+      return {
+        feedLine: `${primaryName} (${primary?.price}) 기준으로, COS 드롭숄더 셔츠가 상체를 부하게 만드는지 따지는 핏 질문.`,
+        detailLead: `${post.hook}\n지금 보는 기준은 ${primaryName} (${primary?.price})인데 설명상으로도 소재가 뻣뻣하고 어깨가 내려오는 타입이더라. 원래 COS 셔츠 특유의 낙낙함은 좋아하는데, 내가 원하는 건 “여리한 오버핏”이지 “상체가 커 보이는 셔츠”는 아니라서 고민됨. 드롭숄더 맛으로 입는 게 맞는지, 체형 따라 부해 보이는 쪽인지 궁금해.`,
+        comments: [
+          `${primaryName} 설명만 봐도 드롭숄더랑 밀도 있는 소재라 여리한 쪽보단 구조적인 핏에 가까워 보여.`,
+          `${primary?.price} 대비 셔츠 퀄은 괜찮아 보여도, 상체 부피 걱정하는 사람한텐 핏 자체가 장벽일 듯.`,
+          `COS 셔츠는 예쁘게 큰 게 아니라 진짜 커 보이는 경우가 있어서 질문 포인트가 너무 현실적임.`,
+          `어깨선 내려오는 위치가 체형이랑 안 맞으면 바로 부해 보여. 특히 상체 있는 편이면 더.`,
+          `나도 COS 셔츠 몇 번 입어봤는데 기대가 “여리한 오버핏”이면 보통 실망했어.`,
+          `${primary?.source} 기준 제품도 소재가 힘 있는 편이라 부피감은 더 살아날 것 같아.`,
+          `여리핏 기대하면 비추천이고, 아예 구조적인 셔츠로 입겠다면 괜찮은 타입.`,
+          `ㄴ 맞음. 이건 여리함보다 쿨한 실루엣 쪽으로 받아들여야 만족도 높을 듯.`,
+        ],
+      };
+    case "T16":
+      return {
+        feedLine: `${primaryName}` + ` / ${secondaryName} 기준으로, 르917 코트의 44/55 경계 사이즈에서 오버핏과 정핏 중 뭘 택할지 묻는 스레드.`,
+        detailLead: `${post.hook}\n레퍼런스는 ${primaryName} (${primary?.price})랑 ${secondaryName} (${secondary?.price}) 두 쪽을 같이 보고 있어. 둘 다 어깨가 있는 코트라 오버핏으로 가면 브랜드 무드는 잘 살 것 같은데, 내 체형에서는 오히려 상체가 더 커 보일까 봐 걱정돼. 그래서 이 브랜드는 애매한 사이즈면 진짜 한 사이즈 크게 가야 예쁜지, 아니면 정핏이 더 낫는지 경험담이 필요함.`,
+        comments: [
+          `${primaryName} 같은 코트는 무드만 보면 크게 입고 싶어지는데, 실제론 애매한 체형에서 바로 부해질 수 있어.`,
+          `${secondaryName} 설명처럼 드롭숄더 결이 있으면 오버핏 갔을 때 생각보다 상체가 더 넓어 보일 것 같아.`,
+          `${primary?.price} / ${secondary?.price} 가격대면 코트는 만족도 오래 가야 해서, 무드보다 체형 맞는 쪽이 더 중요함.`,
+          `르917는 애매하면 정핏 추천하는 후기 종종 본 것 같아. 큰 쪽이 무조건 예쁜 브랜드는 아닌 느낌.`,
+          `나도 코트는 오버핏 고집하다가 사진보다 실착이 별로였던 적 많아서 이 고민 이해됨.`,
+          `${secondary?.source} 기준 front zipper coat도 벨트나 어깨 때문에 체형 영향 꽤 받을 듯.`,
+          `44/55 경계면 사이즈 하나 올리는 순간 갑자기 코트가 사람을 입는 느낌 날 수 있어.`,
+          `ㄴ 맞아. 이 브랜드는 애매하면 정핏으로 정리하는 쪽이 더 고급스럽게 남을 것 같아.`,
+        ],
+      };
+    case "T17":
+      return {
+        feedLine: `${primaryName}와 ${secondaryName} 정보 기준으로, 아모멘토 니트의 예쁨 대비 보풀/관리 이슈를 다루는 실착 후기 스레드.`,
+        detailLead: `${post.hook}\n산 건 ${primaryName} (${primary?.price}) 계열로 보고 있고, 비교하면서 같이 본 게 ${secondaryName} (${secondary?.price})였어. 처음 받았을 때는 질감이 진짜 예뻐서 만족했는데, 막상 몇 번 입으니까 소매랑 몸판에 사용감이 금방 올라오더라. 그래서 이 브랜드 니트는 “예쁜 대신 관리비 드는 옷”으로 받아들이면 맞는지, 아니면 내가 기대치를 너무 높게 잡은 건지 궁금함.`,
+        comments: [
+          `${primaryName} 예쁜 건 인정인데 ${primary?.price}면 세 번 입고 보풀 오는 순간 체감 확 식을 것 같아.`,
+          `${secondaryName} 같은 집업까지 같이 보면 브랜드가 전체적으로 텍스처는 잘 뽑는데 내구성 기대치는 조금 내려놔야 할 수도.`,
+          `니트류는 실착 만족도가 관리 난이도에 바로 묶여서, 이 정도 가격이면 더 예민하게 보게 됨.`,
+          `아모멘토는 “예쁜 대신 신경 써야 하는 옷”이라고 생각하면 맞는 것 같아.`,
+          `나도 비슷한 결 니트 샀다가 팔 안쪽 보풀 빨리 올라와서 손 덜 가게 되더라.`,
+          `${primary?.source} 기준 상품은 너무 예쁘게 보이는데, 실제론 마찰 많은 부위부터 바로 티 날 것 같음.`,
+          `브랜드 무드값은 충분한데 내구성까지 기대하면 아쉬움 남을 타입.`,
+          `ㄴ 맞아. 만족도는 높은데 관리비까지 같이 산 느낌.`,
+        ],
+      };
+    case "T18":
+      return {
+        feedLine: `${primaryName}와 ${secondaryName}를 같이 보고, 마지셔우드 백의 수납/입구 구조가 실사용에서 얼마나 불편한지 짚는 후기 스레드.`,
+        detailLead: `${post.hook}\n지금 기준으로 보는 건 ${primaryName} (${primary?.price})랑 ${secondaryName} (${secondary?.price})인데, 둘 다 들고 나가면 사진은 진짜 예뻐. 근데 실제로 써보면 입구가 좁고 안쪽이 생각보다 답답해서 카드지갑, 쿠션, 립 정도만 들어가도 손이 바빠지더라. 그래서 이건 디자인 만족도를 감수하고 들 만한지, 아니면 결국 데일리로는 멀어지는지 궁금함.`,
+        comments: [
+          `${primaryName}류가 딱 이런 타입 같아. 들었을 때는 예쁜데 입구 좁으면 바로 손 안 감.`,
+          `${secondaryName}도 같이 보면 브랜드가 추구하는 쉐입은 확실한데, 그만큼 수납은 늘 타협해야 하는 느낌.`,
+          `${primary?.price} / ${secondary?.price} 생각하면 디자인값은 충분하지만 실사용 질문엔 다들 조심스러울 듯.`,
+          `가방은 예쁘기만 하면 안 되고 물건 꺼낼 때 안 짜증나야 손이 가는데, 이건 그 지점이 약해 보여.`,
+          `나도 이런 미니백류는 초반 만족도 높다가도 결국 데일리에서 밀리더라.`,
+          `${primary?.source} 제품컷만 보면 모르는데, 실제 후기는 내부 구조 얘기 꼭 나오게 되어 있음.`,
+          `사진용 만족도는 높아도 데일리 질문엔 애매하다는 말 나올 만한 가방.`,
+          `ㄴ 맞아. 예쁜데 자주 들지는 않는 대표 케이스.`,
+        ],
+      };
+    default:
+      return null;
+  }
+}
+
 function buildFeedPost(topic, index) {
   const image = IMAGE_POOL[index % IMAGE_POOL.length];
   const likes = 140 + seededNumber(topic.id, 700);
@@ -501,10 +706,15 @@ function buildFeedPost(topic, index) {
     "mood.and.fit",
     "womenfit.archive",
   ][index % 5];
+  const sources = (TOPIC_SOURCES[topic.id] || []).map((key) => SOURCE_LIBRARY[key]);
+  const rewrite = buildPriorityThreadRewrite({ ...topic, sources });
 
   return {
     ...topic,
-    sources: (TOPIC_SOURCES[topic.id] || []).map((key) => SOURCE_LIBRARY[key]),
+    sources,
+    detailLead: rewrite?.detailLead || topic.hook,
+    sourceFeedLine: rewrite?.feedLine || null,
+    isPriorityThread: PRIORITY_THREAD_IDS.has(topic.id),
     author,
     handle: `@${author}`,
     time,
@@ -528,18 +738,23 @@ function authorInitials(author) {
 }
 
 function buildThreadSummary(post) {
+  const sourceLine =
+    post.sources.length > 0
+      ? `근거 출처는 ${post.sources.map((source) => `${shortenTitle(source.title)} (${source.price})`).join(" / ")}.`
+      : "근거 출처 연결 없음.";
+
   return [
     {
       title: "Overall sentiment",
-      content: `${TYPE_LABEL[post.type]} 성격의 스레드로 읽히며, 전체 반응은 "${post.expected}" 쪽으로 수렴한다.`,
+      content: `${TYPE_LABEL[post.type]} 성격의 스레드로 읽히며, 전체 반응은 "${post.expected}" 쪽으로 수렴한다. ${sourceLine}`,
     },
     {
       title: "Top repeated opinions",
-      content: `1. ${post.debate.split(",")[0]} 이 제일 많이 지적됨.\n2. ${post.brands.join(", ")} 특유의 무드 대비 실제 만족도를 따지는 반응이 많음.\n3. 칭찬보다 수정 조언형 댓글 비중이 높음.`,
+      content: `1. ${post.debate.split(",")[0]} 이 제일 많이 지적됨.\n2. ${post.brands.join(", ")} 특유의 무드 대비 실제 만족도를 따지는 반응이 많음.\n3. ${post.sources[0] ? `${shortenTitle(post.sources[0].title)} 기준 가격/정보가 댓글 판단 근거로 반복됨.` : "칭찬보다 수정 조언형 댓글 비중이 높음."}`,
     },
     {
       title: "Actionable styling suggestions",
-      content: `1. ${post.debate.split(",")[0]} 중심으로 다시 보정하기.\n2. ${post.debate.split(",")[1] || "이너 톤"} 쪽을 한 단계 더 정리하기.\n3. 구매/착용 의사결정은 "${post.expected}" 기준으로 좁히기.`,
+      content: `1. ${post.debate.split(",")[0]} 중심으로 다시 보정하기.\n2. ${post.debate.split(",")[1] || "이너 톤"} 쪽을 한 단계 더 정리하기.\n3. 구매/착용 의사결정은 "${post.expected}" 기준으로 좁히고, ${post.sources[0] ? `${post.sources[0].source} 기준 정보까지 함께 보기.` : "추가 출처 확보하기."}`,
     },
   ];
 }
@@ -547,6 +762,22 @@ function buildThreadSummary(post) {
 function buildComments(post) {
   const baseLikes = seededNumber(post.id, 18, 6);
   const [p1, p2 = "가격값", p3 = "무드"] = post.debate.split(",").map((item) => item.trim());
+  const rewrite = buildPriorityThreadRewrite(post);
+
+  if (rewrite?.comments) {
+    return rewrite.comments.map((text, index) => ({
+      id: `${post.id}-${index + 1}`,
+      user: COMMENT_PERSONAS[index].user,
+      handle: COMMENT_PERSONAS[index].handle,
+      avatar: COMMENT_PERSONAS[index].avatar,
+      time: ["1m", "58s", "54s", "49s", "44s", "40s", "36s", "31s"][index],
+      text,
+      likes: [baseLikes + 16, baseLikes + 9, baseLikes + 4, baseLikes + 7, baseLikes + 12, baseLikes + 8, baseLikes + 3, baseLikes + 2][index],
+      type: COMMENT_PERSONAS[index].type,
+      replyTo: index === 7 ? `${post.id}-7` : null,
+      liked: index === 1,
+    }));
+  }
 
   return [
     {
@@ -945,9 +1176,22 @@ export default function FashionThreadPage() {
 
                       <p className="mt-3 text-[15px] font-medium leading-6 text-zinc-100">{post.title}</p>
                       <p className="mt-1 text-[15px] leading-6 text-zinc-300">{post.hook}</p>
+                      {post.sourceFeedLine && <p className="mt-2 text-sm leading-6 text-zinc-500">{post.sourceFeedLine}</p>}
 
                       <div className="mt-3 grid grid-cols-[1fr_auto] gap-3">
                         <div className="min-w-0">
+                          {post.sources.length > 0 && (
+                            <div className="mb-3 flex flex-wrap gap-2">
+                              {post.sources.map((source) => (
+                                <span
+                                  key={`${post.id}-${source.title}`}
+                                  className="rounded-full border border-zinc-800 bg-black px-3 py-1 text-xs text-zinc-400"
+                                >
+                                  Ref: {shortenTitle(source.title)}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                           <div className="flex flex-wrap gap-2">
                             {post.sampleReplies.map((reply) => (
                               <span
@@ -1014,7 +1258,7 @@ export default function FashionThreadPage() {
 
                     <p className="mt-3 text-lg font-semibold leading-7 text-zinc-100">{activePost.title}</p>
                     <p className="mt-2 whitespace-pre-line text-[15px] leading-6 text-zinc-100">
-                      {activePost.hook}
+                      {activePost.detailLead}
                     </p>
 
                     <div className="mt-4 overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900">
