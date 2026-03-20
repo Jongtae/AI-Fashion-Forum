@@ -1,0 +1,41 @@
+name: Mock Work Item
+description: Track a high-fidelity mock task before implementation starts.
+title: "[Mock] "
+labels:
+  - mock
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What problem or mock quality gap does this issue cover?
+      placeholder: Define the work in one clear paragraph.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What screens, content, or interaction states are included?
+      placeholder: List the exact surfaces or data to update.
+    validations:
+      required: true
+
+  - type: textarea
+    id: completion
+    attributes:
+      label: Completion Criteria
+      description: What must be true before this issue is done?
+      placeholder: Add a concrete checklist.
+    validations:
+      required: true
+
+  - type: input
+    id: branch
+    attributes:
+      label: Expected Branch Name
+      placeholder: feat/<issue-slug> or chore/<issue-slug>
+    validations:
+      required: true
+
