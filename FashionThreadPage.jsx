@@ -3,8 +3,6 @@ import {
   ArrowLeft,
   BadgeCheck,
   Bookmark,
-  ChevronDown,
-  Compass,
   Heart,
   Home,
   MessageCircle,
@@ -15,42 +13,6 @@ import {
   User,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-
-export const PROMPT_USED = `Finalize first 20 high-fidelity mock topics for AI Fashion Forum
-
-Goal:
-Create a high-fidelity mock feed and thread set that feels like a real domestic/minimal fashion community product.
-
-Mock direction:
-- domestic / minimal-heavy
-- higher female user ratio
-- real brand names used actively
-- focus on core social thread scene types
-
-Core scene types:
-- 오늘 내 코디 어떤지 봐줘
-- 이 제품 살지 말지
-- 사이즈/핏 도움 요청
-- 실착해보니 생각과 달랐던 후기
-- 무드/분위기는 좋은데 어딘가 어색한 코디
-
-Brand set:
-RECTO, AMOMENTO, LOW CLASSIC, LE 17 SEPTEMBRE, MARGE SHERWOOD,
-AND YOU, COS, INSILENCE WOMEN, THEOPEN PRODUCT
-
-Comment rules:
-- not overly polished
-- more correction advice, price-value judgment, real usage reflection
-- repeated signals:
-  - pants fit
-  - inner tone
-  - jacket length
-  - shoulder line
-  - price value
-  - material feel
-  - product photo vs real wear gap
-  - brand mood vs real satisfaction
-`;
 
 const IMAGE_POOL = [
   "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
@@ -68,6 +30,35 @@ const TYPE_LABEL = {
   size: "사이즈/핏 도움 요청",
   review: "실착해보니 생각과 달랐던 후기",
 };
+
+const SEARCH_RECENTS = [
+  "렉토 팬츠",
+  "팬츠 기장",
+  "아모멘토 셔츠",
+  "출근룩",
+  "실물 어때",
+];
+
+const SEARCH_TRENDING = [
+  "성수에서 많이 보이는 가방",
+  "가격값 하는 블레이저",
+  "셔츠 부해보임",
+  "29CM 저장 많은 원피스",
+  "봄 출근룩",
+];
+
+const SEARCH_SUGGESTED_BRANDS = [
+  { name: "RECTO", note: "팬츠 핏 / 가격값 / 출근룩" },
+  { name: "AMOMENTO", note: "셔츠 / 니트 / 실물 체감" },
+  { name: "LOW CLASSIC", note: "블레이저 / 셔츠 / 활용도" },
+  { name: "MARGE SHERWOOD", note: "가방 / 유행 피로감 / 실사용성" },
+];
+
+const SEARCH_COLLECTIONS = [
+  { title: "출근 전에 많이 저장된 글", subtitle: "핏 수정 조언형 스레드 중심" },
+  { title: "성수에서 본 브랜드 얘기", subtitle: "도메스틱 / 가방 / 스니커즈 흐름" },
+  { title: "실물 만족도 갈리는 아이템", subtitle: "제품컷 환상 vs 실제 착용" },
+];
 
 const TOPICS = [
   {
@@ -471,6 +462,8 @@ const TOPIC_SOURCES = {
   T20: ["cos_knit", "cos_wool_trouser"],
 };
 
+const PRIORITY_THREAD_IDS = new Set(["T01", "T03", "T05", "T08", "T09", "T10", "T12", "T13", "T14", "T16", "T17", "T18"]);
+
 const COMMENT_PERSONAS = [
   { user: "min_archive", handle: "@min.archive", avatar: "MA", type: "Reactor" },
   { user: "fit_jina", handle: "@fit.jina", avatar: "FJ", type: "Practical Reviewer" },
@@ -493,47 +486,202 @@ function shortenTitle(title) {
     .replace(/^BRIDE AND YOU\s+/i, "")
     .replace(/^Marge Sherwood\s+/i, "")
     .replace(/^LE 17 SEPTEMBRE\s+/i, "")
+    .replace(/^Le 17 Septembre\s+/i, "")
     .replace(/^LOW CLASSIC\s+/i, "")
     .replace(/^AMOMENTO\s+/i, "")
     .replace(/^COS\s+/i, "")
     .trim();
 }
 
-function buildSourceNarrative(topic, sources) {
-  if (sources.length === 0) {
-    return {
-      feedLine: "실제 출처 연결이 없는 임시 mock.",
-      detailLead: topic.hook,
-      imageAudit: "이미지-소스 매칭 검토 전 단계.",
-    };
+function buildPriorityThreadRewrite(post) {
+  const [primary, secondary] = post.sources;
+  const primaryName = primary ? shortenTitle(primary.title) : post.brands[0];
+  const secondaryName = secondary ? shortenTitle(secondary.title) : post.brands[0];
+
+  switch (post.id) {
+    case "T01":
+      return {
+        feedLine: `${primaryName} 무드로 자켓 비율을 잡고, ${secondaryName} (${secondary?.price}) 기준 팬츠 길이 체감을 붙인 출근룩 고민.`,
+        detailLead: `${post.hook}\n지금은 ${primaryName} 쪽으로 어깨선이랑 상체 무드를 맞추고, 하의는 ${secondaryName} (${secondary?.price}) 같은 크롭 와이드 기준으로 보고 있어. 문제는 상체보다 팬츠 길이가 더 먼저 보여서 로퍼 위에서 발목이 끊겨 보인다는 점이고, 그래서 전체는 멀쩡한데 출근룩 비율만 살짝 아쉬운 상태.`,
+        comments: [
+          `${primaryName} 무드 자체는 맞는데 댓글 포인트가 왜 팬츠 길이에 몰리는지 알겠음. ${secondaryName}처럼 크롭감 있는 팬츠 기준이면 로퍼 위에서 더 끊겨 보여.`,
+          `${secondaryName}가 ${secondary?.price}라 기본 핏 기대치는 있는데도 지금 착장에선 발목 노출이 애매해서 신발까지 같이 짧아 보여.`,
+          `${primary?.source} 쪽 자켓 느낌은 잘 살아. 근데 하의가 그 무드를 못 받쳐줘서 출근룩 완성도가 덜 나오는 듯.`,
+          `이런 건 상체보다 하단 비율이 먼저 읽혀서, 팬츠 2~3cm만 길어도 훨씬 정리될 것 같아.`,
+          `나도 비슷하게 입었을 때 ${secondaryName}류 팬츠는 로퍼보다 스니커즈나 더 낮은 앞코 신발이 낫더라.`,
+          `가격 생각하면 ${secondaryName} 쪽은 핏에서 본전 느낌이 있어야 하는데 지금은 길이 때문에 그 장점이 묻힘.`,
+          `${post.brands.join(" / ")} 조합 자체는 되게 현실적인데, 댓글이 “전체는 괜찮은데 하단이 끊긴다”로 모일 만한 셋업임.`,
+          `ㄴ 맞아. 자켓 문제보다 팬츠-슈즈 경계가 먼저 보여서 실착 만족도가 깎이는 타입.`,
+        ],
+      };
+    case "T03":
+      return {
+        feedLine: `${primaryName} 니트 무드에 ${secondaryName} 같은 미니멀 액세서리 기준을 붙여서, 심심함 vs 세련됨을 따지는 올블랙 스레드.`,
+        detailLead: `${post.hook}\n상체는 ${primaryName} (${primary?.price})처럼 텍스처가 있는 블랙 니트 쪽으로 보고 있고, 포인트는 ${secondaryName}처럼 작게 들어가는 쪽이 맞나 고민 중이야. 올블랙이라 정리는 되는데 막상 실착으로 보면 가방이나 벨트 하나 없이 끝나서 너무 안전하게만 보이는지, 아니면 이 정도가 제일 세련된지 의견 듣고 싶음.`,
+        comments: [
+          `${primaryName} 같은 니트는 소재감으로 먹는 타입이라 아예 심심하진 않은데, 지금은 포인트가 너무 안 보여서 “잘 입었다”보다 “안전하다” 쪽으로 읽힘.`,
+          `${secondaryName} 같은 가방 하나만 들어가도 달라질 듯. 올블랙은 디테일 하나가 있고 없고 차이가 커.`,
+          `${primary?.price} 생각하면 니트 존재감은 충분한 편인데, 하의까지 무광 블랙이면 힘이 다 눌려 보여.`,
+          `무채색 미니멀 좋아하는 사람은 좋아할 룩인데 댓글에선 아마 “신발이나 가방 하나만 바꿔라” 얘기 반복될 듯.`,
+          `나도 ${post.brands[0]} 니트류는 단독으로 예쁜데 실착 사진 보면 악세서리 없으면 바로 밋밋해지더라.`,
+          `${secondary?.source} 쪽 백처럼 작게 반짝이는 포인트 하나 있으면 올블랙이 훨씬 산다.`,
+          `브랜드 무드는 잘 맞췄는데 지금 상태는 너무 정답처럼만 입은 느낌. 그래서 호불호 없이 그냥 지나갈 수 있음.`,
+          `ㄴ 맞음. 실패는 없는데 기억에 남는 포인트도 없는 쪽.`,
+        ],
+      };
+    case "T05":
+      return {
+        feedLine: `${primaryName} 팬츠 무드와 ${secondaryName} 액세서리 감도는 맞는데, 신발 선택 때문에 저장룩과 실착이 갈리는 케이스.`,
+        detailLead: `${post.hook}\n셔츠-롱스커트 쪽 무드는 계속 저장하던 결인데, 실제로 입어보니 ${primaryName}처럼 아래 볼륨이 있는 하체 라인을 가져갈수록 신발 영향이 더 크더라. 가방은 ${secondaryName} 쪽 무드로 잘 붙는데 로퍼가 들어오면서 밑에서 힘이 갑자기 무거워져서, 내가 생각한 미니멀한 흐름보다 더 답답하게 보이는지 궁금해.`,
+        comments: [
+          `이건 위보다 아래가 문제인 룩 같아. ${primaryName}처럼 하체 볼륨이 있는 무드일수록 로퍼가 들어오면 밑에서 확 막혀 보여.`,
+          `${secondaryName} 같은 가방 포인트는 잘 붙는데, 신발까지 광택 있는 쪽이면 저장룩 느낌이 아니라 과하게 힘준 느낌 남.`,
+          `실제로는 셔츠-롱스커트보다 신발이 제일 먼저 보여서 댓글이 다 거기로 몰릴 듯.`,
+          `${primary?.source} 기준 팬츠류 무드는 좋은데 지금 착장 해석은 너무 무거워. 차라리 메리제인이나 스니커즈가 더 맞았을 것 같아.`,
+          `나도 이런 룩 저장 많이 하는데 막상 입으면 밑에서 뜨는 이유가 거의 신발이더라.`,
+          `${secondary?.price} 가방까지 들어간 룩이면 신발은 오히려 힘을 빼야 균형이 맞는 듯.`,
+          `전체 무드는 있는데 실착 만족도가 떨어지는 전형적인 경우라 너무 현실적임.`,
+          `ㄴ 맞아. 상의보다 하체 무게감이 과해져서 저장한 이미지랑 다른 느낌이 남.`,
+        ],
+      };
+    case "T08":
+      return {
+        feedLine: `${primaryName} (${primary?.price}) 기준으로 원단/어깨선/브랜드값을 따지는 구매 고민 스레드.`,
+        detailLead: `${post.hook}\n찾아본 기준은 ${primary?.title}이고 가격은 ${primary?.price}. 제품 설명만 보면 crisp cotton이랑 박시한 어깨선 때문에 “기본 셔츠인데 확실히 다르다” 쪽으로 읽히는데, 막상 실착 후기 쪽은 이 가격이면 브랜드값도 꽤 들어간다는 얘기가 많더라. 진짜로 오래 입을 셔츠인지, 아니면 첫 인상만 좋은 셔츠인지가 제일 궁금함.`,
+        comments: [
+          `${primaryName}가 예쁜 건 맞는데 ${primary?.price}면 다들 원단 체감부터 따질 수밖에 없음. 그냥 “예쁘다”로 끝내기엔 가격대가 높아.`,
+          `${primary?.note} 이 설명만 보면 혹하는데, 실착 쪽은 어깨가 생각보다 과하게 박시해서 호불호 나뉠 듯.`,
+          `AMOMENTO 셔츠류 좋아하면 사는 이유는 이해돼도 가성비로 설득되진 않음.`,
+          `대체 가능한 셔츠 많아서 고민되는 거 완전 공감. 결국 핏 취향 맞는 사람이면 사고 아니면 브랜드값이라고 느낄 듯.`,
+          `나도 이 브랜드 탑류 몇 개 봤는데 제품컷은 늘 예쁨. 근데 실제로는 어깨선 때문에 “생각보다 과하다”는 말 나올 만해.`,
+          `${primary?.source} 기준 현재 노출 상품이면 시즌 지나도 비슷한 결 다시 나올 가능성 있어서, 급하게 살 이유는 또 애매함.`,
+          `20만원대면 그냥 무난한 셔츠 말고 “이건 아모멘토라서 산다”가 있어야 하는데 그 지점이 사람마다 다를 듯.`,
+          `ㄴ 맞음. 좋아하는 사람은 바로 알겠지만, 모르는 사람은 가격 보고 먼저 멈칫할 셔츠.`,
+        ],
+      };
+    case "T09":
+      return {
+        feedLine: `${primaryName}와 ${secondaryName} 가격/핏 체감을 같이 놓고, 렉토 팬츠 프리미엄이 실제로 느껴지는지 비교하는 스레드.`,
+        detailLead: `${post.hook}\n지금 비교 기준은 ${primaryName} (${primary?.price})랑 ${secondaryName} (${secondary?.price}) 쪽이야. 제품 정보만 보면 렉토 쪽이 확실히 더 정교해 보이는데, 결국 팬츠는 입었을 때 다리선이 어떻게 떨어지는지가 다라서 가격 차이가 체감될 정도인지 헷갈림. 옷 좋아하는 사람 눈에는 차이가 보이겠지만, 실착에서 그 차이가 확실한지 듣고 싶어.`,
+        comments: [
+          `${primaryName}가 확실히 정제된 느낌은 있는데 ${primary?.price}까지 감안하면 “한 벌로 시즌 끝난다”까지는 조금 과장 같아.`,
+          `${secondaryName}랑 나란히 놓고 보면 핏 차이는 있는데, 가성비는 오히려 COS 쪽 손 들어줄 사람 많을 듯.`,
+          `렉토 팬츠 좋아하는 사람은 턱이랑 떨어지는 선에서 돈값 느끼긴 함. 근데 일반적으로는 가격부터 장벽이 큼.`,
+          `${primary?.source} 쪽 제품이면 도메스틱 팬츠 좋아하는 사람 눈엔 차이 보여도, 아닌 사람은 그냥 잘 만든 검정 슬랙스로 볼 가능성 큼.`,
+          `나도 이런 류 팬츠 살 때 결국 실착 핏 때문에 사지 제품 설명 때문에 사지는 않더라.`,
+          `${secondary?.price} 생각하면 비교군이 너무 만만하지 않아서, 렉토 프리미엄이 더 냉정하게 보이는 것 같아.`,
+          `브랜드 만족도는 렉토가 높을 수 있는데 가성비 질문엔 다들 애매하다고 답할 듯.`,
+          `ㄴ 맞아. 아는 사람은 아는데 모르는 사람한텐 설명하기 어려운 가격대.`,
+        ],
+      };
+    case "T10":
+      return {
+        feedLine: `${primaryName}와 ${secondaryName}를 같이 보고, 마지셔우드 백이 지금 사기엔 늦었는지 실사용성까지 따지는 스레드.`,
+        detailLead: `${post.hook}\n찾아본 건 ${primaryName} (${primary?.price})랑 ${secondaryName} (${secondary?.price}) 두 쪽인데, 둘 다 여전히 쉐입은 예뻐 보여. 문제는 한때 너무 많이 보여서 지금 사면 “좀 늦은 감”이 드는지, 아니면 오히려 유행 지나고 나서 더 담백하게 들 수 있는지야. 디자인 만족도랑 별개로 손이 자주 갈지도 고민 중.`,
+        comments: [
+          `${primaryName} 같은 보스턴 계열은 완전 끝난 느낌까진 아닌데, 확실히 예전처럼 신선하진 않음.`,
+          `${secondaryName}까지 같이 보면 브랜드 시그니처는 알겠는데, 지금 사는 사람은 유행보다 그냥 취향으로 사야 할 듯.`,
+          `${primary?.price}면 “트렌드템으로 한철”은 절대 아니고, 오히려 본인 옷장에 오래 붙는지부터 봐야 함.`,
+          `예쁜 건 맞는데 실제로 자주 드냐고 물으면 다들 잠깐 멈출 것 같아.`,
+          `나도 마지셔우드 백은 들면 예쁜데 손은 잘 안 가더라. 특히 포인트용이면 더 그래.`,
+          `${primary?.source}나 ${secondary?.source}에서 보이는 제품컷은 여전히 예쁜데, 실생활 착장에선 존재감이 애매할 수 있음.`,
+          `완전 지난 건 아닌데 “지금 이걸 꼭?”이라는 질문엔 답이 갈릴 듯.`,
+          `ㄴ 맞음. 유행보다 취향이면 사도 되는데, 트렌드 기대하고 사면 늦었다고 느낄 수 있음.`,
+        ],
+      };
+    case "T12":
+      return {
+        feedLine: `${primaryName} / ${secondaryName} 기준으로, 제품컷 환상과 실제 체형 만족도가 얼마나 다른지 묻는 원피스 구매 스레드.`,
+        detailLead: `${post.hook}\n레퍼런스는 ${primaryName} (${primary?.price})랑 동일 제품 국내 페이지인 ${secondaryName} 쪽까지 같이 봤어. 제품컷에서는 드레이프랑 라인이 진짜 예쁜데, 실착 얘기 보면 허리나 어깨가 조금만 안 맞아도 갑자기 평범해진다는 말이 있더라. 그래서 이건 “사진 그대로 예쁜 옷”인지, 아니면 체형 맞는 사람만 만족도가 높은 옷인지가 궁금함.`,
+        comments: [
+          `${primaryName} 제품컷은 진짜 혹하게 생김. 근데 이런 건 체형 안 맞으면 바로 평범해져서 후기 갈리는 것도 이해돼.`,
+          `${secondaryName} 국내 페이지까지 같이 봐도 연출은 너무 좋은데, 실착은 어깨랑 허리 맞는 사람만 산다는 느낌이야.`,
+          `${primary?.price}면 원피스 한 벌에 기대치가 높아질 수밖에 없어서, 사진빨만 좋으면 더 실망 클 듯.`,
+          `브라이드앤유 쪽 특유의 예쁜 연출은 있는데 데일리 만족도랑은 또 다른 문제 같아.`,
+          `나도 이런 원피스류는 제품컷 보고 샀다가 내 몸에선 안 나온 적 많아서 조심하게 됨.`,
+          `${primary?.source} 기준으로는 굉장히 매끈한데, 실제 후기는 체형 타는 옷이라는 말이 나올 만함.`,
+          `사진 보고 기대한 만큼 실착이 안 나오면 “예쁜데 손 안 감”으로 가기 쉬운 가격대.`,
+          `ㄴ 맞아. 만족하는 사람은 엄청 만족하겠지만, 평균적으로는 체형 조건을 좀 탐.`,
+        ],
+      };
+    case "T13":
+      return {
+        feedLine: `${primaryName}와 ${secondaryName} 핏 기준으로, 렉토 팬츠 사이즈 1/2에서 허리보다 힙과 기장을 어떻게 볼지 묻는 스레드.`,
+        detailLead: `${post.hook}\n보고 있는 건 ${primaryName} (${primary?.price}) 기준인데, 후기들 보면 허리는 맞아도 힙이나 뒷부분 여유 때문에 한 사이즈 업하라는 말이 꽤 있더라. 반대로 ${secondaryName} 같은 와이드 쪽은 넉넉한데 내가 원하는 건 그 정도까지는 아니어서 더 애매해. 결국 허리 하나만 보고 갈지, 힙과 기장 때문에 한 업할지 의견 듣고 싶어.`,
+        comments: [
+          `${primaryName}는 허리만 맞는다고 끝나는 팬츠가 아니라서 사이즈 고민 이해됨. 힙이랑 기장 때문에 한 업 추천하는 사람 많을 듯.`,
+          `${secondaryName}까지 같이 보면 와이드 여유는 다른데, 네가 걱정하는 건 오히려 뒤에서 당기는 느낌 같아.`,
+          `${primary?.price} 생각하면 수선 전제보다 처음부터 편한 쪽으로 가는 게 낫지 않나 싶음.`,
+          `렉토 팬츠는 정면보다 옆/뒤에서 사이즈 티 나는 경우 많아서 허리만 믿고 가면 후회할 수도 있어.`,
+          `나였으면 2 사고 허리 잡는 쪽. 힙 불편한 팬츠는 손이 진짜 안 감.`,
+          `${primary?.source} 기준으로도 정교한 팬츠인 만큼 애매하면 작은 쪽보다 큰 쪽이 만족도 높을 것 같아.`,
+          `기장도 생각보다 중요해서, 한 업했을 때 떨어지는 선이 더 예쁠 가능성 큼.`,
+          `ㄴ 맞아. 허리는 고칠 수 있어도 힙이랑 여유 부족은 해결이 안 됨.`,
+        ],
+      };
+    case "T14":
+      return {
+        feedLine: `${primaryName} (${primary?.price}) 기준으로, COS 드롭숄더 셔츠가 상체를 부하게 만드는지 따지는 핏 질문.`,
+        detailLead: `${post.hook}\n지금 보는 기준은 ${primaryName} (${primary?.price})인데 설명상으로도 소재가 뻣뻣하고 어깨가 내려오는 타입이더라. 원래 COS 셔츠 특유의 낙낙함은 좋아하는데, 내가 원하는 건 “여리한 오버핏”이지 “상체가 커 보이는 셔츠”는 아니라서 고민됨. 드롭숄더 맛으로 입는 게 맞는지, 체형 따라 부해 보이는 쪽인지 궁금해.`,
+        comments: [
+          `${primaryName} 설명만 봐도 드롭숄더랑 밀도 있는 소재라 여리한 쪽보단 구조적인 핏에 가까워 보여.`,
+          `${primary?.price} 대비 셔츠 퀄은 괜찮아 보여도, 상체 부피 걱정하는 사람한텐 핏 자체가 장벽일 듯.`,
+          `COS 셔츠는 예쁘게 큰 게 아니라 진짜 커 보이는 경우가 있어서 질문 포인트가 너무 현실적임.`,
+          `어깨선 내려오는 위치가 체형이랑 안 맞으면 바로 부해 보여. 특히 상체 있는 편이면 더.`,
+          `나도 COS 셔츠 몇 번 입어봤는데 기대가 “여리한 오버핏”이면 보통 실망했어.`,
+          `${primary?.source} 기준 제품도 소재가 힘 있는 편이라 부피감은 더 살아날 것 같아.`,
+          `여리핏 기대하면 비추천이고, 아예 구조적인 셔츠로 입겠다면 괜찮은 타입.`,
+          `ㄴ 맞음. 이건 여리함보다 쿨한 실루엣 쪽으로 받아들여야 만족도 높을 듯.`,
+        ],
+      };
+    case "T16":
+      return {
+        feedLine: `${primaryName}` + ` / ${secondaryName} 기준으로, 르917 코트의 44/55 경계 사이즈에서 오버핏과 정핏 중 뭘 택할지 묻는 스레드.`,
+        detailLead: `${post.hook}\n레퍼런스는 ${primaryName} (${primary?.price})랑 ${secondaryName} (${secondary?.price}) 두 쪽을 같이 보고 있어. 둘 다 어깨가 있는 코트라 오버핏으로 가면 브랜드 무드는 잘 살 것 같은데, 내 체형에서는 오히려 상체가 더 커 보일까 봐 걱정돼. 그래서 이 브랜드는 애매한 사이즈면 진짜 한 사이즈 크게 가야 예쁜지, 아니면 정핏이 더 낫는지 경험담이 필요함.`,
+        comments: [
+          `${primaryName} 같은 코트는 무드만 보면 크게 입고 싶어지는데, 실제론 애매한 체형에서 바로 부해질 수 있어.`,
+          `${secondaryName} 설명처럼 드롭숄더 결이 있으면 오버핏 갔을 때 생각보다 상체가 더 넓어 보일 것 같아.`,
+          `${primary?.price} / ${secondary?.price} 가격대면 코트는 만족도 오래 가야 해서, 무드보다 체형 맞는 쪽이 더 중요함.`,
+          `르917는 애매하면 정핏 추천하는 후기 종종 본 것 같아. 큰 쪽이 무조건 예쁜 브랜드는 아닌 느낌.`,
+          `나도 코트는 오버핏 고집하다가 사진보다 실착이 별로였던 적 많아서 이 고민 이해됨.`,
+          `${secondary?.source} 기준 front zipper coat도 벨트나 어깨 때문에 체형 영향 꽤 받을 듯.`,
+          `44/55 경계면 사이즈 하나 올리는 순간 갑자기 코트가 사람을 입는 느낌 날 수 있어.`,
+          `ㄴ 맞아. 이 브랜드는 애매하면 정핏으로 정리하는 쪽이 더 고급스럽게 남을 것 같아.`,
+        ],
+      };
+    case "T17":
+      return {
+        feedLine: `${primaryName}와 ${secondaryName} 정보 기준으로, 아모멘토 니트의 예쁨 대비 보풀/관리 이슈를 다루는 실착 후기 스레드.`,
+        detailLead: `${post.hook}\n산 건 ${primaryName} (${primary?.price}) 계열로 보고 있고, 비교하면서 같이 본 게 ${secondaryName} (${secondary?.price})였어. 처음 받았을 때는 질감이 진짜 예뻐서 만족했는데, 막상 몇 번 입으니까 소매랑 몸판에 사용감이 금방 올라오더라. 그래서 이 브랜드 니트는 “예쁜 대신 관리비 드는 옷”으로 받아들이면 맞는지, 아니면 내가 기대치를 너무 높게 잡은 건지 궁금함.`,
+        comments: [
+          `${primaryName} 예쁜 건 인정인데 ${primary?.price}면 세 번 입고 보풀 오는 순간 체감 확 식을 것 같아.`,
+          `${secondaryName} 같은 집업까지 같이 보면 브랜드가 전체적으로 텍스처는 잘 뽑는데 내구성 기대치는 조금 내려놔야 할 수도.`,
+          `니트류는 실착 만족도가 관리 난이도에 바로 묶여서, 이 정도 가격이면 더 예민하게 보게 됨.`,
+          `아모멘토는 “예쁜 대신 신경 써야 하는 옷”이라고 생각하면 맞는 것 같아.`,
+          `나도 비슷한 결 니트 샀다가 팔 안쪽 보풀 빨리 올라와서 손 덜 가게 되더라.`,
+          `${primary?.source} 기준 상품은 너무 예쁘게 보이는데, 실제론 마찰 많은 부위부터 바로 티 날 것 같음.`,
+          `브랜드 무드값은 충분한데 내구성까지 기대하면 아쉬움 남을 타입.`,
+          `ㄴ 맞아. 만족도는 높은데 관리비까지 같이 산 느낌.`,
+        ],
+      };
+    case "T18":
+      return {
+        feedLine: `${primaryName}와 ${secondaryName}를 같이 보고, 마지셔우드 백의 수납/입구 구조가 실사용에서 얼마나 불편한지 짚는 후기 스레드.`,
+        detailLead: `${post.hook}\n지금 기준으로 보는 건 ${primaryName} (${primary?.price})랑 ${secondaryName} (${secondary?.price})인데, 둘 다 들고 나가면 사진은 진짜 예뻐. 근데 실제로 써보면 입구가 좁고 안쪽이 생각보다 답답해서 카드지갑, 쿠션, 립 정도만 들어가도 손이 바빠지더라. 그래서 이건 디자인 만족도를 감수하고 들 만한지, 아니면 결국 데일리로는 멀어지는지 궁금함.`,
+        comments: [
+          `${primaryName}류가 딱 이런 타입 같아. 들었을 때는 예쁜데 입구 좁으면 바로 손 안 감.`,
+          `${secondaryName}도 같이 보면 브랜드가 추구하는 쉐입은 확실한데, 그만큼 수납은 늘 타협해야 하는 느낌.`,
+          `${primary?.price} / ${secondary?.price} 생각하면 디자인값은 충분하지만 실사용 질문엔 다들 조심스러울 듯.`,
+          `가방은 예쁘기만 하면 안 되고 물건 꺼낼 때 안 짜증나야 손이 가는데, 이건 그 지점이 약해 보여.`,
+          `나도 이런 미니백류는 초반 만족도 높다가도 결국 데일리에서 밀리더라.`,
+          `${primary?.source} 제품컷만 보면 모르는데, 실제 후기는 내부 구조 얘기 꼭 나오게 되어 있음.`,
+          `사진용 만족도는 높아도 데일리 질문엔 애매하다는 말 나올 만한 가방.`,
+          `ㄴ 맞아. 예쁜데 자주 들지는 않는 대표 케이스.`,
+        ],
+      };
+    default:
+      return null;
   }
-
-  const [primary, secondary] = sources;
-  const primaryName = shortenTitle(primary.title);
-  const compareLine = secondary
-    ? `${shortenTitle(secondary.title)}까지 같이 보면서 체감 차이를 따지는 흐름.`
-    : `${primary.source} 기준 정보만으로도 구매/핏 판단 포인트가 꽤 선명한 편.`;
-
-  return {
-    feedLine: `${primaryName} (${primary.price}) 기준으로 출처를 붙였고, ${compareLine}`,
-    detailLead: `${topic.hook} 참고한 1차 레퍼런스는 ${primary.title} (${primary.price})이고, ${secondary ? `${secondary.title}도 함께 보면서 비교 중.` : `${primary.note}`}`,
-    imageAudit: `현재 이미지는 분위기 mock 용 에디토리얼 컷이고, 실제 상품 컷 대체가 아니라 ${topic.tone} 무드를 전달하는 보조 이미지로 사용 중.`,
-  };
-}
-
-function buildImageAudit(topic, sources) {
-  if (sources.length === 0) {
-    return { status: "Needs source", note: "실제 제품 출처가 연결되기 전이라 이미지 적합성을 판단할 수 없음." };
-  }
-
-  const matchLevel = ["buy", "size", "review"].includes(topic.type) ? "Medium" : "Low";
-  return {
-    status: `${matchLevel} relevance`,
-    note:
-      matchLevel === "Medium"
-        ? "제품/핏 토픽이라 source card와의 연결은 충분하지만, 현재 이미지는 실제 상품 컷이 아니라서 최종 프로덕션 단계에서는 교체 여지가 있음."
-        : "코디 무드 중심 토픽이라 분위기 전달에는 맞지만, source item 자체를 보여주는 이미지는 아니라 참고성 visual로 보는 편이 안전함.",
-  };
 }
 
 function buildFeedPost(topic, index) {
@@ -550,12 +698,14 @@ function buildFeedPost(topic, index) {
     "womenfit.archive",
   ][index % 5];
   const sources = (TOPIC_SOURCES[topic.id] || []).map((key) => SOURCE_LIBRARY[key]);
-  const narrative = buildSourceNarrative(topic, sources);
-  const imageAudit = buildImageAudit(topic, sources);
+  const rewrite = buildPriorityThreadRewrite({ ...topic, sources });
 
   return {
     ...topic,
     sources,
+    detailLead: rewrite?.detailLead || topic.hook,
+    sourceFeedLine: rewrite?.feedLine || null,
+    isPriorityThread: PRIORITY_THREAD_IDS.has(topic.id),
     author,
     handle: `@${author}`,
     time,
@@ -563,15 +713,38 @@ function buildFeedPost(topic, index) {
     likes,
     replies,
     reposts,
-    detailLead: narrative.detailLead,
-    sourceFeedLine: narrative.feedLine,
-    imageAudit,
-    imageAuditLine: narrative.imageAudit,
     sampleReplies: [topic.expected, `${topic.debate.split(",")[0]} 얘기 많이 나올 듯`],
   };
 }
 
 const FEED_POSTS = TOPICS.map(buildFeedPost);
+
+const SEARCH_RESULT_POST_IDS = ["T09", "T08", "T13", "T01", "T12", "T10", "T14", "T17"];
+
+function buildSearchResult(post, index) {
+  const primary = post.sources[0];
+  const keywords = [post.brands[0], post.debate.split(",")[0]?.trim(), post.tone].filter(Boolean);
+
+  return {
+    id: post.id,
+    postId: post.id,
+    title: post.title,
+    hook: post.hook,
+    author: post.author,
+    handle: post.handle,
+    time: `${12 + index * 4}m`,
+    image: post.image,
+    likes: post.likes + 20,
+    replies: post.replies,
+    saves: 48 + seededNumber(`${post.id}-save`, 120),
+    keywords,
+    sourceLabel: primary ? `${shortenTitle(primary.title)} · ${primary.price}` : post.brands.join(" / "),
+  };
+}
+
+const SEARCH_RESULTS = SEARCH_RESULT_POST_IDS.map((id, index) =>
+  buildSearchResult(FEED_POSTS.find((post) => post.id === id), index),
+);
 
 function authorInitials(author) {
   return author
@@ -595,23 +768,42 @@ function buildThreadSummary(post) {
     },
     {
       title: "Top repeated opinions",
-      content: `1. ${post.debate.split(",")[0]} 이 제일 많이 지적됨.\n2. ${post.brands.join(", ")} 특유의 무드 대비 실제 만족도를 따지는 반응이 많음.\n3. ${post.sources[0] ? `${shortenTitle(post.sources[0].title)} 기준 가격/정보가 댓글의 판단 근거로 반복됨.` : "칭찬보다 수정 조언형 댓글 비중이 높음."}`,
+      content: `1. ${post.debate.split(",")[0]} 이 제일 많이 지적됨.\n2. ${post.brands.join(", ")} 특유의 무드 대비 실제 만족도를 따지는 반응이 많음.\n3. ${post.sources[0] ? `${shortenTitle(post.sources[0].title)} 기준 가격/정보가 댓글 판단 근거로 반복됨.` : "칭찬보다 수정 조언형 댓글 비중이 높음."}`,
     },
     {
       title: "Actionable styling suggestions",
-      content: `1. ${post.debate.split(",")[0]} 중심으로 다시 보정하기.\n2. ${post.debate.split(",")[1] || "이너 톤"} 쪽을 한 단계 더 정리하기.\n3. 구매/착용 의사결정은 "${post.expected}" 기준으로 좁히고, ${post.sources[0] ? `${post.sources[0].source} 가격/노트까지 함께 보기.` : "추가 출처 확보하기."}`,
+      content: `1. ${post.debate.split(",")[0]} 중심으로 다시 보정하기.\n2. ${post.debate.split(",")[1] || "이너 톤"} 쪽을 한 단계 더 정리하기.\n3. 구매/착용 의사결정은 "${post.expected}" 기준으로 좁히고, ${post.sources[0] ? `${post.sources[0].source} 기준 정보까지 함께 보기.` : "추가 출처 확보하기."}`,
     },
   ];
+}
+
+function buildRelatedThreads(post) {
+  return FEED_POSTS.filter(
+    (candidate) =>
+      candidate.id !== post.id &&
+      candidate.brands.some((brand) => post.brands.includes(brand)),
+  ).slice(0, 3);
 }
 
 function buildComments(post) {
   const baseLikes = seededNumber(post.id, 18, 6);
   const [p1, p2 = "가격값", p3 = "무드"] = post.debate.split(",").map((item) => item.trim());
-  const primarySource = post.sources[0];
-  const secondarySource = post.sources[1];
-  const sourceName = primarySource ? shortenTitle(primarySource.title) : post.brands[0];
-  const sourcePrice = primarySource?.price || "가격 미확인";
-  const compareName = secondarySource ? shortenTitle(secondarySource.title) : `${post.brands[0]} 다른 제품군`;
+  const rewrite = buildPriorityThreadRewrite(post);
+
+  if (rewrite?.comments) {
+    return rewrite.comments.map((text, index) => ({
+      id: `${post.id}-${index + 1}`,
+      user: COMMENT_PERSONAS[index].user,
+      handle: COMMENT_PERSONAS[index].handle,
+      avatar: COMMENT_PERSONAS[index].avatar,
+      time: ["1m", "58s", "54s", "49s", "44s", "40s", "36s", "31s"][index],
+      text,
+      likes: [baseLikes + 16, baseLikes + 9, baseLikes + 4, baseLikes + 7, baseLikes + 12, baseLikes + 8, baseLikes + 3, baseLikes + 2][index],
+      type: COMMENT_PERSONAS[index].type,
+      replyTo: index === 7 ? `${post.id}-7` : null,
+      liked: index === 1,
+    }));
+  }
 
   return [
     {
@@ -620,7 +812,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[0].handle,
       avatar: COMMENT_PERSONAS[0].avatar,
       time: "1m",
-      text: `${post.hook} 이 문장부터 너무 현실적이네. ${sourceName}까지 붙여보면 더더욱 ${post.expected}`,
+      text: `${post.hook} 이 문장부터 너무 현실적이네. ${post.expected}`,
       likes: baseLikes + 16,
       type: COMMENT_PERSONAS[0].type,
       replyTo: null,
@@ -632,7 +824,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[1].handle,
       avatar: COMMENT_PERSONAS[1].avatar,
       time: "58s",
-      text: `${p1} 쪽이 제일 크게 보임. ${sourceName} 가격이 ${sourcePrice}라서 더 냉정하게 보게 됨.`,
+      text: `${p1} 쪽이 제일 크게 보임. 지금 상태면 전체 무드는 맞는데 비율이 살짝 애매하게 끊길 수 있어.`,
       likes: baseLikes + 9,
       type: COMMENT_PERSONAS[1].type,
       replyTo: null,
@@ -644,7 +836,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[2].handle,
       avatar: COMMENT_PERSONAS[2].avatar,
       time: "54s",
-      text: `${post.brands[0]} 쪽 무드는 나는데 ${compareName}까지 같이 보면 ${p2} 때문에 생각보다 힘이 분산되는 느낌.`,
+      text: `${post.brands[0]} 쪽 무드는 나는데 ${p2} 때문에 생각보다 힘이 분산되는 느낌.`,
       likes: baseLikes + 4,
       type: COMMENT_PERSONAS[2].type,
       replyTo: null,
@@ -656,7 +848,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[3].handle,
       avatar: COMMENT_PERSONAS[3].avatar,
       time: "49s",
-      text: `예쁘긴 한데 그냥 예쁜 저장룩에서 끝날 수도 있음. 실제로는 ${p1} 정리 안 하면 ${primarySource?.source || "공식몰"} 제품 정보 봐도 애매해 보여.`,
+      text: `예쁘긴 한데 그냥 예쁜 저장룩에서 끝날 수도 있음. 실제로는 ${p1} 정리 안 하면 애매해 보여.`,
       likes: baseLikes + 7,
       type: COMMENT_PERSONAS[3].type,
       replyTo: null,
@@ -668,7 +860,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[4].handle,
       avatar: COMMENT_PERSONAS[4].avatar,
       time: "44s",
-      text: `나도 ${post.brands[0]} 비슷한 무드로 입거나 사봤는데 ${sourceName} 같은 제품은 특히 제품컷/무드와 실제 만족도 차이 좀 있더라. ${post.expected}`,
+      text: `나도 ${post.brands[0]} 비슷한 무드로 입거나 사봤는데 제품컷/무드와 실제 만족도 차이 좀 있더라. ${post.expected}`,
       likes: baseLikes + 12,
       type: COMMENT_PERSONAS[4].type,
       replyTo: null,
@@ -680,7 +872,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[5].handle,
       avatar: COMMENT_PERSONAS[5].avatar,
       time: "40s",
-      text: `${p1} 먼저 손보고, 그 다음 ${p2} 쪽만 바꾸면 훨씬 정리될 듯. 굳이 사면 ${sourcePrice} 값 하는 포인트가 보여야 함.`,
+      text: `${p1} 먼저 손보고, 그 다음 ${p2} 쪽만 바꾸면 훨씬 정리될 듯.`,
       likes: baseLikes + 8,
       type: COMMENT_PERSONAS[5].type,
       replyTo: null,
@@ -692,7 +884,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[6].handle,
       avatar: COMMENT_PERSONAS[6].avatar,
       time: "36s",
-      text: `국내 도메스틱 좋아하면 ${post.brands.join(" / ")} 비교는 한 번쯤 다 하는 고민이라 공감됨. 이번엔 출처까지 붙어서 더 현실적임.`,
+      text: `국내 도메스틱 좋아하면 ${post.brands.join(" / ")} 비교는 한 번쯤 다 하는 고민이라 공감됨.`,
       likes: baseLikes + 3,
       type: COMMENT_PERSONAS[6].type,
       replyTo: null,
@@ -704,7 +896,7 @@ function buildComments(post) {
       handle: COMMENT_PERSONAS[7].handle,
       avatar: COMMENT_PERSONAS[7].avatar,
       time: "31s",
-      text: `ㄴ 맞음. 특히 ${p3}보다 ${p1}이 먼저 정리돼야 실제 착장에서 만족도가 올라감. 링크된 제품 정보 보고 더 그렇게 느낌.`,
+      text: `ㄴ 맞음. 특히 ${p3}보다 ${p1}이 먼저 정리돼야 실제 착장에서 만족도가 올라감.`,
       likes: baseLikes + 2,
       type: COMMENT_PERSONAS[7].type,
       replyTo: `${post.id}-7`,
@@ -866,7 +1058,7 @@ export default function FashionThreadPage() {
   const [postReplyOpen, setPostReplyOpen] = useState(false);
   const [replyOpenId, setReplyOpenId] = useState(null);
   const [expandedReplies, setExpandedReplies] = useState({});
-  const [promptOpen, setPromptOpen] = useState(false);
+  const [activeSearchQuery, setActiveSearchQuery] = useState("렉토 팬츠");
 
   const activePost = FEED_POSTS.find((post) => post.id === selectedPostId) ?? FEED_POSTS[0];
   const comments = commentsByPost[selectedPostId] ?? [];
@@ -891,7 +1083,6 @@ export default function FashionThreadPage() {
     setPostReplyOpen(false);
     setReplyOpenId(null);
     setExpandedReplies({});
-    setPromptOpen(false);
   };
 
   const toggleCommentLike = (id) => {
@@ -910,6 +1101,26 @@ export default function FashionThreadPage() {
   };
 
   const summary = buildThreadSummary(activePost);
+  const relatedThreads = buildRelatedThreads(activePost);
+
+  const searchResults = useMemo(() => {
+    const normalizedQuery = activeSearchQuery.toLowerCase();
+    const filtered = SEARCH_RESULTS.filter((item) => {
+      const haystack = [
+        item.title,
+        item.hook,
+        item.sourceLabel,
+        ...item.keywords,
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+    return filtered.length > 0 ? filtered : SEARCH_RESULTS.slice(0, 4);
+  }, [activeSearchQuery]);
+
+  const openFeed = () => setView("feed");
+  const openSearch = () => setView("search");
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -919,23 +1130,41 @@ export default function FashionThreadPage() {
             {view === "thread" ? (
               <button
                 type="button"
-                onClick={() => setView("feed")}
+                onClick={openFeed}
+                className="rounded-full border border-zinc-800 bg-zinc-900 p-2 transition hover:bg-zinc-800"
+              >
+                <ArrowLeft className="h-4 w-4 text-zinc-300" />
+              </button>
+            ) : view === "search" ? (
+              <button
+                type="button"
+                onClick={openFeed}
                 className="rounded-full border border-zinc-800 bg-zinc-900 p-2 transition hover:bg-zinc-800"
               >
                 <ArrowLeft className="h-4 w-4 text-zinc-300" />
               </button>
             ) : (
-              <div className="rounded-full border border-zinc-800 bg-zinc-900 p-2">
+              <button
+                type="button"
+                onClick={openSearch}
+                className="rounded-full border border-zinc-800 bg-zinc-900 p-2 transition hover:bg-zinc-800"
+              >
                 <Search className="h-4 w-4 text-zinc-500" />
-              </div>
+              </button>
             )}
             <div>
               <p className="text-sm font-semibold tracking-tight text-zinc-100">AI Fashion Forum</p>
-              <p className="text-xs text-zinc-500">{view === "feed" ? "Domestic / Minimal For You" : activePost.title}</p>
+              <p className="text-xs text-zinc-500">
+                {view === "feed"
+                  ? "For you"
+                  : view === "search"
+                    ? "검색"
+                    : activePost.title}
+              </p>
             </div>
           </div>
           <div className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">
-            {view === "feed" ? `${FEED_POSTS.length} topic mocks` : `${activePost.replies} replies`}
+            {view === "feed" ? "국내 여성 패션" : view === "search" ? "실시간 탐색" : `${activePost.replies} replies`}
           </div>
         </div>
       </div>
@@ -952,22 +1181,22 @@ export default function FashionThreadPage() {
               <div className="border-b border-zinc-800 px-5 py-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold text-zinc-100">First 20 High-Fidelity Topic Set</p>
+                    <p className="text-sm font-semibold text-zinc-100">오늘 많이 저장된 토픽</p>
                     <p className="mt-1 text-sm leading-6 text-zinc-500">
-                      국내 도메스틱/미니멀 중심, 브랜드 실명 사용, 여성 비율 높음, 댓글은 수정 조언형과 가격값 판단형 비중을 높인 mock feed.
+                      출근룩, 실착 후기, 가격값 논쟁, 성수에서 자주 언급되는 도메스틱 브랜드 얘기가 함께 뜨는 흐름.
                     </p>
                   </div>
                   <div className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs text-zinc-400">
-                    Launch-grade mock
+                    저장 급상승
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 border-b border-zinc-800 px-4 py-3 text-xs text-zinc-500 sm:grid-cols-4">
-                <div>상세 확장 우선 12개</div>
-                <div>프로필 흔적 강화 8개</div>
-                <div>브랜드 실명 적극 사용</div>
-                <div>여성 중심 tone mix</div>
+                <div>출근룩 질문 많음</div>
+                <div>실착 후기 반응 큼</div>
+                <div>브랜드 실명 대화</div>
+                <div>가격값 논쟁 상승</div>
               </div>
 
               <div className="px-2 py-2">
@@ -998,9 +1227,6 @@ export default function FashionThreadPage() {
 
                       <div className="mt-2 flex flex-wrap gap-2">
                         <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
-                          {post.id}
-                        </span>
-                        <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
                           {TYPE_LABEL[post.type]}
                         </span>
                         <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
@@ -1010,7 +1236,7 @@ export default function FashionThreadPage() {
 
                       <p className="mt-3 text-[15px] font-medium leading-6 text-zinc-100">{post.title}</p>
                       <p className="mt-1 text-[15px] leading-6 text-zinc-300">{post.hook}</p>
-                      <p className="mt-2 text-sm leading-6 text-zinc-500">{post.sourceFeedLine}</p>
+                      {post.sourceFeedLine && <p className="mt-2 text-sm leading-6 text-zinc-500">{post.sourceFeedLine}</p>}
 
                       <div className="mt-3 grid grid-cols-[1fr_auto] gap-3">
                         <div className="min-w-0">
@@ -1059,6 +1285,153 @@ export default function FashionThreadPage() {
           </motion.section>
         )}
 
+        {view === "search" && (
+          <motion.section
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="space-y-4"
+          >
+            <div className="rounded-[28px] border border-zinc-800 bg-zinc-950/80 p-4">
+              <div className="rounded-3xl border border-zinc-800 bg-black/50 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <Search className="h-4 w-4 text-zinc-500" />
+                  <span className="text-sm text-zinc-200">{activeSearchQuery}</span>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Recent searches</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {SEARCH_RECENTS.map((query) => (
+                    <button
+                      key={query}
+                      type="button"
+                      onClick={() => setActiveSearchQuery(query)}
+                      className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                        activeSearchQuery === query
+                          ? "border-zinc-600 bg-zinc-800 text-zinc-100"
+                          : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                      }`}
+                    >
+                      {query}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Trending now</p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {SEARCH_TRENDING.map((query, index) => (
+                    <button
+                      key={query}
+                      type="button"
+                      onClick={() => setActiveSearchQuery(query)}
+                      className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-black/40 px-4 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                    >
+                      <div>
+                        <p className="text-sm text-zinc-100">{query}</p>
+                        <p className="mt-1 text-xs text-zinc-500">{24 + index * 7}분 전부터 반응 증가</p>
+                      </div>
+                      <span className="text-xs text-zinc-500">{index + 1}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-zinc-800 bg-zinc-950/80 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">추천 브랜드</p>
+                  <p className="mt-1 text-sm text-zinc-500">요즘 검색이 많이 붙는 국내 여성 패션 키워드</p>
+                </div>
+                <span className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">Brands</span>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {SEARCH_SUGGESTED_BRANDS.map((brand) => (
+                  <button
+                    key={brand.name}
+                    type="button"
+                    onClick={() => setActiveSearchQuery(brand.name)}
+                    className="rounded-2xl border border-zinc-800 bg-black/40 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                  >
+                    <p className="text-sm font-medium text-zinc-100">{brand.name}</p>
+                    <p className="mt-2 text-sm leading-6 text-zinc-500">{brand.note}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-zinc-800 bg-zinc-950/80 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">Threads</p>
+                  <p className="mt-1 text-sm text-zinc-500">
+                    "{activeSearchQuery}" 관련 대화 {searchResults.length}개
+                  </p>
+                </div>
+                <span className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">Top</span>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {searchResults.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => openPost(item.postId)}
+                    className="flex w-full gap-3 rounded-[24px] border border-zinc-800 bg-black/30 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="h-24 w-24 rounded-2xl border border-zinc-800 object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-sm font-semibold text-zinc-100">{item.author}</span>
+                        <span className="truncate text-sm text-zinc-500">{item.handle}</span>
+                        <span className="text-xs text-zinc-600">{item.time}</span>
+                      </div>
+                      <p className="mt-2 text-[15px] font-medium leading-6 text-zinc-100">{item.title}</p>
+                      <p className="mt-1 text-sm leading-6 text-zinc-400">{item.hook}</p>
+                      <p className="mt-2 text-xs text-zinc-500">{item.sourceLabel}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {item.keywords.map((keyword) => (
+                          <span
+                            key={`${item.id}-${keyword}`}
+                            className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-3 flex items-center gap-4 text-xs text-zinc-500">
+                        <span>{formatCount(item.likes)} likes</span>
+                        <span>{item.replies} replies</span>
+                        <span>{item.saves} saves</span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-zinc-800 bg-zinc-950/80 p-4">
+              <p className="text-sm font-semibold text-zinc-100">컬렉션으로 보기</p>
+              <div className="mt-4 grid gap-3">
+                {SEARCH_COLLECTIONS.map((collection) => (
+                  <div key={collection.title} className="rounded-2xl border border-zinc-800 bg-black/40 p-4">
+                    <p className="text-sm text-zinc-100">{collection.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-zinc-500">{collection.subtitle}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.section>
+        )}
+
         {view === "thread" && (
           <>
             <motion.section
@@ -1079,9 +1452,6 @@ export default function FashionThreadPage() {
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-2">
-                      <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
-                        {activePost.id}
-                      </span>
                       <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
                         {TYPE_LABEL[activePost.type]}
                       </span>
@@ -1117,17 +1487,6 @@ export default function FashionThreadPage() {
                       논쟁 포인트: {activePost.debate} · 예상 댓글 방향: {activePost.expected}
                     </div>
 
-                    <div className="mt-3 rounded-2xl border border-amber-900/60 bg-amber-950/20 p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-medium text-amber-100">Image audit</p>
-                        <span className="rounded-full border border-amber-900/70 px-2.5 py-1 text-[11px] text-amber-200">
-                          {activePost.imageAudit.status}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-sm leading-6 text-amber-50/80">{activePost.imageAudit.note}</p>
-                      <p className="mt-2 text-xs leading-5 text-amber-100/60">{activePost.imageAuditLine}</p>
-                    </div>
-
                     {activePost.sources.length > 0 && (
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         {activePost.sources.map((source) => (
@@ -1144,7 +1503,6 @@ export default function FashionThreadPage() {
                             </div>
                             <p className="mt-2 text-sm font-medium leading-6 text-zinc-100">{source.title}</p>
                             <p className="mt-2 text-sm leading-6 text-zinc-400">{source.note}</p>
-                            <p className="mt-3 text-xs font-medium text-zinc-300">Open source link</p>
                           </a>
                         ))}
                       </div>
@@ -1241,8 +1599,40 @@ export default function FashionThreadPage() {
             >
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-100">Thread Summary</p>
-                  <p className="text-sm text-zinc-500">AI digest tuned for mock realism</p>
+                  <p className="text-sm font-semibold text-zinc-100">같이 보는 글</p>
+                  <p className="text-sm text-zinc-500">비슷한 브랜드와 고민으로 저장된 스레드</p>
+                </div>
+                <div className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">
+                  {relatedThreads.length} threads
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                {relatedThreads.map((post) => (
+                  <button
+                    key={post.id}
+                    type="button"
+                    onClick={() => openPost(post.id)}
+                    className="rounded-2xl border border-zinc-800 bg-black/40 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                  >
+                    <p className="text-sm font-medium text-zinc-100">{post.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-zinc-400">{post.hook}</p>
+                    <p className="mt-2 text-xs text-zinc-500">{post.brands.join(" / ")} · {post.expected}</p>
+                  </button>
+                ))}
+              </div>
+            </motion.section>
+
+            <motion.section
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.16, duration: 0.35 }}
+              className="mt-4 rounded-[28px] border border-zinc-800 bg-zinc-950/80 p-5"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">읽는 포인트</p>
+                  <p className="text-sm text-zinc-500">댓글에서 반복되는 판단 기준</p>
                 </div>
                 <div className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">
                   {comments.length} comments
@@ -1258,37 +1648,6 @@ export default function FashionThreadPage() {
                 ))}
               </div>
             </motion.section>
-
-            <section className="mt-4 rounded-[28px] border border-zinc-800 bg-zinc-950/80">
-              <button
-                type="button"
-                onClick={() => setPromptOpen((current) => !current)}
-                className="flex w-full items-center justify-between px-5 py-4 text-left transition hover:bg-white/[0.02]"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-zinc-100">View generation prompt</p>
-                  <p className="text-sm text-zinc-500">Topic-set prompt that shaped this mock</p>
-                </div>
-                <ChevronDown className={`h-4 w-4 text-zinc-500 transition ${promptOpen ? "rotate-180" : ""}`} />
-              </button>
-
-              <AnimatePresence initial={false}>
-                {promptOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden border-t border-zinc-800"
-                  >
-                    <div className="p-5">
-                      <pre className="overflow-x-auto rounded-3xl border border-zinc-800 bg-black p-4 text-xs leading-6 text-zinc-400">
-                        <code>{PROMPT_USED}</code>
-                      </pre>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </section>
           </>
         )}
       </main>
@@ -1297,13 +1656,17 @@ export default function FashionThreadPage() {
         <div className="mx-auto flex max-w-2xl items-center justify-around px-6 py-3">
           <button
             type="button"
-            onClick={() => setView("feed")}
+            onClick={openFeed}
             className={`rounded-full p-2 transition ${view === "feed" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-200"}`}
           >
             <Home className="h-5 w-5" />
           </button>
-          <button type="button" className="rounded-full p-2 text-zinc-500 transition hover:text-zinc-200">
-            <Compass className="h-5 w-5" />
+          <button
+            type="button"
+            onClick={openSearch}
+            className={`rounded-full p-2 transition ${view === "search" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-200"}`}
+          >
+            <Search className="h-5 w-5" />
           </button>
           <button type="button" className="rounded-full bg-white p-3 text-black transition hover:bg-zinc-200">
             <PenSquare className="h-5 w-5" />
