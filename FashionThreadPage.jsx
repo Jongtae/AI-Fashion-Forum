@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   BadgeCheck,
   Bookmark,
-  ChevronDown,
   Compass,
   Heart,
   Home,
@@ -15,42 +14,6 @@ import {
   User,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-
-export const PROMPT_USED = `Finalize first 20 high-fidelity mock topics for AI Fashion Forum
-
-Goal:
-Create a high-fidelity mock feed and thread set that feels like a real domestic/minimal fashion community product.
-
-Mock direction:
-- domestic / minimal-heavy
-- higher female user ratio
-- real brand names used actively
-- focus on core social thread scene types
-
-Core scene types:
-- 오늘 내 코디 어떤지 봐줘
-- 이 제품 살지 말지
-- 사이즈/핏 도움 요청
-- 실착해보니 생각과 달랐던 후기
-- 무드/분위기는 좋은데 어딘가 어색한 코디
-
-Brand set:
-RECTO, AMOMENTO, LOW CLASSIC, LE 17 SEPTEMBRE, MARGE SHERWOOD,
-AND YOU, COS, INSILENCE WOMEN, THEOPEN PRODUCT
-
-Comment rules:
-- not overly polished
-- more correction advice, price-value judgment, real usage reflection
-- repeated signals:
-  - pants fit
-  - inner tone
-  - jacket length
-  - shoulder line
-  - price value
-  - material feel
-  - product photo vs real wear gap
-  - brand mood vs real satisfaction
-`;
 
 const IMAGE_POOL = [
   "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
@@ -68,6 +31,35 @@ const TYPE_LABEL = {
   size: "사이즈/핏 도움 요청",
   review: "실착해보니 생각과 달랐던 후기",
 };
+
+const SEARCH_RECENTS = [
+  "렉토 팬츠",
+  "팬츠 기장",
+  "아모멘토 셔츠",
+  "출근룩",
+  "실물 어때",
+];
+
+const SEARCH_TRENDING = [
+  "성수에서 많이 보이는 가방",
+  "가격값 하는 블레이저",
+  "셔츠 부해보임",
+  "29CM 저장 많은 원피스",
+  "봄 출근룩",
+];
+
+const SEARCH_SUGGESTED_BRANDS = [
+  { name: "RECTO", note: "팬츠 핏 / 가격값 / 출근룩" },
+  { name: "AMOMENTO", note: "셔츠 / 니트 / 실물 체감" },
+  { name: "LOW CLASSIC", note: "블레이저 / 셔츠 / 활용도" },
+  { name: "MARGE SHERWOOD", note: "가방 / 유행 피로감 / 실사용성" },
+];
+
+const SEARCH_COLLECTIONS = [
+  { title: "출근 전에 많이 저장된 글", subtitle: "핏 수정 조언형 스레드 중심" },
+  { title: "성수에서 본 브랜드 얘기", subtitle: "도메스틱 / 가방 / 스니커즈 흐름" },
+  { title: "실물 만족도 갈리는 아이템", subtitle: "제품컷 환상 vs 실제 착용" },
+];
 
 const TOPICS = [
   {
@@ -728,6 +720,33 @@ function buildFeedPost(topic, index) {
 
 const FEED_POSTS = TOPICS.map(buildFeedPost);
 
+const SEARCH_RESULT_POST_IDS = ["T09", "T08", "T13", "T01", "T12", "T10", "T14", "T17"];
+
+function buildSearchResult(post, index) {
+  const primary = post.sources[0];
+  const keywords = [post.brands[0], post.debate.split(",")[0]?.trim(), post.tone].filter(Boolean);
+
+  return {
+    id: post.id,
+    postId: post.id,
+    title: post.title,
+    hook: post.hook,
+    author: post.author,
+    handle: post.handle,
+    time: `${12 + index * 4}m`,
+    image: post.image,
+    likes: post.likes + 20,
+    replies: post.replies,
+    saves: 48 + seededNumber(`${post.id}-save`, 120),
+    keywords,
+    sourceLabel: primary ? `${shortenTitle(primary.title)} · ${primary.price}` : post.brands.join(" / "),
+  };
+}
+
+const SEARCH_RESULTS = SEARCH_RESULT_POST_IDS.map((id, index) =>
+  buildSearchResult(FEED_POSTS.find((post) => post.id === id), index),
+);
+
 function authorInitials(author) {
   return author
     .split(".")
@@ -757,6 +776,14 @@ function buildThreadSummary(post) {
       content: `1. ${post.debate.split(",")[0]} 중심으로 다시 보정하기.\n2. ${post.debate.split(",")[1] || "이너 톤"} 쪽을 한 단계 더 정리하기.\n3. 구매/착용 의사결정은 "${post.expected}" 기준으로 좁히고, ${post.sources[0] ? `${post.sources[0].source} 기준 정보까지 함께 보기.` : "추가 출처 확보하기."}`,
     },
   ];
+}
+
+function buildRelatedThreads(post) {
+  return FEED_POSTS.filter(
+    (candidate) =>
+      candidate.id !== post.id &&
+      candidate.brands.some((brand) => post.brands.includes(brand)),
+  ).slice(0, 3);
 }
 
 function buildComments(post) {
@@ -1032,7 +1059,7 @@ export default function FashionThreadPage() {
   const [postReplyOpen, setPostReplyOpen] = useState(false);
   const [replyOpenId, setReplyOpenId] = useState(null);
   const [expandedReplies, setExpandedReplies] = useState({});
-  const [promptOpen, setPromptOpen] = useState(false);
+  const [activeSearchQuery, setActiveSearchQuery] = useState("렉토 팬츠");
 
   const activePost = FEED_POSTS.find((post) => post.id === selectedPostId) ?? FEED_POSTS[0];
   const comments = commentsByPost[selectedPostId] ?? [];
@@ -1057,7 +1084,6 @@ export default function FashionThreadPage() {
     setPostReplyOpen(false);
     setReplyOpenId(null);
     setExpandedReplies({});
-    setPromptOpen(false);
   };
 
   const toggleCommentLike = (id) => {
@@ -1076,6 +1102,26 @@ export default function FashionThreadPage() {
   };
 
   const summary = buildThreadSummary(activePost);
+  const relatedThreads = buildRelatedThreads(activePost);
+
+  const searchResults = useMemo(() => {
+    const normalizedQuery = activeSearchQuery.toLowerCase();
+    const filtered = SEARCH_RESULTS.filter((item) => {
+      const haystack = [
+        item.title,
+        item.hook,
+        item.sourceLabel,
+        ...item.keywords,
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+    return filtered.length > 0 ? filtered : SEARCH_RESULTS.slice(0, 4);
+  }, [activeSearchQuery]);
+
+  const openFeed = () => setView("feed");
+  const openSearch = () => setView("search");
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -1085,23 +1131,41 @@ export default function FashionThreadPage() {
             {view === "thread" ? (
               <button
                 type="button"
-                onClick={() => setView("feed")}
+                onClick={openFeed}
+                className="rounded-full border border-zinc-800 bg-zinc-900 p-2 transition hover:bg-zinc-800"
+              >
+                <ArrowLeft className="h-4 w-4 text-zinc-300" />
+              </button>
+            ) : view === "search" ? (
+              <button
+                type="button"
+                onClick={openFeed}
                 className="rounded-full border border-zinc-800 bg-zinc-900 p-2 transition hover:bg-zinc-800"
               >
                 <ArrowLeft className="h-4 w-4 text-zinc-300" />
               </button>
             ) : (
-              <div className="rounded-full border border-zinc-800 bg-zinc-900 p-2">
+              <button
+                type="button"
+                onClick={openSearch}
+                className="rounded-full border border-zinc-800 bg-zinc-900 p-2 transition hover:bg-zinc-800"
+              >
                 <Search className="h-4 w-4 text-zinc-500" />
-              </div>
+              </button>
             )}
             <div>
               <p className="text-sm font-semibold tracking-tight text-zinc-100">AI Fashion Forum</p>
-              <p className="text-xs text-zinc-500">{view === "feed" ? "Domestic / Minimal For You" : activePost.title}</p>
+              <p className="text-xs text-zinc-500">
+                {view === "feed"
+                  ? "For you"
+                  : view === "search"
+                    ? "검색"
+                    : activePost.title}
+              </p>
             </div>
           </div>
           <div className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">
-            {view === "feed" ? `${FEED_POSTS.length} topic mocks` : `${activePost.replies} replies`}
+            {view === "feed" ? "국내 여성 패션" : view === "search" ? "실시간 탐색" : `${activePost.replies} replies`}
           </div>
         </div>
       </div>
@@ -1118,22 +1182,22 @@ export default function FashionThreadPage() {
               <div className="border-b border-zinc-800 px-5 py-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold text-zinc-100">First 20 High-Fidelity Topic Set</p>
+                    <p className="text-sm font-semibold text-zinc-100">오늘 많이 저장된 토픽</p>
                     <p className="mt-1 text-sm leading-6 text-zinc-500">
-                      국내 도메스틱/미니멀 중심, 브랜드 실명 사용, 여성 비율 높음, 댓글은 수정 조언형과 가격값 판단형 비중을 높인 mock feed.
+                      출근룩, 실착 후기, 가격값 논쟁, 성수에서 자주 언급되는 도메스틱 브랜드 얘기가 함께 뜨는 흐름.
                     </p>
                   </div>
                   <div className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs text-zinc-400">
-                    Launch-grade mock
+                    저장 급상승
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 border-b border-zinc-800 px-4 py-3 text-xs text-zinc-500 sm:grid-cols-4">
-                <div>상세 확장 우선 12개</div>
-                <div>프로필 흔적 강화 8개</div>
-                <div>브랜드 실명 적극 사용</div>
-                <div>여성 중심 tone mix</div>
+                <div>출근룩 질문 많음</div>
+                <div>실착 후기 반응 큼</div>
+                <div>브랜드 실명 대화</div>
+                <div>가격값 논쟁 상승</div>
               </div>
 
               <div className="px-2 py-2">
@@ -1163,9 +1227,6 @@ export default function FashionThreadPage() {
                       </div>
 
                       <div className="mt-2 flex flex-wrap gap-2">
-                        <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
-                          {post.id}
-                        </span>
                         <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
                           {TYPE_LABEL[post.type]}
                         </span>
@@ -1225,6 +1286,153 @@ export default function FashionThreadPage() {
           </motion.section>
         )}
 
+        {view === "search" && (
+          <motion.section
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="space-y-4"
+          >
+            <div className="rounded-[28px] border border-zinc-800 bg-zinc-950/80 p-4">
+              <div className="rounded-3xl border border-zinc-800 bg-black/50 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <Search className="h-4 w-4 text-zinc-500" />
+                  <span className="text-sm text-zinc-200">{activeSearchQuery}</span>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Recent searches</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {SEARCH_RECENTS.map((query) => (
+                    <button
+                      key={query}
+                      type="button"
+                      onClick={() => setActiveSearchQuery(query)}
+                      className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                        activeSearchQuery === query
+                          ? "border-zinc-600 bg-zinc-800 text-zinc-100"
+                          : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                      }`}
+                    >
+                      {query}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Trending now</p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {SEARCH_TRENDING.map((query, index) => (
+                    <button
+                      key={query}
+                      type="button"
+                      onClick={() => setActiveSearchQuery(query)}
+                      className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-black/40 px-4 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                    >
+                      <div>
+                        <p className="text-sm text-zinc-100">{query}</p>
+                        <p className="mt-1 text-xs text-zinc-500">{24 + index * 7}분 전부터 반응 증가</p>
+                      </div>
+                      <span className="text-xs text-zinc-500">{index + 1}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-zinc-800 bg-zinc-950/80 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">추천 브랜드</p>
+                  <p className="mt-1 text-sm text-zinc-500">요즘 검색이 많이 붙는 국내 여성 패션 키워드</p>
+                </div>
+                <span className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">Brands</span>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {SEARCH_SUGGESTED_BRANDS.map((brand) => (
+                  <button
+                    key={brand.name}
+                    type="button"
+                    onClick={() => setActiveSearchQuery(brand.name)}
+                    className="rounded-2xl border border-zinc-800 bg-black/40 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                  >
+                    <p className="text-sm font-medium text-zinc-100">{brand.name}</p>
+                    <p className="mt-2 text-sm leading-6 text-zinc-500">{brand.note}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-zinc-800 bg-zinc-950/80 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">Threads</p>
+                  <p className="mt-1 text-sm text-zinc-500">
+                    "{activeSearchQuery}" 관련 대화 {searchResults.length}개
+                  </p>
+                </div>
+                <span className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">Top</span>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {searchResults.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => openPost(item.postId)}
+                    className="flex w-full gap-3 rounded-[24px] border border-zinc-800 bg-black/30 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="h-24 w-24 rounded-2xl border border-zinc-800 object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-sm font-semibold text-zinc-100">{item.author}</span>
+                        <span className="truncate text-sm text-zinc-500">{item.handle}</span>
+                        <span className="text-xs text-zinc-600">{item.time}</span>
+                      </div>
+                      <p className="mt-2 text-[15px] font-medium leading-6 text-zinc-100">{item.title}</p>
+                      <p className="mt-1 text-sm leading-6 text-zinc-400">{item.hook}</p>
+                      <p className="mt-2 text-xs text-zinc-500">{item.sourceLabel}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {item.keywords.map((keyword) => (
+                          <span
+                            key={`${item.id}-${keyword}`}
+                            className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-3 flex items-center gap-4 text-xs text-zinc-500">
+                        <span>{formatCount(item.likes)} likes</span>
+                        <span>{item.replies} replies</span>
+                        <span>{item.saves} saves</span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-zinc-800 bg-zinc-950/80 p-4">
+              <p className="text-sm font-semibold text-zinc-100">컬렉션으로 보기</p>
+              <div className="mt-4 grid gap-3">
+                {SEARCH_COLLECTIONS.map((collection) => (
+                  <div key={collection.title} className="rounded-2xl border border-zinc-800 bg-black/40 p-4">
+                    <p className="text-sm text-zinc-100">{collection.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-zinc-500">{collection.subtitle}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.section>
+        )}
+
         {view === "thread" && (
           <>
             <motion.section
@@ -1245,9 +1453,6 @@ export default function FashionThreadPage() {
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-2">
-                      <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
-                        {activePost.id}
-                      </span>
                       <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
                         {TYPE_LABEL[activePost.type]}
                       </span>
@@ -1395,8 +1600,40 @@ export default function FashionThreadPage() {
             >
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-100">Thread Summary</p>
-                  <p className="text-sm text-zinc-500">AI digest tuned for mock realism</p>
+                  <p className="text-sm font-semibold text-zinc-100">같이 보는 글</p>
+                  <p className="text-sm text-zinc-500">비슷한 브랜드와 고민으로 저장된 스레드</p>
+                </div>
+                <div className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">
+                  {relatedThreads.length} threads
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                {relatedThreads.map((post) => (
+                  <button
+                    key={post.id}
+                    type="button"
+                    onClick={() => openPost(post.id)}
+                    className="rounded-2xl border border-zinc-800 bg-black/40 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                  >
+                    <p className="text-sm font-medium text-zinc-100">{post.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-zinc-400">{post.hook}</p>
+                    <p className="mt-2 text-xs text-zinc-500">{post.brands.join(" / ")} · {post.expected}</p>
+                  </button>
+                ))}
+              </div>
+            </motion.section>
+
+            <motion.section
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.16, duration: 0.35 }}
+              className="mt-4 rounded-[28px] border border-zinc-800 bg-zinc-950/80 p-5"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">읽는 포인트</p>
+                  <p className="text-sm text-zinc-500">댓글에서 반복되는 판단 기준</p>
                 </div>
                 <div className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">
                   {comments.length} comments
@@ -1412,37 +1649,6 @@ export default function FashionThreadPage() {
                 ))}
               </div>
             </motion.section>
-
-            <section className="mt-4 rounded-[28px] border border-zinc-800 bg-zinc-950/80">
-              <button
-                type="button"
-                onClick={() => setPromptOpen((current) => !current)}
-                className="flex w-full items-center justify-between px-5 py-4 text-left transition hover:bg-white/[0.02]"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-zinc-100">View generation prompt</p>
-                  <p className="text-sm text-zinc-500">Topic-set prompt that shaped this mock</p>
-                </div>
-                <ChevronDown className={`h-4 w-4 text-zinc-500 transition ${promptOpen ? "rotate-180" : ""}`} />
-              </button>
-
-              <AnimatePresence initial={false}>
-                {promptOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden border-t border-zinc-800"
-                  >
-                    <div className="p-5">
-                      <pre className="overflow-x-auto rounded-3xl border border-zinc-800 bg-black p-4 text-xs leading-6 text-zinc-400">
-                        <code>{PROMPT_USED}</code>
-                      </pre>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </section>
           </>
         )}
       </main>
@@ -1451,12 +1657,16 @@ export default function FashionThreadPage() {
         <div className="mx-auto flex max-w-2xl items-center justify-around px-6 py-3">
           <button
             type="button"
-            onClick={() => setView("feed")}
+            onClick={openFeed}
             className={`rounded-full p-2 transition ${view === "feed" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-200"}`}
           >
             <Home className="h-5 w-5" />
           </button>
-          <button type="button" className="rounded-full p-2 text-zinc-500 transition hover:text-zinc-200">
+          <button
+            type="button"
+            onClick={openSearch}
+            className={`rounded-full p-2 transition ${view === "search" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-200"}`}
+          >
             <Compass className="h-5 w-5" />
           </button>
           <button type="button" className="rounded-full bg-white p-3 text-black transition hover:bg-zinc-200">
