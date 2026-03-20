@@ -24,6 +24,8 @@
 - Do not consider an issue complete just because code exists locally or has been merged; the issue is only done after deployment is verified and the GitHub issue is closed.
 - If PR automation is blocked by permissions or tooling limits, leave a note on the issue explaining the blocker, keep the branch pushed, and then proceed with the safest available landing path while still verifying deployment and closing the issue explicitly afterward.
 - If the issue changes data models, asset pipelines, manifests, crawling workflows, or other repository-local data operations, involve the Data Engineering team for review before closing the issue.
+- Treat the GitHub Issue body and state as the source of truth for completion.
+- If local docs or notes also track the work, update them second; do not leave the GitHub Issue checklist stale.
 
 ## Collaboration Notes
 - If the user asks for quick exploratory work, keep the work small and suggest converting it into an issue before expanding scope.
