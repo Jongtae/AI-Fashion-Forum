@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "crawl:images": "node scripts/crawl-images.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.6.3",
