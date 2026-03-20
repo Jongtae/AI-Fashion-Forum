@@ -829,36 +829,48 @@ function ResolvedProductThumbnail({ binding, className, alt }) {
 function ProductMentionCard({ binding, variant = "feed" }) {
   const isFeed = variant === "feed";
 
+  if (isFeed) {
+    return (
+      <a
+        href={binding.url}
+        target="_blank"
+        rel="noreferrer"
+        className="group relative block h-24 overflow-hidden rounded-2xl border border-zinc-800 bg-black/40 text-left transition hover:border-zinc-700"
+      >
+        <ResolvedProductThumbnail
+          binding={binding}
+          alt={binding.title}
+          className="h-full w-full bg-zinc-950 object-cover"
+        />
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent px-2.5 pb-2 pt-6">
+          <p className="line-clamp-2 text-[11px] font-medium leading-4 text-zinc-100 transition group-hover:text-white">
+            {shortenTitle(binding.title)}
+          </p>
+        </div>
+      </a>
+    );
+  }
+
   return (
     <a
       href={binding.url}
       target="_blank"
       rel="noreferrer"
-      className={`group overflow-hidden rounded-2xl border border-zinc-800 bg-black/40 text-left transition hover:border-zinc-700 hover:bg-zinc-900/80 ${
-        isFeed ? "block p-2" : "block"
-      }`}
+      className="group block overflow-hidden rounded-2xl border border-zinc-800 bg-black/40 text-left transition hover:border-zinc-700 hover:bg-zinc-900/80"
     >
       <ResolvedProductThumbnail
         binding={binding}
         alt={binding.title}
-        className={`bg-zinc-950 object-cover ${
-          isFeed ? "h-14 w-full rounded-xl" : "h-36 w-full rounded-t-2xl"
-        }`}
+        className="h-36 w-full rounded-t-2xl bg-zinc-950 object-cover"
       />
-      <div className={isFeed ? "space-y-1 px-0.5 pb-0.5 pt-2" : "space-y-1 p-3"}>
-        <p className={`font-medium text-zinc-100 transition group-hover:text-white ${
-          isFeed ? "line-clamp-2 text-[11px] leading-4" : "text-sm leading-5"
-        }`}>
+      <div className="space-y-1 p-3">
+        <p className="text-sm font-medium leading-5 text-zinc-100 transition group-hover:text-white">
           {binding.title}
         </p>
-        {isFeed ? (
-          <p className="truncate text-[10px] text-zinc-500">{binding.source}</p>
-        ) : (
-          <div className="flex items-center gap-2 text-xs">
-            <p className="truncate text-zinc-500">{binding.source}</p>
-            {binding.price && <p className="truncate text-zinc-400">{binding.price}</p>}
-          </div>
-        )}
+        <div className="flex items-center gap-2 text-xs">
+          <p className="truncate text-zinc-500">{binding.source}</p>
+          {binding.price && <p className="truncate text-zinc-400">{binding.price}</p>}
+        </div>
       </div>
     </a>
   );
@@ -1227,13 +1239,25 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
 
   const visibleBindings = compact ? evidence.bindings.slice(0, 1) : evidence.bindings;
 
+  if (compact) {
+    const primaryBinding = visibleBindings[0];
+
+    if (!primaryBinding) return null;
+
+    return (
+      <div className={`shrink-0 ${className}`}>
+        <ProductMentionCard binding={primaryBinding} variant="feed" />
+      </div>
+    );
+  }
+
   return (
-    <div className={`${compact ? "" : "space-y-3"} ${className}`}>
-      {!compact && (
+    <div className={`space-y-3 ${className}`}>
+      {
         <p className="text-xs text-zinc-500">
           본문 언급 제품
         </p>
-      )}
+      }
       <div className={`grid gap-3 ${compact ? "" : visibleBindings.length > 2 ? "sm:grid-cols-2" : visibleBindings.length > 1 ? "sm:grid-cols-2" : ""}`}>
         {visibleBindings.map((binding) => (
           <ProductMentionCard
@@ -1243,9 +1267,6 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
           />
         ))}
       </div>
-      {compact && evidence.bindings.length > visibleBindings.length && (
-        <p className="text-[11px] text-zinc-500">외 {evidence.bindings.length - visibleBindings.length}개</p>
-      )}
     </div>
   );
 }
@@ -1628,54 +1649,16 @@ export default function FashionThreadPage() {
                         <span className="text-sm text-zinc-600">{post.time}</span>
                       </div>
 
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
-                          {TYPE_LABEL[post.type]}
-                        </span>
-                        <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
-                          {post.brands.join(" / ")}
-                        </span>
-                      </div>
-
-                      <p className="mt-3 text-[15px] font-medium leading-6 text-zinc-100">{post.title}</p>
-                      <p className="mt-1 text-[15px] leading-6 text-zinc-300">{post.hook}</p>
-                      {post.sourceFeedLine && <p className="mt-2 text-sm leading-6 text-zinc-500">{post.sourceFeedLine}</p>}
-
-                      <div className="mt-3 grid grid-cols-[1fr_auto] gap-3">
-                        <div className="min-w-0">
-                          {post.sources.length > 0 && !post.productEvidence.has_named_product_refs && (
-                            <div className="mb-3 flex flex-wrap gap-2">
-                              {post.sources.map((source) => (
-                                <span
-                                  key={`${post.id}-${source.title}`}
-                                  className="rounded-full border border-zinc-800 bg-black px-3 py-1 text-xs text-zinc-400"
-                                >
-                                  {shortenTitle(source.title)}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          <div className="flex flex-wrap gap-2">
-                            {post.sampleReplies.map((reply) => (
-                              <span
-                                key={reply}
-                                className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
-                              >
-                                {reply}
-                              </span>
-                            ))}
-                          </div>
-                          <div className="mt-3 flex items-center gap-4 text-sm text-zinc-500">
-                            <span>{formatCount(post.likes)} likes</span>
-                            <span>{post.replies} replies</span>
-                            <span>{post.reposts} reposts</span>
-                          </div>
+                      <div className="mt-3 flex items-start gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[15px] font-medium leading-6 text-zinc-100">{post.title}</p>
+                          <p className="mt-1 text-[15px] leading-6 text-zinc-300">{post.hook}</p>
                         </div>
                         {post.productEvidence.has_named_product_refs ? (
                           <ProductEvidencePreview
                             post={post}
                             compact
-                            className="h-24 w-24 sm:h-28 sm:w-28"
+                            className="w-24 sm:w-28"
                           />
                         ) : (
                           <PostImage
@@ -1685,11 +1668,16 @@ export default function FashionThreadPage() {
                             title={post.title}
                             compact
                             tags={post.description.split(",").map((tag) => tag.trim())}
-                            wrapperClassName="h-24 w-24 overflow-hidden rounded-2xl border border-zinc-800 sm:h-28 sm:w-28"
+                            wrapperClassName="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-zinc-800 sm:h-28 sm:w-28"
                             imageClassName="h-full w-full object-cover"
                             fallbackClassName="flex h-full w-full flex-col justify-between bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-3"
                           />
                         )}
+                      </div>
+                      <div className="mt-3 flex items-center gap-4 text-sm text-zinc-500">
+                        <span>{formatCount(post.likes)} likes</span>
+                        <span>{post.replies} replies</span>
+                        <span>{post.reposts} reposts</span>
                       </div>
                     </div>
                   </motion.button>
@@ -1880,9 +1868,6 @@ export default function FashionThreadPage() {
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-2">
-                      <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
-                        {TYPE_LABEL[activePost.type]}
-                      </span>
                       <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
                         {activePost.brands.join(" / ")}
                       </span>
