@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -781,14 +781,14 @@ function buildGeneratedThumbnail(title, source) {
       <rect width="900" height="900" fill="url(#g)" rx="56" />
       <rect x="56" y="56" width="788" height="788" rx="44" fill="none" stroke="#3f3f46" stroke-width="3" />
       <rect x="88" y="104" width="210" height="44" rx="22" fill="rgba(24,24,27,0.9)" stroke="#52525b" />
-      <text x="116" y="133" fill="#d4d4d8" font-size="20" font-family="Arial, sans-serif">Mentioned item</text>
+      <text x="116" y="133" fill="#d4d4d8" font-size="20" font-family="Arial, sans-serif">제품 미리보기</text>
       <foreignObject x="88" y="196" width="724" height="472">
         <div xmlns="http://www.w3.org/1999/xhtml" style="color:#fafafa;font-family:Arial,sans-serif;font-size:54px;line-height:1.22;font-weight:700;">
           ${safeTitle}
         </div>
       </foreignObject>
       <text x="88" y="776" fill="#d4d4d8" font-size="32" font-family="Arial, sans-serif">${safeSource}</text>
-      <text x="88" y="822" fill="#71717a" font-size="24" font-family="Arial, sans-serif">Product preview</text>
+      <text x="88" y="822" fill="#71717a" font-size="24" font-family="Arial, sans-serif">${safeSource}</text>
     </svg>
   `.trim();
 
@@ -842,20 +842,22 @@ function ProductMentionCard({ binding, variant = "feed" }) {
         binding={binding}
         alt={binding.title}
         className={`bg-zinc-950 object-cover ${
-          isFeed ? "h-14 w-full rounded-xl" : "h-44 w-full rounded-t-2xl"
+          isFeed ? "h-14 w-full rounded-xl" : "h-36 w-full rounded-t-2xl"
         }`}
       />
-      <div className={isFeed ? "space-y-1 px-0.5 pb-0.5 pt-2" : "space-y-1 p-3.5"}>
+      <div className={isFeed ? "space-y-1 px-0.5 pb-0.5 pt-2" : "space-y-1 p-3"}>
         <p className={`font-medium text-zinc-100 transition group-hover:text-white ${
           isFeed ? "line-clamp-2 text-[11px] leading-4" : "text-sm leading-5"
         }`}>
           {binding.title}
         </p>
-        <p className={`text-zinc-500 ${isFeed ? "truncate text-[10px]" : "text-xs"}`}>
-          {binding.source}
-        </p>
-        {!isFeed && binding.price && (
-          <p className="text-xs text-zinc-400">{binding.price}</p>
+        {isFeed ? (
+          <p className="truncate text-[10px] text-zinc-500">{binding.source}</p>
+        ) : (
+          <div className="flex items-center gap-2 text-xs">
+            <p className="truncate text-zinc-500">{binding.source}</p>
+            {binding.price && <p className="truncate text-zinc-400">{binding.price}</p>}
+          </div>
         )}
       </div>
     </a>
@@ -949,15 +951,15 @@ function buildThreadSummary(post) {
 
   return [
     {
-      title: "Overall sentiment",
+      title: "대화 흐름",
       content: `${TYPE_LABEL[post.type]} / ${post.alignment.topic_type} 성격의 스레드로 읽히며, 전체 반응은 "${post.expected}" 쪽으로 수렴한다. ${sourceLine}`,
     },
     {
-      title: "Top repeated opinions",
+      title: "댓글에서 많이 나온 말",
       content: `1. ${post.alignment.expected_comment_angle[0]} 이 제일 많이 지적됨.\n2. ${post.brands.join(", ")} 특유의 무드 대비 실제 만족도를 따지는 반응이 많음.\n3. ${post.sources[0] ? `${shortenTitle(post.sources[0].title)} 기준 가격/정보가 댓글 판단 근거로 반복됨.` : "칭찬보다 수정 조언형 댓글 비중이 높음."}`,
     },
     {
-      title: "Actionable styling suggestions",
+      title: "같이 보는 기준",
       content: `1. ${post.alignment.expected_comment_angle[0]} 중심으로 다시 보정하기.\n2. ${post.alignment.expected_comment_angle[1] || "이너 톤"} 쪽을 한 단계 더 정리하기.\n3. 구매/착용 의사결정은 "${post.expected}" 기준으로 좁히고, ${post.sources[0] ? `${post.sources[0].source} 기준 정보까지 함께 보기.` : "추가 출처 확보하기."}`,
     },
   ];
@@ -1228,8 +1230,8 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
   return (
     <div className={`${compact ? "" : "space-y-3"} ${className}`}>
       {!compact && (
-        <p className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">
-          Mentioned products
+        <p className="text-xs text-zinc-500">
+          본문 언급 제품
         </p>
       )}
       <div className={`grid gap-3 ${compact ? "" : visibleBindings.length > 2 ? "sm:grid-cols-2" : visibleBindings.length > 1 ? "sm:grid-cols-2" : ""}`}>
@@ -1242,9 +1244,7 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
         ))}
       </div>
       {compact && evidence.bindings.length > visibleBindings.length && (
-        <p className="text-[11px] text-zinc-500">
-          + {evidence.bindings.length - visibleBindings.length} more
-        </p>
+        <p className="text-[11px] text-zinc-500">외 {evidence.bindings.length - visibleBindings.length}개</p>
       )}
     </div>
   );
@@ -1398,6 +1398,7 @@ export default function FashionThreadPage() {
   const [replyOpenId, setReplyOpenId] = useState(null);
   const [expandedReplies, setExpandedReplies] = useState({});
   const [activeSearchQuery, setActiveSearchQuery] = useState("렉토 팬츠");
+  const navigationStackRef = useRef([]);
 
   const activePost = FEED_POSTS.find((post) => post.id === selectedPostId) ?? FEED_POSTS[0];
   const comments = commentsByPost[selectedPostId] ?? [];
@@ -1414,14 +1415,74 @@ export default function FashionThreadPage() {
     return { roots: rootsList, repliesByParent: replyMap };
   }, [comments]);
 
-  const openPost = (postId) => {
-    setSelectedPostId(postId);
-    setView("thread");
+  const resetThreadInteractions = () => {
     setPostLiked(false);
     setPostSaved(false);
     setPostReplyOpen(false);
     setReplyOpenId(null);
     setExpandedReplies({});
+  };
+
+  const snapshotNavigationState = () => ({
+    view,
+    selectedPostId,
+    activeSearchQuery,
+  });
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  };
+
+  const restoreNavigationState = (snapshot) => {
+    setView(snapshot.view);
+    setSelectedPostId(snapshot.selectedPostId);
+    setActiveSearchQuery(snapshot.activeSearchQuery);
+    resetThreadInteractions();
+    scrollToTop();
+  };
+
+  const navigateTo = (nextView, options = {}) => {
+    const nextPostId = options.postId ?? selectedPostId;
+    const nextSearchQuery = options.searchQuery ?? activeSearchQuery;
+    const currentSnapshot = snapshotNavigationState();
+    const nextSnapshot = {
+      view: nextView,
+      selectedPostId: nextPostId,
+      activeSearchQuery: nextSearchQuery,
+    };
+
+    if (
+      currentSnapshot.view === nextSnapshot.view &&
+      currentSnapshot.selectedPostId === nextSnapshot.selectedPostId &&
+      currentSnapshot.activeSearchQuery === nextSnapshot.activeSearchQuery
+    ) {
+      return;
+    }
+
+    if (options.pushHistory !== false) {
+      navigationStackRef.current.push(currentSnapshot);
+    }
+
+    setView(nextView);
+    setSelectedPostId(nextPostId);
+    setActiveSearchQuery(nextSearchQuery);
+    resetThreadInteractions();
+    scrollToTop();
+  };
+
+  const goBack = () => {
+    const previousSnapshot = navigationStackRef.current.pop();
+
+    if (previousSnapshot) {
+      restoreNavigationState(previousSnapshot);
+      return;
+    }
+
+    navigateTo("feed", { pushHistory: false });
+  };
+
+  const openPost = (postId) => {
+    navigateTo("thread", { postId });
   };
 
   const toggleCommentLike = (id) => {
@@ -1458,8 +1519,32 @@ export default function FashionThreadPage() {
     return filtered.length > 0 ? filtered : SEARCH_RESULTS.slice(0, 4);
   }, [activeSearchQuery]);
 
-  const openFeed = () => setView("feed");
-  const openSearch = () => setView("search");
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key !== "Backspace") return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+      const target = event.target;
+      const tagName = target?.tagName;
+      const isEditable =
+        target?.isContentEditable ||
+        tagName === "INPUT" ||
+        tagName === "TEXTAREA" ||
+        tagName === "SELECT";
+
+      if (isEditable) return;
+      if (view === "feed" && navigationStackRef.current.length === 0) return;
+
+      event.preventDefault();
+      goBack();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [view, selectedPostId, activeSearchQuery]);
+
+  const openFeed = () => navigateTo("feed");
+  const openSearch = () => navigateTo("search");
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -1469,7 +1554,7 @@ export default function FashionThreadPage() {
             {view === "thread" ? (
               <button
                 type="button"
-                onClick={openFeed}
+                onClick={goBack}
                 className="rounded-full border border-zinc-800 bg-zinc-900 p-2 transition hover:bg-zinc-800"
               >
                 <ArrowLeft className="h-4 w-4 text-zinc-300" />
@@ -1477,7 +1562,7 @@ export default function FashionThreadPage() {
             ) : view === "search" ? (
               <button
                 type="button"
-                onClick={openFeed}
+                onClick={goBack}
                 className="rounded-full border border-zinc-800 bg-zinc-900 p-2 transition hover:bg-zinc-800"
               >
                 <ArrowLeft className="h-4 w-4 text-zinc-300" />
@@ -1579,14 +1664,14 @@ export default function FashionThreadPage() {
 
                       <div className="mt-3 grid grid-cols-[1fr_auto] gap-3">
                         <div className="min-w-0">
-                          {post.sources.length > 0 && (
+                          {post.sources.length > 0 && !post.productEvidence.has_named_product_refs && (
                             <div className="mb-3 flex flex-wrap gap-2">
                               {post.sources.map((source) => (
                                 <span
                                   key={`${post.id}-${source.title}`}
                                   className="rounded-full border border-zinc-800 bg-black px-3 py-1 text-xs text-zinc-400"
                                 >
-                                  Ref: {shortenTitle(source.title)}
+                                  {shortenTitle(source.title)}
                                 </span>
                               ))}
                             </div>
@@ -1601,9 +1686,6 @@ export default function FashionThreadPage() {
                               </span>
                             ))}
                           </div>
-                          <p className="mt-3 text-sm leading-6 text-zinc-500">
-                            논쟁 포인트: {post.debate} · 소스 조합: {post.sourceMix}
-                          </p>
                           <div className="mt-3 flex items-center gap-4 text-sm text-zinc-500">
                             <span>{formatCount(post.likes)} likes</span>
                             <span>{post.replies} replies</span>
@@ -1858,22 +1940,7 @@ export default function FashionThreadPage() {
                       </div>
                     )}
 
-                    <div className="mt-3 rounded-2xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
-                      <p>같이 많이 언급되는 포인트: {activePost.debate}</p>
-                      <p className="mt-2 leading-6">{activePost.expected}</p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {activePost.alignment.expected_comment_angle.map((angle) => (
-                          <span
-                            key={`${activePost.id}-${angle}`}
-                            className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-[11px] text-zinc-300"
-                          >
-                            {angle}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {activePost.sources.length > 0 && (
+                    {activePost.sources.length > 0 && !activePost.productEvidence.has_named_product_refs && (
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         {activePost.sources.map((source) => (
                           <a
@@ -1886,12 +1953,14 @@ export default function FashionThreadPage() {
                             <ResolvedProductThumbnail
                               binding={{ sourceKey: source.key, title: source.title, source: source.source }}
                               alt={source.title}
-                              className="h-40 w-full object-cover"
+                              className="h-36 w-full object-cover"
                             />
                             <div className="space-y-1 p-4">
-                              <p className="text-xs text-zinc-500">{source.source}</p>
                               <p className="text-sm font-medium leading-6 text-zinc-100 transition group-hover:text-white">{source.title}</p>
-                              <p className="text-xs text-zinc-400">{source.price}</p>
+                              <div className="flex items-center gap-2 text-xs">
+                                <p className="truncate text-zinc-500">{source.source}</p>
+                                <p className="truncate text-zinc-400">{source.price}</p>
+                              </div>
                             </div>
                           </a>
                         ))}

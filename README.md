@@ -46,8 +46,10 @@ This repository tracks meaningful work through GitHub Issues only.
 
 ## Alignment design artifacts
 
+- Current product state summary: [`/docs/current-product-state.md`](./docs/current-product-state.md)
 - Content-image alignment model: [`/docs/content-image-alignment-data-model.md`](./docs/content-image-alignment-data-model.md)
 - Example aligned records: [`/src/data/contentImageAlignmentExamples.json`](./src/data/contentImageAlignmentExamples.json)
 - Generated image policy: [`/docs/generated-image-policy.md`](./docs/generated-image-policy.md)
+- Product mention card policy: [`/docs/product-mention-card-policy.md`](./docs/product-mention-card-policy.md)
 
 These alignment artifacts are the source of truth for validating whether mock post text, image evidence, and expected comments belong together.

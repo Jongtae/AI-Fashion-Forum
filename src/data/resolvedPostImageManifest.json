@@ -11,29 +11,29 @@
       "thumbnail_url": "https://cafe24img.poxo.com/lowclassic/web/product/big/202303/f6c6a33112b0b6ad9ac1f1409830039c.jpg"
     },
     "lowclassic_pants": {
-      "asset_source_type": "generated",
+      "asset_source_type": "real",
       "asset_status": "resolved",
-      "thumbnail_url": null
+      "thumbnail_url": "https://kream-phinf.pstatic.net/MjAyNTA3MzBfMTY0/MDAxNzUzODYxMjk2OTc1.LIrD-PCnPi3GUTEJEEuRwO99-vO-uSUP-3EVvagPVS8g.CjKCzBINLFR6nEfKni6gjnlFmc-kBXvc0nh8H_m9qQEg.PNG/a_32fb50102b5645fa88b56534cc36fb44.png"
     },
     "amomento_shirt": {
-      "asset_source_type": "generated",
+      "asset_source_type": "real",
       "asset_status": "resolved",
-      "thumbnail_url": null
+      "thumbnail_url": "https://cdn.shopify.com/s/files/1/0620/8172/8644/files/0000_PINTUCKSLIMSHIRT_BR_01.jpg?v=1771917439"
     },
     "amomento_knit": {
-      "asset_source_type": "generated",
+      "asset_source_type": "real",
       "asset_status": "resolved",
-      "thumbnail_url": null
+      "thumbnail_url": "https://cdn.shopify.com/s/files/1/0620/8172/8644/files/0000_WOOLV-NECKKNIT_CH_01.jpg?v=1771917391"
     },
     "amomento_zip": {
-      "asset_source_type": "generated",
+      "asset_source_type": "real",
       "asset_status": "resolved",
-      "thumbnail_url": null
+      "thumbnail_url": "https://cdn.shopify.com/s/files/1/0620/8172/8644/files/WOOLCROPZIP-UPJUMPER_GREYBEIGE_1.jpg?v=1771917333"
     },
     "recto_pants": {
-      "asset_source_type": "generated",
+      "asset_source_type": "real",
       "asset_status": "resolved",
-      "thumbnail_url": null
+      "thumbnail_url": "https://cafe24img.poxo.com/product2011/web/product/small/202509/b812dfced35b64d077bd4159a99d4cce.jpg"
     },
     "recto_wide": {
       "asset_source_type": "real",
@@ -41,29 +41,29 @@
       "thumbnail_url": "https://etaseoul.com/cdn/shop/files/ETA_SEOUL_Centered_1200x628_82651da9-66c7-4324-ab9b-8b4134ad427e.png?v=1745076006"
     },
     "cos_trouser": {
-      "asset_source_type": "generated",
+      "asset_source_type": "real",
       "asset_status": "resolved",
-      "thumbnail_url": null
+      "thumbnail_url": "https://media.cos.com/assets/001/9d/16/9d1630e1936271893c5d84099a730a57a758547e.jpg?aspectRatio=2%2C3&imwidth=2160"
     },
     "cos_wool_trouser": {
-      "asset_source_type": "generated",
+      "asset_source_type": "real",
       "asset_status": "resolved",
-      "thumbnail_url": null
+      "thumbnail_url": "https://media.cos.com/assets/001/96/82/96829cd1d9198487bb64aeb9cbe9b316a6fe3815_xxl-1.jpg?imwidth=2160"
     },
     "cos_shirt": {
-      "asset_source_type": "generated",
+      "asset_source_type": "real",
       "asset_status": "resolved",
-      "thumbnail_url": null
+      "thumbnail_url": "https://media.cos.com/assets/001/83/93/8393590a4a7a374fae06486d64eee3aabcdd2cd7_xxl-1.jpg?imwidth=2160"
     },
     "cos_knit": {
-      "asset_source_type": "generated",
+      "asset_source_type": "real",
       "asset_status": "resolved",
-      "thumbnail_url": null
+      "thumbnail_url": "https://media.cos.com/sb/251958/3861x5791/6a27f4d3e5/merino_sl__0061.jpg?imwidth=2160"
     },
     "le17_coat": {
-      "asset_source_type": "generated",
+      "asset_source_type": "real",
       "asset_status": "resolved",
-      "thumbnail_url": null
+      "thumbnail_url": "https://www.theoutnet.com/variants/images/1647597322046157/F/w1020_q80.jpg"
     },
     "le17_frontzip": {
       "asset_source_type": "real",
@@ -71,9 +71,9 @@
       "thumbnail_url": "https://images.garmentory.com/images/4161750/large/Le-17-Septembre-Front-Zipper-Coat-20200917011119.jpg?1600305087"
     },
     "marginsherwood_boston": {
-      "asset_source_type": "generated",
+      "asset_source_type": "real",
       "asset_status": "resolved",
-      "thumbnail_url": null
+      "thumbnail_url": "https://cdna.lystit.com/1040/1300/n/photos/eraldo/f1d9d870/marge-sherwood--Soft-Boston-Leather-Shoulder-Bag.jpeg"
     },
     "marginsherwood_baguette": {
       "asset_source_type": "real",
