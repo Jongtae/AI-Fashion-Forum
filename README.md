@@ -43,3 +43,9 @@ This repository tracks meaningful work through GitHub Issues only.
 - Workflow doc: [`/docs/github-issue-workflow.md`](./docs/github-issue-workflow.md)
 - GitHub issue template: `/.github/ISSUE_TEMPLATE/mock-work-item.yml`
 - Open work in GitHub: `https://github.com/Jongtae/AI-Fashion-Forum/issues`
+
+## Alignment design artifacts
+
+- Content-image alignment model: [`/docs/content-image-alignment-data-model.md`](./docs/content-image-alignment-data-model.md)
+- Example aligned records: [`/src/data/contentImageAlignmentExamples.json`](./src/data/contentImageAlignmentExamples.json)
+- Generated image policy: [`/docs/generated-image-policy.md`](./docs/generated-image-policy.md)

@@ -1,0 +1,102 @@
+[
+  {
+    "post_id": "AFF-ALIGN-001",
+    "topic_type": "outfit_check",
+    "text_intent": "출근룩인데 팬츠 밑단이 로퍼에서 끊겨 보이는지 판단받고 싶다.",
+    "scene_context": {
+      "setting": "weekday commute",
+      "location_hint": "office elevator mirror",
+      "audience_judgment": "hem length and workwear balance"
+    },
+    "brand_refs": ["LE 17 SEPTEMBRE", "COS"],
+    "product_refs": [
+      {
+        "brand": "COS",
+        "name": "cotton cropped wide-leg trousers",
+        "source_label": "COS KR"
+      }
+    ],
+    "price_anchor": null,
+    "image_id": "img-mirror-commute-001",
+    "image_evidence_type": "mirror_selfie",
+    "image_evidence_role": "full_body_proportion_check",
+    "visible_evidence_note": "전신 비율, 팬츠 길이, 로퍼와 밑단의 끊김 지점을 한 번에 볼 수 있다.",
+    "wear_state": "worn",
+    "expected_comment_angle": ["pants hem", "shoe choice", "office formality"],
+    "confidence_level": "high",
+    "validation_status": "approved",
+    "image_match_score": 5,
+    "validation_notes": [
+      "Full-body mirror evidence supports the hem-length claim directly.",
+      "Commute context matches the post intent."
+    ]
+  },
+  {
+    "post_id": "AFF-ALIGN-002",
+    "topic_type": "buy_decision",
+    "text_intent": "아모멘토 셔츠가 20만원대 값을 하는지 판단하고 싶다.",
+    "scene_context": {
+      "setting": "shopping hesitation",
+      "location_hint": "product-detail and styled-wear comparison",
+      "audience_judgment": "shape, drape, and value-for-price"
+    },
+    "brand_refs": ["AMOMENTO"],
+    "product_refs": [
+      {
+        "brand": "AMOMENTO",
+        "name": "stripe shirts, brown",
+        "source_label": "AMOMENTO official"
+      }
+    ],
+    "price_anchor": {
+      "currency": "USD",
+      "amount": 200,
+      "comparison_note": "sale observed at 140 USD"
+    },
+    "image_id": "img-product-style-004",
+    "image_evidence_type": "product_photo",
+    "image_evidence_role": "product_shape_reference",
+    "visible_evidence_note": "제품의 실루엣과 어깨선은 확인 가능하지만 실제 장시간 착용 만족도까지는 증명하지 못한다.",
+    "wear_state": "tried_on",
+    "expected_comment_angle": ["price value", "drape quality", "brand premium"],
+    "confidence_level": "medium",
+    "validation_status": "approved",
+    "image_match_score": 4,
+    "validation_notes": [
+      "Concrete product and price anchor exist.",
+      "Image supports shape judgment but not durability; comments should stay scoped."
+    ]
+  },
+  {
+    "post_id": "AFF-ALIGN-003",
+    "topic_type": "real_wear_review",
+    "text_intent": "니트가 몇 번 안 입었는데도 사용감이 빨리 오는지 공유하고 싶다.",
+    "scene_context": {
+      "setting": "owner review",
+      "location_hint": "indoor phone snapshot after several wears",
+      "audience_judgment": "surface wear and real-life satisfaction"
+    },
+    "brand_refs": ["AMOMENTO"],
+    "product_refs": [
+      {
+        "brand": "AMOMENTO",
+        "name": "racoon v-neck knit, dark grey",
+        "source_label": "AMOMENTO official"
+      }
+    ],
+    "price_anchor": null,
+    "image_id": "img-knit-review-006",
+    "image_evidence_type": "review_snapshot",
+    "image_evidence_role": "wear_and_texture_review",
+    "visible_evidence_note": "실착 상태와 표면 질감은 읽히지만 보풀 정도는 클로즈업이 추가되면 더 좋다.",
+    "wear_state": "worn_with_wear_signs",
+    "expected_comment_angle": ["pilling risk", "maintenance cost", "price disappointment"],
+    "confidence_level": "medium",
+    "validation_status": "review_required",
+    "image_match_score": 3,
+    "validation_notes": [
+      "Ownership context is believable.",
+      "Would benefit from an additional detail shot before final approval."
+    ]
+  }
+]
