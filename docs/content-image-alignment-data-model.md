@@ -122,6 +122,7 @@ Approve only if all of the following are true:
 ## Example records
 
 Reference implementation examples live in `src/data/contentImageAlignmentExamples.json`.
+Named-item layout implementation rules live in `docs/product-image-binding-layout-rules.md`.
 
 Those examples are meant to be detailed enough that Data Engineering can turn this format into a stricter schema or acquisition workflow later.
 The sample set should include approved records for each core topic family plus at least one rejected mismatch example so validation behavior is explicit, not implied.
