@@ -37,23 +37,23 @@ Each mock post should be stored as one structured record.
 
 ## Supported topic types
 
-| Topic type | What the audience judges | Required evidence |
-| --- | --- | --- |
-| `outfit_check` | overall balance, formality, proportion, styling coherence | at least one full-look image that shows silhouette and context |
-| `buy_decision` | whether the item is worth buying at the stated price/value level | real product anchor plus image showing shape, scale, or styling context |
-| `size_help` | fit, length, body proportion, size choice risk | image must expose the relevant garment/body relationship clearly |
-| `real_wear_review` | satisfaction after actual use, wear, maintenance, practicality | image must show real use context, wear state, or evidence of lived ownership |
-| `awkward_fit_check` | specific mismatch such as bulky upper body, awkward hem, wrong inner tone | image must make the exact mismatch visibly judgeable |
+| Topic type | What the audience judges | Required evidence | Expected comment angles |
+| --- | --- | --- | --- |
+| `outfit_check` | overall balance, formality, proportion, styling coherence | at least one full-look image that shows silhouette and context | proportion feedback, commute formality, shoe and outerwear coordination |
+| `buy_decision` | whether the item is worth buying at the stated price/value level | real product anchor plus image showing shape, scale, or styling context | price-to-value judgment, brand premium debate, alternative item suggestions |
+| `size_help` | fit, length, body proportion, size choice risk | image must expose the relevant garment/body relationship clearly | size up/down recommendations, hemming advice, body-balance feedback |
+| `real_wear_review` | satisfaction after actual use, wear, maintenance, practicality | image must show real use context, wear state, or evidence of lived ownership | durability reactions, care tips, expectation-versus-reality comparisons |
+| `awkward_fit_check` | specific mismatch such as bulky upper body, awkward hem, wrong inner tone | image must make the exact mismatch visibly judgeable | root-cause diagnosis, styling correction ideas, keep-or-return opinions |
 
 ## Image evidence taxonomy
 
-| Evidence type | What it can prove | What it cannot prove | Valid topic types |
-| --- | --- | --- | --- |
-| `mirror_selfie` | full-body proportion, hem length, silhouette, commute realism | fabric durability, storage capacity, long-term wear | `outfit_check`, `size_help`, `awkward_fit_check` |
-| `product_photo` | item shape, hardware, colorway, construction cues | real-life fit, daily practicality, comfort | `buy_decision` |
-| `detail_shot` | texture, drape, stitching, wear signs, material surface | whole-look proportion or commute mood | `buy_decision`, `real_wear_review` |
-| `fit_comparison` | size delta, length delta, before/after proportion judgment | durable ownership claims | `size_help`, `awkward_fit_check` |
-| `review_snapshot` | real use context, styling after wear, practical ownership evidence | exact product dimensions unless visible | `real_wear_review`, `buy_decision` |
+| Evidence type | What it can prove | What it cannot prove | Valid topic types | Should not be used for |
+| --- | --- | --- | --- | --- |
+| `mirror_selfie` | full-body proportion, hem length, silhouette, commute realism | fabric durability, storage capacity, long-term wear | `outfit_check`, `size_help`, `awkward_fit_check` | `real_wear_review` claims about pilling, `buy_decision` claims that depend on material quality or bag practicality alone |
+| `product_photo` | item shape, hardware, colorway, construction cues | real-life fit, daily practicality, comfort | `buy_decision` | `size_help`, `awkward_fit_check`, or commute-formality questions that require a worn silhouette |
+| `detail_shot` | texture, drape, stitching, wear signs, material surface | whole-look proportion or commute mood | `buy_decision`, `real_wear_review` | `outfit_check` or any length/proportion judgment that needs the full body |
+| `fit_comparison` | size delta, length delta, before/after proportion judgment | durable ownership claims | `size_help`, `awkward_fit_check` | price-value debates without a product anchor or maintenance reviews without wear evidence |
+| `review_snapshot` | real use context, styling after wear, practical ownership evidence | exact product dimensions unless visible | `real_wear_review`, `buy_decision` | pure size-comparison posts or formal proportion checks that need a clean full-length view |
 
 ## Evidence-role taxonomy
 
@@ -124,3 +124,4 @@ Approve only if all of the following are true:
 Reference implementation examples live in `src/data/contentImageAlignmentExamples.json`.
 
 Those examples are meant to be detailed enough that Data Engineering can turn this format into a stricter schema or acquisition workflow later.
+The sample set should include approved records for each core topic family plus at least one rejected mismatch example so validation behavior is explicit, not implied.
