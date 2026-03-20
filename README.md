@@ -43,3 +43,8 @@ This repository uses an issue-first workflow for meaningful mock work.
 - Workflow doc: [`/docs/issue-first-workflow.md`](./docs/issue-first-workflow.md)
 - Current tracked work item: [`/issues/0001-source-driven-mock-topics.md`](./issues/0001-source-driven-mock-topics.md)
 - GitHub issue template: `/.github/ISSUE_TEMPLATE/mock-work-item.yml`
+
+## Alignment design artifacts
+
+- Content-image alignment model: [`/docs/content-image-alignment-data-model.md`](./docs/content-image-alignment-data-model.md)
+- Example aligned records: [`/src/data/contentImageAlignmentExamples.json`](./src/data/contentImageAlignmentExamples.json)
