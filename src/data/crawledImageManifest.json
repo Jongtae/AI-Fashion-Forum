@@ -1,0 +1,116 @@
+[
+  {
+    "image_id": "img-mirror-commute-001",
+    "topic_types": [
+      "outfit_check",
+      "awkward_fit_check"
+    ],
+    "image_evidence_type": "mirror_selfie",
+    "image_evidence_role": "full_body_proportion_check",
+    "visible_evidence_note": "전체 실루엣과 팬츠 길이, 신발과 밑단의 관계를 함께 판단할 수 있는 전신 거울샷.",
+    "wear_state": "worn",
+    "source_provider": "Unsplash",
+    "source_url": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
+    "source_note": "Legacy mock image pool seed carried forward into the developer-ready crawl pipeline.",
+    "content_type": "image/jpeg",
+    "file_name": "img-mirror-commute-001.jpg",
+    "localPath": "public/crawled-images/img-mirror-commute-001.jpg",
+    "publicPath": "/crawled-images/img-mirror-commute-001.jpg",
+    "downloaded_at": "2026-03-20T11:53:04.928Z"
+  },
+  {
+    "image_id": "img-fashion-street-002",
+    "topic_types": [
+      "buy_decision",
+      "awkward_fit_check"
+    ],
+    "image_evidence_type": "review_snapshot",
+    "image_evidence_role": "styling_mood_reference",
+    "visible_evidence_note": "실착 무드와 실루엣 밸런스를 확인할 수 있는 스트리트 착장 이미지.",
+    "wear_state": "worn",
+    "source_provider": "Unsplash",
+    "source_url": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80",
+    "source_note": "Legacy mock image pool seed carried forward into the developer-ready crawl pipeline.",
+    "content_type": "image/jpeg",
+    "file_name": "img-fashion-street-002.jpg",
+    "localPath": "public/crawled-images/img-fashion-street-002.jpg",
+    "publicPath": "/crawled-images/img-fashion-street-002.jpg",
+    "downloaded_at": "2026-03-20T11:53:05.028Z"
+  },
+  {
+    "image_id": "img-detail-look-003",
+    "topic_types": [
+      "buy_decision",
+      "real_wear_review"
+    ],
+    "image_evidence_type": "detail_shot",
+    "image_evidence_role": "texture_and_drape_reference",
+    "visible_evidence_note": "원단 질감과 드레이프, 핏 분위기를 판단할 수 있는 클로즈업 착장 컷.",
+    "wear_state": "worn",
+    "source_provider": "Unsplash",
+    "source_url": "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1200&q=80",
+    "source_note": "Legacy mock image pool seed carried forward into the developer-ready crawl pipeline.",
+    "content_type": "image/jpeg",
+    "file_name": "img-detail-look-003.jpg",
+    "localPath": "public/crawled-images/img-detail-look-003.jpg",
+    "publicPath": "/crawled-images/img-detail-look-003.jpg",
+    "downloaded_at": "2026-03-20T11:53:05.050Z"
+  },
+  {
+    "image_id": "img-product-style-004",
+    "topic_types": [
+      "buy_decision",
+      "size_help"
+    ],
+    "image_evidence_type": "product_photo",
+    "image_evidence_role": "product_shape_reference",
+    "visible_evidence_note": "아이템 형태와 길이감을 판단하기 쉬운 정면 중심 제품/착장 컷.",
+    "wear_state": "worn",
+    "source_provider": "Unsplash",
+    "source_url": "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80",
+    "source_note": "Legacy mock image pool seed carried forward into the developer-ready crawl pipeline.",
+    "content_type": "image/jpeg",
+    "file_name": "img-product-style-004.jpg",
+    "localPath": "public/crawled-images/img-product-style-004.jpg",
+    "publicPath": "/crawled-images/img-product-style-004.jpg",
+    "downloaded_at": "2026-03-20T11:53:05.066Z"
+  },
+  {
+    "image_id": "img-commute-fit-005",
+    "topic_types": [
+      "size_help",
+      "outfit_check"
+    ],
+    "image_evidence_type": "mirror_selfie",
+    "image_evidence_role": "commute_outfit_balance_check",
+    "visible_evidence_note": "출근룩 맥락에서 상하의 비율과 포멀함 정도를 읽을 수 있는 실착 컷.",
+    "wear_state": "worn",
+    "source_provider": "Unsplash",
+    "source_url": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80",
+    "source_note": "Legacy mock image pool seed carried forward into the developer-ready crawl pipeline.",
+    "content_type": "image/jpeg",
+    "file_name": "img-commute-fit-005.jpg",
+    "localPath": "public/crawled-images/img-commute-fit-005.jpg",
+    "publicPath": "/crawled-images/img-commute-fit-005.jpg",
+    "downloaded_at": "2026-03-20T11:53:05.090Z"
+  },
+  {
+    "image_id": "img-knit-review-006",
+    "topic_types": [
+      "real_wear_review",
+      "size_help"
+    ],
+    "image_evidence_type": "review_snapshot",
+    "image_evidence_role": "wear_and_texture_review",
+    "visible_evidence_note": "니트 표면감과 착용 분위기를 함께 전달할 수 있는 실착 리뷰형 이미지.",
+    "wear_state": "worn",
+    "source_provider": "Unsplash",
+    "source_url": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80",
+    "source_note": "Legacy mock image pool seed carried forward into the developer-ready crawl pipeline.",
+    "content_type": "image/jpeg",
+    "file_name": "img-knit-review-006.jpg",
+    "localPath": "public/crawled-images/img-knit-review-006.jpg",
+    "publicPath": "/crawled-images/img-knit-review-006.jpg",
+    "downloaded_at": "2026-03-20T11:53:05.113Z"
+  }
+]
