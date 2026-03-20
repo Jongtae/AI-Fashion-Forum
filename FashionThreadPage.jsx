@@ -751,6 +751,7 @@ function buildProductEvidenceMeta(sources, imageAsset) {
     id: `${source.source}-${source.title}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
     title: source.title,
     source: source.source,
+    url: source.url,
     price: source.price,
     note: source.note,
     role: index === 0 ? "대표 근거" : "보조 근거",
@@ -779,14 +780,15 @@ function buildGeneratedThumbnail(title, source) {
       </defs>
       <rect width="900" height="900" fill="url(#g)" rx="56" />
       <rect x="56" y="56" width="788" height="788" rx="44" fill="none" stroke="#3f3f46" stroke-width="3" />
-      <text x="88" y="150" fill="#a1a1aa" font-size="28" font-family="Arial, sans-serif">Generated product thumb</text>
-      <foreignObject x="88" y="208" width="724" height="460">
+      <rect x="88" y="104" width="210" height="44" rx="22" fill="rgba(24,24,27,0.9)" stroke="#52525b" />
+      <text x="116" y="133" fill="#d4d4d8" font-size="20" font-family="Arial, sans-serif">Mentioned item</text>
+      <foreignObject x="88" y="196" width="724" height="472">
         <div xmlns="http://www.w3.org/1999/xhtml" style="color:#fafafa;font-family:Arial,sans-serif;font-size:54px;line-height:1.22;font-weight:700;">
           ${safeTitle}
         </div>
       </foreignObject>
-      <text x="88" y="770" fill="#d4d4d8" font-size="32" font-family="Arial, sans-serif">${safeSource}</text>
-      <text x="88" y="815" fill="#71717a" font-size="24" font-family="Arial, sans-serif">Exact product raster unavailable, generated evidence fallback</text>
+      <text x="88" y="776" fill="#d4d4d8" font-size="32" font-family="Arial, sans-serif">${safeSource}</text>
+      <text x="88" y="822" fill="#71717a" font-size="24" font-family="Arial, sans-serif">Product preview</text>
     </svg>
   `.trim();
 
@@ -821,6 +823,42 @@ function ResolvedProductThumbnail({ binding, className, alt }) {
       onError={() => setSrc(generatedThumbnail)}
       className={className}
     />
+  );
+}
+
+function ProductMentionCard({ binding, variant = "feed" }) {
+  const isFeed = variant === "feed";
+
+  return (
+    <a
+      href={binding.url}
+      target="_blank"
+      rel="noreferrer"
+      className={`group overflow-hidden rounded-2xl border border-zinc-800 bg-black/40 text-left transition hover:border-zinc-700 hover:bg-zinc-900/80 ${
+        isFeed ? "block p-2" : "block"
+      }`}
+    >
+      <ResolvedProductThumbnail
+        binding={binding}
+        alt={binding.title}
+        className={`bg-zinc-950 object-cover ${
+          isFeed ? "h-14 w-full rounded-xl" : "h-44 w-full rounded-t-2xl"
+        }`}
+      />
+      <div className={isFeed ? "space-y-1 px-0.5 pb-0.5 pt-2" : "space-y-1 p-3.5"}>
+        <p className={`font-medium text-zinc-100 transition group-hover:text-white ${
+          isFeed ? "line-clamp-2 text-[11px] leading-4" : "text-sm leading-5"
+        }`}>
+          {binding.title}
+        </p>
+        <p className={`text-zinc-500 ${isFeed ? "truncate text-[10px]" : "text-xs"}`}>
+          {binding.source}
+        </p>
+        {!isFeed && binding.price && (
+          <p className="text-xs text-zinc-400">{binding.price}</p>
+        )}
+      </div>
+    </a>
   );
 }
 
@@ -1185,68 +1223,29 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
 
   if (!evidence?.has_named_product_refs) return null;
 
-  const visibleBindings = compact ? evidence.bindings.slice(0, 2) : evidence.bindings;
+  const visibleBindings = compact ? evidence.bindings.slice(0, 1) : evidence.bindings;
 
   return (
-    <div
-      className={`overflow-hidden rounded-3xl border border-zinc-800 bg-[linear-gradient(160deg,rgba(24,24,27,0.96),rgba(9,9,11,0.98))] ${className}`}
-    >
-      <div className={`${detail ? "p-5 sm:p-6" : compact ? "p-3" : "p-4"}`}>
-        {!compact && (
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="text-sm font-semibold text-zinc-100">본문에서 언급한 제품</p>
-              <p className="mt-1 text-xs text-zinc-500">글에서 바로 언급한 제품을 썸네일로 붙였습니다.</p>
-            </div>
-            <span className="rounded-full border border-zinc-700 bg-black/40 px-3 py-1 text-[11px] text-zinc-300">
-              {post.resolution?.required_evidence_type || "product_thumbnail"}
-            </span>
-          </div>
-        )}
-
-        <div className={`mt-3 grid gap-3 ${visibleBindings.length > 1 ? "sm:grid-cols-2" : ""}`}>
-          {visibleBindings.map((binding) => (
-            <div key={`${post.id}-${binding.id}`} className="overflow-hidden rounded-2xl border border-zinc-800 bg-black/40">
-              <ResolvedProductThumbnail
-                binding={binding}
-                alt={binding.title}
-                className={`w-full object-cover ${compact ? "h-24" : detail ? "h-52" : "h-40"}`}
-              />
-              <div className={compact ? "p-2.5" : "p-4"}>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[11px] text-zinc-500">{binding.role}</span>
-                  {!compact && <span className="text-[11px] text-zinc-400">{binding.price}</span>}
-                </div>
-                <p className={`mt-2 font-medium text-zinc-100 ${compact ? "line-clamp-2 text-[11px] leading-4" : "text-[15px] leading-6"}`}>
-                  {binding.title}
-                </p>
-                {!compact && <p className="mt-2 text-xs text-zinc-500">{binding.source}</p>}
-                {!compact && (
-                  <p className="mt-3 text-sm leading-6 text-zinc-400">
-                    {binding.note}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {compact && evidence.bindings.length > visibleBindings.length && (
-          <p className="mt-3 text-xs text-zinc-500">
-            + {evidence.bindings.length - visibleBindings.length}개 추가 제품 근거는 상세에서 확인
-          </p>
-        )}
-
-        {!compact && (
-          <p className="mt-3 text-xs leading-5 text-zinc-500">
-            {post.resolution?.asset_source_type === "real"
-              ? "실제 소스 이미지 기준으로 연결된 제품 썸네일입니다."
-              : post.resolution?.asset_source_type === "mixed"
-                ? "실제 소스 이미지와 generated thumbnail을 함께 사용했습니다."
-                : "실제 제품 이미지를 확보하지 못한 항목은 generated thumbnail로 보강했습니다."}
-          </p>
-        )}
+    <div className={`${compact ? "" : "space-y-3"} ${className}`}>
+      {!compact && (
+        <p className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">
+          Mentioned products
+        </p>
+      )}
+      <div className={`grid gap-3 ${compact ? "" : visibleBindings.length > 2 ? "sm:grid-cols-2" : visibleBindings.length > 1 ? "sm:grid-cols-2" : ""}`}>
+        {visibleBindings.map((binding) => (
+          <ProductMentionCard
+            key={`${post.id}-${binding.id}`}
+            binding={binding}
+            variant={compact ? "feed" : "detail"}
+          />
+        ))}
       </div>
+      {compact && evidence.bindings.length > visibleBindings.length && (
+        <p className="text-[11px] text-zinc-500">
+          + {evidence.bindings.length - visibleBindings.length} more
+        </p>
+      )}
     </div>
   );
 }
@@ -1569,9 +1568,6 @@ export default function FashionThreadPage() {
                         <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
                           {TYPE_LABEL[post.type]}
                         </span>
-                        <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] text-zinc-400">
-                          {post.alignment.image_evidence_type}
-                        </span>
                         <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
                           {post.brands.join(" / ")}
                         </span>
@@ -1826,9 +1822,6 @@ export default function FashionThreadPage() {
                       <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300">
                         {TYPE_LABEL[activePost.type]}
                       </span>
-                      <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] text-zinc-400">
-                        {activePost.alignment.image_evidence_type}
-                      </span>
                       <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
                         {activePost.brands.join(" / ")}
                       </span>
@@ -1866,9 +1859,8 @@ export default function FashionThreadPage() {
                     )}
 
                     <div className="mt-3 rounded-2xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
-                      <p>논쟁 포인트: {activePost.debate} · 예상 댓글 방향: {activePost.expected}</p>
-                      <p className="mt-2">이미지 근거 역할: {activePost.alignment.image_evidence_role}</p>
-                      <p className="mt-2 leading-6">보이는 근거: {activePost.alignment.visible_evidence_note}</p>
+                      <p>같이 많이 언급되는 포인트: {activePost.debate}</p>
+                      <p className="mt-2 leading-6">{activePost.expected}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {activePost.alignment.expected_comment_angle.map((angle) => (
                           <span
@@ -1878,15 +1870,6 @@ export default function FashionThreadPage() {
                             {angle}
                           </span>
                         ))}
-                        {activePost.resolution?.asset_source_type && (
-                          <span className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-[11px] text-zinc-300">
-                            {activePost.resolution.asset_source_type === "real"
-                              ? "real assets"
-                              : activePost.resolution.asset_source_type === "mixed"
-                                ? "real + generated"
-                                : "generated assets"}
-                          </span>
-                        )}
                       </div>
                     </div>
 
@@ -1898,19 +1881,18 @@ export default function FashionThreadPage() {
                             href={source.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 transition hover:border-zinc-700 hover:bg-zinc-900"
+                            className="group overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/80 transition hover:border-zinc-700 hover:bg-zinc-900"
                           >
                             <ResolvedProductThumbnail
                               binding={{ sourceKey: source.key, title: source.title, source: source.source }}
                               alt={source.title}
-                              className="h-40 w-full rounded-2xl object-cover"
+                              className="h-40 w-full object-cover"
                             />
-                            <div className="flex items-center justify-between gap-3">
-                              <span className="text-xs text-zinc-500">{source.source}</span>
-                              <span className="text-xs text-zinc-400">{source.price}</span>
+                            <div className="space-y-1 p-4">
+                              <p className="text-xs text-zinc-500">{source.source}</p>
+                              <p className="text-sm font-medium leading-6 text-zinc-100 transition group-hover:text-white">{source.title}</p>
+                              <p className="text-xs text-zinc-400">{source.price}</p>
                             </div>
-                            <p className="mt-2 text-sm font-medium leading-6 text-zinc-100">{source.title}</p>
-                            <p className="mt-2 text-sm leading-6 text-zinc-400">{source.note}</p>
                           </a>
                         ))}
                       </div>
