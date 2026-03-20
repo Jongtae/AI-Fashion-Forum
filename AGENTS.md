@@ -14,7 +14,7 @@
 - Use branch names that reflect the issue, such as `feat/<issue-slug>`, `fix/<issue-slug>`, or `chore/<issue-slug>`.
 - Reference the related issue in commits and pull requests whenever possible.
 - Record meaningful progress with commits while implementation is underway, not only at the very end.
-- The default delivery sequence for a completed issue is:
+- The default delivery sequence for a completed issue is mandatory unless the user explicitly changes it:
   1. implement on the issue branch
   2. commit the work with issue references
   3. open a pull request
@@ -23,7 +23,9 @@
   6. update the GitHub issue checklist/state and close the issue
 - Do not consider an issue complete just because code exists locally or has been merged; the issue is only done after deployment is verified and the GitHub issue is closed.
 - If PR automation is blocked by permissions or tooling limits, leave a note on the issue explaining the blocker, keep the branch pushed, and then proceed with the safest available landing path while still verifying deployment and closing the issue explicitly afterward.
+- If the issue changes data models, asset pipelines, manifests, crawling workflows, or other repository-local data operations, involve the Data Engineering team for review before closing the issue.
 
 ## Collaboration Notes
 - If the user asks for quick exploratory work, keep the work small and suggest converting it into an issue before expanding scope.
 - When resuming work, align the task with an existing issue if one already covers the requested change.
+- Default to calling in the Data Engineering team when the work affects how data is sourced, transformed, validated, packaged, or handed off to development.
