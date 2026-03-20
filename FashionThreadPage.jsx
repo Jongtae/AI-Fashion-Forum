@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   BadgeCheck,
   Bookmark,
-  Compass,
   Heart,
   Home,
   MessageCircle,
@@ -1667,7 +1666,7 @@ export default function FashionThreadPage() {
             onClick={openSearch}
             className={`rounded-full p-2 transition ${view === "search" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-200"}`}
           >
-            <Compass className="h-5 w-5" />
+            <Search className="h-5 w-5" />
           </button>
           <button type="button" className="rounded-full bg-white p-3 text-black transition hover:bg-zinc-200">
             <PenSquare className="h-5 w-5" />
