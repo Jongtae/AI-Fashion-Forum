@@ -13,7 +13,8 @@
     "recommendation": "continue_detail_view_only_with_approved_subset",
     "notes": [
       "This manifest is the source of truth for candidate selection, internal review state, and approved UI attachment.",
-      "Only entries with ui_attachment.approved=true should render in the user-facing UI."
+      "Only entries with ui_attachment.approved=true should render in the user-facing UI.",
+      "Current shipped UI only treats outfit, awkward, and size posts as primary outfit-preview candidates; buy and review posts must not remain ui_attachment.approved=true unless the UI eligibility rule changes."
     ],
     "last_run_at": "2026-03-21T07:17:44.970Z",
     "last_reviewed_at": "2026-03-21T07:26:16.917Z"
@@ -257,10 +258,10 @@
       "source_keys": [
         "lowclassic_blazer"
       ],
-      "review_status": "approved_for_ui_attachment",
-      "review_notes": "Approved after privacy-variation refresh. The fitting-room framing still protects identity, and the overall set now includes enough alternate privacy treatments that this no longer reads as the only pattern.",
+      "review_status": "not_eligible_for_current_ui_attachment",
+      "review_notes": "Downgraded after manifest/UI audit. This preview remains a reviewed generated asset record, but the current shipped UI only treats outfit, awkward, and size posts as primary outfit-preview candidates. T11 is a buy post, so it is not currently eligible for ui_attachment approval.",
       "ui_attachment": {
-        "approved": true,
+        "approved": false,
         "label": "착장 미리보기",
         "assetPath": "openai-outfit-preview-poc/t11-outfit-preview.png"
       },
