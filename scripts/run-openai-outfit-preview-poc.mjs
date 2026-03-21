@@ -75,12 +75,17 @@ function buildPrompt(post) {
     `Scene context: ${post.scene_context}.`,
     `Style concern: ${post.style_concern}.`,
     `Intended tone: ${post.intended_tone}.`,
-    "Keep the image believable for a real everyday social-fashion upload.",
-    "Prefer half-body or full-body framing with natural posture and ordinary lighting.",
-    "Make the outfit feel like weekday office or commute styling rather than an editorial campaign.",
+    "Keep the image believable for a real Korean everyday social-fashion upload.",
+    "Prefer half-body or full-body vertical mobile framing with a candid mirror selfie, hallway check, elevator mirror, apartment entryway, office mirror, or plain daily-life backdrop.",
+    "If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling.",
+    "Prefer a phone-covered face, partially cropped face, or lightly obscured identity over a polished face-forward beauty shot.",
+    "Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles.",
+    "Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign.",
+    "Show the exact debate point clearly in frame so the viewer can judge proportion, fit, balance, or awkwardness from the image itself.",
     "Use the reference product images only as guidance for silhouette, category, and color family.",
-    "Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose.",
-    "Do not imply exact brand-official proof or exact garment transfer.",
+    "Treat product references as secondary guidance only, not as the main subject of the image.",
+    "Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry.",
+    "Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
   ].join(" ");
 }
 

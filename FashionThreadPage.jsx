@@ -1410,14 +1410,6 @@ function OutfitPreviewCard({ preview, title }) {
         loading="lazy"
         className="h-[420px] w-full object-cover sm:h-[520px]"
       />
-      <div className="space-y-2 p-4">
-        <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-          이런 느낌
-        </p>
-        <p className="text-sm leading-6 text-zinc-300">
-          이런 톤과 비율로 보일 때의 전체 무드를 함께 보는 용도예요.
-        </p>
-      </div>
     </div>
   );
 }
