@@ -38,6 +38,17 @@ That means:
 - use generated images only when the evidence need is clear and limited
 - reject generated images for claims that depend on real ownership, wear, or real-world proof
 
+## Pet-Episode Override
+
+For pet-episode and pet-adjacent lifestyle posts, generated imagery is more tightly constrained.
+
+- treat these posts as `real-photo-preferred`
+- try real-source curation before approving generated fallback
+- use generated imagery only when no acceptable real candidate has been acquired or approved yet
+- replace generated pet-episode attachments once a believable real-source asset is packaged
+
+The upstream sourcing strategy for this override is tracked in issue `#69`.
+
 ## Allowed vs disallowed matrix
 
 | Topic type | Allowed? | Notes |

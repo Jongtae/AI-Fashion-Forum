@@ -1,0 +1,90 @@
+[
+  {
+    "candidate_id": "real-pet-episode-t10-001",
+    "episode_type": "entryway outfit check with pet blocking the moment",
+    "preferred_target_posts": ["T10", "T18"],
+    "source_provider": "Pexels",
+    "candidate_page_url": "https://www.pexels.com/photo/woman-feeding-dog-in-home-27175968/",
+    "licensing_note": "Pexels-licensed candidate page. Final usage review is still required before packaging.",
+    "fit_assessment": "Strong doorway and pet-interaction energy for a work-bag or leaving-home episode.",
+    "acquisition_status": "candidate_curated_manual_download_needed",
+    "acquisition_note": "Bot requests to the page URL returned 403 during issue #69, so browser-side acquisition or alternate-source substitution is still needed."
+  },
+  {
+    "candidate_id": "real-pet-episode-t10-002",
+    "episode_type": "front-door lifestyle scene with dog in frame",
+    "preferred_target_posts": ["T10", "T18"],
+    "source_provider": "Pexels",
+    "candidate_page_url": "https://www.pexels.com/photo/women-standing-on-the-doorway-of-their-house-beside-their-dog-while-looking-at-the-camera-11356732/",
+    "licensing_note": "Pexels-licensed candidate page. Final usage review is still required before packaging.",
+    "fit_assessment": "Useful backup candidate for doorway pet episodes if a more work-bag-specific real photo cannot be acquired first.",
+    "acquisition_status": "candidate_curated_manual_download_needed",
+    "acquisition_note": "Bot requests to the page URL returned 403 during issue #69, so browser-side acquisition or alternate-source substitution is still needed."
+  },
+  {
+    "candidate_id": "real-pet-episode-t12-001",
+    "episode_type": "mirror or room-side fashion moment with cat nearby",
+    "preferred_target_posts": ["T12"],
+    "source_provider": "Pexels",
+    "candidate_page_url": "https://www.pexels.com/photo/woman-taking-a-mirror-selfie-with-her-cat-12565599/",
+    "licensing_note": "Pexels-licensed candidate page. Final usage review is still required before packaging.",
+    "fit_assessment": "Strong fit for cat-interruption mirror episodes where fashion context must stay visible.",
+    "acquisition_status": "candidate_curated_manual_download_needed",
+    "acquisition_note": "Bot requests to the page URL returned 403 during issue #69, so browser-side acquisition or alternate-source substitution is still needed."
+  },
+  {
+    "candidate_id": "real-pet-episode-t12-002",
+    "episode_type": "bedroom or home dressing scene with cat altering the composition",
+    "preferred_target_posts": ["T12", "T17"],
+    "source_provider": "Pexels",
+    "candidate_page_url": "https://www.pexels.com/photo/young-woman-in-sleepwear-with-cat-on-bed-6837095/",
+    "licensing_note": "Pexels-licensed candidate page. Final usage review is still required before packaging.",
+    "fit_assessment": "Good backup for softer home-life cat episodes when the mirror version is unavailable or too polished.",
+    "acquisition_status": "candidate_curated_manual_download_needed",
+    "acquisition_note": "Bot requests to the page URL returned 403 during issue #69, so browser-side acquisition or alternate-source substitution is still needed."
+  },
+  {
+    "candidate_id": "real-pet-episode-t17-001",
+    "episode_type": "laid-out clothing or knit scene interrupted by a cat at home",
+    "preferred_target_posts": ["T17"],
+    "source_provider": "Pexels",
+    "candidate_page_url": "https://www.pexels.com/photo/woman-in-sweater-sitting-on-the-floor-on-fugs-and-petting-a-cat-6617494/",
+    "licensing_note": "Pexels-licensed candidate page. Final usage review is still required before packaging.",
+    "fit_assessment": "Best current candidate for knit-at-home pet interruption with strong clothing context.",
+    "acquisition_status": "candidate_curated_manual_download_needed",
+    "acquisition_note": "Bot requests to the page URL returned 403 during issue #69, so browser-side acquisition or alternate-source substitution is still needed."
+  },
+  {
+    "candidate_id": "real-pet-episode-t17-002",
+    "episode_type": "close home snapshot where the cat changes the mood of the fashion moment",
+    "preferred_target_posts": ["T17"],
+    "source_provider": "Pexels",
+    "candidate_page_url": "https://www.pexels.com/photo/curious-cat-resting-on-leg-on-faceless-woman-knitting-at-home-6001424/",
+    "licensing_note": "Pexels-licensed candidate page. Final usage review is still required before packaging.",
+    "fit_assessment": "Useful backup candidate for intimate knit-and-cat scenes if the stronger floor-layout candidate cannot be acquired.",
+    "acquisition_status": "candidate_curated_manual_download_needed",
+    "acquisition_note": "Bot requests to the page URL returned 403 during issue #69, so browser-side acquisition or alternate-source substitution is still needed."
+  },
+  {
+    "candidate_id": "real-pet-episode-t18-001",
+    "episode_type": "home doorway or outfit-prep scene with dog nearby",
+    "preferred_target_posts": ["T18"],
+    "source_provider": "Pexels",
+    "candidate_page_url": "https://www.pexels.com/photo/unrecognizable-woman-with-dog-at-home-5255240/",
+    "licensing_note": "Pexels-licensed candidate page. Final usage review is still required before packaging.",
+    "fit_assessment": "Good crop-level candidate for dog-plus-outfit-prep realism if a clearer bag-led shot can be acquired.",
+    "acquisition_status": "candidate_curated_manual_download_needed",
+    "acquisition_note": "Bot requests to the page URL returned 403 during issue #69, so browser-side acquisition or alternate-source substitution is still needed."
+  },
+  {
+    "candidate_id": "real-pet-episode-t18-002",
+    "episode_type": "walk-ready or home-prep scene with dog and clothing interaction",
+    "preferred_target_posts": ["T18"],
+    "source_provider": "Pexels",
+    "candidate_page_url": "https://www.pexels.com/photo/crop-woman-dressing-dog-at-home-5731791/",
+    "licensing_note": "Pexels-licensed candidate page. Final usage review is still required before packaging.",
+    "fit_assessment": "Useful backup for dog-prep episodes where leash, home context, and clothing all need to stay in frame.",
+    "acquisition_status": "candidate_curated_manual_download_needed",
+    "acquisition_note": "Bot requests to the page URL returned 403 during issue #69, so browser-side acquisition or alternate-source substitution is still needed."
+  }
+]
