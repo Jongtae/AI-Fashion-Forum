@@ -1,5 +1,53 @@
 [
   {
+    "candidate_id": "real-pet-episode-t10-003",
+    "episode_type": "bag-led dog interruption with real fashion context",
+    "preferred_target_posts": ["T10"],
+    "source_provider": "Unsplash",
+    "candidate_page_url": "https://unsplash.com/photos/a-person-standing-next-to-a-dog-6GR9dbgIxVo",
+    "licensing_note": "Free to use under the Unsplash License.",
+    "fit_assessment": "Bag, outerwear, and dog stay legible in one real-source frame, making it a workable replacement for the rejected generated T10 scene.",
+    "acquisition_status": "packaged_in_repo",
+    "acquisition_note": "Browser-led manual curation moved the issue off the blocked Pexels path and onto an alternate free-source substitution route.",
+    "packaged_asset_path": "public/real-photo-pet-scenes/t10-unsplash-real-pet-scene.jpg"
+  },
+  {
+    "candidate_id": "real-pet-episode-t12-003",
+    "episode_type": "soft weekend dress moment with cat nearby",
+    "preferred_target_posts": ["T12"],
+    "source_provider": "Unsplash",
+    "candidate_page_url": "https://unsplash.com/photos/a-woman-standing-in-front-of-a-window-next-to-a-cat-jitWcoiwmWA",
+    "licensing_note": "Free to use under the Unsplash License.",
+    "fit_assessment": "The cat stays secondary while the dressed-up home scene still reads as a believable before-going-out moment.",
+    "acquisition_status": "packaged_in_repo",
+    "acquisition_note": "Approved as the shipped real-photo replacement for the T12 pet-episode support scene.",
+    "packaged_asset_path": "public/real-photo-pet-scenes/t12-unsplash-real-pet-scene.jpg"
+  },
+  {
+    "candidate_id": "real-pet-episode-t17-003",
+    "episode_type": "cozy knit-at-home moment with cat support",
+    "preferred_target_posts": ["T17"],
+    "source_provider": "Unsplash",
+    "candidate_page_url": "https://unsplash.com/photos/a-woman-sitting-on-a-porch-with-a-cat-s9N5Uz56FNE",
+    "licensing_note": "Free to use under the Unsplash License.",
+    "fit_assessment": "The knit texture and casual home setting remain legible while the cat changes the mood rather than stealing the whole frame.",
+    "acquisition_status": "packaged_in_repo",
+    "acquisition_note": "Approved as the shipped real-photo replacement for the T17 pet-episode support scene.",
+    "packaged_asset_path": "public/real-photo-pet-scenes/t17-unsplash-real-pet-scene.jpg"
+  },
+  {
+    "candidate_id": "real-pet-episode-t18-003",
+    "episode_type": "entryway dog-waiting scene with bag cue",
+    "preferred_target_posts": ["T18"],
+    "source_provider": "Unsplash",
+    "candidate_page_url": "https://unsplash.com/photos/two-dogs-waiting-by-the-door-with-hat-and-bag-FMWgIiZ6Dd8",
+    "licensing_note": "Free to use under the Unsplash License.",
+    "fit_assessment": "The home-entry bag cue and waiting-dog energy make it a stronger real-source doorway replacement than the earlier generated scramble.",
+    "acquisition_status": "packaged_in_repo",
+    "acquisition_note": "Approved as the shipped real-photo replacement for the T18 pet-episode support scene.",
+    "packaged_asset_path": "public/real-photo-pet-scenes/t18-unsplash-real-pet-scene.jpg"
+  },
+  {
     "candidate_id": "real-pet-episode-t10-001",
     "episode_type": "entryway outfit check with pet blocking the moment",
     "preferred_target_posts": ["T10", "T18"],

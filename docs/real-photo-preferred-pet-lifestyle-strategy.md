@@ -56,9 +56,19 @@ During issue `#69` execution, candidate page URLs could be identified, but autom
 
 That means:
 
-- the candidates are curated and logged
-- manual browser-side download or alternate provider substitution is still required before those assets can replace generated fallback in the repository
-- generated pet-episode imagery remains a temporary fallback only where no approved real asset has been packaged yet
+- the original Pexels-first candidates are still curated and logged
+- browser-led download or alternate provider substitution is required when those page endpoints remain blocked
+- real-source replacements have now been packaged for `T10`, `T12`, `T17`, and `T18` through an alternate free-source substitution route
+- generated pet-episode imagery remains fallback-only for any future pet post that still lacks an approved packaged real asset
+
+## Current Packaged Real Assets
+
+Issue `#69` now ships these repository-local real-photo replacements:
+
+- `T10` -> `public/real-photo-pet-scenes/t10-unsplash-real-pet-scene.jpg`
+- `T12` -> `public/real-photo-pet-scenes/t12-unsplash-real-pet-scene.jpg`
+- `T17` -> `public/real-photo-pet-scenes/t17-unsplash-real-pet-scene.jpg`
+- `T18` -> `public/real-photo-pet-scenes/t18-unsplash-real-pet-scene.jpg`
 
 ## Fallback-Only Rule
 

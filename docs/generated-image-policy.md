@@ -47,6 +47,8 @@ For pet-episode and pet-adjacent lifestyle posts, generated imagery is more tigh
 - use generated imagery only when no acceptable real candidate has been acquired or approved yet
 - replace generated pet-episode attachments once a believable real-source asset is packaged
 
+Issue `#69` now packages real-source replacements for `T10`, `T12`, `T17`, and `T18`, so generated pet-episode scenes for those posts should be treated as historical fallback only.
+
 The upstream sourcing strategy for this override is tracked in issue `#69`.
 
 ## Allowed vs disallowed matrix
