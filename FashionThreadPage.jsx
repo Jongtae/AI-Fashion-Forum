@@ -1792,19 +1792,6 @@ export default function FashionThreadPage() {
                             <ProductEvidencePreview post={post} compact />
                           )}
                         </div>
-                        {postHasPrimaryOutfitShot(post) && hasRenderablePrimaryImage(post) ? (
-                          <PostImage
-                            src={post.image}
-                            alt={post.title}
-                            postType={post.type}
-                            title={post.title}
-                            compact
-                            tags={post.description.split(",").map((tag) => tag.trim())}
-                            wrapperClassName={`${postHasPrimaryOutfitShot(post) ? "h-32 w-24" : "h-24 w-24 sm:h-28 sm:w-28"} shrink-0 overflow-hidden rounded-2xl border border-zinc-800`}
-                            imageClassName="h-full w-full object-cover"
-                            fallbackClassName="flex h-full w-full flex-col justify-between bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-3"
-                          />
-                        ) : null}
                       </div>
                       <div className="mt-3 flex items-center gap-4 text-sm text-zinc-500">
                         <span>{formatCount(post.likes)} likes</span>
@@ -1917,22 +1904,6 @@ export default function FashionThreadPage() {
                     onClick={() => openPost(item.postId)}
                     className="flex w-full gap-3 rounded-[24px] border border-zinc-800 bg-black/30 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
                   >
-                    {(() => {
-                      const searchPost = FEED_POSTS.find((post) => post.id === item.postId);
-                      return postHasPrimaryOutfitShot(searchPost) && hasRenderablePrimaryImage(searchPost);
-                    })() ? (
-                      <PostImage
-                        src={item.image}
-                        alt={item.title}
-                        postType={FEED_POSTS.find((post) => post.id === item.postId)?.type || "outfit"}
-                        title={item.title}
-                        compact
-                        tags={item.keywords}
-                        wrapperClassName="h-28 w-24 overflow-hidden rounded-2xl border border-zinc-800"
-                        imageClassName="h-full w-full object-cover"
-                        fallbackClassName="flex h-full w-full flex-col justify-between bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-3"
-                      />
-                    ) : null}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-semibold text-zinc-100">{item.author}</span>
