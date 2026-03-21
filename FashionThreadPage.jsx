@@ -1377,26 +1377,53 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
     if (!primaryBinding) return null;
 
     return (
-      <div className={`shrink-0 ${className}`}>
-        <ProductMentionCard binding={primaryBinding} variant="feed" />
+      <div className={`mt-2 ${className}`}>
+        <a
+          href={primaryBinding.url}
+          target="_blank"
+          rel="noreferrer"
+          className="group inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950/70 pr-3 transition hover:border-zinc-700 hover:bg-zinc-900"
+        >
+          <ResolvedProductThumbnail
+            binding={primaryBinding}
+            alt={primaryBinding.title}
+            className="h-8 w-8 rounded-full object-cover"
+          />
+          <span className="max-w-[170px] truncate text-[11px] text-zinc-300 transition group-hover:text-zinc-100">
+            {primaryBinding.title}
+          </span>
+        </a>
       </div>
     );
   }
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {
-        <p className="text-xs text-zinc-500">
-          참고한 제품
-        </p>
-      }
-      <div className={`grid gap-3 ${compact ? "" : visibleBindings.length > 2 ? "sm:grid-cols-2" : visibleBindings.length > 1 ? "sm:grid-cols-2" : ""}`}>
+      <p className="text-xs text-zinc-500">참고한 제품</p>
+      <div className="space-y-2">
         {visibleBindings.map((binding) => (
-          <ProductMentionCard
+          <a
             key={`${post.id}-${binding.id}`}
-            binding={binding}
-            variant={compact ? "feed" : "detail"}
-          />
+            href={binding.url}
+            target="_blank"
+            rel="noreferrer"
+            className="group flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/70 p-3 transition hover:border-zinc-700 hover:bg-zinc-900"
+          >
+            <ResolvedProductThumbnail
+              binding={binding}
+              alt={binding.title}
+              className="h-12 w-12 rounded-xl object-cover"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm text-zinc-200 transition group-hover:text-zinc-100">
+                {binding.title}
+              </p>
+              <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+                <span className="truncate">{binding.source}</span>
+                {binding.price && <span className="truncate text-zinc-400">{binding.price}</span>}
+              </div>
+            </div>
+          </a>
         ))}
       </div>
     </div>
