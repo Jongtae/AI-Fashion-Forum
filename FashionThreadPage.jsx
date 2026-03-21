@@ -1399,24 +1399,8 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
   );
 }
 
-function OutfitPreviewCard({ preview, title }) {
-  if (!preview?.src) return null;
-
-  return (
-    <div className="overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950/80">
-      <img
-        src={preview.src}
-        alt={`${title} outfit shot`}
-        loading="lazy"
-        className="h-[420px] w-full object-cover sm:h-[520px]"
-      />
-    </div>
-  );
-}
-
 function ThreadDetailBody({ post }) {
   const paragraphs = post.detailLead.split("\n").filter(Boolean);
-  const approvedOutfitPreview = APPROVED_OUTFIT_PREVIEW_MAP[post.id] || null;
 
   if (paragraphs.length === 0) {
     return null;
@@ -1426,11 +1410,10 @@ function ThreadDetailBody({ post }) {
     <div className="mt-2 space-y-4">
       <p className="text-[15px] leading-6 text-zinc-100">{paragraphs[0]}</p>
       {paragraphs.slice(1).map((paragraph) => (
-        <p key={`${post.id}-${paragraph.slice(0, 24)}`} className="text-[15px] leading-6 text-zinc-100">
-          {paragraph}
-        </p>
+      <p key={`${post.id}-${paragraph.slice(0, 24)}`} className="text-[15px] leading-6 text-zinc-100">
+        {paragraph}
+      </p>
       ))}
-      {approvedOutfitPreview && <OutfitPreviewCard preview={approvedOutfitPreview} title={post.title} />}
     </div>
   );
 }
