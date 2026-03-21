@@ -841,6 +841,20 @@ function resolvePrimaryVisual(topic, sources, resolution, index) {
     };
   }
 
+  if (PRIMARY_OUTFIT_SHOT_TYPES.has(topic.type)) {
+    return {
+      image: null,
+      imageAsset: {
+        image_id: `missing-outfit-preview-${topic.id}`,
+        image_evidence_type: ALIGNMENT_BLUEPRINTS[topic.type].imageEvidenceType,
+        image_evidence_role: ALIGNMENT_BLUEPRINTS[topic.type].imageEvidenceRole,
+        visible_evidence_note:
+          "No approved outfit preview is available yet, so the UI intentionally withholds unrelated product imagery.",
+        audit_status: "withheld_until_approved_preview",
+      },
+    };
+  }
+
   const primarySourceKey = resolution?.resolved_image_assets?.[0] || sources[0]?.key;
   const primarySource = sources.find((source) => source.key === primarySourceKey) || sources[0] || null;
 
