@@ -1256,6 +1256,10 @@ const IMAGE_FALLBACK_COPY = {
   },
 };
 
+function hasRenderablePrimaryImage(post) {
+  return Boolean(post?.image);
+}
+
 function PostImage({
   src,
   alt,
@@ -1788,7 +1792,7 @@ export default function FashionThreadPage() {
                             <ProductEvidencePreview post={post} compact />
                           )}
                         </div>
-                        {postHasPrimaryOutfitShot(post) || !post.productEvidence.has_named_product_refs ? (
+                        {postHasPrimaryOutfitShot(post) && hasRenderablePrimaryImage(post) ? (
                           <PostImage
                             src={post.image}
                             alt={post.title}
@@ -1800,13 +1804,7 @@ export default function FashionThreadPage() {
                             imageClassName="h-full w-full object-cover"
                             fallbackClassName="flex h-full w-full flex-col justify-between bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-3"
                           />
-                        ) : (
-                          <ProductEvidencePreview
-                            post={post}
-                            compact
-                            className="w-24 sm:w-28"
-                          />
-                        )}
+                        ) : null}
                       </div>
                       <div className="mt-3 flex items-center gap-4 text-sm text-zinc-500">
                         <span>{formatCount(post.likes)} likes</span>
@@ -1919,7 +1917,10 @@ export default function FashionThreadPage() {
                     onClick={() => openPost(item.postId)}
                     className="flex w-full gap-3 rounded-[24px] border border-zinc-800 bg-black/30 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
                   >
-                    {postHasPrimaryOutfitShot(FEED_POSTS.find((post) => post.id === item.postId)) || !item.productEvidence.has_named_product_refs ? (
+                    {(() => {
+                      const searchPost = FEED_POSTS.find((post) => post.id === item.postId);
+                      return postHasPrimaryOutfitShot(searchPost) && hasRenderablePrimaryImage(searchPost);
+                    })() ? (
                       <PostImage
                         src={item.image}
                         alt={item.title}
@@ -1931,13 +1932,7 @@ export default function FashionThreadPage() {
                         imageClassName="h-full w-full object-cover"
                         fallbackClassName="flex h-full w-full flex-col justify-between bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-3"
                       />
-                    ) : (
-                      <ProductEvidencePreview
-                        post={FEED_POSTS.find((post) => post.id === item.postId)}
-                        compact
-                        className="h-24 w-24"
-                      />
-                    )}
+                    ) : null}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-semibold text-zinc-100">{item.author}</span>
@@ -2014,7 +2009,7 @@ export default function FashionThreadPage() {
                     </div>
 
                     <p className="mt-3 text-lg font-semibold leading-7 text-zinc-100">{activePost.title}</p>
-                    {postHasPrimaryOutfitShot(activePost) && (
+                    {postHasPrimaryOutfitShot(activePost) && hasRenderablePrimaryImage(activePost) && (
                       <div className="mt-4 overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900">
                         <PostImage
                           src={activePost.image}
@@ -2044,34 +2039,6 @@ export default function FashionThreadPage() {
                     <ThreadDetailBody post={activePost} />
                     {activePost.productEvidence.has_named_product_refs && (
                       <ProductEvidencePreview post={activePost} detail />
-                    )}
-
-                    {!postHasPrimaryOutfitShot(activePost) && !activePost.productEvidence.has_named_product_refs && (
-                      <div className="mt-4 overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900">
-                        <PostImage
-                          src={activePost.image}
-                          alt={activePost.title}
-                          postType={activePost.type}
-                          title={activePost.title}
-                          tags={activePost.description.split(",").map((tag) => tag.trim())}
-                          wrapperClassName="relative"
-                          imageClassName="h-[420px] w-full object-cover sm:h-[560px]"
-                          fallbackClassName="flex min-h-[420px] w-full flex-col justify-end bg-[radial-gradient(circle_at_top,_rgba(82,82,91,0.28),_rgba(9,9,11,1)_58%)] p-5 sm:min-h-[560px]"
-                        >
-                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/50 to-transparent p-4">
-                            <div className="flex flex-wrap gap-2">
-                              {activePost.description.split(",").map((tag) => (
-                                <span
-                                  key={tag.trim()}
-                                  className="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs text-zinc-200 backdrop-blur-sm"
-                                >
-                                  {tag.trim()}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </PostImage>
-                      </div>
                     )}
 
                     {activePost.sources.length > 0 && !postHasPrimaryOutfitShot(activePost) && !activePost.productEvidence.has_named_product_refs && (
