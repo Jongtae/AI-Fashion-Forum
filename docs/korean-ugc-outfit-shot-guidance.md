@@ -17,6 +17,19 @@ They should not feel like:
 
 The image should support the question the post is asking.
 
+## Anti-Regression Rule
+
+Outfit-oriented imagery must not reuse legacy mock seed assets just because they are already available in the repository.
+
+The following are policy violations for outfit posts:
+
+- editorial or outdoor fashion shots relabeled as mirror-style community uploads
+- generic mood imagery relabeled as commute, elevator, bathroom, or room-mirror evidence
+- metadata that describes a Korean everyday UGC context that the image does not actually show
+- `approved` alignment records that have not passed both data review and realism review
+
+If an image cannot honestly pass as a Korean everyday outfit upload, it must be replaced, rewritten around, or rejected.
+
 ## Core Rule
 
 When an outfit shot exists for an outfit-oriented post, it should read like everyday Korean mobile UGC.
@@ -78,6 +91,7 @@ Avoid:
 - luxury showrooms without context
 - campaign-style outdoor fashion backdrops
 - overly scenic or polished locations that overpower the post
+- generic sunny street-fashion cuts that do not show lived-in mirror or daily-life context
 
 ### Styling realism
 
@@ -104,6 +118,18 @@ When an outfit shot exists:
 - product references should feel like user-added tags or links
 - product references must not dominate the post or explain the system
 
+## Legacy asset rule
+
+Legacy mock image-pool assets are not trusted by default.
+
+Before an old asset can remain in use for an outfit-oriented post, reviewers must confirm:
+
+- the image itself matches the claimed `image_evidence_type`
+- the image itself matches the claimed `scene_context`
+- the image itself matches the Korean everyday UGC tone
+
+If any of those fail, the asset is not eligible for carry-forward use even if metadata already exists.
+
 ## UI interpretation rule
 
 The user should first read:
@@ -123,6 +149,30 @@ Approve an outfit shot only if all of these are true:
 - it does not look like a campaign or catalog image
 - it does not overpower the text
 - product references still read as secondary attached context
+
+## Approval gate
+
+Outfit imagery requires two separate approvals before it should be treated as production-ready:
+
+1. Data validation
+- Is the asset accurately labeled for `image_evidence_type`, `image_evidence_role`, and scene context?
+- Is the metadata describing the image honestly?
+
+2. Realism validation
+- Would a Korean fashion-community user plausibly upload this image?
+- Does it feel like lived mobile UGC instead of fashion editorial imagery?
+
+An outfit image should not receive final approval unless it passes both gates.
+
+## Rejection checklist
+
+Reject an outfit shot immediately if any of these are true:
+
+- it looks like a fashion editorial, campaign, or posed outdoor style cut
+- it relies on scenery, pose, or polish more than everyday context
+- it is labeled as a mirror selfie or commute check without actually showing that situation
+- the image and metadata disagree about what the user is supposed to judge
+- the image was inherited from a legacy mock pool and has not been revalidated
 
 ## One-line rule
 

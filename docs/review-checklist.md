@@ -67,6 +67,17 @@ Ask these on every meaningful review:
 
 If answers are weak, the item should usually move toward `Reduce`, `Remove`, or `Defer`.
 
+## Outfit Image Regression Checks
+
+When reviewing outfit-oriented posts, also ask:
+
+1. Does the image really match the claimed context such as mirror selfie, commute, elevator, bathroom, room mirror, or entryway?
+2. Is the asset obviously a leftover editorial or generic fashion seed image?
+3. Does the metadata describe the actual image, or does it merely describe the intended post?
+4. Would a Korean community user plausibly upload this exact image?
+
+If the answer to any of these is no, the image should usually move toward `Remove` or trigger a replacement task.
+
 ## Experiment Review Rule
 
 For experiments such as outfit previews, success means:

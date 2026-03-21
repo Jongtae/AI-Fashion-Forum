@@ -59,3 +59,25 @@ That means the development team can:
 - immediately reuse the new assets in the mock
 
 without manually editing the image pool each time.
+
+## Approval boundary
+
+This workflow only acquires and packages assets. It does not by itself approve them for shipped use.
+
+Before an outfit-oriented crawled image is considered valid for production UI, it must also pass:
+
+- metadata-alignment review
+- Korean UGC realism review
+
+Do not treat a downloaded asset as approved just because it exists in `public/crawled-images/` or `src/data/crawledImageManifest.json`.
+
+## Legacy seed warning
+
+Legacy mock images or earlier image-pool seeds must be treated as untrusted inputs.
+
+They may remain in the crawl manifest for historical reasons, but they should not be reused for outfit-oriented community posts unless they are explicitly revalidated against:
+
+- actual image content
+- claimed `image_evidence_type`
+- claimed scene context
+- Korean everyday UGC realism

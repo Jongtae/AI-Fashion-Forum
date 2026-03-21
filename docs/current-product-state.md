@@ -93,6 +93,7 @@ These are the current issues/docs that contributors should reference:
 The main risks still to watch for are:
 - internal system language leaking into user-facing product UI
 - outfit posts drifting toward preview-surface polish instead of mirror-style Korean UGC
+- legacy mock/editorial assets being mislabeled as everyday Korean outfit evidence
 - product cards becoming too large or too commerce-heavy
 - metadata-only fallbacks pretending to solve a real product-visual requirement
 - repeated mismatch between what posts claim and what imagery actually helps users judge
@@ -105,5 +106,6 @@ Before changing product/image UI, verify:
 3. Are internal fields and fallback concepts hidden from production UI?
 4. Does the result still feel like a community post instead of a shopping widget?
 5. Is text still the main content rather than the supporting layer?
+6. If the post uses an outfit image, has that asset passed both metadata review and Korean UGC realism review?
 
 If not, revisit the policy documents before shipping.
