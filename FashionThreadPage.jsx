@@ -46,6 +46,20 @@ const TYPE_LABEL = {
   review: "실착해보니 생각과 달랐던 후기",
 };
 
+const POST_FORMAT_LABEL = {
+  style_question: "스타일 질문",
+  daily_snapshot: "데일리 스냅샷",
+  pet_episode: "펫 에피소드",
+  empathy_post: "가벼운 공감글",
+};
+
+const POST_FORMAT_BADGE_STYLE = {
+  style_question: "border-zinc-700 bg-zinc-900 text-zinc-300",
+  daily_snapshot: "border-emerald-900/80 bg-emerald-950/70 text-emerald-200",
+  pet_episode: "border-amber-900/70 bg-amber-950/70 text-amber-200",
+  empathy_post: "border-rose-900/70 bg-rose-950/70 text-rose-200",
+};
+
 const TOPIC_TYPE_MAP = {
   outfit: "outfit_check",
   awkward: "awkward_fit_check",
@@ -161,14 +175,15 @@ const TOPICS = [
   {
     id: "T04",
     type: "outfit",
-    title: "오버핏 셔츠 자켓 입었더니 상체만 커 보여서 당황",
-    hook: "거울로 보면 미니멀한데 사진 찍으면 위쪽만 둔해 보여서 이유가 궁금",
+    format: "daily_snapshot",
+    title: "사무실 도착해서 다시 보니 오늘 셔츠 자켓 무드가 생각보다 괜찮아서 기록",
+    hook: "아침엔 상체가 커 보인다고 고민했는데 막상 회사 거울에선 이 정도 힘 있는 실루엣이 제일 현실적이라 한 장 남김",
     brands: ["LOW CLASSIC", "Lemaire mood"],
     description: "boxy shirt jacket, wide trousers, soft leather flats",
-    debate: "상체 부피, 소재 둔탁함, 체형 대비 오버핏",
-    expected: "핏보다 원단 힘 때문에 더 커 보인다는 반응",
+    debate: "사무실 거울 기록, 오버핏 셔츠 자켓, 출근 후 무드",
+    expected: "이런 담백한 출근 기록이 제일 자주 보게 된다는 반응",
     sourceMix: "C+B",
-    tone: "출근 후 셀카",
+    tone: "사무실 도착 기록",
   },
   {
     id: "T05",
@@ -185,14 +200,15 @@ const TOPICS = [
   {
     id: "T06",
     type: "awkward",
-    title: "셔츠에 청바지인데 왜 이렇게 회사 사람처럼만 보이지",
-    hook: "편하게 입으려고 했는데 너무 무난해서 점심 약속 가기엔 심심한가 싶음",
+    format: "daily_snapshot",
+    title: "점심 약속 있는 날이라 셔츠 청바지에 니트만 걸치고 나옴",
+    hook: "회사 사람처럼만 보일까 걱정했는데 막상 나가려니 이런 담백한 조합이 제일 자주 손이 가서 그냥 기록해둠",
     brands: ["LOW CLASSIC", "MUSINSA STANDARD WOMAN"],
     description: "pale blue shirt, straight denim, white flats, black shoulder bag",
-    debate: "실루엣 심심함, 포인트 부족, 컬러 온도",
-    expected: "핏보다 색감이 밋밋해서 더 평범하게 보인다는 반응",
+    debate: "점심 약속룩 기록, 셔츠 청바지 조합, 담백한 출근 무드",
+    expected: "꾸민 듯 안 꾸민 듯한 평일 기록이라 좋다는 반응",
     sourceMix: "C+B",
-    tone: "점심 약속 고민",
+    tone: "점심 전 기록",
   },
   {
     id: "T07",
@@ -221,50 +237,54 @@ const TOPICS = [
   {
     id: "T09",
     type: "buy",
-    title: "이번 봄 출근 팬츠 하나 사면 렉토까지 갈 필요 있는지",
-    hook: "코스나 인사일런스도 괜찮아 보여서 진짜 체감 차이가 있는지만 알고 싶음",
+    format: "daily_snapshot",
+    title: "비 오는 날에도 결국 제일 자주 손이 가는 건 차콜 팬츠 쪽이라 또 입음",
+    hook: "새로 더 살지 고민은 많은데 막상 출근하려고 보면 오늘도 이런 톤 팬츠가 제일 현실적이라 한 장 남김",
     brands: ["RECTO", "COS", "INSILENCE WOMEN"],
     description: "straight slacks, slight flare, muted charcoal tone",
-    debate: "브랜드 프리미엄, 핏 차이, 출근용 활용도",
-    expected: "옷 좋아하면 차이는 보지만 한 벌로 끝낼 정도의 가성비는 아니라는 반응",
+    debate: "출근 팬츠 기록, 비 오는 날 실루엣, 차콜 톤",
+    expected: "결국 손이 자주 가는 건 이런 톤이라는 공감 반응",
     sourceMix: "A+E+B",
-    tone: "봄 팬츠 고민",
+    tone: "비 오는 날 출근",
   },
   {
     id: "T10",
     type: "buy",
-    title: "회사랑 주말 둘 다 들 가방 찾는데 마지셔우드 지금 사도 괜찮은지",
-    hook: "예전보다 덜 보이는 것 같아서 고민인데 막상 들어보면 또 예쁠 것 같음",
+    format: "pet_episode",
+    title: "출근 가방 들어보려는데 강아지가 현관에서 먼저 자리 잡아서 또 사진 망함",
+    hook: "오늘은 가방 쉐입 한 번 보려고 했는데 리드줄 냄새 맡더니 문 앞을 막아서 결국 강아지 있는 버전만 남김",
     brands: ["MARGE SHERWOOD"],
     description: "mini shoulder bag, glossy leather, curved shape",
-    debate: "유행 피로감, 실사용성, 데일리 활용도",
-    expected: "완전 끝난 건 아니지만 데일리 메인백으론 애매하다는 반응",
+    debate: "현관 출근 준비, 강아지 방해, 가방 쉐입 기록",
+    expected: "결국 망한 사진이 더 현실적이라 좋다는 반응",
     sourceMix: "A+E+B",
-    tone: "출퇴근 겸용 가방",
+    tone: "강아지랑 나가기 직전",
   },
   {
     id: "T11",
     type: "buy",
-    title: "첫 블레이저 사려는데 너무 정석이면 결국 손 안 갈까",
-    hook: "회사에도 입고 주말에도 돌리고 싶은데 무난하기만 할까 봐 망설이는 중",
+    format: "daily_snapshot",
+    title: "첫 블레이저 고민만 하다가 오늘도 결국 기본 자켓으로 출근",
+    hook: "회사에도 주말에도 입을 수 있는 자켓 찾는 중인데 막상 나가려면 이런 무난한 결이 제일 손이 가서 기록만 늘어남",
     brands: ["LOW CLASSIC"],
     description: "single blazer, sharp shoulder, neutral taupe",
-    debate: "입문 난이도, 활용도, 심심함",
-    expected: "실패는 적지만 설렘은 덜한 입문템이라는 반응",
+    debate: "기본 자켓 기록, 무난한 출근 셋업, 데일리 활용",
+    expected: "이런 무난한 자켓이 제일 자주 입힌다는 반응",
     sourceMix: "A+E+B",
-    tone: "첫 자켓 고민",
+    tone: "평일 출근 기록",
   },
   {
     id: "T12",
     type: "buy",
-    title: "사진 보고 담은 원피스인데 약속룩으로 입었을 때도 만족도 높은지",
-    hook: "상세컷은 너무 예쁜데 실제로 입으면 몸에 따라 느낌 차이 크다는 말이 걸림",
+    format: "pet_episode",
+    title: "원피스 펼쳐두고 거울샷 찍으려는데 고양이가 먼저 자리를 차지함",
+    hook: "주말 약속룩 후보 보려고 침대에 펼쳐뒀더니 고양이가 제일 비싼 원피스 위에 먼저 올라가서 결국 그 장면만 저장됨",
     brands: ["AND YOU"],
     description: "slim dress, soft drape, narrow straps",
-    debate: "실착 만족도, 체형 변수, 제품컷 환상",
-    expected: "사진은 예쁜데 실제 만족도는 체형 영향을 꽤 받는다는 반응",
+    debate: "주말 약속 준비, 고양이 방해, 원피스 후보",
+    expected: "결국 이런 생활감 있는 장면이 더 기억난다는 반응",
     sourceMix: "A+D+B",
-    tone: "주말 약속룩",
+    tone: "고양이랑 주말 준비",
   },
   {
     id: "T13",
@@ -281,26 +301,28 @@ const TOPICS = [
   {
     id: "T14",
     type: "size",
-    title: "드롭숄더 셔츠 입으면 여리핏이 아니라 그냥 상체 큰 사람처럼 보이는지",
-    hook: "매장에선 괜찮았는데 집 와서 다시 입어보니 어깨가 더 넓어 보여서 고민",
+    format: "empathy_post",
+    title: "매장에선 괜찮았는데 집 와서 다시 입으면 갑자기 다른 옷처럼 보이는 거 나만 그런지",
+    hook: "셔츠도 그렇고 자켓도 그렇고 거울 바뀌는 순간 확신이 사라져서 결국 집 와서 다시 찍은 사진만 쌓임",
     brands: ["COS"],
     description: "drop shoulder shirt, dense cotton, crisp cuff",
-    debate: "어깨선, 상체 부피, 소재 뻣뻣함",
-    expected: "여리한 느낌 기대하면 안 맞고 구조적인 셔츠로 봐야 한다는 반응",
+    debate: "집 거울 착시, 다시 입어보기, 상체 부피 체감",
+    expected: "다들 매장 조명이랑 집 조명이 너무 다르다고 공감하는 반응",
     sourceMix: "B+A+D",
-    tone: "집 와서 재착용",
+    tone: "집 와서 다시 봄",
   },
   {
     id: "T15",
     type: "size",
-    title: "다 와이드 입어도 내 다리는 부츠컷이 더 나아 보이는데 계속 고민됨",
-    hook: "유행보다 비율이 낫다면 그냥 입고 싶은데 촌스러워 보일까 봐 망설이는 중",
+    format: "empathy_post",
+    title: "유행 팬츠보다 결국 내 다리에 맞는 핏이 따로 있는 거 다들 인정하는지",
+    hook: "와이드가 예뻐 보여도 막상 출근 전에 거울 보면 또 익숙한 부츠컷 쪽이 제일 정리돼 보여서 늘 같은 고민 반복함",
     brands: ["LOW CLASSIC", "RECTO"],
     description: "slim bootcut pants, fitted knit, pointed shoes",
-    debate: "체형 최적화, 유행, 신발 매치",
-    expected: "트렌드보다 다리 비율 맞는 게 더 중요하다는 반응",
+    debate: "체형 우선 공감, 팬츠 유행 피로, 결국 손 가는 핏",
+    expected: "트렌드보다 자기 비율 맞는 옷이 제일 중요하다는 공감 반응",
     sourceMix: "B+A",
-    tone: "체형 우선 질문",
+    tone: "다들 그런지 묻는 밤",
   },
   {
     id: "T16",
@@ -317,50 +339,54 @@ const TOPICS = [
   {
     id: "T17",
     type: "review",
-    title: "니트 세 번 입었는데 벌써 팔 안쪽 사용감 올라와서 당황",
-    hook: "처음엔 너무 예뻐서 만족했는데 회사에서 앉아 있는 날 몇 번 지나니 바로 티가 남",
+    format: "pet_episode",
+    title: "니트 잠깐 내려놨는데 고양이가 바로 차지해서 오늘도 사진 망함",
+    hook: "보풀 얘기하려고 펼쳐뒀더니 우리 고양이가 제일 먼저 올라가서 결국 니트보다 고양이 표정만 또렷하게 남음",
     brands: ["AMOMENTO"],
     description: "soft knit, brushed texture, loose sleeve",
-    debate: "내구성, 관리 난이도, 가격 기대치",
-    expected: "예쁜 대신 관리비 드는 옷",
+    debate: "고양이 사고, 니트 생활감, 집에서 찍는 후기",
+    expected: "비싼 니트일수록 고양이가 먼저 알아본다는 농담 섞인 반응",
     sourceMix: "D+A+B",
-    tone: "실착 후 냉정평가",
+    tone: "고양이랑 집에서",
   },
   {
     id: "T18",
     type: "review",
-    title: "가방 예뻐서 샀는데 출근길에 카드 꺼낼 때마다 짜증남",
-    hook: "지하철 개찰구에서 한 번씩 버벅여서 요즘은 자꾸 다른 가방 손이 감",
+    format: "pet_episode",
+    title: "출근 가방 메고 있으니 강아지가 산책 가는 줄 알고 현관에서 난리 남",
+    hook: "가방 리뷰 남기려던 건데 리드줄 물고 계속 돌진해서 결국 오늘 사진은 강아지 발만 제일 열심히 찍힘",
     brands: ["MARGE SHERWOOD"],
     description: "compact bag, glossy leather, narrow opening",
-    debate: "실사용성, 입구 구조, 디자인 만족도",
-    expected: "사진은 예쁜데 데일리 메인백으론 답답하다는 반응",
+    debate: "현관 소동, 강아지 산책 오해, 출근 가방 기록",
+    expected: "이런 생활 소동이 오히려 더 커뮤니티 같다는 반응",
     sourceMix: "D+A+B",
-    tone: "출근길 실사용 후기",
+    tone: "현관 앞 소동",
   },
   {
     id: "T19",
     type: "review",
-    title: "셔츠는 좋은데 내 옷장이랑 안 붙어서 결국 손이 안 감",
-    hook: "슬랙스든 데님이든 입어보는데 생각보다 어울리는 하의가 적어서 당황",
+    format: "daily_snapshot",
+    title: "오늘은 셔츠 하나만 바꿨는데 옷장 궁합이 조금 풀린 날이라 기록",
+    hook: "평소엔 손이 잘 안 갔는데 데님 대신 슬랙스에 입으니 갑자기 오늘은 괜찮아 보여서 그냥 남겨둠",
     brands: ["LOW CLASSIC"],
     description: "structured shirt, slightly wide sleeve, ivory tone",
-    debate: "활용도, 코디 난이도, 실물 만족도",
-    expected: "좋은 옷이랑 잘 입히는 옷은 다름",
+    debate: "옷장 궁합 기록, 셔츠 재발견, 오늘만 괜찮은 조합",
+    expected: "이런 날 한 번씩 오면 다시 손이 간다는 반응",
     sourceMix: "D+A+B",
-    tone: "옷장 궁합 후기",
+    tone: "평일 기록",
   },
   {
     id: "T20",
     type: "review",
-    title: "후기 믿고 산 니트인데 맨살엔 너무 까슬해서 이너 없인 못 입겠음",
-    hook: "출근 때 급하게 입으려다 바로 갈아입고, 결국 이너 전제 옷이 됐는지 궁금",
+    format: "empathy_post",
+    title: "후기 믿고 산 니트가 맨살엔 까슬한 거 매번 나만 당하는 건지",
+    hook: "급하게 입고 나가려다 결국 한 번 갈아입고 나오는 날이 너무 많아서 요즘은 후기보다 내 피부가 먼저 떠오름",
     brands: ["COS"],
     description: "wool blend knit, dry texture, clean neckline",
-    debate: "촉감, 후기 신뢰, 레이어드 전제",
-    expected: "예민 피부면 단독 착용은 어렵고 이너 전제라는 반응",
+    debate: "후기 공감, 맨살 촉감, 결국 이너 찾게 되는 옷",
+    expected: "후기 믿었다가 결국 이너 찾는 사람 많다는 공감 반응",
     sourceMix: "D+A+B",
-    tone: "후기 재검증",
+    tone: "다들 그런지 궁금",
   },
 ];
 
@@ -554,7 +580,27 @@ function shortenTitle(title) {
     .trim();
 }
 
+function getPostFormat(post) {
+  return post?.format || "style_question";
+}
+
+function PostFormatBadge({ format, className = "" }) {
+  const resolvedFormat = format || "style_question";
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium ${POST_FORMAT_BADGE_STYLE[resolvedFormat]} ${className}`.trim()}
+    >
+      {POST_FORMAT_LABEL[resolvedFormat]}
+    </span>
+  );
+}
+
 function buildPriorityThreadRewrite(post) {
+  if (getPostFormat(post) !== "style_question") {
+    return null;
+  }
+
   const [primary, secondary] = post.sources;
   const primaryName = primary ? shortenTitle(primary.title) : post.brands[0];
   const secondaryName = secondary ? shortenTitle(secondary.title) : post.brands[0];
@@ -1015,7 +1061,7 @@ function buildFeedPost(topic, index) {
 
 const FEED_POSTS = TOPICS.map(buildFeedPost);
 
-const SEARCH_RESULT_POST_IDS = ["T09", "T08", "T13", "T01", "T12", "T10", "T14", "T17"];
+const SEARCH_RESULT_POST_IDS = ["T09", "T04", "T17", "T01", "T12", "T10", "T14", "T20"];
 
 function buildSearchResult(post, index) {
   const primary = post.sources[0];
@@ -1036,6 +1082,7 @@ function buildSearchResult(post, index) {
     keywords: [...keywords, post.alignment.topic_type],
     sourceLabel: primary ? `${shortenTitle(primary.title)} · ${primary.price}` : post.brands.join(" / "),
     productEvidence: post.productEvidence,
+    format: getPostFormat(post),
   };
 }
 
@@ -1053,10 +1100,62 @@ function authorInitials(author) {
 }
 
 function buildThreadSummary(post) {
+  const format = getPostFormat(post);
   const sourceLine =
     post.sources.length > 0
       ? `근거 출처는 ${post.sources.map((source) => `${shortenTitle(source.title)} (${source.price})`).join(" / ")}.`
       : "근거 출처 연결 없음.";
+
+  if (format === "daily_snapshot") {
+    return [
+      {
+        title: "포스트 성격",
+        content: `${POST_FORMAT_LABEL[format]}으로 보이며, ${post.expected} 쪽의 공감 반응이 중심이다. ${sourceLine}`,
+      },
+      {
+        title: "사람들이 같이 본 지점",
+        content: `1. ${post.debate.split(",")[0]} 쪽의 생활감.\n2. ${post.brands.join(", ")} 무드가 실제 일상에 얼마나 자연스럽게 붙는지.\n3. 저장형 이미지보다 다시 보게 되는 현실 기록인지 여부.`,
+      },
+      {
+        title: "이 포스트가 주는 감각",
+        content: `패션 판단보다 "오늘은 이런 무드였다"는 기록성이 먼저 읽힌다. 그래서 피드 안에서 숨을 고르게 만드는 역할을 한다.`,
+      },
+    ];
+  }
+
+  if (format === "pet_episode") {
+    return [
+      {
+        title: "포스트 성격",
+        content: `${POST_FORMAT_LABEL[format]}이지만 패션/생활 맥락이 분명해서, 반려동물이 단독 주제가 아니라 착장 기록의 현실감으로 작동한다. ${sourceLine}`,
+      },
+      {
+        title: "댓글에서 반복되는 반응",
+        content: `1. ${post.debate.split(",")[0]} 장면이 너무 현실적이라는 반응.\n2. ${post.brands.join(", ")} 같은 패션 정보도 자연스럽게 같이 읽힌다는 반응.\n3. 커뮤니티 톤이 더 따뜻해졌다는 말.`,
+      },
+      {
+        title: "제품/무드 연결",
+        content: `반려동물 에피소드가 중심처럼 보여도 실제로는 ${post.brands[0]} 무드와 일상 착용 장면을 더 오래 기억하게 만드는 보조 장치로 읽힌다.`,
+      },
+    ];
+  }
+
+  if (format === "empathy_post") {
+    return [
+      {
+        title: "포스트 성격",
+        content: `${POST_FORMAT_LABEL[format]}으로, 정답 요청보다 공감대 확인이 중심이다. ${sourceLine}`,
+      },
+      {
+        title: "사람들이 붙는 이유",
+        content: `1. ${post.debate.split(",")[0]}처럼 누구나 한 번쯤 겪는 고민.\n2. 브랜드/제품보다 착용 경험 자체에 대한 이야기.\n3. 판단보다 "나도 그랬다"는 댓글이 붙기 쉬운 문장 구조.`,
+      },
+      {
+        title: "피드 안에서의 역할",
+        content: `패션을 둘러싼 생활 감정선을 짧게 공유하면서도, 여전히 옷과 핏의 문맥 안에서 대화를 이어주는 포스트다.`,
+      },
+    ];
+  }
 
   return [
     {
@@ -1086,6 +1185,7 @@ function buildComments(post) {
   const baseLikes = seededNumber(post.id, 18, 6);
   const [p1, p2 = "가격값", p3 = "무드"] = post.debate.split(",").map((item) => item.trim());
   const rewrite = buildPriorityThreadRewrite(post);
+  const format = getPostFormat(post);
 
   if (rewrite?.comments) {
     return rewrite.comments.map((text, index) => ({
@@ -1100,6 +1200,165 @@ function buildComments(post) {
       replyTo: index === 7 ? `${post.id}-7` : null,
       liked: index === 1,
     }));
+  }
+
+  if (format === "daily_snapshot") {
+    return [
+      {
+        id: `${post.id}-1`,
+        user: COMMENT_PERSONAS[0].user,
+        handle: COMMENT_PERSONAS[0].handle,
+        avatar: COMMENT_PERSONAS[0].avatar,
+        time: "1m",
+        text: `이런 글이 중간에 있어야 피드가 진짜 생활감 있어 보여. ${post.expected}`,
+        likes: baseLikes + 15,
+        type: COMMENT_PERSONAS[0].type,
+        replyTo: null,
+        liked: false,
+      },
+      {
+        id: `${post.id}-2`,
+        user: COMMENT_PERSONAS[1].user,
+        handle: COMMENT_PERSONAS[1].handle,
+        avatar: COMMENT_PERSONAS[1].avatar,
+        time: "56s",
+        text: `${p1} 얘기라기보다 오늘 무드 기록 같아서 더 자주 보게 됨.`,
+        likes: baseLikes + 8,
+        type: COMMENT_PERSONAS[1].type,
+        replyTo: null,
+        liked: true,
+      },
+      {
+        id: `${post.id}-3`,
+        user: COMMENT_PERSONAS[2].user,
+        handle: COMMENT_PERSONAS[2].handle,
+        avatar: COMMENT_PERSONAS[2].avatar,
+        time: "52s",
+        text: `${post.brands[0]} 쪽 감도 좋아하는 사람들한텐 이런 현실 기록이 더 참고됨.`,
+        likes: baseLikes + 5,
+        type: COMMENT_PERSONAS[2].type,
+        replyTo: null,
+        liked: false,
+      },
+      {
+        id: `${post.id}-4`,
+        user: COMMENT_PERSONAS[3].user,
+        handle: COMMENT_PERSONAS[3].handle,
+        avatar: COMMENT_PERSONAS[3].avatar,
+        time: "47s",
+        text: `꾸민 티보다 실제 출근 전에 손 가는 조합 같아서 좋음.`,
+        likes: baseLikes + 6,
+        type: COMMENT_PERSONAS[3].type,
+        replyTo: null,
+        liked: false,
+      },
+    ];
+  }
+
+  if (format === "pet_episode") {
+    return [
+      {
+        id: `${post.id}-1`,
+        user: COMMENT_PERSONAS[0].user,
+        handle: COMMENT_PERSONAS[0].handle,
+        avatar: COMMENT_PERSONAS[0].avatar,
+        time: "1m",
+        text: `반려동물 얘기인데도 ${post.brands[0]} 무드랑 오늘 상황이 같이 읽혀서 밸런스 좋다.`,
+        likes: baseLikes + 14,
+        type: COMMENT_PERSONAS[0].type,
+        replyTo: null,
+        liked: false,
+      },
+      {
+        id: `${post.id}-2`,
+        user: COMMENT_PERSONAS[1].user,
+        handle: COMMENT_PERSONAS[1].handle,
+        avatar: COMMENT_PERSONAS[1].avatar,
+        time: "57s",
+        text: `${p1} 장면이 너무 현실적이라 오히려 광고컷보다 기억 남음.`,
+        likes: baseLikes + 9,
+        type: COMMENT_PERSONAS[1].type,
+        replyTo: null,
+        liked: true,
+      },
+      {
+        id: `${post.id}-3`,
+        user: COMMENT_PERSONAS[4].user,
+        handle: COMMENT_PERSONAS[4].handle,
+        avatar: COMMENT_PERSONAS[4].avatar,
+        time: "50s",
+        text: `펫 이야기만 남는 게 아니라 가방이랑 룩 상황이 같이 남아서 지금 방향 괜찮아 보여.`,
+        likes: baseLikes + 7,
+        type: COMMENT_PERSONAS[4].type,
+        replyTo: null,
+        liked: false,
+      },
+      {
+        id: `${post.id}-4`,
+        user: COMMENT_PERSONAS[7].user,
+        handle: COMMENT_PERSONAS[7].handle,
+        avatar: COMMENT_PERSONAS[7].avatar,
+        time: "43s",
+        text: `ㄴ 맞아. 반려동물이 주인공이라기보다 오늘 착장 장면을 더 살려주는 쪽이라 안 과함.`,
+        likes: baseLikes + 4,
+        type: COMMENT_PERSONAS[7].type,
+        replyTo: `${post.id}-3`,
+        liked: false,
+      },
+    ];
+  }
+
+  if (format === "empathy_post") {
+    return [
+      {
+        id: `${post.id}-1`,
+        user: COMMENT_PERSONAS[0].user,
+        handle: COMMENT_PERSONAS[0].handle,
+        avatar: COMMENT_PERSONAS[0].avatar,
+        time: "1m",
+        text: `이건 정답 달아주는 글보다 "나도 그럼" 댓글이 먼저 붙는 주제네. ${post.expected}`,
+        likes: baseLikes + 13,
+        type: COMMENT_PERSONAS[0].type,
+        replyTo: null,
+        liked: false,
+      },
+      {
+        id: `${post.id}-2`,
+        user: COMMENT_PERSONAS[2].user,
+        handle: COMMENT_PERSONAS[2].handle,
+        avatar: COMMENT_PERSONAS[2].avatar,
+        time: "55s",
+        text: `${p1} 같은 포인트는 결국 사람마다 다른데, 이런 글이 있어서 커뮤니티가 더 사람 같아짐.`,
+        likes: baseLikes + 8,
+        type: COMMENT_PERSONAS[2].type,
+        replyTo: null,
+        liked: true,
+      },
+      {
+        id: `${post.id}-3`,
+        user: COMMENT_PERSONAS[4].user,
+        handle: COMMENT_PERSONAS[4].handle,
+        avatar: COMMENT_PERSONAS[4].avatar,
+        time: "49s",
+        text: `브랜드 추천보다 이런 경험담이 쌓여야 나중에 옷 살 때도 더 참고하게 되더라.`,
+        likes: baseLikes + 6,
+        type: COMMENT_PERSONAS[4].type,
+        replyTo: null,
+        liked: false,
+      },
+      {
+        id: `${post.id}-4`,
+        user: COMMENT_PERSONAS[6].user,
+        handle: COMMENT_PERSONAS[6].handle,
+        avatar: COMMENT_PERSONAS[6].avatar,
+        time: "42s",
+        text: `패션 얘기인데 감정선까지 같이 나와서 피드 온도가 좀 부드러워진 느낌.`,
+        likes: baseLikes + 4,
+        type: COMMENT_PERSONAS[6].type,
+        replyTo: null,
+        liked: false,
+      },
+    ];
   }
 
   return [
@@ -1441,9 +1700,9 @@ function ThreadDetailBody({ post }) {
     <div className="mt-2 space-y-4">
       <p className="text-[15px] leading-6 text-zinc-100">{paragraphs[0]}</p>
       {paragraphs.slice(1).map((paragraph) => (
-      <p key={`${post.id}-${paragraph.slice(0, 24)}`} className="text-[15px] leading-6 text-zinc-100">
-        {paragraph}
-      </p>
+        <p key={`${post.id}-${paragraph.slice(0, 24)}`} className="text-[15px] leading-6 text-zinc-100">
+          {paragraph}
+        </p>
       ))}
     </div>
   );
@@ -1771,7 +2030,11 @@ export default function FashionThreadPage() {
             </div>
           </div>
           <div className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">
-            {view === "feed" ? "국내 여성 패션" : view === "search" ? "실시간 탐색" : `${activePost.replies} replies`}
+            {view === "feed"
+              ? "패션 중심 라이프"
+              : view === "search"
+                ? "실시간 탐색"
+                : `${activePost.replies} replies`}
           </div>
         </div>
       </div>
@@ -1813,6 +2076,7 @@ export default function FashionThreadPage() {
 
                       <div className="mt-3 flex items-start gap-3">
                         <div className="min-w-0 flex-1">
+                          <PostFormatBadge format={getPostFormat(post)} />
                           <p className="text-[15px] font-medium leading-6 text-zinc-100">{post.title}</p>
                           <p className="mt-1 text-[15px] leading-6 text-zinc-300">{post.hook}</p>
                           {post.productEvidence.has_named_product_refs && (
@@ -1937,6 +2201,9 @@ export default function FashionThreadPage() {
                         <span className="truncate text-sm text-zinc-500">{item.handle}</span>
                         <span className="text-xs text-zinc-600">{item.time}</span>
                       </div>
+                      <div className="mt-2">
+                        <PostFormatBadge format={item.format} />
+                      </div>
                       <p className="mt-2 text-[15px] font-medium leading-6 text-zinc-100">{item.title}</p>
                       <p className="mt-1 text-sm leading-6 text-zinc-400">{item.hook}</p>
                       {item.productEvidence.has_named_product_refs && (
@@ -2001,6 +2268,7 @@ export default function FashionThreadPage() {
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-2">
+                      <PostFormatBadge format={getPostFormat(activePost)} />
                       <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
                         {activePost.brands.join(" / ")}
                       </span>
