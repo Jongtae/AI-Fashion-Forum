@@ -36,6 +36,15 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: handoff
+    attributes:
+      label: Meeting Handoff Doc
+      description: If this issue comes from a product/review meeting, link the relevant doc in `docs/`. Leave `N/A` if no separate handoff doc is needed.
+      placeholder: docs/<topic>-meeting-handoff.md or N/A
+    validations:
+      required: true
+
   - type: textarea
     id: completion
     attributes:

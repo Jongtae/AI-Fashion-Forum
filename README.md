@@ -41,6 +41,8 @@ Workflow file:
 This repository tracks meaningful work through GitHub Issues only.
 
 - Workflow doc: [`/docs/github-issue-workflow.md`](./docs/github-issue-workflow.md)
+- Meeting handoff workflow: [`/docs/meeting-handoff-workflow.md`](./docs/meeting-handoff-workflow.md)
+- Meeting handoff template: [`/docs/meeting-handoff-template.md`](./docs/meeting-handoff-template.md)
 - GitHub issue template: `/.github/ISSUE_TEMPLATE/mock-work-item.yml`
 - Open work in GitHub: `https://github.com/Jongtae/AI-Fashion-Forum/issues`
 
@@ -55,6 +57,8 @@ This repository tracks meaningful work through GitHub Issues only.
 - Review checklist: [`/docs/review-checklist.md`](./docs/review-checklist.md)
 - OpenAI outfit-preview PoC: [`/docs/openai-outfit-preview-feasibility-poc.md`](./docs/openai-outfit-preview-feasibility-poc.md)
 - Korean UGC outfit-shot guidance: [`/docs/korean-ugc-outfit-shot-guidance.md`](./docs/korean-ugc-outfit-shot-guidance.md)
+- Meeting handoff workflow: [`/docs/meeting-handoff-workflow.md`](./docs/meeting-handoff-workflow.md)
+- Meeting handoff template: [`/docs/meeting-handoff-template.md`](./docs/meeting-handoff-template.md)
 
 These alignment artifacts are the source of truth for validating whether mock post text, image evidence, and expected comments belong together.
 

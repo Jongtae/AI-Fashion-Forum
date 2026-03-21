@@ -59,6 +59,24 @@ Also include an identity check that answers:
 
 If these questions are not answered clearly, reduce the scope or rewrite the issue before implementation.
 
+## Meeting-derived work
+
+When an issue is created from a product or review meeting, ask whether the issue alone is enough for implementation.
+
+If the answer is no, create a handoff doc under `docs/` and reference it in the issue.
+
+Use:
+
+- [`/docs/meeting-handoff-workflow.md`](./meeting-handoff-workflow.md)
+- [`/docs/meeting-handoff-template.md`](./meeting-handoff-template.md)
+
+Meeting handoff docs are especially recommended when:
+
+- the meeting made nuanced UX or realism decisions
+- the team is trying to prevent a repeated regression
+- the implementation needs explicit non-goals or anti-patterns
+- the issue would otherwise become too compressed or too ambiguous
+
 ## Identity-first rule
 
 GitHub Issues are not only work containers. They are the first gate for keeping the service aligned with its product identity.

@@ -57,6 +57,10 @@ The following documents should be treated as active policy/reference material.
 - [`/docs/review-checklist.md`](./review-checklist.md)
 - Purpose: defines the Keep / Reduce / Remove / Defer review method and the identity review questions used after shipping
 
+### Meeting handoff workflow
+- [`/docs/meeting-handoff-workflow.md`](./meeting-handoff-workflow.md)
+- Purpose: defines when meeting outcomes should be written into `docs/` as implementation handoff material instead of relying on issue text alone
+
 ### Korean UGC outfit-shot guidance
 - [`/docs/korean-ugc-outfit-shot-guidance.md`](./korean-ugc-outfit-shot-guidance.md)
 - Purpose: defines how outfit-oriented imagery should stay grounded in believable Korean everyday mobile UGC instead of preview-surface polish
