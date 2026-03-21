@@ -23,6 +23,20 @@ body:
       required: true
 
   - type: textarea
+    id: identity
+    attributes:
+      label: Identity Check
+      description: Explain how this work supports the text-first discussion product and avoids image-first or commerce-first drift.
+      placeholder: |
+        Answer these questions:
+        - How does this help users understand or debate the post more clearly?
+        - Does it keep text as the main content?
+        - Does it risk making the app feel like a lookbook, shopping surface, or visual-consumption feed?
+        - If imagery is involved, how is it supporting judgment instead of replacing it?
+    validations:
+      required: true
+
+  - type: textarea
     id: completion
     attributes:
       label: Completion Criteria
@@ -39,3 +53,15 @@ body:
     validations:
       required: true
 
+  - type: checkboxes
+    id: guardrails
+    attributes:
+      label: Identity Guardrails
+      description: Confirm the work was framed against the current product identity.
+      options:
+        - label: This issue treats AI Fashion Forum as a text-first fashion discussion platform
+          required: true
+        - label: This issue does not make images, product cards, or previews the main content by default
+          required: true
+        - label: This issue avoids commerce-heavy, lookbook-like, or mock-explanatory UI drift
+          required: true

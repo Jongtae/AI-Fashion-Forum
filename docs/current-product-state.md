@@ -33,6 +33,10 @@ The project moved through four main stages:
 
 The following documents should be treated as active policy/reference material.
 
+### Product identity
+- [`/docs/product-identity.md`](./product-identity.md)
+- Purpose: defines the service identity and the top-level rule that text-led discussion stays primary
+
 ### Alignment model
 - [`/docs/content-image-alignment-data-model.md`](./content-image-alignment-data-model.md)
 - Purpose: defines the post-level alignment structure between text intent, products, and image evidence
@@ -49,9 +53,14 @@ The following documents should be treated as active policy/reference material.
 - [`/docs/product-mention-card-policy.md`](./product-mention-card-policy.md)
 - Purpose: defines what should and should not appear in the production UI when products are mentioned in posts
 
+### Review checklist
+- [`/docs/review-checklist.md`](./review-checklist.md)
+- Purpose: defines the Keep / Reduce / Remove / Defer review method and the identity review questions used after shipping
+
 ## Current Product Direction
 
 The current agreed direction is:
+- the app is a text-first fashion discussion product
 - the app should look like a believable live Korean fashion discussion product
 - text and imagery should support each other
 - named products should show actual product visuals
@@ -70,6 +79,7 @@ These issues matter as decision history, but should not be treated as the latest
 
 ### Active implementation and policy anchors
 These are the current issues/docs that contributors should reference:
+- `#41` product identity and workflow institutionalization
 - `#29` product mention card policy documentation
 - `#30` consolidated repository summary
 - `#31` apply the policy to the current UI
@@ -89,5 +99,6 @@ Before changing product/image UI, verify:
 2. Is the user seeing a lightweight preview rather than a debug/evidence module?
 3. Are internal fields and fallback concepts hidden from production UI?
 4. Does the result still feel like a community post instead of a shopping widget?
+5. Is text still the main content rather than the supporting layer?
 
 If not, revisit the policy documents before shipping.

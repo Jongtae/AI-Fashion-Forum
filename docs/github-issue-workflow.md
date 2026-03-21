@@ -6,9 +6,10 @@ This repository treats meaningful work as GitHub Issue-sized units before implem
 
 1. Define the work as a GitHub Issue
 2. Give the issue a clear title, summary, and completion criteria
-3. Create one branch for that issue
-4. Keep commits scoped to that issue only
-5. Merge after the issue criteria are satisfied
+3. Check the work against the product identity before implementation
+4. Create one branch for that issue
+5. Keep commits scoped to that issue only
+6. Merge after the issue criteria are satisfied
 
 ## Source of truth
 
@@ -48,3 +49,23 @@ Before major mock changes, define:
 - issue summary
 - completion criteria
 - expected branch name
+
+Also include an identity check that answers:
+
+- Does this help users understand or debate the post more clearly?
+- Does it keep text as the main content?
+- Does it avoid making the app feel like a lookbook, shopping surface, or image-first feed?
+- If imagery is involved, is it supporting judgment rather than replacing it?
+
+If these questions are not answered clearly, reduce the scope or rewrite the issue before implementation.
+
+## Identity-first rule
+
+GitHub Issues are not only work containers. They are the first gate for keeping the service aligned with its product identity.
+
+Contributors should reference:
+
+- [`/docs/product-identity.md`](./product-identity.md)
+- [`/docs/current-product-state.md`](./current-product-state.md)
+
+before opening or expanding product-facing work.
