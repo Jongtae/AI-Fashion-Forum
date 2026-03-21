@@ -1,0 +1,294 @@
+{
+  "poc": {
+    "issue": 39,
+    "vendor": "OpenAI GPT Image",
+    "mainline_model": "gpt-5",
+    "tool_type": "image_generation",
+    "default_output": {
+      "size": "1024x1536",
+      "quality": "low",
+      "background": "auto"
+    },
+    "run_status": "blocked_missing_openai_api_key",
+    "recommendation": "refine_after_credentialed_run",
+    "notes": [
+      "This manifest is the source of truth for candidate selection, internal review state, and approved UI attachment.",
+      "Only entries with ui_attachment.approved=true should render in the user-facing UI."
+    ],
+    "last_run_at": "2026-03-21T00:17:14.351Z"
+  },
+  "posts": [
+    {
+      "post_id": "T01",
+      "scene_context": "weekday office elevator mirror before a morning meeting",
+      "style_concern": "the trousers may break too sharply above loafers and make the outfit feel shorter",
+      "intended_tone": "believable office outfit, understated commute styling",
+      "source_keys": [
+        "le17_frontzip",
+        "cos_trouser"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday office elevator mirror before a morning meeting. Style concern: the trousers may break too sharply above loafers and make the outfit feel shorter. Intended tone: believable office outfit, understated commute styling. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://images.garmentory.com/images/4161750/large/Le-17-Septembre-Front-Zipper-Coat-20200917011119.jpg?1600305087",
+        "https://media.cos.com/assets/001/9d/16/9d1630e1936271893c5d84099a730a57a758547e.jpg?aspectRatio=2%2C3&imwidth=2160"
+      ],
+      "generation": null
+    },
+    {
+      "post_id": "T02",
+      "scene_context": "weekday outside appointment with a slightly dressed-up office mood",
+      "style_concern": "the full look may read too formal for a normal work morning",
+      "intended_tone": "natural Korean daily fashion photo, subtly polished but not editorial",
+      "source_keys": [
+        "andyou_dress",
+        "amomento_shirt"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday outside appointment with a slightly dressed-up office mood. Style concern: the full look may read too formal for a normal work morning. Intended tone: natural Korean daily fashion photo, subtly polished but not editorial. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://en.brideandyou.com/web/product/big/202404/800931ba321057b07f523baf5463719c.jpg",
+        "https://cdn.shopify.com/s/files/1/0620/8172/8644/files/0000_PINTUCKSLIMSHIRT_BR_01.jpg?v=1771917439"
+      ],
+      "generation": null
+    },
+    {
+      "post_id": "T03",
+      "scene_context": "busy weekday morning before leaving for work",
+      "style_concern": "the all-black outfit may feel too safe unless one accessory balances it",
+      "intended_tone": "believable social fashion post with everyday commute framing",
+      "source_keys": [
+        "amomento_knit",
+        "marginsherwood_boston"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: busy weekday morning before leaving for work. Style concern: the all-black outfit may feel too safe unless one accessory balances it. Intended tone: believable social fashion post with everyday commute framing. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://cdn.shopify.com/s/files/1/0620/8172/8644/files/0000_WOOLV-NECKKNIT_CH_01.jpg?v=1771917391",
+        "https://cdna.lystit.com/1040/1300/n/photos/eraldo/f1d9d870/marge-sherwood--Soft-Boston-Leather-Shoulder-Bag.jpeg"
+      ],
+      "generation": null
+    },
+    {
+      "post_id": "T04",
+      "scene_context": "weekday mirror photo after arriving at the office",
+      "style_concern": "the oversized upper half may make the body look heavier than expected",
+      "intended_tone": "natural office mirror shot, realistic and not campaign-like",
+      "source_keys": [
+        "le17_coat",
+        "lowclassic_trouser"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday mirror photo after arriving at the office. Style concern: the oversized upper half may make the body look heavier than expected. Intended tone: natural office mirror shot, realistic and not campaign-like. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://www.theoutnet.com/variants/images/1647597322046157/F/w1020_q80.jpg",
+        "https://cafe24img.poxo.com/lowclassic/web/product/big/202303/f6c6a33112b0b6ad9ac1f1409830039c.jpg"
+      ],
+      "generation": null
+    },
+    {
+      "post_id": "T05",
+      "scene_context": "weekday hallway mirror check before heading out",
+      "style_concern": "the loafers may make the lower half feel too heavy versus the skirt",
+      "intended_tone": "community-post tone, believable real-life styling photo",
+      "source_keys": [
+        "recto_wide",
+        "marginsherwood_baguette"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday hallway mirror check before heading out. Style concern: the loafers may make the lower half feel too heavy versus the skirt. Intended tone: community-post tone, believable real-life styling photo. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://etaseoul.com/cdn/shop/files/ETA_SEOUL_Centered_1200x628_82651da9-66c7-4324-ab9b-8b4134ad427e.png?v=1745076006",
+        "https://cdn.shopify.com/s/files/1/0613/4235/1610/files/Master_Black_35a515c9-5b15-425a-8e6f-17fd2816bdfa.png?height=628&pad_color=fff&v=1664981114&width=1200"
+      ],
+      "generation": null
+    },
+    {
+      "post_id": "T06",
+      "scene_context": "weekday lunch-plan outfit that still needs to feel office-appropriate",
+      "style_concern": "the shirt and denim combination may look too plain and too office-only",
+      "intended_tone": "subtle daily fashion post, low-polish and realistic",
+      "source_keys": [
+        "lowclassic_pants",
+        "cos_shirt"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday lunch-plan outfit that still needs to feel office-appropriate. Style concern: the shirt and denim combination may look too plain and too office-only. Intended tone: subtle daily fashion post, low-polish and realistic. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://kream-phinf.pstatic.net/MjAyNTA3MzBfMTY0/MDAxNzUzODYxMjk2OTc1.LIrD-PCnPi3GUTEJEEuRwO99-vO-uSUP-3EVvagPVS8g.CjKCzBINLFR6nEfKni6gjnlFmc-kBXvc0nh8H_m9qQEg.PNG/a_32fb50102b5645fa88b56534cc36fb44.png",
+        "https://media.cos.com/assets/001/83/93/8393590a4a7a374fae06486d64eee3aabcdd2cd7_xxl-1.jpg?imwidth=2160"
+      ],
+      "generation": null
+    },
+    {
+      "post_id": "T07",
+      "scene_context": "after-work dinner or appointment on a weekday evening",
+      "style_concern": "the inner top may overpower the jacket and make the look feel cheap",
+      "intended_tone": "natural social photo, believable Korean daily-fashion mood",
+      "source_keys": [
+        "theopen_jacket",
+        "cos_shirt"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: after-work dinner or appointment on a weekday evening. Style concern: the inner top may overpower the jacket and make the look feel cheap. Intended tone: natural social photo, believable Korean daily-fashion mood. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "http://oeuvrofficial.com/cdn/shop/products/74f180163aaa5a9f1fd7f9d6e5933248.jpg?v=1666066424",
+        "https://media.cos.com/assets/001/83/93/8393590a4a7a374fae06486d64eee3aabcdd2cd7_xxl-1.jpg?imwidth=2160"
+      ],
+      "generation": null
+    },
+    {
+      "post_id": "T11",
+      "scene_context": "weekday office dressing-room or mirror check before purchase",
+      "style_concern": "the blazer may feel too sharp or too expensive for daily rotation",
+      "intended_tone": "believable fitting-room style preview, not official product imagery",
+      "source_keys": [
+        "lowclassic_blazer"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday office dressing-room or mirror check before purchase. Style concern: the blazer may feel too sharp or too expensive for daily rotation. Intended tone: believable fitting-room style preview, not official product imagery. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://cafe24img.poxo.com/lowclassic/web/product/big/202603/695d09e279672a9dd0aa08a3d205f512.jpg"
+      ],
+      "generation": null
+    },
+    {
+      "post_id": "T13",
+      "scene_context": "weekday try-on question focused on pants fit before final purchase",
+      "style_concern": "the right size depends on hip ease and overall silhouette, not waist alone",
+      "intended_tone": "realistic size-help image with clear body proportion",
+      "source_keys": [
+        "recto_pants",
+        "recto_wide"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday try-on question focused on pants fit before final purchase. Style concern: the right size depends on hip ease and overall silhouette, not waist alone. Intended tone: realistic size-help image with clear body proportion. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://cafe24img.poxo.com/product2011/web/product/small/202509/b812dfced35b64d077bd4159a99d4cce.jpg",
+        "https://etaseoul.com/cdn/shop/files/ETA_SEOUL_Centered_1200x628_82651da9-66c7-4324-ab9b-8b4134ad427e.png?v=1745076006"
+      ],
+      "generation": null
+    },
+    {
+      "post_id": "T14",
+      "scene_context": "weekday office wardrobe question focused on shirt volume",
+      "style_concern": "the drop-shoulder shirt may make the upper body look too bulky",
+      "intended_tone": "simple mirror-style social post, not an editorial fashion image",
+      "source_keys": [
+        "cos_shirt"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday office wardrobe question focused on shirt volume. Style concern: the drop-shoulder shirt may make the upper body look too bulky. Intended tone: simple mirror-style social post, not an editorial fashion image. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://media.cos.com/assets/001/83/93/8393590a4a7a374fae06486d64eee3aabcdd2cd7_xxl-1.jpg?imwidth=2160"
+      ],
+      "generation": null
+    },
+    {
+      "post_id": "T15",
+      "scene_context": "weekday office outfit comparison around straighter versus wider trousers",
+      "style_concern": "the lower-body balance may shift depending on trouser width and shoe break",
+      "intended_tone": "believable Korean workwear post with mobile-photo realism",
+      "source_keys": [
+        "lowclassic_trouser",
+        "recto_wide"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday office outfit comparison around straighter versus wider trousers. Style concern: the lower-body balance may shift depending on trouser width and shoe break. Intended tone: believable Korean workwear post with mobile-photo realism. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://cafe24img.poxo.com/lowclassic/web/product/big/202303/f6c6a33112b0b6ad9ac1f1409830039c.jpg",
+        "https://etaseoul.com/cdn/shop/files/ETA_SEOUL_Centered_1200x628_82651da9-66c7-4324-ab9b-8b4134ad427e.png?v=1745076006"
+      ],
+      "generation": null
+    },
+    {
+      "post_id": "T16",
+      "scene_context": "cold weekday commute while deciding between true-to-size and oversized coat styling",
+      "style_concern": "the wrong size may make the upper body look too broad instead of intentionally oversized",
+      "intended_tone": "realistic winter office commute photo, subtle and not glossy",
+      "source_keys": [
+        "le17_coat",
+        "le17_frontzip"
+      ],
+      "review_status": "blocked_missing_openai_api_key",
+      "review_notes": "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": null
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: cold weekday commute while deciding between true-to-size and oversized coat styling. Style concern: the wrong size may make the upper body look too broad instead of intentionally oversized. Intended tone: realistic winter office commute photo, subtle and not glossy. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://www.theoutnet.com/variants/images/1647597322046157/F/w1020_q80.jpg",
+        "https://images.garmentory.com/images/4161750/large/Le-17-Septembre-Front-Zipper-Coat-20200917011119.jpg?1600305087"
+      ],
+      "generation": null
+    }
+  ]
+}

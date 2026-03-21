@@ -14,12 +14,25 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import crawledImageManifest from "./src/data/crawledImageManifest.json";
+import openaiOutfitPreviewManifest from "./src/data/openaiOutfitPreviewManifest.json";
 import resolvedPostImageManifest from "./src/data/resolvedPostImageManifest.json";
 
 const IMAGE_POOL = crawledImageManifest.map((image) => ({
   ...image,
   src: `${import.meta.env.BASE_URL}${image.assetPath}`,
 }));
+
+const APPROVED_OUTFIT_PREVIEW_MAP = Object.fromEntries(
+  (openaiOutfitPreviewManifest.posts || [])
+    .filter((entry) => entry.ui_attachment?.approved && entry.ui_attachment?.assetPath)
+    .map((entry) => [
+      entry.post_id,
+      {
+        ...entry,
+        src: `${import.meta.env.BASE_URL}${entry.ui_attachment.assetPath}`,
+      },
+    ]),
+);
 
 const TYPE_LABEL = {
   outfit: "오늘 내 코디 어떤지 봐줘",
@@ -1271,8 +1284,32 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
   );
 }
 
+function OutfitPreviewCard({ preview, title }) {
+  if (!preview?.src) return null;
+
+  return (
+    <div className="overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950/80">
+      <img
+        src={preview.src}
+        alt={`${title} 착장 미리보기`}
+        loading="lazy"
+        className="h-[420px] w-full object-cover sm:h-[520px]"
+      />
+      <div className="space-y-2 p-4">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+          {preview.ui_attachment?.label || "착장 미리보기"}
+        </p>
+        <p className="text-sm leading-6 text-zinc-300">
+          이런 톤과 비율로 보일 때의 전체 무드를 함께 보는 용도예요.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function ThreadDetailBody({ post }) {
   const paragraphs = post.detailLead.split("\n").filter(Boolean);
+  const approvedOutfitPreview = APPROVED_OUTFIT_PREVIEW_MAP[post.id] || null;
 
   if (paragraphs.length === 0) {
     return null;
@@ -1282,6 +1319,7 @@ function ThreadDetailBody({ post }) {
     <div className="mt-2 space-y-4">
       <p className="text-[15px] leading-6 text-zinc-100">{paragraphs[0]}</p>
       {post.productEvidence.has_named_product_refs && <ProductEvidencePreview post={post} detail />}
+      {approvedOutfitPreview && <OutfitPreviewCard preview={approvedOutfitPreview} title={post.title} />}
       {paragraphs.slice(1).map((paragraph) => (
         <p key={`${post.id}-${paragraph.slice(0, 24)}`} className="text-[15px] leading-6 text-zinc-100">
           {paragraph}
