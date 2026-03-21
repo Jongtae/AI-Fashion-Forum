@@ -36,6 +36,81 @@ const PRIVACY_TREATMENT_BY_POST = {
   T16: "three-quarter mirror angle with hair and phone obscuring enough of the face to protect identity without repeating the same straight-on phone pose",
 };
 
+const SCENE_VARIATION_BY_POST = {
+  T01: {
+    location: "a compact office elevator with brushed steel walls and cool weekday building light",
+    lighting: "flat overhead fluorescent light with a slightly grey morning cast",
+    framing: "full-body vertical mirror selfie with the lower half fully readable",
+    pose: "standing square but relaxed, one foot slightly forward as if checking proportions before work",
+  },
+  T02: {
+    location: "a plain sidewalk corner outside a small office building, with neutral concrete and no scenic backdrop",
+    lighting: "soft overcast daylight with low contrast",
+    framing: "three-quarter or full-body mobile frame that prioritizes silhouette over face detail",
+    pose: "brief pause mid-commute rather than a posed fashion stance",
+  },
+  T03: {
+    location: "a cramped apartment entryway with a shoe rack, umbrella, and door-side mirror",
+    lighting: "weak warm household light mixed with a little cool daylight from the entrance",
+    framing: "slightly cropped vertical mirror shot that cuts the face naturally and keeps the outfit readable",
+    pose: "caught mid-departure, shifting weight or adjusting a bag rather than standing still",
+  },
+  T04: {
+    location: "an office hallway mirror or lobby mirror with neutral walls and ordinary building finishes",
+    lighting: "mixed indoor daylight and ceiling light without dramatic contrast",
+    framing: "full-body mirror image with enough space to judge upper-body volume and trouser line",
+    pose: "natural front-facing check with one arm relaxed and no catalog symmetry",
+  },
+  T05: {
+    location: "a narrow apartment hall or entry mirror with visible lived-in clutter kept minimal",
+    lighting: "soft indoor household light that feels slightly dimmer than office lighting",
+    framing: "full-body mirror selfie that clearly shows shoes, socks, and skirt balance",
+    pose: "casual pre-exit check with the bag hanging naturally and feet set in an everyday stance",
+  },
+  T06: {
+    location: "a lunch-break mirror or glass reflection near an office cafe entrance",
+    lighting: "mild midday natural light with no cinematic grading",
+    framing: "full-body candid frame that reads like a quick style check",
+    pose: "subtle side turn or walking pause instead of a posed front-on stance",
+  },
+  T07: {
+    location: "a small elevator or restroom mirror before an evening appointment",
+    lighting: "warm indoor evening light with slight phone-camera noise",
+    framing: "tight upper-body mirror crop that keeps jacket and inner balance primary",
+    pose: "one hand lightly adjusting the jacket or bag as if checking the look before heading out",
+  },
+  T11: {
+    location: "a fitting-room mirror with curtain edge, bench, or shopping bag visible",
+    lighting: "neutral store lighting that feels flat and practical",
+    framing: "head-cut or upper-face-cut mirror frame that keeps the blazer shape primary",
+    pose: "quiet fitting-room stance rather than a polished social pose",
+  },
+  T13: {
+    location: "a fitting-room or elevator mirror dedicated to lower-body fit checking",
+    lighting: "plain overhead light without shadows that hide the trouser line",
+    framing: "lower-body-priority composition that makes hip, thigh, and hem easy to inspect",
+    pose: "small weight shift that reveals the pants shape instead of a fashion pose",
+  },
+  T14: {
+    location: "a home wardrobe mirror by a window or bright room corner",
+    lighting: "soft natural daylight with a little household shadow falloff",
+    framing: "half-to-full body mirror shot with a slight top crop to keep attention on shirt volume",
+    pose: "easy at-home stance, one shoulder slightly dropped so the shirt volume reads honestly",
+  },
+  T15: {
+    location: "a plain mirror setup intended for comparing trouser silhouettes, not a styled editorial scene",
+    lighting: "simple indoor light that keeps leg line and hem visible",
+    framing: "full lower-body frame focused on silhouette difference rather than facial detail",
+    pose: "balanced comparison stance with minimal styling drama",
+  },
+  T16: {
+    location: "a building elevator or lobby mirror during a cold commute, with just enough space for coat comparison context",
+    lighting: "cool indoor building light with a muted morning tone",
+    framing: "three-quarter or full-body mirror frame that keeps coat size and shoulder volume legible",
+    pose: "slight angle with coat held or draped naturally, like a real sizing decision moment",
+  },
+};
+
 function slugify(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
@@ -90,6 +165,7 @@ async function resolveReferenceImages(sourceEntries) {
 function buildPrompt(post) {
   const privacyTreatment =
     post.privacy_treatment || PRIVACY_TREATMENT_BY_POST[post.post_id] || "phone-obscured or naturally cropped face";
+  const sceneVariation = SCENE_VARIATION_BY_POST[post.post_id] || null;
 
   return [
     "Create one realistic outfit preview image for a Korean mobile-first fashion community post.",
@@ -98,10 +174,14 @@ function buildPrompt(post) {
     `Style concern: ${post.style_concern}.`,
     `Intended tone: ${post.intended_tone}.`,
     "Keep the image believable for a real Korean everyday social-fashion upload.",
-    "Prefer half-body or full-body vertical mobile framing with a candid mirror selfie, hallway check, elevator mirror, apartment entryway, office mirror, or plain daily-life backdrop.",
+    "Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe.",
+    sceneVariation ? `Location treatment: ${sceneVariation.location}.` : "Use an ordinary everyday location rather than a scenic or campaign-like backdrop.",
+    sceneVariation ? `Lighting treatment: ${sceneVariation.lighting}.` : "Use ordinary indoor, household, office, or overcast natural light rather than dramatic lighting.",
+    sceneVariation ? `Framing treatment: ${sceneVariation.framing}.` : "Use practical mobile framing that keeps the debate point readable without catalog symmetry.",
+    sceneVariation ? `Pose treatment: ${sceneVariation.pose}.` : "Keep the pose natural and incidental rather than styled.",
     "If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling.",
     `Use this privacy treatment: ${privacyTreatment}.`,
-    "Vary privacy treatment naturally across the set instead of defaulting to the same black-phone face-cover composition.",
+    "Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe.",
     "Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles.",
     "Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign.",
     "Show the exact debate point clearly in frame so the viewer can judge proportion, fit, balance, or awkwardness from the image itself.",
