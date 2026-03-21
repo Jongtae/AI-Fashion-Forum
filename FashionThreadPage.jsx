@@ -17,10 +17,12 @@ import crawledImageManifest from "./src/data/crawledImageManifest.json";
 import openaiOutfitPreviewManifest from "./src/data/openaiOutfitPreviewManifest.json";
 import resolvedPostImageManifest from "./src/data/resolvedPostImageManifest.json";
 
-const IMAGE_POOL = crawledImageManifest.map((image) => ({
-  ...image,
-  src: `${import.meta.env.BASE_URL}${image.assetPath}`,
-}));
+const APPROVED_CRAWLED_IMAGE_POOL = crawledImageManifest
+  .filter((image) => image.audit_status === "approved")
+  .map((image) => ({
+    ...image,
+    src: `${import.meta.env.BASE_URL}${image.assetPath}`,
+  }));
 
 const APPROVED_OUTFIT_PREVIEW_MAP = Object.fromEntries(
   (openaiOutfitPreviewManifest.posts || [])
@@ -746,7 +748,8 @@ function buildPriorityThreadRewrite(post) {
 function buildAlignmentMeta(topic, sources, imageAsset) {
   const blueprint = ALIGNMENT_BLUEPRINTS[topic.type];
   const expectedCommentAngle = topic.debate.split(",").map((item) => item.trim());
-  const imageMatchScore = imageAsset.image_evidence_type === blueprint.imageEvidenceType ? 4 : 3;
+  const imageEvidenceType = imageAsset?.image_evidence_type || "product_photo";
+  const imageMatchScore = imageEvidenceType === blueprint.imageEvidenceType ? 4 : 2;
 
   return {
     topic_type: TOPIC_TYPE_MAP[topic.type],
@@ -776,7 +779,7 @@ function buildProductEvidenceMeta(sources, imageAsset) {
     has_named_product_refs: bindings.length > 0,
     representative_mode: bindings.length > 1 ? "product_tile_gallery" : "single_product_tile",
     fallback_mode: "product_reference_cards_only",
-    blocked_generic_image_id: imageAsset?.image_id ?? null,
+    blocked_generic_image_id: imageAsset?.audit_status === "rejected" ? imageAsset.image_id : null,
     bindings,
   };
 }
@@ -818,6 +821,71 @@ function resolveBindingAsset(binding) {
     thumbnailUrl,
     assetSourceType: sourceAsset?.asset_source_type || "generated",
     assetStatus: sourceAsset?.asset_status || "resolved",
+  };
+}
+
+function resolvePrimaryVisual(topic, sources, resolution, index) {
+  const approvedOutfitPreview =
+    PRIMARY_OUTFIT_SHOT_TYPES.has(topic.type) ? APPROVED_OUTFIT_PREVIEW_MAP[topic.id] || null : null;
+
+  if (approvedOutfitPreview?.src) {
+    return {
+      image: approvedOutfitPreview.src,
+      imageAsset: {
+        image_id: `outfit-preview-${topic.id}`,
+        image_evidence_type: ALIGNMENT_BLUEPRINTS[topic.type].imageEvidenceType,
+        image_evidence_role: ALIGNMENT_BLUEPRINTS[topic.type].imageEvidenceRole,
+        visible_evidence_note: "Approved outfit preview attachment is serving as the primary visual.",
+        audit_status: "approved",
+      },
+    };
+  }
+
+  const primarySourceKey = resolution?.resolved_image_assets?.[0] || sources[0]?.key;
+  const primarySource = sources.find((source) => source.key === primarySourceKey) || sources[0] || null;
+
+  if (primarySource) {
+    const resolved = resolveBindingAsset({
+      sourceKey: primarySource.key,
+      title: primarySource.title,
+      source: primarySource.source,
+    });
+
+    return {
+      image: resolved.thumbnailUrl,
+      imageAsset: {
+        image_id: `resolved-source-${primarySource.key}`,
+        image_evidence_type: "product_photo",
+        image_evidence_role: "product_shape_reference",
+        visible_evidence_note:
+          "Resolved product thumbnail is serving as the primary visual because no approved crawl asset exists for this post.",
+        audit_status: "approved",
+      },
+    };
+  }
+
+  const approvedCrawlAsset =
+    APPROVED_CRAWLED_IMAGE_POOL.length > 0
+      ? APPROVED_CRAWLED_IMAGE_POOL[index % APPROVED_CRAWLED_IMAGE_POOL.length]
+      : null;
+
+  if (approvedCrawlAsset) {
+    return {
+      image: approvedCrawlAsset.src,
+      imageAsset: approvedCrawlAsset,
+    };
+  }
+
+  return {
+    image: buildGeneratedThumbnail(topic.title, topic.brands[0] || "Fashion forum"),
+    imageAsset: {
+      image_id: `generated-fallback-${topic.id}`,
+      image_evidence_type: "product_photo",
+      image_evidence_role: "product_shape_reference",
+      visible_evidence_note:
+        "Generated thumbnail fallback is serving as the primary visual because no approved crawl or resolved product asset was available.",
+      audit_status: "generated_fallback",
+    },
   };
 }
 
@@ -892,7 +960,6 @@ function ProductMentionCard({ binding, variant = "feed" }) {
 }
 
 function buildFeedPost(topic, index) {
-  const imageAsset = IMAGE_POOL[index % IMAGE_POOL.length];
   const likes = 140 + seededNumber(topic.id, 700);
   const replies = 11 + seededNumber(`${topic.id}-r`, 17);
   const reposts = 2 + seededNumber(`${topic.id}-rp`, 9);
@@ -906,9 +973,10 @@ function buildFeedPost(topic, index) {
   ][index % 5];
   const sources = (TOPIC_SOURCES[topic.id] || []).map((key) => ({ ...SOURCE_LIBRARY[key], key }));
   const rewrite = buildPriorityThreadRewrite({ ...topic, sources });
-  const alignment = buildAlignmentMeta(topic, sources, imageAsset);
-  const productEvidence = buildProductEvidenceMeta(sources, imageAsset);
   const resolution = resolvedPostImageManifest.posts.find((entry) => entry.post_id === topic.id) || null;
+  const primaryVisual = resolvePrimaryVisual(topic, sources, resolution, index);
+  const alignment = buildAlignmentMeta(topic, sources, primaryVisual.imageAsset);
+  const productEvidence = buildProductEvidenceMeta(sources, primaryVisual.imageAsset);
 
   return {
     ...topic,
@@ -922,8 +990,8 @@ function buildFeedPost(topic, index) {
     author,
     handle: `@${author}`,
     time,
-    image: imageAsset.src,
-    imageAsset,
+    image: primaryVisual.image,
+    imageAsset: primaryVisual.imageAsset,
     likes,
     replies,
     reposts,
