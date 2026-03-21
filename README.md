@@ -54,6 +54,7 @@ This repository tracks meaningful work through GitHub Issues only.
 - Product mention card policy: [`/docs/product-mention-card-policy.md`](./docs/product-mention-card-policy.md)
 - Review checklist: [`/docs/review-checklist.md`](./docs/review-checklist.md)
 - OpenAI outfit-preview PoC: [`/docs/openai-outfit-preview-feasibility-poc.md`](./docs/openai-outfit-preview-feasibility-poc.md)
+- Korean UGC outfit-shot guidance: [`/docs/korean-ugc-outfit-shot-guidance.md`](./docs/korean-ugc-outfit-shot-guidance.md)
 
 These alignment artifacts are the source of truth for validating whether mock post text, image evidence, and expected comments belong together.
 
