@@ -11,11 +11,30 @@ const sourceManifestPath = path.join(projectRoot, "src", "data", "resolvedPostIm
 const outputDir = path.join(projectRoot, "public", "openai-outfit-preview-poc");
 
 const dryRun = process.argv.includes("--dry-run");
+const requestedPostIds = process.argv
+  .filter((arg) => arg.startsWith("--post-id="))
+  .map((arg) => arg.slice("--post-id=".length).trim().toUpperCase())
+  .filter(Boolean);
 const apiKey = process.env.OPENAI_API_KEY || "";
 const model = process.env.OPENAI_OUTFIT_PREVIEW_MODEL || "gpt-5";
 const size = process.env.OPENAI_OUTFIT_PREVIEW_SIZE || "1024x1536";
 const quality = process.env.OPENAI_OUTFIT_PREVIEW_QUALITY || "low";
 const background = process.env.OPENAI_OUTFIT_PREVIEW_BACKGROUND || "auto";
+
+const PRIVACY_TREATMENT_BY_POST = {
+  T01: "phone-covered face with a dark navy or graphite phone, not pure black, while keeping the lower half fully readable",
+  T02: "partial crop above the nose so identity is hidden by framing rather than a phone-first pose",
+  T03: "mirror-frame cutoff that trims most of the forehead and one side of the face without making privacy treatment look staged",
+  T04: "phone held naturally but slightly off-center so the face is only partially covered and the silhouette still reads as everyday UGC",
+  T05: "soft facial blur with the phone lowered enough that the privacy treatment feels incidental rather than templated",
+  T06: "angle-based concealment from a casual side turn instead of a direct face-cover pose",
+  T07: "tight mirror crop from chin to upper torso so the face is mostly out of frame without becoming a beauty crop",
+  T11: "fitting-room mirror framing with the top of the head and most of the face cut off naturally by the mirror crop",
+  T13: "phone-covered face with a light or metallic phone and stronger emphasis on the lower-body fit zone",
+  T14: "partial head cutoff at the top of the mirror frame so shirt volume stays primary and identity stays hidden",
+  T15: "crop the frame from neck down so trouser comparison stays primary and identity is hidden by composition",
+  T16: "three-quarter mirror angle with hair and phone obscuring enough of the face to protect identity without repeating the same straight-on phone pose",
+};
 
 function slugify(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -69,6 +88,9 @@ async function resolveReferenceImages(sourceEntries) {
 }
 
 function buildPrompt(post) {
+  const privacyTreatment =
+    post.privacy_treatment || PRIVACY_TREATMENT_BY_POST[post.post_id] || "phone-obscured or naturally cropped face";
+
   return [
     "Create one realistic outfit preview image for a Korean mobile-first fashion community post.",
     "This is a styling preview, not an exact virtual try-on and not official product photography.",
@@ -78,7 +100,8 @@ function buildPrompt(post) {
     "Keep the image believable for a real Korean everyday social-fashion upload.",
     "Prefer half-body or full-body vertical mobile framing with a candid mirror selfie, hallway check, elevator mirror, apartment entryway, office mirror, or plain daily-life backdrop.",
     "If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling.",
-    "Prefer a phone-covered face, partially cropped face, or lightly obscured identity over a polished face-forward beauty shot.",
+    `Use this privacy treatment: ${privacyTreatment}.`,
+    "Vary privacy treatment naturally across the set instead of defaulting to the same black-phone face-cover composition.",
     "Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles.",
     "Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign.",
     "Show the exact debate point clearly in frame so the viewer can judge proportion, fit, balance, or awkwardness from the image itself.",
@@ -220,12 +243,21 @@ async function main() {
   const manifest = await readJson(manifestPath);
   const sourceManifest = await readJson(sourceManifestPath);
 
-  const updatedPosts = [];
   const runStartedAt = new Date().toISOString();
+  const requestedSet = new Set(requestedPostIds);
+  const targetPosts = requestedSet.size
+    ? manifest.posts.filter((post) => requestedSet.has(post.post_id))
+    : manifest.posts;
 
-  for (const post of manifest.posts) {
+  if (requestedSet.size && targetPosts.length === 0) {
+    throw new Error(`No posts matched requested filters: ${requestedPostIds.join(", ")}`);
+  }
+
+  const updatedPostMap = new Map(manifest.posts.map((post) => [post.post_id, post]));
+
+  for (const post of targetPosts) {
     const generated = await generatePreview(post, sourceManifest);
-    updatedPosts.push({
+    updatedPostMap.set(post.post_id, {
       ...post,
       ...generated,
     });
@@ -247,7 +279,7 @@ async function main() {
         recommendation: apiKey ? "refine_after_manual_review" : "refine_after_credentialed_run",
         last_run_at: runStartedAt,
       },
-      posts: updatedPosts.concat(manifest.posts.slice(updatedPosts.length)),
+      posts: manifest.posts.map((entry) => updatedPostMap.get(entry.post_id) || entry),
     };
     await writeFile(manifestPath, `${JSON.stringify(interimManifest, null, 2)}\n`);
     console.log(`${post.post_id}: ${generated.review_status}`);
@@ -271,7 +303,7 @@ async function main() {
       recommendation: apiKey ? "refine_after_manual_review" : "refine_after_credentialed_run",
       last_run_at: runStartedAt,
     },
-    posts: updatedPosts,
+    posts: manifest.posts.map((entry) => updatedPostMap.get(entry.post_id) || entry),
   };
 
   await writeFile(manifestPath, `${JSON.stringify(updatedManifest, null, 2)}\n`);
