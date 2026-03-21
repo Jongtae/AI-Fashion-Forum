@@ -41,6 +41,33 @@ async function fetchAsDataUrl(url) {
   return `data:${contentType};base64,${Buffer.from(arrayBuffer).toString("base64")}`;
 }
 
+async function resolveReferenceImages(sourceEntries) {
+  const fetchedImages = await Promise.all(
+    sourceEntries.map(async (entry) => {
+      try {
+        return {
+          key: entry.key,
+          url: entry.record.thumbnail_url,
+          image_url: await fetchAsDataUrl(entry.record.thumbnail_url),
+          error: null,
+        };
+      } catch (error) {
+        return {
+          key: entry.key,
+          url: entry.record.thumbnail_url,
+          image_url: null,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }),
+  );
+
+  return {
+    usable: fetchedImages.filter((entry) => entry.image_url),
+    failed: fetchedImages.filter((entry) => entry.error),
+  };
+}
+
 function buildPrompt(post) {
   return [
     "Create one realistic outfit preview image for a Korean mobile-first fashion community post.",
@@ -82,9 +109,28 @@ async function generatePreview(post, sourceManifest) {
     };
   }
 
-  const referenceImages = await Promise.all(
-    sourceEntries.map((entry) => fetchAsDataUrl(entry.record.thumbnail_url)),
-  );
+  const resolvedReferences = await resolveReferenceImages(sourceEntries);
+
+  if (!resolvedReferences.usable.length) {
+    return {
+      prompt,
+      reference_images: sourceEntries.map((entry) => entry.record.thumbnail_url),
+      reference_fetch_failures: resolvedReferences.failed.map(({ key, url, error }) => ({
+        key,
+        url,
+        error,
+      })),
+      review_status: "blocked_reference_image_fetch_failed",
+      review_notes:
+        "All reference image fetches failed for this post, so the generation request was skipped pending data-source repair.",
+      ui_attachment: {
+        approved: false,
+        label: post.ui_attachment.label,
+        assetPath: null,
+      },
+      generation: null,
+    };
+  }
 
   const payload = {
     model,
@@ -102,7 +148,7 @@ async function generatePreview(post, sourceManifest) {
         role: "user",
         content: [
           { type: "input_text", text: prompt },
-          ...referenceImages.map((image_url) => ({ type: "input_image", image_url })),
+          ...resolvedReferences.usable.map(({ image_url }) => ({ type: "input_image", image_url })),
         ],
       },
     ],
@@ -139,9 +185,15 @@ async function generatePreview(post, sourceManifest) {
   return {
     prompt,
     reference_images: sourceEntries.map((entry) => entry.record.thumbnail_url),
+    reference_fetch_failures: resolvedReferences.failed.map(({ key, url, error }) => ({
+      key,
+      url,
+      error,
+    })),
     review_status: "generated_pending_manual_review",
-    review_notes:
-      "Generation completed. Manual realism/context/product-association review is still required before UI approval.",
+    review_notes: resolvedReferences.failed.length
+      ? "Generation completed with partial reference coverage. Manual realism/context/product-association review is still required before UI approval."
+      : "Generation completed. Manual realism/context/product-association review is still required before UI approval.",
     ui_attachment: {
       approved: false,
       label: post.ui_attachment.label,
@@ -164,6 +216,7 @@ async function main() {
   const sourceManifest = await readJson(sourceManifestPath);
 
   const updatedPosts = [];
+  const runStartedAt = new Date().toISOString();
 
   for (const post of manifest.posts) {
     const generated = await generatePreview(post, sourceManifest);
@@ -171,6 +224,27 @@ async function main() {
       ...post,
       ...generated,
     });
+    const interimManifest = {
+      ...manifest,
+      poc: {
+        ...manifest.poc,
+        mainline_model: model,
+        default_output: {
+          size,
+          quality,
+          background,
+        },
+        run_status: dryRun
+          ? "dry_run_ready"
+          : apiKey
+            ? "generated_pending_manual_review"
+            : "blocked_missing_openai_api_key",
+        recommendation: apiKey ? "refine_after_manual_review" : "refine_after_credentialed_run",
+        last_run_at: runStartedAt,
+      },
+      posts: updatedPosts.concat(manifest.posts.slice(updatedPosts.length)),
+    };
+    await writeFile(manifestPath, `${JSON.stringify(interimManifest, null, 2)}\n`);
     console.log(`${post.post_id}: ${generated.review_status}`);
   }
 
@@ -190,7 +264,7 @@ async function main() {
           ? "generated_pending_manual_review"
           : "blocked_missing_openai_api_key",
       recommendation: apiKey ? "refine_after_manual_review" : "refine_after_credentialed_run",
-      last_run_at: new Date().toISOString(),
+      last_run_at: runStartedAt,
     },
     posts: updatedPosts,
   };

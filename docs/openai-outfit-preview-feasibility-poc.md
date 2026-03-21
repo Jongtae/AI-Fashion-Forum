@@ -10,9 +10,15 @@ It defines the constrained PoC path for testing whether a single OpenAI GPT Imag
 - UI scope: detail-first only
 - Product card policy: preserved
 - Generated image policy: fallback-governed
-- Current workspace run status: blocked on missing `OPENAI_API_KEY` at the time this branch was prepared
+- Current workspace run status: credentialed generation completed and manual review completed
 
-Because the credential was not available in the active workspace, this branch implements the PoC framework, candidate set, prompt assembly, approval gate, and detail-view attachment slot without force-publishing any generated preview.
+This branch now includes the full constrained PoC loop:
+
+- candidate set selection
+- prompt and reference-image assembly
+- OpenAI Responses API generation run
+- manual pass/fail review
+- UI attachment only for approved previews
 
 ## Why the implementation is detail-first
 
@@ -47,6 +53,28 @@ The branch defaults the generation request to:
 - output `background: auto`
 
 The low setting follows the issue’s cost-control guidance for a first pass.
+
+## Credentialed run summary
+
+Execution date:
+
+- 2026-03-21
+
+Run outcome:
+
+- 12 candidate posts processed
+- 12 preview images generated
+- 10 previews approved for detail-view attachment
+- 2 previews rejected after manual review
+
+Observed data-source caveat:
+
+- `T04` completed with partial reference coverage because one product image source returned `403 Forbidden`
+- the run continued because the script now records failed reference fetches per post instead of aborting the entire batch
+
+Generated files live in:
+
+- [`/public/openai-outfit-preview-poc`](../public/openai-outfit-preview-poc)
 
 ## Candidate set
 
@@ -118,6 +146,26 @@ If a generation run is weak, the UI stays exactly where it already is now:
 - no failure explanation is shown to end users
 - no generated-image terminology is shown in user-facing UI
 
+## Manual review sheet
+
+Approved for UI attachment:
+
+- `T01`: believable elevator mirror realism and readable trouser-break cue
+- `T03`: believable busy-morning social-photo tone with useful accessory balancing
+- `T04`: strong office mirror realism despite partial reference coverage
+- `T05`: clear lower-half balance check in a believable hallway mirror context
+- `T06`: believable office-to-lunch styling without editorial polish
+- `T07`: after-work styling reads plausibly and keeps the jacket as the main layer
+- `T11`: fitting-room mirror context supports the purchase-evaluation use case
+- `T14`: shirt-volume and upper-body balance are easy to judge
+- `T15`: trouser-width and shoe-break comparison stays legible
+- `T16`: commute-street framing feels believable and visually useful
+
+Rejected after manual review:
+
+- `T02`: too polished and campaign-like for the intended community-post realism target
+- `T13`: weak product association and weak fit with the intended Korean daily-fashion size-help scenario
+
 ## Output artifacts in this branch
 
 - candidate and review manifest:
@@ -150,11 +198,12 @@ Optional overrides:
 
 ## Current recommendation
 
-Current recommendation: `refine after credentialed run`
+Current recommendation: `continue detail-view only with approved subset`
 
 Reason:
 
-- the PoC path is now structurally ready
-- product-card policy is preserved
-- the user-facing UI does not regress
-- but an actual OpenAI generation batch still requires a configured API key before approval decisions can honestly be made
+- the credentialed run produced enough believable outputs to justify a constrained continuation
+- the strict approval gate prevented weaker outputs from reaching the UI
+- the existing product mention card policy remains intact
+- detail-view-only placement remains the safest first attachment surface
+- data-source hardening is still needed for blocked product-image hosts before any broader scale-out
