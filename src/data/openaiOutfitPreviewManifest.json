@@ -16,6 +16,7 @@
       "Only entries with ui_attachment.approved=true should render in the user-facing UI.",
       "Current shipped UI only treats outfit, awkward, and size posts as primary outfit-preview candidates; buy and review posts must not remain ui_attachment.approved=true unless the UI eligibility rule changes.",
       "Entries with scene_attachment.approved=true may render as supporting lifestyle visuals for non-primary post formats such as daily snapshots, pet episodes, and empathy posts.",
+      "For pet_episode posts, generated scene_attachment records are fallback-only until the real-photo-preferred sourcing path from issue #69 is exhausted or blocked.",
       "Approved preview sets should vary privacy treatment, location, lighting, framing, and pose so the generated imagery does not collapse into one repeated scene recipe."
     ],
     "last_run_at": "2026-03-21T10:37:21.490Z",
