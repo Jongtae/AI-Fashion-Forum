@@ -59,6 +59,7 @@ This repository tracks meaningful work through GitHub Issues only.
 - Korean UGC outfit-shot guidance: [`/docs/korean-ugc-outfit-shot-guidance.md`](./docs/korean-ugc-outfit-shot-guidance.md)
 - Meeting handoff workflow: [`/docs/meeting-handoff-workflow.md`](./docs/meeting-handoff-workflow.md)
 - Meeting handoff template: [`/docs/meeting-handoff-template.md`](./docs/meeting-handoff-template.md)
+- Lifestyle and pet expansion handoff: [`/docs/lifestyle-pet-expansion-meeting-handoff.md`](./docs/lifestyle-pet-expansion-meeting-handoff.md)
 
 These alignment artifacts are the source of truth for validating whether mock post text, image evidence, and expected comments belong together.
 

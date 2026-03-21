@@ -61,6 +61,10 @@ The following documents should be treated as active policy/reference material.
 - [`/docs/meeting-handoff-workflow.md`](./meeting-handoff-workflow.md)
 - Purpose: defines when meeting outcomes should be written into `docs/` as implementation handoff material instead of relying on issue text alone
 
+### Lifestyle and pet expansion handoff
+- [`/docs/lifestyle-pet-expansion-meeting-handoff.md`](./lifestyle-pet-expansion-meeting-handoff.md)
+- Purpose: defines the approved shift toward a fashion-centered lifestyle community with pet-episode content and provides shared handoff guidance for frontend implementation and image generation
+
 ### Korean UGC outfit-shot guidance
 - [`/docs/korean-ugc-outfit-shot-guidance.md`](./korean-ugc-outfit-shot-guidance.md)
 - Purpose: defines how outfit-oriented imagery should stay grounded in believable Korean everyday mobile UGC instead of preview-surface polish
