@@ -36,6 +36,18 @@ const APPROVED_OUTFIT_PREVIEW_MAP = Object.fromEntries(
     ]),
 );
 
+const APPROVED_SUPPORTING_SCENE_MAP = Object.fromEntries(
+  (openaiOutfitPreviewManifest.posts || [])
+    .filter((entry) => entry.scene_attachment?.approved && entry.scene_attachment?.assetPath)
+    .map((entry) => [
+      entry.post_id,
+      {
+        ...entry,
+        src: `${import.meta.env.BASE_URL}${entry.scene_attachment.assetPath}`,
+      },
+    ]),
+);
+
 const PRIMARY_OUTFIT_SHOT_TYPES = new Set(["outfit", "awkward", "size"]);
 
 const TYPE_LABEL = {
@@ -873,6 +885,8 @@ function resolveBindingAsset(binding) {
 function resolvePrimaryVisual(topic, sources, resolution, index) {
   const approvedOutfitPreview =
     PRIMARY_OUTFIT_SHOT_TYPES.has(topic.type) ? APPROVED_OUTFIT_PREVIEW_MAP[topic.id] || null : null;
+  const approvedSupportingScene =
+    !PRIMARY_OUTFIT_SHOT_TYPES.has(topic.type) ? APPROVED_SUPPORTING_SCENE_MAP[topic.id] || null : null;
 
   if (approvedOutfitPreview?.src) {
     return {
@@ -882,6 +896,20 @@ function resolvePrimaryVisual(topic, sources, resolution, index) {
         image_evidence_type: ALIGNMENT_BLUEPRINTS[topic.type].imageEvidenceType,
         image_evidence_role: ALIGNMENT_BLUEPRINTS[topic.type].imageEvidenceRole,
         visible_evidence_note: "Approved outfit preview attachment is serving as the primary visual.",
+        audit_status: "approved",
+      },
+    };
+  }
+
+  if (approvedSupportingScene?.src) {
+    return {
+      image: approvedSupportingScene.src,
+      imageAsset: {
+        image_id: `supporting-scene-${topic.id}`,
+        image_evidence_type: "lifestyle_scene",
+        image_evidence_role: "supporting_daily_life_context",
+        visible_evidence_note:
+          "Approved supporting lifestyle scene is serving as the primary visual for a non-primary discussion format.",
         audit_status: "approved",
       },
     };

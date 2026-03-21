@@ -10,15 +10,16 @@
       "background": "auto"
     },
     "run_status": "manual_review_completed",
-    "recommendation": "continue_detail_view_only_with_approved_subset",
+    "recommendation": "ship_approved_supporting_scene_subset",
     "notes": [
       "This manifest is the source of truth for candidate selection, internal review state, and approved UI attachment.",
       "Only entries with ui_attachment.approved=true should render in the user-facing UI.",
       "Current shipped UI only treats outfit, awkward, and size posts as primary outfit-preview candidates; buy and review posts must not remain ui_attachment.approved=true unless the UI eligibility rule changes.",
+      "Entries with scene_attachment.approved=true may render as supporting lifestyle visuals for non-primary post formats such as daily snapshots, pet episodes, and empathy posts.",
       "Approved preview sets should vary privacy treatment, location, lighting, framing, and pose so the generated imagery does not collapse into one repeated scene recipe."
     ],
-    "last_run_at": "2026-03-21T09:45:15.886Z",
-    "last_reviewed_at": "2026-03-21T09:54:37.163Z"
+    "last_run_at": "2026-03-21T10:37:21.490Z",
+    "last_reviewed_at": "2026-03-21T10:44:16Z"
   },
   "posts": [
     {
@@ -189,35 +190,36 @@
     },
     {
       "post_id": "T06",
-      "scene_context": "weekday lunch-plan outfit that still needs to feel office-appropriate",
-      "style_concern": "the shirt and denim combination may look too plain and too office-only",
-      "intended_tone": "subtle daily fashion post, low-polish and realistic",
+      "format": "daily_snapshot",
+      "scene_context": "weekday lunch-plan outfit snapshot that still needs to feel office-appropriate",
+      "style_concern": "the shirt and denim combination may look too generic unless the daily-life lunch context reads clearly",
+      "intended_tone": "casual midday office-life snapshot, believable and low-polish",
       "source_keys": [
         "lowclassic_pants",
         "cos_shirt"
       ],
-      "review_status": "rejected_after_manual_review",
-      "review_notes": "Rejected after regeneration. The refreshed image does not show the intended lunch-plan denim context clearly enough and reads too generic for the stated debate point.",
-      "ui_attachment": {
-        "approved": false,
-        "label": "착장 미리보기",
+      "review_status": "approved_for_scene_attachment",
+      "review_notes": "Approved after regeneration. The midday office-cafe mirror frame now clearly reads as a women’s daily lunch-plan snapshot, with denim and shirt balance visible without drifting into a generic slacks look.",
+      "scene_attachment": {
+        "approved": true,
+        "label": "생활 장면 미리보기",
         "assetPath": "openai-outfit-preview-poc/t06-outfit-preview.png"
       },
-      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday lunch-plan outfit that still needs to feel office-appropriate. Style concern: the shirt and denim combination may look too plain and too office-only. Intended tone: subtle daily fashion post, low-polish and realistic. Keep the image believable for a real Korean everyday social-fashion upload. Prefer half-body or full-body vertical mobile framing with a candid mirror selfie, hallway check, elevator mirror, apartment entryway, office mirror, or plain daily-life backdrop. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Prefer a phone-covered face, partially cropped face, or lightly obscured identity over a polished face-forward beauty shot. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Show the exact debate point clearly in frame so the viewer can judge proportion, fit, balance, or awkwardness from the image itself. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, focused on a casual daily outfit record rather than a heavy style-decision debate. Scene context: weekday lunch-plan outfit snapshot that still needs to feel office-appropriate. Style concern: the shirt and denim combination may look too generic unless the daily-life lunch context reads clearly. Intended tone: casual midday office-life snapshot, believable and low-polish. Keep the image believable for a real Korean everyday social-fashion upload. Unless the scene is explicitly object-only, portray an adult Korean woman in her 20s or 30s so the result fits the product's women's lifestyle community context. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: an office cafe entrance mirror or glass reflection right before stepping out for lunch. Lighting treatment: soft midday daylight mixed with neutral indoor office light. Framing treatment: full-body quick check that still keeps denim and shoes easy to read. Pose treatment: slight walking pause with one shoulder turned, like a casual lunch-plan snapshot. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: angle-based concealment from a casual side turn instead of a direct face-cover pose. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Let the image read as a quick lived-in record from a real day, with fashion still legible but no need for a hard judgment-frame pose. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. The bottom must read clearly as denim jeans rather than tailored slacks, and the subject should read as an adult Korean woman from a women's lifestyle community post. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
       "reference_images": [
         "https://kream-phinf.pstatic.net/MjAyNTA3MzBfMTY0/MDAxNzUzODYxMjk2OTc1.LIrD-PCnPi3GUTEJEEuRwO99-vO-uSUP-3EVvagPVS8g.CjKCzBINLFR6nEfKni6gjnlFmc-kBXvc0nh8H_m9qQEg.PNG/a_32fb50102b5645fa88b56534cc36fb44.png",
         "https://media.cos.com/assets/001/83/93/8393590a4a7a374fae06486d64eee3aabcdd2cd7_xxl-1.jpg?imwidth=2160"
       ],
+      "reference_fetch_failures": [],
       "generation": {
-        "response_id": "resp_04d88409ff75dc470069be3e5b05bc81a396e6ede638a80c57",
-        "revised_prompt": "Create one realistic, vertical mobile photo (9:16) for a Korean everyday social-fashion post. Candid elevator mirror selfie during a weekday lunch break in Seoul. The person holds a phone covering most of their face; forehead and hair slightly cropped; identity not clearly visible. Keep the tone subtle and low-polish with faint grain, a few mirror smudges, and natural garment wrinkles. \n\nOutfit: a light gray, slightly oversized button-up shirt inspired by the reference (matte linen-blend look, single chest pocket, subtle shoulder tab seams), sleeves rolled twice. Shirt is half-tucked in front to reveal a slim black leather belt with a small silver buckle. Pair with dark indigo straight-leg denim jeans (clean, no distressing, mid rise, ankle length). Black leather loafers. Small black nylon crossbody bag worn short under the arm. Minimal silver watch. No visible logos. \n\nPurpose: show the shirt-with-denim combination clearly so viewers can judge proportion and balance—include full body from cropped head to shoes; the half-tuck and belt add interest so it doesn’t feel too plain or too office-only. \n\nLighting: ordinary elevator fluorescent light mixed with a bit of cool daylight; realistic white balance. Background: brushed-metal elevator walls, simple floor indicator and button panel subtly visible, nothing staged or editorial. Colors neutral and believable. \n\nUse the provided reference images only for general silhouette and color family; do not reproduce exact branded products. Do not add any text overlay, collage layout, dramatic pose, or studio/campaign polish. Keep it believable as a real Korean daily fashion upload.",
+        "response_id": "resp_08ba6a95c52414d10069be7529a4c4819e8d31ee7a7e073fdd",
+        "revised_prompt": "Generate a single realistic vertical smartphone photo (9:16) for a Korean mobile-first fashion community post. Subject: an adult Korean woman in her late 20s/early 30s. Scene: office café entrance, using the glass door as a mirror/reflection right before stepping out for a weekday lunch. Context cues: neutral office lobby with café counter and a couple of blurred coworkers in the background; card reader by the door; potted plant; soft midday daylight spilling in from outside mixed with neutral overhead office lighting. Imperfections: faint smudges on the glass, slight film grain, mild motion blur at the edges, natural wrinkles on clothing.\n\nFraming: full-body, vertical mobile crop; denim and shoes must be clearly visible and legible. Pose: a slight walking pause with one shoulder turned toward the glass, head angled away in a casual side turn for privacy (no face cover with phone), gaze downward like mid-step to lunch.\n\nOutfit (office-appropriate but casual):\n- Top: grey button-up shirt inspired by the reference (clean, minimal, light grey woven texture, relaxed fit), sleeves lightly rolled once, half-tucked at the front for shape.\n- Bottom: blue denim jeans (clearly denim, five-pocket, visible twill and rivets, mid-wash, straight leg with a subtle drape similar in silhouette to relaxed trousers; not distressed, not slacks). Ensure the jeans unmistakably read as denim.\n- Footwear: simple black leather loafers with a slight heel; no flashy branding.\n- Accessories: slim black belt, understated watch, small black leather tote on shoulder, office keycard clipped at the belt loop or tote handle. Optional thin silver studs.\n\nLighting: soft midday daylight mixed with indoor neutral office light; gentle reflections on the glass; no strong shadows or dramatic contrast.\n\nStyling/tone: believable Korean everyday UGC, candid and low-polish. Make the image feel like a quick lunch-plan outfit check—weekday office-life, not editorial. Avoid text overlays, collage layouts, dramatic cinematic angles, or luxury-campaign polish. No explicit logos or brand claims. Use the provided product images only as loose guidance for color family and silhouette of the grey shirt and relaxed-leg bottoms while keeping the bottom as true blue denim.",
         "output_path": "public/openai-outfit-preview-poc/t06-outfit-preview.png",
         "model": "gpt-5",
         "size": "1024x1536",
         "quality": "low",
         "background": "auto"
-      },
-      "reference_fetch_failures": []
+      }
     },
     {
       "post_id": "T07",
@@ -412,6 +414,270 @@
           "error": "Failed to fetch reference image: https://www.theoutnet.com/variants/images/1647597322046157/F/w1020_q80.jpg (403 Forbidden)"
         }
       ]
+    },
+    {
+      "post_id": "T06",
+      "format": "daily_snapshot",
+      "scene_context": "weekday lunch-plan outfit snapshot that still needs to feel office-appropriate",
+      "style_concern": "the shirt and denim combination may look too generic unless the daily-life lunch context reads clearly",
+      "intended_tone": "casual midday office-life snapshot, believable and low-polish",
+      "source_keys": [
+        "lowclassic_pants",
+        "cos_shirt"
+      ],
+      "review_status": "approved_for_scene_attachment",
+      "review_notes": "Approved after regeneration. The midday office-cafe mirror frame now clearly reads as a women’s daily lunch-plan snapshot, with denim and shirt balance visible without drifting into a generic slacks look.",
+      "scene_attachment": {
+        "approved": true,
+        "label": "생활 장면 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t06-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, focused on a casual daily outfit record rather than a heavy style-decision debate. Scene context: weekday lunch-plan outfit snapshot that still needs to feel office-appropriate. Style concern: the shirt and denim combination may look too generic unless the daily-life lunch context reads clearly. Intended tone: casual midday office-life snapshot, believable and low-polish. Keep the image believable for a real Korean everyday social-fashion upload. Unless the scene is explicitly object-only, portray an adult Korean woman in her 20s or 30s so the result fits the product's women's lifestyle community context. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: an office cafe entrance mirror or glass reflection right before stepping out for lunch. Lighting treatment: soft midday daylight mixed with neutral indoor office light. Framing treatment: full-body quick check that still keeps denim and shoes easy to read. Pose treatment: slight walking pause with one shoulder turned, like a casual lunch-plan snapshot. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: angle-based concealment from a casual side turn instead of a direct face-cover pose. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Let the image read as a quick lived-in record from a real day, with fashion still legible but no need for a hard judgment-frame pose. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. The bottom must read clearly as denim jeans rather than tailored slacks, and the subject should read as an adult Korean woman from a women's lifestyle community post. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
+      "reference_images": [
+        "https://kream-phinf.pstatic.net/MjAyNTA3MzBfMTY0/MDAxNzUzODYxMjk2OTc1.LIrD-PCnPi3GUTEJEEuRwO99-vO-uSUP-3EVvagPVS8g.CjKCzBINLFR6nEfKni6gjnlFmc-kBXvc0nh8H_m9qQEg.PNG/a_32fb50102b5645fa88b56534cc36fb44.png",
+        "https://media.cos.com/assets/001/83/93/8393590a4a7a374fae06486d64eee3aabcdd2cd7_xxl-1.jpg?imwidth=2160"
+      ],
+      "reference_fetch_failures": [],
+      "generation": {
+        "response_id": "resp_08ba6a95c52414d10069be7529a4c4819e8d31ee7a7e073fdd",
+        "revised_prompt": "Generate a single realistic vertical smartphone photo (9:16) for a Korean mobile-first fashion community post. Subject: an adult Korean woman in her late 20s/early 30s. Scene: office café entrance, using the glass door as a mirror/reflection right before stepping out for a weekday lunch. Context cues: neutral office lobby with café counter and a couple of blurred coworkers in the background; card reader by the door; potted plant; soft midday daylight spilling in from outside mixed with neutral overhead office lighting. Imperfections: faint smudges on the glass, slight film grain, mild motion blur at the edges, natural wrinkles on clothing.\n\nFraming: full-body, vertical mobile crop; denim and shoes must be clearly visible and legible. Pose: a slight walking pause with one shoulder turned toward the glass, head angled away in a casual side turn for privacy (no face cover with phone), gaze downward like mid-step to lunch.\n\nOutfit (office-appropriate but casual):\n- Top: grey button-up shirt inspired by the reference (clean, minimal, light grey woven texture, relaxed fit), sleeves lightly rolled once, half-tucked at the front for shape.\n- Bottom: blue denim jeans (clearly denim, five-pocket, visible twill and rivets, mid-wash, straight leg with a subtle drape similar in silhouette to relaxed trousers; not distressed, not slacks). Ensure the jeans unmistakably read as denim.\n- Footwear: simple black leather loafers with a slight heel; no flashy branding.\n- Accessories: slim black belt, understated watch, small black leather tote on shoulder, office keycard clipped at the belt loop or tote handle. Optional thin silver studs.\n\nLighting: soft midday daylight mixed with indoor neutral office light; gentle reflections on the glass; no strong shadows or dramatic contrast.\n\nStyling/tone: believable Korean everyday UGC, candid and low-polish. Make the image feel like a quick lunch-plan outfit check—weekday office-life, not editorial. Avoid text overlays, collage layouts, dramatic cinematic angles, or luxury-campaign polish. No explicit logos or brand claims. Use the provided product images only as loose guidance for color family and silhouette of the grey shirt and relaxed-leg bottoms while keeping the bottom as true blue denim.",
+        "output_path": "public/openai-outfit-preview-poc/t06-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      }
+    },
+    {
+      "post_id": "T09",
+      "format": "daily_snapshot",
+      "scene_context": "rainy weekday commute moment where charcoal work pants keep winning over other options",
+      "style_concern": "the scene should feel like a real rainy-day office choice, not a product-led trouser comparison",
+      "intended_tone": "quiet commute snapshot with practical weekday styling",
+      "source_keys": [
+        "recto_pants",
+        "cos_wool_trouser"
+      ],
+      "review_status": "approved_for_scene_attachment",
+      "review_notes": "Approved after regeneration. The rainy office-entry scene feels like a believable weekday women’s commute moment, and the charcoal trouser choice stays primary without turning into a product ad.",
+      "scene_attachment": {
+        "approved": true,
+        "label": "생활 장면 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t09-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, focused on a casual daily outfit record rather than a heavy style-decision debate. Scene context: rainy weekday commute moment where charcoal work pants keep winning over other options. Style concern: the scene should feel like a real rainy-day office choice, not a product-led trouser comparison. Intended tone: quiet commute snapshot with practical weekday styling. Keep the image believable for a real Korean everyday social-fashion upload. Unless the scene is explicitly object-only, portray an adult Korean woman in her 20s or 30s so the result fits the product's women's lifestyle community context. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: a rainy weekday office lobby or building entrance with damp floor reflection and no scenic styling. Lighting treatment: cool cloudy daylight mixed with dim lobby light. Framing treatment: full-body mobile photo that keeps trouser line and everyday bag visible. Pose treatment: practical pre-commute stance, one hand holding a tote or umbrella rather than a fashion pose. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: phone-obscured or naturally cropped face. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Let the image read as a quick lived-in record from a real day, with fashion still legible but no need for a hard judgment-frame pose. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. Keep the subject as an adult Korean woman commuter, and make the charcoal trouser choice and rainy-day practicality more important than any editorial mood. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
+      "reference_images": [
+        "https://cafe24img.poxo.com/product2011/web/product/small/202509/b812dfced35b64d077bd4159a99d4cce.jpg",
+        "https://media.cos.com/assets/001/96/82/96829cd1d9198487bb64aeb9cbe9b316a6fe3815_xxl-1.jpg?imwidth=2160"
+      ],
+      "reference_fetch_failures": [],
+      "generation": {
+        "response_id": "resp_00f336e7792d4d5e0069be755e02448191bfcf194aaf38013b",
+        "revised_prompt": "Create a single photorealistic vertical mobile photo (9:16) for a Korean women’s fashion community post. Subject: an adult Korean woman commuter in her late 20s to early 30s. Setting: weekday morning at a Seoul office building entrance/lobby. The tile floor near the glass doors is damp with faint reflections and wet footprints from the rain. Lighting: cool overcast daylight spilling in from outside mixed with dim lobby lighting; slightly flat and quiet, not cinematic.\n\nFraming: full-body, eye-level, candid UGC feel, taken quickly by a friend. Keep the trousers and an everyday bag clearly visible. Slight hand shake/motion blur and a touch of phone-grain; no editorial gloss.\n\nPrivacy treatment: face naturally obscured by the rim of a clear umbrella and a downward gaze; crop leaves the top of the head partially out of frame. No mirror selfie, no phone held up to cover the face.\n\nOutfit styling (weekday office, rainy-day practical):\n- Charcoal work pants as the hero item—relaxed straight or gently wide with front crease, mid-rise, ankle to top-of-shoe length, light natural wrinkles, a few tiny rain specks near the hem. Fabric reads wool-blend/suiting; color firmly in the charcoal family (not black, not light gray).\n- Top: soft off-white knit or fine-gauge sweater, lightly tucked for a clean waistline.\n- Outerwear: thin navy trench or compact rain jacket left open; looks practical, not styled like a campaign.\n- Shoes: black leather loafers with rubber soles suitable for rain; slightly matte from drizzle.\n- Bag: black or dark nylon/canvas tote on shoulder, visible in frame.\n- Accessories minimal: simple watch; no conspicuous branding.\n\nPose: practical pre-commute stance near the doors, weight on one leg, one hand holding the clear umbrella, the other gently gripping the tote strap. Not a fashion pose.\n\nEnvironment details: glass doors with rain droplets; an umbrella stand off to the side; dull stainless security gates or a lobby desk blurred in the background; no readable logos or text; no scenic props.\n\nAesthetic notes: believable Korean everyday upload; subdued palette; real-life imperfections like slight grain, faint floor smudges, and natural garment wrinkles. Avoid studio backdrops, dramatic lighting, collage layouts, text overlays, or luxury-campaign polish. Emphasize that the charcoal trousers feel like the reliable rainy-day choice without turning it into a product comparison shot.",
+        "output_path": "public/openai-outfit-preview-poc/t09-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      }
+    },
+    {
+      "post_id": "T10",
+      "format": "pet_episode",
+      "scene_context": "weekday apartment entryway right before leaving, with a dog blocking the bag-check moment",
+      "style_concern": "the bag and leaving-for-work context should stay readable even though the dog creates the emotional hook",
+      "intended_tone": "warm but ordinary pre-exit snapshot, not pet-influencer content",
+      "source_keys": [
+        "marginsherwood_boston",
+        "marginsherwood_baguette"
+      ],
+      "review_status": "rejected_after_manual_review",
+      "review_notes": "Rejected after regeneration. The dog artifacting near the muzzle/head breaks realism, so this scene is not reliable enough for frontend attachment.",
+      "scene_attachment": {
+        "approved": false,
+        "label": "생활 장면 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t10-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, where the pet creates the emotional hook but must not become the only subject. Scene context: weekday apartment entryway right before leaving, with a dog blocking the bag-check moment. Style concern: the bag and leaving-for-work context should stay readable even though the dog creates the emotional hook. Intended tone: warm but ordinary pre-exit snapshot, not pet-influencer content. Keep the image believable for a real Korean everyday social-fashion upload. Unless the scene is explicitly object-only, portray an adult Korean woman in her 20s or 30s so the result fits the product's women's lifestyle community context. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: a small apartment entryway with the front door, shoe shelf, and leash visible. Lighting treatment: ordinary morning household light with soft daylight leaking from the doorway. Framing treatment: full-body or three-quarter entryway photo where both the bag and the dog interruption are readable. Pose treatment: caught mid-exit while the dog blocks the path rather than a posed mirror check. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: phone-obscured or naturally cropped face. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Keep fashion and daily-life context primary, and let the pet enter the frame naturally as part of the situation instead of a hero subject. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. Keep the subject as an adult Korean woman leaving home for work, with the dog secondary to the bag-check moment. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
+      "reference_images": [
+        "https://cdna.lystit.com/1040/1300/n/photos/eraldo/f1d9d870/marge-sherwood--Soft-Boston-Leather-Shoulder-Bag.jpeg",
+        "https://cdn.shopify.com/s/files/1/0613/4235/1610/files/Master_Black_35a515c9-5b15-425a-8e6f-17fd2816bdfa.png?height=628&pad_color=fff&v=1664981114&width=1200"
+      ],
+      "reference_fetch_failures": [],
+      "generation": {
+        "response_id": "resp_048e4efc55f535900069be7592c7c88195985052bed0ffbecf",
+        "revised_prompt": "Photorealistic vertical smartphone photo (4:5). A warm but ordinary weekday pre-exit snapshot in a small Korean apartment entryway (현관): narrow space with the front door ajar, tiled threshold with metal strip, a low shoe rack with a couple of sneakers, an umbrella stand, and a dog leash hanging on a wall hook. Morning household lighting with soft daylight leaking in through the open door; natural shadows. Subtle phone-like grain and a touch of motion blur in the dog’s tail; faint scuffs on the tiles and natural garment wrinkles—realistic UGC, not studio.\n\nSubject: an adult Korean woman in her late 20s/30s captured three-quarter to full body, stepping out mid-exit rather than posing. Face privacy: naturally cropped above the nose so eyes aren’t shown; head angled slightly down toward her bag (no mirror, no selfie). Hair in a low ponytail.\n\nOutfit: weekday office/commute look—light beige trench coat open over a crisp white blouse, charcoal straight‑leg trousers, and black low-heel loafers. Minimal everyday jewelry. In her left hand at hip level, she’s checking the zipper of a structured black leather shoulder bag with long double handles and a clean rectangular silhouette (unbranded; subtle, non-legible embossing allowed). The bag is clearly readable and centered midframe as part of a leaving-for-work bag-check moment; a glimpse of a laptop sleeve and a pen peeks out when she zips.\n\nDog: a small cream Shiba/Jindo mix stands in the lower third by the threshold, gently blocking her path while looking up at her—supporting the lifestyle moment but not dominating the frame. The leash on the wall is visible to hint at routine, but the main visual focus remains on the outfit and bag in a candid pre-exit scene.\n\nComposition: vertical entryway framing that includes the front door, shoe shelf, and hanging leash. Natural handheld perspective about waist height. No text overlay, no collage, no dramatic angle or campaign polish. Keep it believable for a real Korean everyday social-fashion upload, with the pet secondary to the outfit and bag context.",
+        "output_path": "public/openai-outfit-preview-poc/t10-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      }
+    },
+    {
+      "post_id": "T12",
+      "format": "pet_episode",
+      "scene_context": "weekend room-side mirror setup where a cat takes over the dress-check moment before an outing",
+      "style_concern": "the dress candidate and getting-ready context should remain legible even with the cat interruption",
+      "intended_tone": "soft everyday weekend scene, intimate and believable",
+      "source_keys": [
+        "andyou_dress_en",
+        "andyou_dress"
+      ],
+      "review_status": "approved_for_scene_attachment",
+      "review_notes": "Approved on first review. The cat interruption stays secondary to the getting-ready dress scene, and the result feels like a believable weekend room-side snapshot.",
+      "scene_attachment": {
+        "approved": true,
+        "label": "생활 장면 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t12-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, where the pet creates the emotional hook but must not become the only subject. Scene context: weekend room-side mirror setup where a cat takes over the dress-check moment before an outing. Style concern: the dress candidate and getting-ready context should remain legible even with the cat interruption. Intended tone: soft everyday weekend scene, intimate and believable. Keep the image believable for a real Korean everyday social-fashion upload. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: a bedroom or dressing corner with a mirror, bed edge, or laid-out clothes visible. Lighting treatment: soft weekend daylight through curtains with mild indoor shadow. Framing treatment: three-quarter candid frame that keeps the dress candidate readable while the cat occupies part of the scene. Pose treatment: bending slightly or pausing while preparing to take a mirror photo, interrupted by the cat. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: phone-obscured or naturally cropped face. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Keep fashion and daily-life context primary, and let the pet enter the frame naturally as part of the situation instead of a hero subject. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
+      "reference_images": [
+        "https://en.brideandyou.com/web/product/big/202404/800931ba321057b07f523baf5463719c.jpg",
+        "https://en.brideandyou.com/web/product/big/202404/800931ba321057b07f523baf5463719c.jpg"
+      ],
+      "reference_fetch_failures": [],
+      "generation": {
+        "response_id": "resp_00ff4a8bd71a24ef0069be73661650819f8266af6c7b9595d3",
+        "revised_prompt": "Create one photorealistic vertical 9:16 mirror-selfie style outfit preview for a Korean mobile-first fashion community post.\n\nScene: a small Seoul apartment bedroom/dressing corner. A full-length mirror leans against a light wall beside a window with sheer white curtains. Soft overcast weekend daylight filters in, creating mild indoor shadows. Wooden floor. Edge of a low bed with a light beige duvet is visible; a folded neutral cardigan and a small off-white mini bag rest near the bed edge. Add everyday imperfections: faint mirror smudges, slight phone-like grain, subtle wall scuffs, and natural garment wrinkles.\n\nFraming: three-quarter candid vertical frame (top of head lightly cropped) capturing from upper chest to knees so the dress remains very readable. Phone in the subject’s right hand obscures most of the face for privacy; natural handheld perspective.\n\nPose: the subject is pausing and bending slightly as if about to take the mirror photo when a house cat interrupts. The cat (short-hair tabby or white) occupies only a corner of the frame—front paws on her shin or perched on the bed looking up—supporting the lifestyle moment but not blocking the outfit.\n\nOutfit candidate: a light blue tweed short‑sleeve mini dress with subtle texture and a slim self belt, inspired by the attached reference images for silhouette and color family only (do not copy exact product or background). Slightly A‑line skirt, short sleeves with minimal structure. Keep fabric texture legible. Styling for weekday office/lunch/after-work: simple tiny earrings barely visible, minimal makeup, short natural nails. On the floor near the mirror: black slingback kitten heels and a slim umbrella; subject is barefoot or in thin beige socks. She casually holds the off‑white mini bag at hip level or lets it sit on the bed—ensure it doesn’t steal focus from the dress.\n\nTone: intimate, believable Korean everyday UGC, not studio or campaign. No text overlay, no collage, no heavy retouching, no brand logos. Keep fashion and daily-life context primary, with the pet as a subtle secondary element. Realistic color, soft daylight, balanced exposure, and shallow phone-like depth of field.",
+        "output_path": "public/openai-outfit-preview-poc/t12-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      }
+    },
+    {
+      "post_id": "T17",
+      "format": "pet_episode",
+      "scene_context": "at-home knit review moment where the cat immediately occupies the spot where the knit was placed",
+      "style_concern": "the knit texture and home-review context should still read clearly while the cat stays secondary to the scene",
+      "intended_tone": "lived-in home snapshot with a small pet interruption",
+      "source_keys": [
+        "amomento_knit",
+        "amomento_zip"
+      ],
+      "review_status": "approved_for_scene_attachment",
+      "review_notes": "Approved on first review. The knit-on-floor setup plus cat takeover reads as a strong at-home pet-episode moment while keeping the clothing context legible.",
+      "scene_attachment": {
+        "approved": true,
+        "label": "생활 장면 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t17-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, where the pet creates the emotional hook but must not become the only subject. Scene context: at-home knit review moment where the cat immediately occupies the spot where the knit was placed. Style concern: the knit texture and home-review context should still read clearly while the cat stays secondary to the scene. Intended tone: lived-in home snapshot with a small pet interruption. Keep the image believable for a real Korean everyday social-fashion upload. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: a lived-in sofa-side or bedroom floor corner at home with a knit laid down briefly. Lighting treatment: soft home light with slightly muted afternoon daylight. Framing treatment: closer lifestyle frame that shows the knit texture and the cat taking over the shot. Pose treatment: incidental home snapshot rather than a person-centered fashion pose. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: phone-obscured or naturally cropped face. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Keep fashion and daily-life context primary, and let the pet enter the frame naturally as part of the situation instead of a hero subject. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
+      "reference_images": [
+        "https://cdn.shopify.com/s/files/1/0620/8172/8644/files/0000_WOOLV-NECKKNIT_CH_01.jpg?v=1771917391",
+        "https://cdn.shopify.com/s/files/1/0620/8172/8644/files/WOOLCROPZIP-UPJUMPER_GREYBEIGE_1.jpg?v=1771917333"
+      ],
+      "reference_fetch_failures": [],
+      "generation": {
+        "response_id": "resp_08a99b90c227aadc0069be73a278b481949f7419feb62de4d4",
+        "revised_prompt": "Create one photorealistic vertical 9:16 mobile snapshot for a Korean fashion community post. Scene: lived-in Seoul apartment, sofa-side corner. A soft beige rug and greige fabric sofa with a neutral throw. Soft muted afternoon daylight from a side window; indoor ambient warmth. Everyday imperfections visible: faint lint on rug, natural wrinkles in clothing, slight smartphone grain. \n\nPrimary subject: a charcoal heather V‑neck knit sweater (fine-gauge wool blend, subtle heather texture, ribbed cuffs and hem, cropped regular length) laid down briefly on the rug near the sofa. The knit’s texture should read clearly and occupy a clear portion of the frame, not posed like a catalog. \n\nLifestyle hook: a small domestic short-hair cat (neutral tabby or white-and-ginger) has immediately sat on the knit, loafing with paws tucked, looking off-frame. Keep the cat secondary—roughly one-quarter of the frame—so the knit and outfit context stay primary. No dramatic pet close-up. \n\nOutfit context: include a half-body view of a person (Korean everyday UGC style) kneeling or half-sitting by the sofa as if doing a quick at-home review. They’re wearing weekday-office pieces: black wide-leg cropped trousers, simple black leather loafers or derbies, and a light taupe short jacket left open over a black top. One hand holds a phone that naturally obscures part of the face, or the top of the face is cropped; no clear identity. No logos or brand markings. The person’s pose should feel incidental, mid-action (reaching toward the knit or gently nudging the cat), not a fashion pose. \n\nFraming: close lifestyle crop that shows the knit texture and the cat taking over the shot while keeping the human lower half and hand with phone in frame. Keep composition slightly off-center, not symmetrical or studio-like. \n\nLighting: soft home light with slightly muted afternoon daylight; gentle shadows; no flash. Color palette: charcoal, beige, greige, black—natural and understated. \n\nAesthetic: believable Korean everyday social-fashion upload, not a campaign. No text overlay, no collage, no dramatic angle, no mirror selfie default look, no catalog backdrop. Make the pet a supporting element only, and ensure the knit’s material and context read clearly.",
+        "output_path": "public/openai-outfit-preview-poc/t17-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      }
+    },
+    {
+      "post_id": "T18",
+      "format": "pet_episode",
+      "scene_context": "weekday doorway scramble where a dog mistakes the work bag for a walk signal",
+      "style_concern": "the leaving-for-work bag context should remain primary while the dog adds realism and movement",
+      "intended_tone": "slightly chaotic but believable home entry scene",
+      "source_keys": [
+        "marginsherwood_boston",
+        "marginsherwood_baguette"
+      ],
+      "review_status": "approved_for_scene_attachment",
+      "review_notes": "Approved after regeneration. The doorway scramble now reads as a believable women’s work-bag moment with the dog supporting the scene instead of overpowering it.",
+      "scene_attachment": {
+        "approved": true,
+        "label": "생활 장면 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t18-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, where the pet creates the emotional hook but must not become the only subject. Scene context: weekday doorway scramble where a dog mistakes the work bag for a walk signal. Style concern: the leaving-for-work bag context should remain primary while the dog adds realism and movement. Intended tone: slightly chaotic but believable home entry scene. Keep the image believable for a real Korean everyday social-fashion upload. Unless the scene is explicitly object-only, portray an adult Korean woman in her 20s or 30s so the result fits the product's women's lifestyle community context. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: an apartment doorway or hallway right before leaving for work with dog-walk items nearby. Lighting treatment: plain indoor morning light with a little cool daylight from the door. Framing treatment: lower or mid-height framing that keeps the bag, legs, and excited dog movement visible. Pose treatment: caught in a small pre-exit scramble instead of standing still. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: phone-obscured or naturally cropped face. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Keep fashion and daily-life context primary, and let the pet enter the frame naturally as part of the situation instead of a hero subject. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. Keep the subject as an adult Korean woman in a hurried doorway scene, and make the work bag more central than the dog. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
+      "reference_images": [
+        "https://cdna.lystit.com/1040/1300/n/photos/eraldo/f1d9d870/marge-sherwood--Soft-Boston-Leather-Shoulder-Bag.jpeg",
+        "https://cdn.shopify.com/s/files/1/0613/4235/1610/files/Master_Black_35a515c9-5b15-425a-8e6f-17fd2816bdfa.png?height=628&pad_color=fff&v=1664981114&width=1200"
+      ],
+      "reference_fetch_failures": [],
+      "generation": {
+        "response_id": "resp_0067ed65a66b4b280069be75c47030819e98c71ae336ad472b",
+        "revised_prompt": "Create one realistic, vertical mobile-first outfit preview image (9:16) for a Korean women’s lifestyle community post. Candid UGC feel, slightly chaotic but believable weekday morning at an apartment doorway in Seoul.\n\nPrimary subject and context: a black structured work bag with long double handles (inspired by the reference—boxy rectangular shape, smooth black leather, top-zip). The bag should be the most visually central element, held at thigh/hip height, with crisp focus and gentle depth-of-field around it. No brand marks visible.\n\nScene: narrow apartment entryway/hall just inside the door. Visible details that feel Korean: digital keypad door lock, slim shoe cabinet, umbrella stand, a wall intercom, and a small floor mat with a couple of everyday shoes by the door. A dog leash and poop-bag roll hang near the door. Slight everyday imperfections: faint mirror smudges on a closet door, light scuffs on the floor, very light image grain.\n\nSubject: an adult Korean woman (20s–30s), half- to full-body in frame, natural build. Face privacy treatment: naturally cropped—top of frame cuts off at the eyes so her face isn’t fully shown; no direct eye contact. Hair in a quick low clip, a few strands loose. Pose is mid-scramble: she’s stepping into one black loafer with the other heel unseated, slightly turning toward the door while gripping the work bag handles. Movement reads as hurried but real.\n\nOutfit styling (weekday office/commute vibe, not editorial):\n- Light blue button-down shirt with subtle natural wrinkles.\n- Charcoal straight-leg trousers.\n- Black leather belt.\n- Black penny loafers and thin black socks (one sock slightly misaligned for realism).\n- Beige trench coat draped over one forearm, phone in that same hand angled down (screen facing in), not covering her face.\n- Minimal jewelry (simple watch). No big logos.\n\nDog: small to medium pet (e.g., mixed-breed Jindo/Shiba size), cream or light tan coat. The dog is excited and misreading the bag as a walk cue—sniffing or pawing at the bag strap near her knee with slight motion blur in the tail. The pet is supportive to the moment and must not dominate the frame; keep scale secondary to the bag and outfit.\n\nLighting: plain indoor morning light with a touch of cool daylight spilling from the slightly opened door. No dramatic studio effects. Keep colors neutral and realistic.\n\nCamera and framing: lower to mid-height angle (about knee-level), vertical smartphone camera, 26–28mm equivalent. Compose to keep the bag, her legs, and the excited dog clearly visible. Depth-of-field modest, focus priority on the bag and her hand.\n\nAesthetic rules: realistic UGC, not polished campaign; no text overlays, no collage, no cinematic symmetry. Avoid brand claims. Maintain fashion and daily-life context primary with the pet as a natural supporting element.",
+        "output_path": "public/openai-outfit-preview-poc/t18-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      }
+    },
+    {
+      "post_id": "T19",
+      "format": "daily_snapshot",
+      "scene_context": "later-in-the-day mirror note after swapping one shirt pairing that finally feels right",
+      "style_concern": "the image should feel like a private daily record of outfit harmony, not a product-first styling card",
+      "intended_tone": "quiet weekday mirror note with realistic office-life texture",
+      "source_keys": [
+        "lowclassic_blazer",
+        "cos_shirt"
+      ],
+      "review_status": "approved_for_scene_attachment",
+      "review_notes": "Approved after regeneration. The restroom-mirror note feels like a quiet daily record from a women’s office routine and supports the shirt-pairing rediscovery angle well.",
+      "scene_attachment": {
+        "approved": true,
+        "label": "생활 장면 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t19-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, focused on a casual daily outfit record rather than a heavy style-decision debate. Scene context: later-in-the-day mirror note after swapping one shirt pairing that finally feels right. Style concern: the image should feel like a private daily record of outfit harmony, not a product-first styling card. Intended tone: quiet weekday mirror note with realistic office-life texture. Keep the image believable for a real Korean everyday social-fashion upload. Unless the scene is explicitly object-only, portray an adult Korean woman in her 20s or 30s so the result fits the product's women's lifestyle community context. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: an office restroom or quiet hallway mirror later in the day after outfit adjustment. Lighting treatment: even fluorescent indoor light without polish. Framing treatment: full-body mirror shot that feels like a quick record after swapping one item. Pose treatment: simple stance with a small shoulder drop, like a private note-to-self snapshot. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: phone-obscured or naturally cropped face. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Let the image read as a quick lived-in record from a real day, with fashion still legible but no need for a hard judgment-frame pose. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. Keep the subject as an adult Korean woman making a quiet mirror note, with the shirt-pairing adjustment and everyday office realism clearly visible. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
+      "reference_images": [
+        "https://cafe24img.poxo.com/lowclassic/web/product/big/202603/695d09e279672a9dd0aa08a3d205f512.jpg",
+        "https://media.cos.com/assets/001/83/93/8393590a4a7a374fae06486d64eee3aabcdd2cd7_xxl-1.jpg?imwidth=2160"
+      ],
+      "reference_fetch_failures": [],
+      "generation": {
+        "response_id": "resp_0fc2bf5e799335f30069be75ff88d48194a3ec345c9abf0c6a",
+        "revised_prompt": "Create one realistic, vertical 9:16 full-body mirror selfie for a Korean mobile-first fashion community post. Scene: quiet office restroom in Seoul, late afternoon under even fluorescent lighting. Adult Korean woman (late 20s–30s) stands in front of a large mirror; simple stance with one shoulder slightly dropped, one hand in pocket, the other holding a phone that obscures the upper half of her face for privacy. Outfit: black single-breasted blazer worn open, slightly relaxed fit; newly swapped-in soft grey button-up shirt with subtle linen-like texture, lightly oversized, top two buttons open, sleeves rolled once; straight charcoal or black tailored trousers; simple black loafers; slim black belt. Hair in a loose low bun, minimal jewelry. Everyday realism: natural fabric wrinkles, faint mirror smudges and fingerprints, slightly grainy smartphone look, neutral tiled walls and floor, stainless paper-towel dispenser, stall door edge. A canvas tote rests by the sink/bench with an ivory tee casually peeking out, hinting at the earlier pairing change without stealing focus. Framing: quick, candid UGC feel, slight tilt, not perfectly centered. Tone: quiet weekday mirror note with believable office-life texture. No text, no collage, no brand logos, no editorial polish.",
+        "output_path": "public/openai-outfit-preview-poc/t19-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      }
+    },
+    {
+      "post_id": "T20",
+      "format": "empathy_post",
+      "scene_context": "rushed weekday dressing moment where a knit feels scratchier than expected against bare skin",
+      "style_concern": "the image should support a relatable dressing experience and layering frustration rather than a polished outfit hero shot",
+      "intended_tone": "intimate, slightly tired, believable home dressing moment",
+      "source_keys": [
+        "cos_knit",
+        "cos_wool_trouser"
+      ],
+      "review_status": "approved_for_scene_attachment",
+      "review_notes": "Approved on first review. The rushed mirror moment supports the scratchy-knit empathy post without turning into a polished outfit hero image.",
+      "scene_attachment": {
+        "approved": true,
+        "label": "생활 장면 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t20-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, focused on a relatable dressing moment rather than a polished hero shot. Scene context: rushed weekday dressing moment where a knit feels scratchier than expected against bare skin. Style concern: the image should support a relatable dressing experience and layering frustration rather than a polished outfit hero shot. Intended tone: intimate, slightly tired, believable home dressing moment. Keep the image believable for a real Korean everyday social-fashion upload. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: a bedroom or hallway mirror during a rushed weekday dressing moment. Lighting treatment: soft indoor household light with realistic shadow and slight phone grain. Framing treatment: half-to-full body candid mirror frame that keeps the knit and layering context readable. Pose treatment: mid-change or brief pause before heading out, not a polished social pose. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: phone-obscured or naturally cropped face. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Let the image feel like a believable clothing-related moment that invites empathy, not a polished campaign or generic mood image. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
+      "reference_images": [
+        "https://media.cos.com/sb/251958/3861x5791/6a27f4d3e5/merino_sl__0061.jpg?imwidth=2160",
+        "https://media.cos.com/assets/001/96/82/96829cd1d9198487bb64aeb9cbe9b316a6fe3815_xxl-1.jpg?imwidth=2160"
+      ],
+      "reference_fetch_failures": [],
+      "generation": {
+        "response_id": "resp_064a6fd675922ab70069be745927f081a08bd418a2116cfa5a",
+        "revised_prompt": "Create one photorealistic, vertical smartphone mirror photo (4:5 or 9:16) for a Korean mobile-first fashion community post. Tone: intimate, slightly tired, believable weekday rush. Location: small Seoul apartment bedroom or hallway mirror near the entrance. Lighting: soft warm household light mixed with overcast window light; realistic shadows; slight phone grain; faint mirror smudges. Framing: half-to-full body, off-center candid mirror composition that keeps the knit and layering context readable; no studio symmetry. Privacy: face naturally cropped above the nose, identity obscured; phone with a pale-blue case partially in frame (not a heroic centered black-phone pose). Subject: a Korean young adult woman mid-change before heading out. Outfit inspired by references (not an exact copy): - Top: charcoal heather sleeveless turtleneck knit that looks a little scratchy against bare skin. - Bottom: light gray, softly tailored wide-leg trousers with subtle wrinkles; optional slim dark-brown belt. Moment: she pauses, one hand rubbing the side of her neck/shoulder as if the knit feels prickly, the other hand holding or half-pulling on a thin cream long-sleeve base layer to consider wearing underneath; layering frustration is visible. Styling vibe: weekday office/commute/lunch-plan practical look—simple tote on the floor, keys by the door, a takeout coffee on a stool. Small cat near the shoe rack, present but not distracting. Details: believable Korean apartment touches (entry mat, shoe rack), no brand logos. Keep colors neutral and realistic. Show everyday imperfections: slight garment wrinkles, natural clutter edges, soft indoor light, and mild sensor noise. No text overlays, no collage, no dramatic poses or cinematic angles, no luxury-campaign polish.",
+        "output_path": "public/openai-outfit-preview-poc/t20-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      }
     }
   ]
 }
