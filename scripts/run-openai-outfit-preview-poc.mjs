@@ -109,6 +109,63 @@ const SCENE_VARIATION_BY_POST = {
     framing: "three-quarter or full-body mirror frame that keeps coat size and shoulder volume legible",
     pose: "slight angle with coat held or draped naturally, like a real sizing decision moment",
   },
+  T06: {
+    location: "an office cafe entrance mirror or glass reflection right before stepping out for lunch",
+    lighting: "soft midday daylight mixed with neutral indoor office light",
+    framing: "full-body quick check that still keeps denim and shoes easy to read",
+    pose: "slight walking pause with one shoulder turned, like a casual lunch-plan snapshot",
+  },
+  T09: {
+    location: "a rainy weekday office lobby or building entrance with damp floor reflection and no scenic styling",
+    lighting: "cool cloudy daylight mixed with dim lobby light",
+    framing: "full-body mobile photo that keeps trouser line and everyday bag visible",
+    pose: "practical pre-commute stance, one hand holding a tote or umbrella rather than a fashion pose",
+  },
+  T10: {
+    location: "a small apartment entryway with the front door, shoe shelf, and leash visible",
+    lighting: "ordinary morning household light with soft daylight leaking from the doorway",
+    framing: "full-body or three-quarter entryway photo where both the bag and the dog interruption are readable",
+    pose: "caught mid-exit while the dog blocks the path rather than a posed mirror check",
+  },
+  T12: {
+    location: "a bedroom or dressing corner with a mirror, bed edge, or laid-out clothes visible",
+    lighting: "soft weekend daylight through curtains with mild indoor shadow",
+    framing: "three-quarter candid frame that keeps the dress candidate readable while the cat occupies part of the scene",
+    pose: "bending slightly or pausing while preparing to take a mirror photo, interrupted by the cat",
+  },
+  T17: {
+    location: "a lived-in sofa-side or bedroom floor corner at home with a knit laid down briefly",
+    lighting: "soft home light with slightly muted afternoon daylight",
+    framing: "closer lifestyle frame that shows the knit texture and the cat taking over the shot",
+    pose: "incidental home snapshot rather than a person-centered fashion pose",
+  },
+  T18: {
+    location: "an apartment doorway or hallway right before leaving for work with dog-walk items nearby",
+    lighting: "plain indoor morning light with a little cool daylight from the door",
+    framing: "lower or mid-height framing that keeps the bag, legs, and excited dog movement visible",
+    pose: "caught in a small pre-exit scramble instead of standing still",
+  },
+  T19: {
+    location: "an office restroom or quiet hallway mirror later in the day after outfit adjustment",
+    lighting: "even fluorescent indoor light without polish",
+    framing: "full-body mirror shot that feels like a quick record after swapping one item",
+    pose: "simple stance with a small shoulder drop, like a private note-to-self snapshot",
+  },
+  T20: {
+    location: "a bedroom or hallway mirror during a rushed weekday dressing moment",
+    lighting: "soft indoor household light with realistic shadow and slight phone grain",
+    framing: "half-to-full body candid mirror frame that keeps the knit and layering context readable",
+    pose: "mid-change or brief pause before heading out, not a polished social pose",
+  },
+};
+
+const POST_SPECIFIC_DIRECTION = {
+  T06: "The bottom must read clearly as denim jeans rather than tailored slacks, and the subject should read as an adult Korean woman from a women's lifestyle community post.",
+  T09: "Keep the subject as an adult Korean woman commuter, and make the charcoal trouser choice and rainy-day practicality more important than any editorial mood.",
+  T10: "Keep the subject as an adult Korean woman leaving home for work, with the dog secondary to the bag-check moment.",
+  T18: "Keep the subject as an adult Korean woman in a hurried doorway scene, and make the work bag more central than the dog.",
+  T19: "Keep the subject as an adult Korean woman making a quiet mirror note, with the shirt-pairing adjustment and everyday office realism clearly visible.",
+  T20: "Keep the subject as an adult Korean woman in a believable rushed dressing moment, with the scratchy knit and layering frustration reading clearly.",
 };
 
 function slugify(value) {
@@ -163,17 +220,35 @@ async function resolveReferenceImages(sourceEntries) {
 }
 
 function buildPrompt(post) {
+  const format = post.format || "style_question";
   const privacyTreatment =
     post.privacy_treatment || PRIVACY_TREATMENT_BY_POST[post.post_id] || "phone-obscured or naturally cropped face";
   const sceneVariation = SCENE_VARIATION_BY_POST[post.post_id] || null;
+  const roleLine =
+    format === "pet_episode"
+      ? "This is a supporting lifestyle scene image for a fashion-centered community post, where the pet creates the emotional hook but must not become the only subject."
+      : format === "daily_snapshot"
+        ? "This is a supporting lifestyle scene image for a fashion-centered community post, focused on a casual daily outfit record rather than a heavy style-decision debate."
+        : format === "empathy_post"
+          ? "This is a supporting lifestyle scene image for a fashion-centered community post, focused on a relatable dressing moment rather than a polished hero shot."
+          : "This is a styling preview, not an exact virtual try-on and not official product photography.";
+  const formatRule =
+    format === "pet_episode"
+      ? "Keep fashion and daily-life context primary, and let the pet enter the frame naturally as part of the situation instead of a hero subject."
+      : format === "daily_snapshot"
+        ? "Let the image read as a quick lived-in record from a real day, with fashion still legible but no need for a hard judgment-frame pose."
+        : format === "empathy_post"
+          ? "Let the image feel like a believable clothing-related moment that invites empathy, not a polished campaign or generic mood image."
+          : "Show the exact debate point clearly in frame so the viewer can judge proportion, fit, balance, or awkwardness from the image itself.";
 
   return [
     "Create one realistic outfit preview image for a Korean mobile-first fashion community post.",
-    "This is a styling preview, not an exact virtual try-on and not official product photography.",
+    roleLine,
     `Scene context: ${post.scene_context}.`,
     `Style concern: ${post.style_concern}.`,
     `Intended tone: ${post.intended_tone}.`,
     "Keep the image believable for a real Korean everyday social-fashion upload.",
+    "Unless the scene is explicitly object-only, portray an adult Korean woman in her 20s or 30s so the result fits the product's women's lifestyle community context.",
     "Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe.",
     sceneVariation ? `Location treatment: ${sceneVariation.location}.` : "Use an ordinary everyday location rather than a scenic or campaign-like backdrop.",
     sceneVariation ? `Lighting treatment: ${sceneVariation.lighting}.` : "Use ordinary indoor, household, office, or overcast natural light rather than dramatic lighting.",
@@ -184,7 +259,9 @@ function buildPrompt(post) {
     "Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe.",
     "Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles.",
     "Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign.",
-    "Show the exact debate point clearly in frame so the viewer can judge proportion, fit, balance, or awkwardness from the image itself.",
+    formatRule,
+    "If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation.",
+    POST_SPECIFIC_DIRECTION[post.post_id] || "",
     "Use the reference product images only as guidance for silhouette, category, and color family.",
     "Treat product references as secondary guidance only, not as the main subject of the image.",
     "Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry.",
@@ -193,6 +270,8 @@ function buildPrompt(post) {
 }
 
 async function generatePreview(post, sourceManifest) {
+  const attachmentKey = post.scene_attachment ? "scene_attachment" : "ui_attachment";
+  const attachment = post[attachmentKey] || { label: "착장 미리보기" };
   const sourceEntries = post.source_keys
     .map((key) => ({ key, record: sourceManifest.sources[key] }))
     .filter((entry) => entry.record?.thumbnail_url)
@@ -208,9 +287,9 @@ async function generatePreview(post, sourceManifest) {
       review_notes: dryRun
         ? "Dry run completed. Prompt and references are assembled, but no generation call was made."
         : "OPENAI_API_KEY is not configured in this workspace, so the generation run could not start.",
-      ui_attachment: {
+      [attachmentKey]: {
         approved: false,
-        label: post.ui_attachment.label,
+        label: attachment.label,
         assetPath: null,
       },
       generation: null,
@@ -231,9 +310,9 @@ async function generatePreview(post, sourceManifest) {
       review_status: "blocked_reference_image_fetch_failed",
       review_notes:
         "All reference image fetches failed for this post, so the generation request was skipped pending data-source repair.",
-      ui_attachment: {
+      [attachmentKey]: {
         approved: false,
-        label: post.ui_attachment.label,
+        label: attachment.label,
         assetPath: null,
       },
       generation: null,
@@ -302,9 +381,9 @@ async function generatePreview(post, sourceManifest) {
     review_notes: resolvedReferences.failed.length
       ? "Generation completed with partial reference coverage. Manual realism/context/product-association review is still required before UI approval."
       : "Generation completed. Manual realism/context/product-association review is still required before UI approval.",
-    ui_attachment: {
+    [attachmentKey]: {
       approved: false,
-      label: post.ui_attachment.label,
+      label: attachment.label,
       assetPath: `openai-outfit-preview-poc/${fileName}`,
     },
     generation: {
