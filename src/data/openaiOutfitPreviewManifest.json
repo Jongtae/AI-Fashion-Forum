@@ -16,7 +16,7 @@
       "Only entries with ui_attachment.approved=true should render in the user-facing UI.",
       "Current shipped UI only treats outfit, awkward, and size posts as primary outfit-preview candidates; buy and review posts must not remain ui_attachment.approved=true unless the UI eligibility rule changes.",
       "Entries with scene_attachment.approved=true may render as supporting lifestyle visuals for non-primary post formats such as daily snapshots, pet episodes, and empathy posts.",
-      "For pet_episode posts, generated scene_attachment records are fallback-only until the real-photo-preferred sourcing path from issue #69 is exhausted or blocked.",
+      "For pet_episode posts, packaged real-source scene_attachment assets should be preferred whenever issue #69 or later sourcing work has approved them; retained generated records stay as historical fallback only.",
       "Approved preview sets should vary privacy treatment, location, lighting, framing, and pose so the generated imagery does not collapse into one repeated scene recipe."
     ],
     "last_run_at": "2026-03-21T10:37:21.490Z",
@@ -492,12 +492,16 @@
         "marginsherwood_boston",
         "marginsherwood_baguette"
       ],
-      "review_status": "rejected_after_manual_review",
-      "review_notes": "Rejected after regeneration. The dog artifacting near the muzzle/head breaks realism, so this scene is not reliable enough for frontend attachment.",
+      "review_status": "approved_for_scene_attachment",
+      "review_notes": "Generated fallback was retired during issue #69 follow-up. A packaged Unsplash real-photo replacement now covers the bag-plus-dog entryway moment, so the shipped attachment no longer depends on the rejected generated dog scene.",
       "scene_attachment": {
-        "approved": false,
+        "approved": true,
         "label": "생활 장면 미리보기",
-        "assetPath": "openai-outfit-preview-poc/t10-outfit-preview.png"
+        "assetPath": "real-photo-pet-scenes/t10-unsplash-real-pet-scene.jpg",
+        "assetSourceType": "real",
+        "sourceProvider": "Unsplash",
+        "sourcePageUrl": "https://unsplash.com/photos/a-person-standing-next-to-a-dog-6GR9dbgIxVo",
+        "licenseNote": "Free to use under the Unsplash License. Packaged during issue #69 browser-led real-photo replacement pass."
       },
       "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, where the pet creates the emotional hook but must not become the only subject. Scene context: weekday apartment entryway right before leaving, with a dog blocking the bag-check moment. Style concern: the bag and leaving-for-work context should stay readable even though the dog creates the emotional hook. Intended tone: warm but ordinary pre-exit snapshot, not pet-influencer content. Keep the image believable for a real Korean everyday social-fashion upload. Unless the scene is explicitly object-only, portray an adult Korean woman in her 20s or 30s so the result fits the product's women's lifestyle community context. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: a small apartment entryway with the front door, shoe shelf, and leash visible. Lighting treatment: ordinary morning household light with soft daylight leaking from the doorway. Framing treatment: full-body or three-quarter entryway photo where both the bag and the dog interruption are readable. Pose treatment: caught mid-exit while the dog blocks the path rather than a posed mirror check. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: phone-obscured or naturally cropped face. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Keep fashion and daily-life context primary, and let the pet enter the frame naturally as part of the situation instead of a hero subject. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. Keep the subject as an adult Korean woman leaving home for work, with the dog secondary to the bag-check moment. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
       "reference_images": [
@@ -526,11 +530,15 @@
         "andyou_dress"
       ],
       "review_status": "approved_for_scene_attachment",
-      "review_notes": "Approved on first review. The cat interruption stays secondary to the getting-ready dress scene, and the result feels like a believable weekend room-side snapshot.",
+      "review_notes": "Issue #69 replaced the generated fallback with a packaged Unsplash real photo. The cat stays secondary to the outfit moment and the dressed-up weekend context still reads clearly enough for the shipped support scene.",
       "scene_attachment": {
         "approved": true,
         "label": "생활 장면 미리보기",
-        "assetPath": "openai-outfit-preview-poc/t12-outfit-preview.png"
+        "assetPath": "real-photo-pet-scenes/t12-unsplash-real-pet-scene.jpg",
+        "assetSourceType": "real",
+        "sourceProvider": "Unsplash",
+        "sourcePageUrl": "https://unsplash.com/photos/a-woman-standing-in-front-of-a-window-next-to-a-cat-jitWcoiwmWA",
+        "licenseNote": "Free to use under the Unsplash License. Packaged during issue #69 browser-led real-photo replacement pass."
       },
       "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, where the pet creates the emotional hook but must not become the only subject. Scene context: weekend room-side mirror setup where a cat takes over the dress-check moment before an outing. Style concern: the dress candidate and getting-ready context should remain legible even with the cat interruption. Intended tone: soft everyday weekend scene, intimate and believable. Keep the image believable for a real Korean everyday social-fashion upload. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: a bedroom or dressing corner with a mirror, bed edge, or laid-out clothes visible. Lighting treatment: soft weekend daylight through curtains with mild indoor shadow. Framing treatment: three-quarter candid frame that keeps the dress candidate readable while the cat occupies part of the scene. Pose treatment: bending slightly or pausing while preparing to take a mirror photo, interrupted by the cat. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: phone-obscured or naturally cropped face. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Keep fashion and daily-life context primary, and let the pet enter the frame naturally as part of the situation instead of a hero subject. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
       "reference_images": [
@@ -559,11 +567,15 @@
         "amomento_zip"
       ],
       "review_status": "approved_for_scene_attachment",
-      "review_notes": "Approved on first review. The knit-on-floor setup plus cat takeover reads as a strong at-home pet-episode moment while keeping the clothing context legible.",
+      "review_notes": "Issue #69 replaced the generated fallback with a packaged Unsplash real photo. The knit-and-coat home texture still reads while the cat remains part of the mood rather than the only subject.",
       "scene_attachment": {
         "approved": true,
         "label": "생활 장면 미리보기",
-        "assetPath": "openai-outfit-preview-poc/t17-outfit-preview.png"
+        "assetPath": "real-photo-pet-scenes/t17-unsplash-real-pet-scene.jpg",
+        "assetSourceType": "real",
+        "sourceProvider": "Unsplash",
+        "sourcePageUrl": "https://unsplash.com/photos/a-woman-sitting-on-a-porch-with-a-cat-s9N5Uz56FNE",
+        "licenseNote": "Free to use under the Unsplash License. Packaged during issue #69 browser-led real-photo replacement pass."
       },
       "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, where the pet creates the emotional hook but must not become the only subject. Scene context: at-home knit review moment where the cat immediately occupies the spot where the knit was placed. Style concern: the knit texture and home-review context should still read clearly while the cat stays secondary to the scene. Intended tone: lived-in home snapshot with a small pet interruption. Keep the image believable for a real Korean everyday social-fashion upload. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: a lived-in sofa-side or bedroom floor corner at home with a knit laid down briefly. Lighting treatment: soft home light with slightly muted afternoon daylight. Framing treatment: closer lifestyle frame that shows the knit texture and the cat taking over the shot. Pose treatment: incidental home snapshot rather than a person-centered fashion pose. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: phone-obscured or naturally cropped face. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Keep fashion and daily-life context primary, and let the pet enter the frame naturally as part of the situation instead of a hero subject. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
       "reference_images": [
@@ -592,11 +604,15 @@
         "marginsherwood_baguette"
       ],
       "review_status": "approved_for_scene_attachment",
-      "review_notes": "Approved after regeneration. The doorway scramble now reads as a believable women’s work-bag moment with the dog supporting the scene instead of overpowering it.",
+      "review_notes": "Issue #69 replaced the generated fallback with a packaged Unsplash real photo. The doorway setup and walk cue now come from a real-source home-entry scene rather than the generated dog-motion composition.",
       "scene_attachment": {
         "approved": true,
         "label": "생활 장면 미리보기",
-        "assetPath": "openai-outfit-preview-poc/t18-outfit-preview.png"
+        "assetPath": "real-photo-pet-scenes/t18-unsplash-real-pet-scene.jpg",
+        "assetSourceType": "real",
+        "sourceProvider": "Unsplash",
+        "sourcePageUrl": "https://unsplash.com/photos/two-dogs-waiting-by-the-door-with-hat-and-bag-FMWgIiZ6Dd8",
+        "licenseNote": "Free to use under the Unsplash License. Packaged during issue #69 browser-led real-photo replacement pass."
       },
       "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a supporting lifestyle scene image for a fashion-centered community post, where the pet creates the emotional hook but must not become the only subject. Scene context: weekday doorway scramble where a dog mistakes the work bag for a walk signal. Style concern: the leaving-for-work bag context should remain primary while the dog adds realism and movement. Intended tone: slightly chaotic but believable home entry scene. Keep the image believable for a real Korean everyday social-fashion upload. Unless the scene is explicitly object-only, portray an adult Korean woman in her 20s or 30s so the result fits the product's women's lifestyle community context. Prefer half-body or full-body vertical mobile framing with candid Korean everyday UGC, not a repeated studio-like scene recipe. Location treatment: an apartment doorway or hallway right before leaving for work with dog-walk items nearby. Lighting treatment: plain indoor morning light with a little cool daylight from the door. Framing treatment: lower or mid-height framing that keeps the bag, legs, and excited dog movement visible. Pose treatment: caught in a small pre-exit scramble instead of standing still. If the scene is outdoors, keep it to an ordinary Seoul sidewalk or office-adjacent corner without scenic or campaign styling. Use this privacy treatment: phone-obscured or naturally cropped face. Vary privacy treatment, location, lighting, framing, and pose naturally across the set instead of defaulting to the same black-phone face-cover composition or mirror recipe. Use ordinary indoor or overcast daylight and visible everyday imperfections such as slight grain, faint mirror smudges, or natural garment wrinkles. Make the outfit feel like weekday office, commute, lunch-plan, or after-work styling rather than an editorial campaign. Keep fashion and daily-life context primary, and let the pet enter the frame naturally as part of the situation instead of a hero subject. If there is a pet in the scene, it should support the lifestyle moment and never overpower the outfit, clothing context, or everyday situation. Keep the subject as an adult Korean woman in a hurried doorway scene, and make the work bag more central than the dog. Use the reference product images only as guidance for silhouette, category, and color family. Treat product references as secondary guidance only, not as the main subject of the image. Do not add any text overlay, collage layout, luxury-campaign polish, dramatic pose, cinematic angle, or catalog symmetry. Do not imply exact brand-official proof, real ownership history, durability proof, or exact garment transfer.",
       "reference_images": [
