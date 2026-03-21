@@ -23,12 +23,12 @@
     "visible_evidence_note": "전신 비율, 팬츠 길이, 로퍼와 밑단의 끊김 지점을 한 번에 볼 수 있다.",
     "wear_state": "worn",
     "expected_comment_angle": ["pants hem", "shoe choice", "office formality"],
-    "confidence_level": "high",
-    "validation_status": "approved",
-    "image_match_score": 5,
+    "confidence_level": "low",
+    "validation_status": "rejected",
+    "image_match_score": 1,
     "validation_notes": [
-      "Full-body mirror evidence supports the hem-length claim directly.",
-      "Commute context matches the post intent."
+      "Rejected after visual audit. The legacy asset is an outdoor editorial portrait rather than an office-elevator mirror selfie.",
+      "The image no longer qualifies as evidence for hem length or commute context."
     ]
   },
   {
@@ -59,12 +59,12 @@
     "visible_evidence_note": "제품의 실루엣과 어깨선은 확인 가능하지만 실제 장시간 착용 만족도까지는 증명하지 못한다.",
     "wear_state": "tried_on",
     "expected_comment_angle": ["price value", "drape quality", "brand premium"],
-    "confidence_level": "medium",
-    "validation_status": "approved",
-    "image_match_score": 4,
+    "confidence_level": "low",
+    "validation_status": "rejected",
+    "image_match_score": 1,
     "validation_notes": [
-      "Concrete product and price anchor exist.",
-      "Image supports shape judgment but not durability; comments should stay scoped."
+      "Rejected after visual audit. The legacy asset reads as a shopping-street editorial cut rather than a product-shape reference.",
+      "The image does not support fit, drape, or price-value judgment tightly enough for approval."
     ]
   },
   {
@@ -91,12 +91,12 @@
     "visible_evidence_note": "실착 상태와 표면 질감은 읽히지만 보풀 정도는 클로즈업이 추가되면 더 좋다.",
     "wear_state": "worn_with_wear_signs",
     "expected_comment_angle": ["pilling risk", "maintenance cost", "price disappointment"],
-    "confidence_level": "medium",
-    "validation_status": "review_required",
-    "image_match_score": 3,
+    "confidence_level": "low",
+    "validation_status": "rejected",
+    "image_match_score": 1,
     "validation_notes": [
-      "Ownership context is believable.",
-      "Would benefit from an additional detail shot before final approval."
+      "Rejected after visual audit. The legacy asset is a clothing-rack image with no ownership or wear evidence.",
+      "A real user snapshot would be required before approval."
     ]
   },
   {
