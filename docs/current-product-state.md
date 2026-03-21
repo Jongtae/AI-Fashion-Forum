@@ -57,6 +57,10 @@ The following documents should be treated as active policy/reference material.
 - [`/docs/review-checklist.md`](./review-checklist.md)
 - Purpose: defines the Keep / Reduce / Remove / Defer review method and the identity review questions used after shipping
 
+### Korean UGC outfit-shot guidance
+- [`/docs/korean-ugc-outfit-shot-guidance.md`](./korean-ugc-outfit-shot-guidance.md)
+- Purpose: defines how outfit-oriented imagery should stay grounded in believable Korean everyday mobile UGC instead of preview-surface polish
+
 ## Current Product Direction
 
 The current agreed direction is:
@@ -88,6 +92,7 @@ These are the current issues/docs that contributors should reference:
 
 The main risks still to watch for are:
 - internal system language leaking into user-facing product UI
+- outfit posts drifting toward preview-surface polish instead of mirror-style Korean UGC
 - product cards becoming too large or too commerce-heavy
 - metadata-only fallbacks pretending to solve a real product-visual requirement
 - repeated mismatch between what posts claim and what imagery actually helps users judge
