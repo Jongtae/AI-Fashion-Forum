@@ -1,0 +1,415 @@
+{
+  "poc": {
+    "issue": 39,
+    "vendor": "OpenAI GPT Image",
+    "mainline_model": "gpt-5",
+    "tool_type": "image_generation",
+    "default_output": {
+      "size": "1024x1536",
+      "quality": "low",
+      "background": "auto"
+    },
+    "run_status": "manual_review_completed",
+    "recommendation": "continue_detail_view_only_with_approved_subset",
+    "notes": [
+      "This manifest is the source of truth for candidate selection, internal review state, and approved UI attachment.",
+      "Only entries with ui_attachment.approved=true should render in the user-facing UI."
+    ],
+    "last_run_at": "2026-03-21T00:50:27.471Z",
+    "last_reviewed_at": "2026-03-21T01:01:34.018Z"
+  },
+  "posts": [
+    {
+      "post_id": "T01",
+      "scene_context": "weekday office elevator mirror before a morning meeting",
+      "style_concern": "the trousers may break too sharply above loafers and make the outfit feel shorter",
+      "intended_tone": "believable office outfit, understated commute styling",
+      "source_keys": [
+        "le17_frontzip",
+        "cos_trouser"
+      ],
+      "review_status": "approved_for_ui_attachment",
+      "review_notes": "Approved. Realism is strong, trouser break remains readable, and the image feels like a believable weekday elevator mirror upload.",
+      "ui_attachment": {
+        "approved": true,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t01-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday office elevator mirror before a morning meeting. Style concern: the trousers may break too sharply above loafers and make the outfit feel shorter. Intended tone: believable office outfit, understated commute styling. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://images.garmentory.com/images/4161750/large/Le-17-Septembre-Front-Zipper-Coat-20200917011119.jpg?1600305087",
+        "https://media.cos.com/assets/001/9d/16/9d1630e1936271893c5d84099a730a57a758547e.jpg?aspectRatio=2%2C3&imwidth=2160"
+      ],
+      "generation": {
+        "response_id": "resp_006bd4672b2bafbb0069bdeb54fd4481a2ab1e6cdeef9bd462",
+        "revised_prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. Candid elevator mirror selfie on a weekday morning before a meeting in a modern Seoul office building. Vertical 4:5 crop, half-to-full body framing, natural relaxed posture; subject holds a smartphone at chest height with one hand, tote strap on one shoulder, neutral expression. Ordinary cool fluorescent elevator lighting, slight stainless-steel reflections, realistic smartphone sharpness with light grain—believable as an everyday social upload.\n\nOutfit inspired by the provided references only for silhouette and color family (do not replicate exact garments, logos, or unique design details):\n- Outer layer: camel zip-front belted wool jacket with soft structure, lightly cinched at the waist.\n- Under layer: off-white ribbed turtleneck knit.\n- Bottoms: navy wide-leg trousers tailored to create a gentle single break that just kisses the vamp of the shoes—no heavy stacking—to avoid a shortened look.\n- Footwear: classic black leather loafers with thin black socks matching the loafers.\n- Accessories: minimal silver stud earrings; simple black leather tote or slim crossbody.\n\nTone and styling: understated weekday office/commute outfit, believable and unpolished. Keep posture and framing natural, not editorial. Ensure the hem/loafer area is clearly visible to judge the trouser break. No text overlays, no collage layout, no luxury-campaign gloss, and do not imply exact brand-official proof or an exact garment transfer.",
+        "output_path": "public/openai-outfit-preview-poc/t01-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": []
+    },
+    {
+      "post_id": "T02",
+      "scene_context": "weekday outside appointment with a slightly dressed-up office mood",
+      "style_concern": "the full look may read too formal for a normal work morning",
+      "intended_tone": "natural Korean daily fashion photo, subtly polished but not editorial",
+      "source_keys": [
+        "andyou_dress",
+        "amomento_shirt"
+      ],
+      "review_status": "rejected_after_manual_review",
+      "review_notes": "Rejected after manual review. The result reads too polished and campaign-like versus the intended community-post realism target.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t02-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday outside appointment with a slightly dressed-up office mood. Style concern: the full look may read too formal for a normal work morning. Intended tone: natural Korean daily fashion photo, subtly polished but not editorial. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://en.brideandyou.com/web/product/big/202404/800931ba321057b07f523baf5463719c.jpg",
+        "https://cdn.shopify.com/s/files/1/0620/8172/8644/files/0000_PINTUCKSLIMSHIRT_BR_01.jpg?v=1771917439"
+      ],
+      "generation": {
+        "response_id": "resp_0e13a6f5ca54de520069bdeb7ec3b08192a9df4612a6fb783e",
+        "revised_prompt": "Create a single realistic mobile-first outfit preview photo for a Korean social-fashion community post. Do not make it look like an editorial or brand campaign. No text overlay, no collage, no logos.\n\nScene and mood:\n- Weekday morning outside a small office building/cafe, Seoul-style sidewalk backdrop with neutral signage blurred. Ordinary, soft natural daylight (slightly overcast). Realistic smartphone vertical frame (4:5), subtle grain, no heavy retouching.\n- Half-to-full body framing, natural posture as if pausing on the way to an appointment.\n\nModel and pose:\n- A young adult woman with a clean, everyday look; hair in a low pony. Minimal makeup. Relaxed expression, standing casually with one hand resting on a small bag and the other adjusting an outer layer. No exaggerated pose.\n\nOutfit styling (use references only for silhouette/color family, not exact product transfer):\n- Main piece: a sky-blue tweed short-sleeve belted mini dress, above the knee, simple crew neck, subtle texture. Feels polished but approachable.\n- Layer to reduce formality: a lightweight, dark chocolate collarless blouse-style jacket worn open (inspired by a dark long-sleeve blouse), soft drape, slightly cropped length.\n- Shoes: beige low block-heel slingback flats for a commute-friendly, slightly dressed-up office mood.\n- Bag: a small structured cream mini top-handle bag (no branding), carried casually.\n- Accessories: tiny gold stud earrings, delicate watch. Nothing flashy.\n\nStyle notes for realism:\n- Natural wrinkles and movement in fabrics; believable proportions.\n- Ordinary lighting and shadows; avoid studio polish or dramatic color grading.\n- Keep the overall read slightly dressed-up yet not too formal for a normal work morning.\n- Ensure the image looks like a real everyday social-fashion upload rather than official product photography or an exact virtual try-on.",
+        "output_path": "public/openai-outfit-preview-poc/t02-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": []
+    },
+    {
+      "post_id": "T03",
+      "scene_context": "busy weekday morning before leaving for work",
+      "style_concern": "the all-black outfit may feel too safe unless one accessory balances it",
+      "intended_tone": "believable social fashion post with everyday commute framing",
+      "source_keys": [
+        "amomento_knit",
+        "marginsherwood_boston"
+      ],
+      "review_status": "approved_for_ui_attachment",
+      "review_notes": "Approved. Social-photo tone is believable and the accessory lift solves the all-black flatness without reading like a campaign image.",
+      "ui_attachment": {
+        "approved": true,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t03-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: busy weekday morning before leaving for work. Style concern: the all-black outfit may feel too safe unless one accessory balances it. Intended tone: believable social fashion post with everyday commute framing. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://cdn.shopify.com/s/files/1/0620/8172/8644/files/0000_WOOLV-NECKKNIT_CH_01.jpg?v=1771917391",
+        "https://cdna.lystit.com/1040/1300/n/photos/eraldo/f1d9d870/marge-sherwood--Soft-Boston-Leather-Shoulder-Bag.jpeg"
+      ],
+      "generation": {
+        "response_id": "resp_04dc34f270a5c8bd0069bdebae5bd48195b4b1874ed16c42d1",
+        "revised_prompt": "Create one realistic, vertical 4:5 smartphone photo for a Korean mobile-first social fashion post. Scene: busy weekday morning right before leaving for work, inside a small Seoul apartment entryway with shoe rack, umbrella stand, white walls, and a bit of natural light from the door plus a warm ceiling light. The vibe is candid and believable, not editorial.\n\nSubject: a woman in her late 20s to early 30s captured in a natural, half-to-full body frame (knees-up), relaxed posture as she slips on one shoe and checks her phone, black leather tote on shoulder. Hair in a low ponytail, light everyday makeup. Expression neutral and focused like she’s about to head out.\n\nOutfit styling (weekday office/commute):\n- Top: dark charcoal V‑neck lightweight knit sweater with a simple, clean fit (inspired by the reference sweater for silhouette and color family only). Slight front tuck into trousers.\n- Bottom: straight-leg black tailored trousers with a minimal black belt.\n- Shoes: sleek black leather loafers with a subtle shine; black socks.\n- Bag: structured black leather handbag with long double top handles carried on the shoulder (guided by the reference bag’s category and general shape; no visible logos or brand marks).\n- Single balancing accessory to keep the all‑black look from feeling too safe: a muted burgundy silk neck scarf tied simply.\n\nCamera/lighting/feel: ordinary apartment lighting and soft morning daylight, realistic color, no heavy retouching, slight everyday grain. Natural perspective as if taken by a friend or self-timer. No exaggerated pose, no studio gloss, no text overlay, no collage, no brand-official or exact garment transfer. Keep it believable for an everyday social-fashion upload.",
+        "output_path": "public/openai-outfit-preview-poc/t03-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": []
+    },
+    {
+      "post_id": "T04",
+      "scene_context": "weekday mirror photo after arriving at the office",
+      "style_concern": "the oversized upper half may make the body look heavier than expected",
+      "intended_tone": "natural office mirror shot, realistic and not campaign-like",
+      "source_keys": [
+        "le17_coat",
+        "lowclassic_trouser"
+      ],
+      "review_status": "approved_for_ui_attachment",
+      "review_notes": "Approved with partial reference coverage. Office mirror realism and trouser silhouette read clearly enough despite one blocked source image.",
+      "ui_attachment": {
+        "approved": true,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t04-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday mirror photo after arriving at the office. Style concern: the oversized upper half may make the body look heavier than expected. Intended tone: natural office mirror shot, realistic and not campaign-like. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://www.theoutnet.com/variants/images/1647597322046157/F/w1020_q80.jpg",
+        "https://cafe24img.poxo.com/lowclassic/web/product/big/202303/f6c6a33112b0b6ad9ac1f1409830039c.jpg"
+      ],
+      "generation": {
+        "response_id": "resp_0f3c301e516f2ba50069bdebe25a888190a48161422b096617",
+        "revised_prompt": "Create one realistic smartphone mirror selfie for a Korean mobile-first fashion community post. This is a casual styling preview, not an exact virtual try-on or official product photo. Scene: weekday morning after arriving at the office—full-length mirror near the entry hallway with gray carpet, glass partition, lockers, and a potted plant. Overhead fluorescent lighting, ordinary and slightly cool. Natural, believable atmosphere with faint mirror smudges; no studio polish, no filters, no beauty retouching.\n\nFraming: full body or half body in vertical 4:5 ratio. Subject stands relaxed with one leg slightly forward, holding the phone up to cover most of the face (no recognizable identity). No exaggerated pose.\n\nOutfit styling (use the attached reference pants image only for guidance on silhouette, category, and color family):\n- Bottoms: high-waisted, wide-leg, pleated trousers in taupe/light khaki similar to the reference image’s shape and color, draping over black square-toe loafers.\n- Top: fitted ivory knit tee tucked in to define the waist.\n- Outer: oversized, soft-shoulder blazer in charcoal/dark gray, worn open to create vertical lines. Sleeves softly pushed up to mid-forearm.\n- Accessories: thin black leather belt, simple silver ring and watch, black leather shoulder tote; optional blank office ID card on a lanyard (no text or logos).\n\nStyling goal: the upper half is oversized without making the body look heavier—keep the blazer unbuttoned, show a defined waist with tuck and belt, slight V/open neckline. Overall tone should feel like a real weekday office or commute outfit photo from an everyday user, not an editorial campaign. Avoid any text overlays, collage layouts, brand marks, or luxury-campaign polish. Keep everything believable and everyday.",
+        "output_path": "public/openai-outfit-preview-poc/t04-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": [
+        {
+          "key": "le17_coat",
+          "url": "https://www.theoutnet.com/variants/images/1647597322046157/F/w1020_q80.jpg",
+          "error": "Failed to fetch reference image: https://www.theoutnet.com/variants/images/1647597322046157/F/w1020_q80.jpg (403 Forbidden)"
+        }
+      ]
+    },
+    {
+      "post_id": "T05",
+      "scene_context": "weekday hallway mirror check before heading out",
+      "style_concern": "the loafers may make the lower half feel too heavy versus the skirt",
+      "intended_tone": "community-post tone, believable real-life styling photo",
+      "source_keys": [
+        "recto_wide",
+        "marginsherwood_baguette"
+      ],
+      "review_status": "approved_for_ui_attachment",
+      "review_notes": "Approved. Hallway mirror framing and lighter sock treatment make the lower-half balance question easy to judge.",
+      "ui_attachment": {
+        "approved": true,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t05-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday hallway mirror check before heading out. Style concern: the loafers may make the lower half feel too heavy versus the skirt. Intended tone: community-post tone, believable real-life styling photo. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://etaseoul.com/cdn/shop/files/ETA_SEOUL_Centered_1200x628_82651da9-66c7-4324-ab9b-8b4134ad427e.png?v=1745076006",
+        "https://cdn.shopify.com/s/files/1/0613/4235/1610/files/Master_Black_35a515c9-5b15-425a-8e6f-17fd2816bdfa.png?height=628&pad_color=fff&v=1664981114&width=1200"
+      ],
+      "generation": {
+        "response_id": "resp_060d9df2538457400069bdec1c438c81958ff06c7ef3c3ee58",
+        "revised_prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. Scene: weekday morning hallway mirror check before heading out in a small Seoul apartment. Vertical 9:16 smartphone shot, ordinary indoor lighting from a nearby window and ceiling light, slight grain, believable everyday color balance. Background shows a narrow entryway with white walls, light wood floor, a shoe cabinet by the door, and an umbrella stand—nothing styled like a campaign. Full-body mirror selfie; the adult subject’s face is mostly hidden by the phone for privacy. Natural, relaxed posture (one foot slightly forward, arm down holding a small bag), not an exaggerated pose.\n\nOutfit vibe: weekday office/commute styling. Off‑white fine-gauge knit top tucked into a heather‑gray A-line midi skirt (mid‑calf, soft drape). Slim black leather belt at the waist. Simple black shoulder bag. On feet: black leather loafers with a slightly chunky sole; thin white crew socks peeking out to visually lighten the lower half so the loafers don’t feel too heavy next to the skirt. Minimal jewelry, hair in a low bun. Neutral, clean look.\n\nKeep it candid and believable: soft shadows, faint mirror smudges, ordinary apartment proportions. Do not add text overlays, collage layouts, watermarks, luxury-campaign polish, or brand markings. This is a casual community styling preview, not an exact virtual try-on or official product photo.",
+        "output_path": "public/openai-outfit-preview-poc/t05-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": []
+    },
+    {
+      "post_id": "T06",
+      "scene_context": "weekday lunch-plan outfit that still needs to feel office-appropriate",
+      "style_concern": "the shirt and denim combination may look too plain and too office-only",
+      "intended_tone": "subtle daily fashion post, low-polish and realistic",
+      "source_keys": [
+        "lowclassic_pants",
+        "cos_shirt"
+      ],
+      "review_status": "approved_for_ui_attachment",
+      "review_notes": "Approved. The low-polish commute/lunch mood is believable and the styling tweak keeps the outfit from reading too office-only.",
+      "ui_attachment": {
+        "approved": true,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t06-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday lunch-plan outfit that still needs to feel office-appropriate. Style concern: the shirt and denim combination may look too plain and too office-only. Intended tone: subtle daily fashion post, low-polish and realistic. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://kream-phinf.pstatic.net/MjAyNTA3MzBfMTY0/MDAxNzUzODYxMjk2OTc1.LIrD-PCnPi3GUTEJEEuRwO99-vO-uSUP-3EVvagPVS8g.CjKCzBINLFR6nEfKni6gjnlFmc-kBXvc0nh8H_m9qQEg.PNG/a_32fb50102b5645fa88b56534cc36fb44.png",
+        "https://media.cos.com/assets/001/83/93/8393590a4a7a374fae06486d64eee3aabcdd2cd7_xxl-1.jpg?imwidth=2160"
+      ],
+      "generation": {
+        "response_id": "resp_0021bc52cb982d8c0069bdec4311b8819e8cd93c132cc62827",
+        "revised_prompt": "Create one realistic smartphone-style full-body photo for a Korean mobile-first fashion community post. Context: weekday lunch-plan outfit that still feels office-appropriate. Keep it low-polish and believable—ordinary midday lighting, slight fabric creases, and no studio gloss. Scene: person standing casually on a Seoul sidewalk near an office-cafe entrance (neutral beige wall, glass door, a couple of potted plants), mild background blur. Natural posture: one hand in pocket, the other holding a takeaway coffee cup; neutral expression. Camera: vertical framing from head to shoes, eye-level perspective. Outfit (use attached reference items only for general silhouette/color; do not copy exact garments, do not show logos, not official product imagery): - Top: light gray slightly oversized button-up shirt with subtle linen-like texture, sleeves casually rolled to mid-forearm, top two buttons open, front half-tucked. - Bottom: black relaxed straight-leg pants with a clean front and light utility seam detail, mid-rise. - Accessories/shoes: slim black leather belt, white minimalist sneakers, natural ecru canvas tote over shoulder, simple silver watch and small hoop earrings. - Optional styling accent to avoid looking too plain/too office-only: a navy lightweight knit draped loosely over the shoulders. Colors stay neutral and muted. No text overlay, no collage, no dramatic posing or retouching. Make it look like a real everyday upload of commute/lunch styling, not an editorial campaign or exact virtual try-on.",
+        "output_path": "public/openai-outfit-preview-poc/t06-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": []
+    },
+    {
+      "post_id": "T07",
+      "scene_context": "after-work dinner or appointment on a weekday evening",
+      "style_concern": "the inner top may overpower the jacket and make the look feel cheap",
+      "intended_tone": "natural social photo, believable Korean daily-fashion mood",
+      "source_keys": [
+        "theopen_jacket",
+        "cos_shirt"
+      ],
+      "review_status": "approved_for_ui_attachment",
+      "review_notes": "Approved. The jacket remains primary, the inner top stays restrained, and the scene still reads like a plausible after-work social post.",
+      "ui_attachment": {
+        "approved": true,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t07-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: after-work dinner or appointment on a weekday evening. Style concern: the inner top may overpower the jacket and make the look feel cheap. Intended tone: natural social photo, believable Korean daily-fashion mood. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "http://oeuvrofficial.com/cdn/shop/products/74f180163aaa5a9f1fd7f9d6e5933248.jpg?v=1666066424",
+        "https://media.cos.com/assets/001/83/93/8393590a4a7a374fae06486d64eee3aabcdd2cd7_xxl-1.jpg?imwidth=2160"
+      ],
+      "generation": {
+        "response_id": "resp_0101f4a88cce95e60069bdec6dbc5881a3883531dc7ad0df20",
+        "revised_prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. Vertical 4:5 smartphone photo, natural social upload vibe (no collage, no text overlay, no studio or luxury-campaign polish). Scene: weekday after-work dinner time on a Seoul side street outside a casual restaurant, warm interior light spilling out; ordinary evening street lighting, slightly warm tones; shallow depth of field with believable noise and minor imperfections.\n\nModel: adult with East Asian features, natural makeup and hair in a low ponytail. Half- to three-quarter body framing (knees-up), relaxed posture, one hand loosely holding a small black shoulder bag and a phone, the other adjusting the jacket; neutral expression.\n\nOutfit styling (use reference images only for silhouette/category/color family; do not replicate exactly and show no logos):\n- Charcoal grey tailored blazer with subtle rib-knit sleeves inspiration, slightly boxy, buttoned once to keep the inner top understated.\n- Inner top: muted light-grey button-up shirt inspired by the reference shirt, thin fabric, collar peeking out and a hint of placket visible; keep contrast low so it doesn’t overpower the jacket. Shirt tucked.\n- Bottoms: black straight tailored trousers, office-appropriate.\n- Shoes: black leather loafers.\n- Accessories: slim silver watch, minimal stud earrings. No flashy branding.\n\nMood: believable weekday office-to-dinner look. Ensure textures read realistically (wooly blazer body, ribbed sleeves, crisp but soft shirt). Add natural creases from commuting. Ordinary ambient lighting, not overly retouched. Keep focus on the outfit with the inner shirt clearly more subtle than the jacket.",
+        "output_path": "public/openai-outfit-preview-poc/t07-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": []
+    },
+    {
+      "post_id": "T11",
+      "scene_context": "weekday office dressing-room or mirror check before purchase",
+      "style_concern": "the blazer may feel too sharp or too expensive for daily rotation",
+      "intended_tone": "believable fitting-room style preview, not official product imagery",
+      "source_keys": [
+        "lowclassic_blazer"
+      ],
+      "review_status": "approved_for_ui_attachment",
+      "review_notes": "Approved. Dressing-room mirror context is clear and the blazer is easy to evaluate as a daily-rotation purchase candidate.",
+      "ui_attachment": {
+        "approved": true,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t11-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday office dressing-room or mirror check before purchase. Style concern: the blazer may feel too sharp or too expensive for daily rotation. Intended tone: believable fitting-room style preview, not official product imagery. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://cafe24img.poxo.com/lowclassic/web/product/big/202603/695d09e279672a9dd0aa08a3d205f512.jpg"
+      ],
+      "generation": {
+        "response_id": "resp_0bca74a121d98d640069bdec9b1308819cb11627607c07ebc8",
+        "revised_prompt": "Create one realistic, single-frame smartphone mirror photo suitable for a Korean mobile-first social-fashion community post. This is a casual styling preview, not an exact virtual try-on and not official product imagery. \n\nScene and vibe:\n- Weekday office dressing-room or building corridor mirror, just before/after work or before purchase. Narrow space, white or light-grey walls, metal hooks and a small bench in the background. Ordinary overhead fluorescent lighting with natural shadows; slight phone-camera grain; no studio polish.\n- Vertical composition; half-body to three-quarter framing. Natural, believable posture.\n\nSubject and outfit (use the attached black blazer only as guidance for color family and general silhouette; do not copy brand tags or exact design details):\n- Adult woman taking a mirror selfie with a neutral-colored phone; face partially obscured by phone. One hand in pants pocket, the other holding the phone. Sleeves of the blazer lightly pushed up.\n- Black single-breasted blazer, matte fabric, soft shoulder, two buttons, notch lapels; slightly relaxed fit. No visible logos or labels; generic and unbranded; approximate the reference only.\n- Under the blazer: plain white crewneck tee.\n- Bottoms: charcoal straight-leg trousers with a gentle drape.\n- Footwear: clean white low-top sneakers.\n- Accessories: simple canvas tote on forearm, minimal silver studs, slim watch. No luxury signals.\n\nStyling intention:\n- Make the blazer feel everyday and approachable for office/commute: unbuttoned, relaxed fit, sleeves eased, paired with tee, trousers, and sneakers.\n\nImage rules:\n- Keep it believable like a real user’s fitting-room upload. No text overlays, no collage frames, no watermarks, no dramatic color grading, no brand signage. Do not imply exact brand-official proof or an exact garment transfer.\n- Ensure the blazer color is black and the silhouette is similar but not identical to the reference piece.",
+        "output_path": "public/openai-outfit-preview-poc/t11-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": []
+    },
+    {
+      "post_id": "T13",
+      "scene_context": "weekday try-on question focused on pants fit before final purchase",
+      "style_concern": "the right size depends on hip ease and overall silhouette, not waist alone",
+      "intended_tone": "realistic size-help image with clear body proportion",
+      "source_keys": [
+        "recto_pants",
+        "recto_wide"
+      ],
+      "review_status": "rejected_after_manual_review",
+      "review_notes": "Rejected after manual review. Product association is too weak and the generated subject/context do not fit the intended Korean daily-fashion size-help scenario closely enough.",
+      "ui_attachment": {
+        "approved": false,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t13-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday try-on question focused on pants fit before final purchase. Style concern: the right size depends on hip ease and overall silhouette, not waist alone. Intended tone: realistic size-help image with clear body proportion. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://cafe24img.poxo.com/product2011/web/product/small/202509/b812dfced35b64d077bd4159a99d4cce.jpg",
+        "https://etaseoul.com/cdn/shop/files/ETA_SEOUL_Centered_1200x628_82651da9-66c7-4324-ab9b-8b4134ad427e.png?v=1745076006"
+      ],
+      "generation": {
+        "response_id": "resp_027f04bf541ac11f0069bdecc7769081a08e43dab13bef8542",
+        "revised_prompt": "Create one realistic vertical smartphone-style photo for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on or brand-official image. Use the attached reference only as guidance for silhouette, category, and black color family.\n\nScene and framing: full-body or near full-body, 4:5 vertical ratio, eye-level. A small apartment hallway or elevator lobby in Seoul with beige wall and grey floor, ordinary mixed daylight/fluorescent lighting. Slight handheld feel with minimal grain—no studio gloss, no text overlays, no collage.\n\nModel and pose: one adult with clear everyday body proportions, neutral expression, relaxed natural stance, one hand lightly in pocket, shoulders relaxed. Keep posture believable for a weekday commute; no exaggerated pose.\n\nOutfit (weekday office/commute styling):\n- Top: simple fine-gauge black knit long-sleeve tucked in.\n- Pants: black pleated wide-leg trousers inspired by the reference—mid-rise, deep front pleats, relaxed through hip and thigh, long inseam with a gentle break over shoes. Emphasize size/fit cues: visible room at the hips (about a few centimeters of ease), clean seat without pulling, soft crease down the leg, clear overall silhouette from waist to hem.\n- Accessories: slim black belt; plain black leather loafers. No visible logos.\n\nAesthetic: realistic size-help image showing hip ease and overall silhouette rather than just waist. Keep the background simple and believable for an everyday social-fashion upload. Do not imply exact garment transfer or brand proof. No heavy retouching or luxury-campaign polish.",
+        "output_path": "public/openai-outfit-preview-poc/t13-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": []
+    },
+    {
+      "post_id": "T14",
+      "scene_context": "weekday office wardrobe question focused on shirt volume",
+      "style_concern": "the drop-shoulder shirt may make the upper body look too bulky",
+      "intended_tone": "simple mirror-style social post, not an editorial fashion image",
+      "source_keys": [
+        "cos_shirt"
+      ],
+      "review_status": "approved_for_ui_attachment",
+      "review_notes": "Approved. Shirt volume and upper-body balance are easy to read in a realistic mirror-photo context.",
+      "ui_attachment": {
+        "approved": true,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t14-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday office wardrobe question focused on shirt volume. Style concern: the drop-shoulder shirt may make the upper body look too bulky. Intended tone: simple mirror-style social post, not an editorial fashion image. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://media.cos.com/assets/001/83/93/8393590a4a7a374fae06486d64eee3aabcdd2cd7_xxl-1.jpg?imwidth=2160"
+      ],
+      "generation": {
+        "response_id": "resp_0f716e5589db9fa20069bdecf1428881a19d882bfa1b365fea",
+        "revised_prompt": "Create one realistic, mobile-friendly mirror selfie suited for a Korean everyday fashion community post. Vertical 9:16 frame. Natural, ordinary indoor lighting (apartment entryway or office restroom), slight reflections and a bit of smartphone grain—no studio gloss.\n\nSubject: a person taking a mirror photo with a phone at chest height. Face mostly obscured by the phone; neutral posture, relaxed. Body proportions realistic and unexaggerated. No recognizable logos or brand labels.\n\nOutfit (weekday office/commute styling):\n- Drop-shoulder oversized button-up shirt in light gray (linen-like texture with soft crosshatch), single chest pocket, subtle shoulder-tab detail. Sleeves lightly rolled to mid-forearm. Top two buttons open for a relaxed collar.\n- Styling to avoid bulk: front-tucked into high-waist slim-straight black trousers with a thin black leather belt; back hem drapes naturally. Shirt fabric shows soft vertical lines and drape over the torso.\n- Simple black loafers. Minimal jewelry: small stud earrings and a thin watch.\n- A slim black crossbody strap or small tote on one shoulder to break up shoulder width.\n\nBackground details: clean mirror, narrow entryway with a small shoe rack and umbrella, or a modest office restroom stall door—keep it believable, tidy, and everyday. Ordinary ceiling lighting with neutral color temperature.\n\nNo text overlays, no collage layout, no luxury-campaign polish, no exaggerated poses. Do not imply exact product/brand; use the gray drop-shoulder shirt only as guidance for silhouette and color family. This is a casual styling preview image, not a virtual try-on or official product photo.",
+        "output_path": "public/openai-outfit-preview-poc/t14-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": []
+    },
+    {
+      "post_id": "T15",
+      "scene_context": "weekday office outfit comparison around straighter versus wider trousers",
+      "style_concern": "the lower-body balance may shift depending on trouser width and shoe break",
+      "intended_tone": "believable Korean workwear post with mobile-photo realism",
+      "source_keys": [
+        "lowclassic_trouser",
+        "recto_wide"
+      ],
+      "review_status": "approved_for_ui_attachment",
+      "review_notes": "Approved. Trouser width and shoe-break balance are visible enough for the workwear comparison use case.",
+      "ui_attachment": {
+        "approved": true,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t15-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: weekday office outfit comparison around straighter versus wider trousers. Style concern: the lower-body balance may shift depending on trouser width and shoe break. Intended tone: believable Korean workwear post with mobile-photo realism. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://cafe24img.poxo.com/lowclassic/web/product/big/202303/f6c6a33112b0b6ad9ac1f1409830039c.jpg",
+        "https://etaseoul.com/cdn/shop/files/ETA_SEOUL_Centered_1200x628_82651da9-66c7-4324-ab9b-8b4134ad427e.png?v=1745076006"
+      ],
+      "generation": {
+        "response_id": "resp_04bb50468ab7b3e20069bded2311b481a29b72cf2a7d5b9031",
+        "revised_prompt": "One image only: a realistic vertical smartphone photo (4:5) suitable for a Korean mobile-first fashion community post. Full-body framing with natural posture, taken in an office elevator lobby in Seoul during a weekday morning. Overhead LED lighting, slightly warm, ordinary mobile-photo realism with mild grain and no studio polish.\n\nSubject: an adult woman commuting to work, relaxed stance with one hand in a pocket and the other holding her phone for a mirror-style shot. Expression neutral, posture natural, feet slightly apart so the trouser shape is clear.\n\nOutfit: light blue oxford button-up tucked into high-waisted taupe-beige pleated trousers inspired by the reference (use as guidance only for silhouette, category, and color family). Double front pleats, straight-to-wide leg that drapes cleanly; emphasize the lower-body balance and the shoe break—hem grazing the tops of shoes with a soft break (not heavy pooling). Black square-toe leather loafers, slim black belt, minimal jewelry. Optional charcoal blazer draped over one forearm and a simple black tote on shoulder.\n\nScene and style notes: believable weekday office/commute styling, everyday elevator doors and tiled floor in background, subtle reflection. No text overlays, no collage layout, no exaggerated poses, no luxury-campaign finish, and no visible brand logos. Do not imply exact brand-official proof or an exact garment transfer; keep it as a casual social-fashion upload preview.",
+        "output_path": "public/openai-outfit-preview-poc/t15-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": []
+    },
+    {
+      "post_id": "T16",
+      "scene_context": "cold weekday commute while deciding between true-to-size and oversized coat styling",
+      "style_concern": "the wrong size may make the upper body look too broad instead of intentionally oversized",
+      "intended_tone": "realistic winter office commute photo, subtle and not glossy",
+      "source_keys": [
+        "le17_coat",
+        "le17_frontzip"
+      ],
+      "review_status": "approved_for_ui_attachment",
+      "review_notes": "Approved. The commute-street framing feels believable and the outerwear proportion remains understandable as a styling preview.",
+      "ui_attachment": {
+        "approved": true,
+        "label": "착장 미리보기",
+        "assetPath": "openai-outfit-preview-poc/t16-outfit-preview.png"
+      },
+      "prompt": "Create one realistic outfit preview image for a Korean mobile-first fashion community post. This is a styling preview, not an exact virtual try-on and not official product photography. Scene context: cold weekday commute while deciding between true-to-size and oversized coat styling. Style concern: the wrong size may make the upper body look too broad instead of intentionally oversized. Intended tone: realistic winter office commute photo, subtle and not glossy. Keep the image believable for a real everyday social-fashion upload. Prefer half-body or full-body framing with natural posture and ordinary lighting. Make the outfit feel like weekday office or commute styling rather than an editorial campaign. Use the reference product images only as guidance for silhouette, category, and color family. Do not add any text overlay, collage layout, luxury-campaign polish, or exaggerated pose. Do not imply exact brand-official proof or exact garment transfer.",
+      "reference_images": [
+        "https://www.theoutnet.com/variants/images/1647597322046157/F/w1020_q80.jpg",
+        "https://images.garmentory.com/images/4161750/large/Le-17-Septembre-Front-Zipper-Coat-20200917011119.jpg?1600305087"
+      ],
+      "generation": {
+        "response_id": "resp_0a255deee3539dc50069bded56ffdc81978f1436543f313016",
+        "revised_prompt": "Create one realistic mobile-first outfit preview photo for a Korean social-fashion post. Vertical 4:5 aspect, half- to full-body. Scene: cold weekday morning commute on a Seoul side street near a bus stop/subway entrance; damp pavement, overcast winter light, soft and ordinary—no studio look. Subject: an everyday young adult commuter (not a recognizable public figure), natural posture, casually adjusting the belt of their coat with one hand while holding a slim black tote on the shoulder. Neutral expression, candid feel. Wardrobe: a camel wool belted zip-front coat inspired by the reference image—use it only for guidance on silhouette, category, and color family; do not copy the exact garment or any logos. Show the decision between true-to-size and oversized by having the belt half-cinched at the waist so the upper body reads balanced (dropped shoulders and roomy sleeves are visible but not boxy or inflated). Underlayer: ivory ribbed turtleneck. Bottoms: black straight office trousers. Footwear: black leather ankle boots. Accessories: charcoal scarf tucked into the collar, knit gloves peeking from a pocket. Styling tone: weekday office/commute, believable textures (soft wool, slight creases), subtle wind and faint breath vapor, a few blurred passersby for context. Composition: natural smartphone framing, ordinary lighting, realistic color with cool winter cast; no heavy bokeh, no luxury-campaign polish. Prohibitions: no text overlays, no collage layout, no exact garment transfer, no brand/official product claims, no exaggerated poses, no glamorous retouching or dramatic lighting. Keep it looking like a real everyday social upload from Korea.",
+        "output_path": "public/openai-outfit-preview-poc/t16-outfit-preview.png",
+        "model": "gpt-5",
+        "size": "1024x1536",
+        "quality": "low",
+        "background": "auto"
+      },
+      "reference_fetch_failures": [
+        {
+          "key": "le17_coat",
+          "url": "https://www.theoutnet.com/variants/images/1647597322046157/F/w1020_q80.jpg",
+          "error": "Failed to fetch reference image: https://www.theoutnet.com/variants/images/1647597322046157/F/w1020_q80.jpg (403 Forbidden)"
+        }
+      ]
+    }
+  ]
+}

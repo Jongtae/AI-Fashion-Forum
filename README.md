@@ -51,5 +51,21 @@ This repository tracks meaningful work through GitHub Issues only.
 - Example aligned records: [`/src/data/contentImageAlignmentExamples.json`](./src/data/contentImageAlignmentExamples.json)
 - Generated image policy: [`/docs/generated-image-policy.md`](./docs/generated-image-policy.md)
 - Product mention card policy: [`/docs/product-mention-card-policy.md`](./docs/product-mention-card-policy.md)
+- OpenAI outfit-preview PoC: [`/docs/openai-outfit-preview-feasibility-poc.md`](./docs/openai-outfit-preview-feasibility-poc.md)
 
 These alignment artifacts are the source of truth for validating whether mock post text, image evidence, and expected comments belong together.
+
+## Outfit-preview PoC
+
+Issue `#39` adds a constrained OpenAI GPT Image feasibility path for detail-view outfit previews.
+
+Commands:
+
+```bash
+npm run poc:outfit-preview:dry-run
+OPENAI_API_KEY=... npm run poc:outfit-preview
+```
+
+The candidate set, review state, and UI-attachment approval gate live in:
+
+- [`/src/data/openaiOutfitPreviewManifest.json`](./src/data/openaiOutfitPreviewManifest.json)
