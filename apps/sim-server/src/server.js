@@ -1,7 +1,11 @@
 import http from "node:http";
 
 import { createSeedWorldBootstrap } from "@ai-fashion-forum/agent-core";
-import { MVP_DEMO_SCENARIO, SIM_SERVER_PORT } from "@ai-fashion-forum/shared-types";
+import {
+  MVP_DEMO_SCENARIO,
+  SAMPLE_STATE_SNAPSHOT,
+  SIM_SERVER_PORT,
+} from "@ai-fashion-forum/shared-types";
 
 const port = Number(process.env.SIM_SERVER_PORT || SIM_SERVER_PORT);
 
@@ -20,13 +24,19 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/state-snapshot") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(SAMPLE_STATE_SNAPSHOT));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
       JSON.stringify({
         service: "sim-server",
         scenario: MVP_DEMO_SCENARIO.name,
-        endpoints: ["/health", "/api/demo-scenario"],
+        endpoints: ["/health", "/api/demo-scenario", "/api/state-snapshot"],
       }),
     );
     return;
