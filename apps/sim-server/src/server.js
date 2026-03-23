@@ -2,6 +2,8 @@ import http from "node:http";
 
 import {
   createExposureSample,
+  createMemoryBootstrapState,
+  createMemorySample,
   createMockNormalizedContentBundle,
   createBaselineWorldRules,
   createSeedWorldBootstrap,
@@ -14,6 +16,7 @@ import {
 } from "@ai-fashion-forum/shared-types";
 
 const port = Number(process.env.SIM_SERVER_PORT || SIM_SERVER_PORT);
+const durableMemoryStorePath = new URL("../data/memory-store.json", import.meta.url);
 
 const server = http.createServer(async (request, response) => {
   const { method, url } = request;
@@ -75,6 +78,29 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/memory-bootstrap") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(createMemoryBootstrapState()));
+    return;
+  }
+
+  if (method === "GET" && url?.startsWith("/api/memory-sample")) {
+    const requestUrl = new URL(url, `http://localhost:${port}`);
+    const seed = Number(requestUrl.searchParams.get("seed") || 42);
+    const tickCount = Number(requestUrl.searchParams.get("ticks") || 6);
+    const agentId = requestUrl.searchParams.get("agent") || "A01";
+    const sample = createMemorySample({
+      seed,
+      tickCount,
+      agentId,
+      storeFilePath: durableMemoryStorePath,
+    });
+
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(sample));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
@@ -88,6 +114,8 @@ const server = http.createServer(async (request, response) => {
           "/api/run-sample?seed=42&ticks=10",
           "/api/normalized-content-sample",
           "/api/exposure-sample?agent=A01&pool=20",
+          "/api/memory-bootstrap",
+          "/api/memory-sample?seed=42&ticks=6&agent=A01",
         ],
       }),
     );
