@@ -12,6 +12,8 @@ import {
   createMemorySample,
   createMetaPolicySample,
   createMockNormalizedContentBundle,
+  createSprint1StarterPackBundle,
+  createSprint1ExposureSample,
   createRankingSample,
   createBatchExperimentSample,
   createBaselineWorldRules,
@@ -265,11 +267,33 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/sprint1-content-starter-pack") {
+    const starterPack = await createSprint1StarterPackBundle({
+      startTick: 0,
+    });
+
+    createJsonResponse(response, 200, starterPack);
+    return;
+  }
+
   if (method === "GET" && url?.startsWith("/api/exposure-sample")) {
     const requestUrl = new URL(url, `http://localhost:${port}`);
     const agentId = requestUrl.searchParams.get("agent") || "A01";
     const poolSize = Number(requestUrl.searchParams.get("pool") || 20);
     const sample = await createExposureSample({
+      agentId,
+      poolSize,
+    });
+
+    createJsonResponse(response, 200, sample);
+    return;
+  }
+
+  if (method === "GET" && url?.startsWith("/api/sprint1-exposure-sample")) {
+    const requestUrl = new URL(url, `http://localhost:${port}`);
+    const agentId = requestUrl.searchParams.get("agent") || "S01";
+    const poolSize = Number(requestUrl.searchParams.get("pool") || 9);
+    const sample = await createSprint1ExposureSample({
       agentId,
       poolSize,
     });

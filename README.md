@@ -92,7 +92,9 @@ Useful sim-server endpoints:
 - `GET /api/state-snapshot`
 - `GET /api/run-sample?seed=42&ticks=10`
 - `GET /api/normalized-content-sample`
+- `GET /api/sprint1-content-starter-pack`
 - `GET /api/exposure-sample?agent=A01&pool=20`
+- `GET /api/sprint1-exposure-sample?agent=S01`
 - `GET /api/memory-bootstrap`
 - `GET /api/memory-sample?seed=42&ticks=6&agent=A01`
 - `GET /api/sprint1-agent-seed-sample`
@@ -134,6 +136,7 @@ Workflow file:
 - Identity update rules: [`/docs/identity-update-rules.md`](./docs/identity-update-rules.md)
 - Memory and self-narrative: [`/docs/memory-and-self-narrative.md`](./docs/memory-and-self-narrative.md)
 - Sprint 1 agent seed schema: [`/docs/sprint1-agent-seed-schema.md`](./docs/sprint1-agent-seed-schema.md)
+- Sprint 1 content starter pack: [`/docs/sprint1-content-starter-pack.md`](./docs/sprint1-content-starter-pack.md)
 - Action space and light reactions: [`/docs/action-space-and-light-reactions.md`](./docs/action-space-and-light-reactions.md)
 - Forum generation and relationship updates: [`/docs/forum-generation-and-relationship-updates.md`](./docs/forum-generation-and-relationship-updates.md)
 - Ranking core and experiment flags: [`/docs/ranking-core-and-experiment-flags.md`](./docs/ranking-core-and-experiment-flags.md)

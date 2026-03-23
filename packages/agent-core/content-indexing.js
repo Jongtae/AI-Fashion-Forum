@@ -1,10 +1,14 @@
 import {
   SAMPLE_AGENT_STATES,
   SAMPLE_CONTENT_RECORDS,
+  SPRINT1_AGENT_STATES,
   createContentRecord,
 } from "@ai-fashion-forum/shared-types";
 
-import { createMockNormalizedContentBundle } from "./content-pipeline.js";
+import {
+  createMockNormalizedContentBundle,
+  createSprint1StarterPackBundle,
+} from "./content-pipeline.js";
 
 export const CHROMA_COLLECTION_DEFINITIONS = Object.freeze([
   Object.freeze({
@@ -259,6 +263,31 @@ export async function createExposureSample({
   return {
     collections: index.collections,
     totalIndexed: index.totalIndexed,
+    exposure: selectBiasedExposure({
+      index,
+      agentState,
+      poolSize,
+    }),
+  };
+}
+
+export async function createSprint1ExposureSample({
+  agentId = "S01",
+  poolSize = 9,
+} = {}) {
+  const starterPack = await createSprint1StarterPackBundle({
+    startTick: 0,
+  });
+  const index = buildChromaContentIndex(starterPack.normalizedRecords);
+  const agentState =
+    SPRINT1_AGENT_STATES.find((candidate) => candidate.agent_id === agentId) ||
+    SPRINT1_AGENT_STATES[0];
+
+  return {
+    provider_id: starterPack.provider_id,
+    raw_count: starterPack.raw_count,
+    normalized_count: starterPack.normalized_count,
+    collections: index.collections,
     exposure: selectBiasedExposure({
       index,
       agentState,
