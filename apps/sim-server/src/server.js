@@ -10,6 +10,7 @@ import {
   createIdentityScenarioSuite,
   createMemoryBootstrapState,
   createMemorySample,
+  createSprint1MemoryWritebackSample,
   createMetaPolicySample,
   createMockNormalizedContentBundle,
   createSprint1StarterPackBundle,
@@ -304,6 +305,17 @@ const server = http.createServer(async (request, response) => {
 
   if (method === "GET" && url === "/api/memory-bootstrap") {
     createJsonResponse(response, 200, createMemoryBootstrapState());
+    return;
+  }
+
+  if (method === "GET" && url?.startsWith("/api/sprint1-memory-writeback-sample")) {
+    const requestUrl = new URL(url, `http://localhost:${port}`);
+    const agentId = requestUrl.searchParams.get("agent") || "S01";
+    const sample = await createSprint1MemoryWritebackSample({
+      agentId,
+    });
+
+    createJsonResponse(response, 200, sample);
     return;
   }
 

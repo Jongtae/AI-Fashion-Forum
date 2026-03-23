@@ -42,6 +42,7 @@ The current agreed direction is:
 - [`/docs/sprint1-agent-seed-schema.md`](./sprint1-agent-seed-schema.md)
 - [`/docs/sprint1-content-starter-pack.md`](./sprint1-content-starter-pack.md)
 - [`/docs/sprint1-biased-exposure-loop.md`](./sprint1-biased-exposure-loop.md)
+- [`/docs/sprint1-memory-writeback.md`](./sprint1-memory-writeback.md)
 
 ### Workflow and governance
 

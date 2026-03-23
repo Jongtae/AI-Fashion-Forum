@@ -5,6 +5,8 @@ import path from "node:path";
 import {
   SAMPLE_AGENT_STATES,
   SAMPLE_STATE_SNAPSHOT,
+  SPRINT1_AGENT_STATES,
+  createStateSnapshot,
   createDurableMemoryRecord,
   createMemoryStoreSnapshot,
   createNarrativeEntry,
@@ -12,6 +14,7 @@ import {
   serializeSnapshot,
 } from "@ai-fashion-forum/shared-types";
 
+import { createSprint1ExposureSample } from "./content-indexing.js";
 import { createBaselineWorldRules, runTicks } from "./tick-engine.js";
 
 function clone(value) {
@@ -232,5 +235,203 @@ export function createMemoryBootstrapState() {
       memory_window: agent.memory_window,
       self_narrative_count: agent.self_narrative.length,
     })),
+  };
+}
+
+function clampUnit(value) {
+  return Math.max(0, Math.min(1, Number(value.toFixed(4))));
+}
+
+function buildSprint1MemorySummary(reactionRecord) {
+  return `Reaction ${reactionRecord.reaction_id}: ${reactionRecord.dominant_feeling} via ${reactionRecord.meaning_frame} toward ${reactionRecord.content_id}.`;
+}
+
+function buildSprint1NarrativeText(agentState, reactionRecord) {
+  const intros = {
+    care_context: "I am starting to interpret the same world through care and lived context.",
+    signal_filter: "I am reading the same world as a question of signal and freshness.",
+    tradeoff_filter: "I am reading the same world through tradeoffs and skepticism.",
+    practicality_filter: "I am leaning toward practical proof over abstract styling talk.",
+    context_filter: "I keep collecting more situational context before I decide what I think.",
+  };
+
+  return `${intros[reactionRecord.meaning_frame] || intros.context_filter} ${reactionRecord.memory_write_hint.narrative_hint}`;
+}
+
+function applySprint1Drift(agentState, reactionRecord) {
+  const nextAgent = clone(agentState);
+  const mutableState = nextAgent.mutable_state || {
+    current_traits: {},
+    current_interests: {},
+    current_beliefs: {},
+    attention_bias: {},
+    affect_state: {},
+    self_narrative_summary: "",
+    recent_arc: "stable",
+    stance_markers: [],
+    drift_log: [],
+  };
+
+  const beliefDeltas = {
+    care_context: { key: "care-over-performance", amount: 0.03, arc: "softening_toward_care_topics" },
+    signal_filter: { key: "novelty-has-value", amount: 0.03, arc: "reinforcing_novelty_identity" },
+    tradeoff_filter: { key: "hype-obscures-tradeoffs", amount: 0.03, arc: "hardening_tradeoff_posture" },
+    practicality_filter: { key: "daily-utility", amount: 0.025, arc: "stabilizing_practical_filter" },
+    context_filter: { key: "texture-matters", amount: 0.015, arc: "collecting_context" },
+  };
+
+  const traitDeltas = {
+    care_context: { key: "care_drive", amount: 0.02 },
+    signal_filter: { key: "novelty_drive", amount: 0.02 },
+    tradeoff_filter: { key: "skepticism", amount: 0.02 },
+    practicality_filter: { key: "belonging_drive", amount: 0.01 },
+    context_filter: { key: "curiosity", amount: 0.01 },
+  };
+
+  const beliefDelta = beliefDeltas[reactionRecord.meaning_frame] || beliefDeltas.context_filter;
+  const traitDelta = traitDeltas[reactionRecord.meaning_frame] || traitDeltas.context_filter;
+
+  mutableState.current_beliefs[beliefDelta.key] = clampUnit(
+    (mutableState.current_beliefs[beliefDelta.key] || 0.5) + beliefDelta.amount,
+  );
+  mutableState.current_traits[traitDelta.key] = clampUnit(
+    (mutableState.current_traits[traitDelta.key] || 0.5) + traitDelta.amount,
+  );
+  mutableState.affect_state[reactionRecord.dominant_feeling] = clampUnit(
+    (mutableState.affect_state[reactionRecord.dominant_feeling] || 0.2) + 0.04,
+  );
+  mutableState.attention_bias[reactionRecord.stance_signal] = clampUnit(
+    (mutableState.attention_bias[reactionRecord.stance_signal] || 0.1) + 0.05,
+  );
+  mutableState.self_narrative_summary = buildSprint1NarrativeText(nextAgent, reactionRecord);
+  mutableState.recent_arc = beliefDelta.arc;
+  mutableState.stance_markers = Array.from(
+    new Set([...(mutableState.stance_markers || []), reactionRecord.stance_signal]),
+  ).slice(-6);
+  mutableState.drift_log = [
+    ...(mutableState.drift_log || []),
+    `tick-${reactionRecord.rank}: ${reactionRecord.meaning_frame} -> ${beliefDelta.key} +${beliefDelta.amount}`,
+  ].slice(-8);
+
+  nextAgent.mutable_state = mutableState;
+  nextAgent.self_narrative = [
+    ...(nextAgent.self_narrative || []),
+    mutableState.self_narrative_summary,
+  ].slice(-nextAgent.memory_window);
+
+  return nextAgent;
+}
+
+export function rememberSprint1Reaction(runtime, reactionRecord) {
+  const agentState = runtime.state.agents.find(
+    (candidate) => candidate.agent_id === reactionRecord.agent_id,
+  );
+
+  if (!agentState) {
+    return null;
+  }
+
+  const summary = buildSprint1MemorySummary(reactionRecord);
+  const recentItem = createRecentMemoryItem({
+    memory_id: `recent:${agentState.agent_id}:reaction:${reactionRecord.rank}`,
+    agent_id: agentState.agent_id,
+    tick: reactionRecord.rank,
+    kind: "reaction_memory",
+    summary,
+    details: {
+      content_id: reactionRecord.content_id,
+      dominant_feeling: reactionRecord.dominant_feeling,
+      meaning_frame: reactionRecord.meaning_frame,
+      stance_signal: reactionRecord.stance_signal,
+      resonance_score: reactionRecord.resonance_score,
+    },
+  });
+
+  const durableMemory = createDurableMemoryRecord({
+    memory_id: `durable:${agentState.agent_id}:reaction:${reactionRecord.rank}`,
+    agent_id: agentState.agent_id,
+    tick: reactionRecord.rank,
+    summary,
+    salience:
+      reactionRecord.memory_write_hint.salience === "high"
+        ? 0.85
+        : reactionRecord.memory_write_hint.salience === "medium"
+          ? 0.62
+          : 0.38,
+    tags: [
+      "reaction_memory",
+      reactionRecord.meaning_frame,
+      reactionRecord.stance_signal,
+    ],
+    source: "sprint1_reaction",
+    details: {
+      content_id: reactionRecord.content_id,
+      narrative_hint: reactionRecord.memory_write_hint.narrative_hint,
+    },
+  });
+
+  const updatedAgent = applySprint1Drift(agentState, reactionRecord);
+  const narrativeEntry = createNarrativeEntry({
+    narrative_id: `narrative:${agentState.agent_id}:reaction:${reactionRecord.rank}`,
+    agent_id: agentState.agent_id,
+    tick: reactionRecord.rank,
+    text: buildSprint1NarrativeText(updatedAgent, reactionRecord),
+    source_memory_id: durableMemory.memory_id,
+  });
+
+  const existingRecent = runtime.recentBuffers.get(agentState.agent_id) || [];
+  runtime.recentBuffers.set(
+    agentState.agent_id,
+    [...existingRecent, recentItem].slice(-agentState.memory_window),
+  );
+  runtime.durableMemories = [...runtime.durableMemories, durableMemory];
+  runtime.selfNarratives = [...runtime.selfNarratives, narrativeEntry];
+
+  const agentIndex = runtime.state.agents.findIndex((candidate) => candidate.agent_id === agentState.agent_id);
+  runtime.state.agents[agentIndex] = updatedAgent;
+
+  if (runtime.storeFilePath) {
+    persistStore(runtime.storeFilePath, {
+      durableMemories: runtime.durableMemories,
+      selfNarratives: runtime.selfNarratives,
+    });
+  }
+
+  return {
+    recentItem,
+    durableMemory,
+    narrativeEntry,
+    updatedAgent,
+  };
+}
+
+export async function createSprint1MemoryWritebackSample({
+  agentId = "S01",
+  storeFilePath,
+} = {}) {
+  const starterState = createStateSnapshot({
+    agents: SPRINT1_AGENT_STATES,
+    contents: [],
+    nodes: [],
+    relations: [],
+  });
+  const runtime = createMemoryRuntime({
+    state: starterState,
+    storeFilePath,
+  });
+  const exposureSample = await createSprint1ExposureSample({
+    agentId,
+  });
+
+  const writes = exposureSample.reaction_records
+    .filter((reaction) => reaction.memory_write_hint.should_write)
+    .map((reaction) => rememberSprint1Reaction(runtime, reaction));
+
+  return {
+    agent_id: agentId,
+    input_reactions: exposureSample.reaction_records,
+    writes,
+    memory: queryMemoryTimeline(runtime, agentId),
+    updated_agent: runtime.state.agents.find((agent) => agent.agent_id === agentId),
   };
 }

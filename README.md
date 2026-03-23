@@ -97,6 +97,7 @@ Useful sim-server endpoints:
 - `GET /api/sprint1-exposure-sample?agent=S01`
 - `GET /api/memory-bootstrap`
 - `GET /api/memory-sample?seed=42&ticks=6&agent=A01`
+- `GET /api/sprint1-memory-writeback-sample?agent=S01`
 - `GET /api/sprint1-agent-seed-sample`
 - `GET /api/identity-scenarios`
 - `GET /api/action-space-sample`
@@ -138,6 +139,7 @@ Workflow file:
 - Sprint 1 agent seed schema: [`/docs/sprint1-agent-seed-schema.md`](./docs/sprint1-agent-seed-schema.md)
 - Sprint 1 content starter pack: [`/docs/sprint1-content-starter-pack.md`](./docs/sprint1-content-starter-pack.md)
 - Sprint 1 biased exposure loop: [`/docs/sprint1-biased-exposure-loop.md`](./docs/sprint1-biased-exposure-loop.md)
+- Sprint 1 memory write-back: [`/docs/sprint1-memory-writeback.md`](./docs/sprint1-memory-writeback.md)
 - Action space and light reactions: [`/docs/action-space-and-light-reactions.md`](./docs/action-space-and-light-reactions.md)
 - Forum generation and relationship updates: [`/docs/forum-generation-and-relationship-updates.md`](./docs/forum-generation-and-relationship-updates.md)
 - Ranking core and experiment flags: [`/docs/ranking-core-and-experiment-flags.md`](./docs/ranking-core-and-experiment-flags.md)
