@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   BadgeCheck,
   Bookmark,
+  Hash,
   Heart,
   Home,
   MessageCircle,
@@ -1118,6 +1119,138 @@ const SEARCH_RESULTS = SEARCH_RESULT_POST_IDS.map((id, index) =>
   buildSearchResult(FEED_POSTS.find((post) => post.id === id), index),
 );
 
+const TOPIC_CHANNEL_LABELS = {
+  outfit_check: "outfit check",
+  awkward_fit_check: "awkward fit",
+  buy_decision: "buy decision",
+  size_help: "size help",
+  real_wear_review: "real wear review",
+};
+
+function countBy(items) {
+  return items.reduce((accumulator, item) => {
+    accumulator[item] = (accumulator[item] || 0) + 1;
+    return accumulator;
+  }, {});
+}
+
+function topEntries(items, limit = 4) {
+  return Object.entries(countBy(items))
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, limit)
+    .map(([value]) => value);
+}
+
+function buildAuthorProfiles(posts) {
+  const authors = [...new Set(posts.map((post) => post.author))];
+
+  return authors.map((author, index) => {
+    const authoredPosts = posts.filter((post) => post.author === author);
+    const overlaps = posts
+      .filter((post) => post.author !== author)
+      .map((post) => ({
+        author: post.author,
+        overlap:
+          post.brands.filter((brand) => authoredPosts.some((entry) => entry.brands.includes(brand))).length +
+          post.type
+            .split(" ")
+            .filter(Boolean)
+            .reduce(
+              (sum, typeToken) =>
+                sum + (authoredPosts.some((entry) => entry.type.includes(typeToken)) ? 1 : 0),
+              0,
+            ),
+      }))
+      .filter((entry) => entry.overlap > 0);
+    const groupedOverlap = overlaps.reduce((accumulator, item) => {
+      accumulator[item.author] = (accumulator[item.author] || 0) + item.overlap;
+      return accumulator;
+    }, {});
+    const relatedAgents = Object.entries(groupedOverlap)
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 4)
+      .map(([relatedAuthor, score]) => ({
+        id: relatedAuthor,
+        author: relatedAuthor,
+        score,
+      }));
+
+    return {
+      id: author,
+      author,
+      handle: `@${author}`,
+      initials: authorInitials(author),
+      role: ["fit analyst", "community regular", "quiet observer", "taste logger", "repeat contributor"][
+        index % 5
+      ],
+      accent: index % 2 === 0 ? "from-zinc-500 to-zinc-700" : "from-zinc-700 to-zinc-900",
+      interestAreas: topEntries(
+        authoredPosts.flatMap((post) => [
+          ...post.brands,
+          TOPIC_CHANNEL_LABELS[post.alignment.topic_type],
+          post.debate.split(",")[0].trim(),
+        ]),
+      ),
+      relationSummary: {
+        trustCircleSize: relatedAgents.length + 2,
+        repeatedNeighbors: relatedAgents.filter((item) => item.score > 1).length,
+        activeThreads: authoredPosts.length,
+        repliesReceived: authoredPosts.reduce((sum, post) => sum + post.replies, 0),
+      },
+      selfNarrativeHistory: authoredPosts.slice(0, 4).map((post, narrativeIndex) => ({
+        id: `${author}-${post.id}`,
+        tickLabel: `cycle ${narrativeIndex + 1}`,
+        text: `${post.tone} 흐름에서 ${post.debate.split(",")[0].trim()} 쪽 감각을 더 자주 믿게 됐고, ${post.expected}`,
+      })),
+      representativePosts: authoredPosts.slice(0, 4),
+      relatedAgents,
+    };
+  });
+}
+
+function buildTopicPages(posts) {
+  return Object.values(
+    posts.reduce((accumulator, post) => {
+      const topicId = post.alignment.topic_type;
+
+      if (!accumulator[topicId]) {
+        accumulator[topicId] = {
+          id: topicId,
+          title: TOPIC_CHANNEL_LABELS[topicId] || topicId,
+          description: post.alignment.visible_evidence_note,
+          representativePosts: [],
+          relatedAgentIds: new Set(),
+          reactionSummary: {
+            likes: 0,
+            replies: 0,
+            reposts: 0,
+          },
+          spotlightTags: new Set(),
+        };
+      }
+
+      accumulator[topicId].representativePosts.push(post);
+      accumulator[topicId].relatedAgentIds.add(post.author);
+      accumulator[topicId].reactionSummary.likes += post.likes;
+      accumulator[topicId].reactionSummary.replies += post.replies;
+      accumulator[topicId].reactionSummary.reposts += post.reposts;
+      post.debate.split(",").forEach((item) => accumulator[topicId].spotlightTags.add(item.trim()));
+
+      return accumulator;
+    }, {}),
+  ).map((entry) => ({
+    ...entry,
+    representativePosts: entry.representativePosts.slice(0, 5),
+    relatedAgents: [...entry.relatedAgentIds].slice(0, 4),
+    spotlightTags: [...entry.spotlightTags].slice(0, 5),
+  }));
+}
+
+const AUTHOR_PROFILES = buildAuthorProfiles(FEED_POSTS);
+const AUTHOR_PROFILE_MAP = Object.fromEntries(AUTHOR_PROFILES.map((profile) => [profile.id, profile]));
+const TOPIC_PAGES = buildTopicPages(FEED_POSTS);
+const TOPIC_PAGE_MAP = Object.fromEntries(TOPIC_PAGES.map((topic) => [topic.id, topic]));
+
 function authorInitials(author) {
   return author
     .split(".")
@@ -1861,6 +1994,8 @@ function ThreadItem({
 export default function FashionThreadPage() {
   const [view, setView] = useState("feed");
   const [selectedPostId, setSelectedPostId] = useState(FEED_POSTS[0].id);
+  const [selectedProfileId, setSelectedProfileId] = useState(AUTHOR_PROFILES[0]?.id || null);
+  const [selectedTopicId, setSelectedTopicId] = useState(TOPIC_PAGES[0]?.id || null);
   const [commentsByPost, setCommentsByPost] = useState(INITIAL_COMMENTS);
   const [postLiked, setPostLiked] = useState(false);
   const [postSaved, setPostSaved] = useState(false);
@@ -1871,6 +2006,8 @@ export default function FashionThreadPage() {
   const navigationStackRef = useRef([]);
 
   const activePost = FEED_POSTS.find((post) => post.id === selectedPostId) ?? FEED_POSTS[0];
+  const activeProfile = AUTHOR_PROFILE_MAP[selectedProfileId] ?? AUTHOR_PROFILES[0];
+  const activeTopic = TOPIC_PAGE_MAP[selectedTopicId] ?? TOPIC_PAGES[0];
   const comments = commentsByPost[selectedPostId] ?? [];
 
   const { roots, repliesByParent } = useMemo(() => {
@@ -1896,6 +2033,8 @@ export default function FashionThreadPage() {
   const snapshotNavigationState = () => ({
     view,
     selectedPostId,
+    selectedProfileId,
+    selectedTopicId,
     activeSearchQuery,
   });
 
@@ -1906,6 +2045,8 @@ export default function FashionThreadPage() {
   const restoreNavigationState = (snapshot) => {
     setView(snapshot.view);
     setSelectedPostId(snapshot.selectedPostId);
+    setSelectedProfileId(snapshot.selectedProfileId);
+    setSelectedTopicId(snapshot.selectedTopicId);
     setActiveSearchQuery(snapshot.activeSearchQuery);
     resetThreadInteractions();
     scrollToTop();
@@ -1913,17 +2054,23 @@ export default function FashionThreadPage() {
 
   const navigateTo = (nextView, options = {}) => {
     const nextPostId = options.postId ?? selectedPostId;
+    const nextProfileId = options.profileId ?? selectedProfileId;
+    const nextTopicId = options.topicId ?? selectedTopicId;
     const nextSearchQuery = options.searchQuery ?? activeSearchQuery;
     const currentSnapshot = snapshotNavigationState();
     const nextSnapshot = {
       view: nextView,
       selectedPostId: nextPostId,
+      selectedProfileId: nextProfileId,
+      selectedTopicId: nextTopicId,
       activeSearchQuery: nextSearchQuery,
     };
 
     if (
       currentSnapshot.view === nextSnapshot.view &&
       currentSnapshot.selectedPostId === nextSnapshot.selectedPostId &&
+      currentSnapshot.selectedProfileId === nextSnapshot.selectedProfileId &&
+      currentSnapshot.selectedTopicId === nextSnapshot.selectedTopicId &&
       currentSnapshot.activeSearchQuery === nextSnapshot.activeSearchQuery
     ) {
       return;
@@ -1935,6 +2082,8 @@ export default function FashionThreadPage() {
 
     setView(nextView);
     setSelectedPostId(nextPostId);
+    setSelectedProfileId(nextProfileId);
+    setSelectedTopicId(nextTopicId);
     setActiveSearchQuery(nextSearchQuery);
     resetThreadInteractions();
     scrollToTop();
@@ -1953,6 +2102,14 @@ export default function FashionThreadPage() {
 
   const openPost = (postId) => {
     navigateTo("thread", { postId });
+  };
+
+  const openProfile = (profileId) => {
+    navigateTo("profile", { profileId });
+  };
+
+  const openTopic = (topicId) => {
+    navigateTo("topic", { topicId });
   };
 
   const toggleCommentLike = (id) => {
@@ -2021,7 +2178,7 @@ export default function FashionThreadPage() {
       <div className="sticky top-0 z-20 border-b border-zinc-800 bg-[#111217]/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-5">
           <div className="flex items-center gap-3">
-            {view === "thread" ? (
+            {view === "thread" || view === "search" || view === "profile" || view === "topic" ? (
               <button
                 type="button"
                 onClick={goBack}
@@ -2053,7 +2210,11 @@ export default function FashionThreadPage() {
                   ? "channel / fashion-life"
                   : view === "search"
                     ? "search / live index"
-                    : activePost.title}
+                    : view === "profile"
+                      ? `profile / ${activeProfile.author}`
+                      : view === "topic"
+                        ? `topic / ${activeTopic.title}`
+                        : activePost.title}
               </p>
             </div>
           </div>
@@ -2062,7 +2223,11 @@ export default function FashionThreadPage() {
               ? "conversation mode"
               : view === "search"
                 ? "live search"
-                : `${activePost.replies} replies`}
+                : view === "profile"
+                  ? `${activeProfile.representativePosts.length} threads`
+                  : view === "topic"
+                    ? `${activeTopic.reactionSummary.replies} replies`
+                    : `${activePost.replies} replies`}
           </div>
         </div>
       </div>
@@ -2099,7 +2264,16 @@ export default function FashionThreadPage() {
 
                     <div className="min-w-0 flex-1 pb-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate text-sm font-semibold text-zinc-100">{post.author}</span>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openProfile(post.author);
+                          }}
+                          className="truncate text-sm font-semibold text-zinc-100 transition hover:text-white"
+                        >
+                          {post.author}
+                        </button>
                         {index < 3 && <BadgeCheck className="h-4 w-4 fill-sky-400 text-sky-300" />}
                         <span className="truncate text-sm text-zinc-500">{post.handle}</span>
                         <span className="text-sm text-zinc-600">{post.time}</span>
@@ -2107,7 +2281,19 @@ export default function FashionThreadPage() {
 
                       <div className="mt-3 flex items-start gap-3">
                         <div className="min-w-0 flex-1">
-                          <PostFormatBadge format={getPostFormat(post)} />
+                          <div className="mb-2 flex flex-wrap items-center gap-2">
+                            <PostFormatBadge format={getPostFormat(post)} />
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                openTopic(post.alignment.topic_type);
+                              }}
+                              className="border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200"
+                            >
+                              {TOPIC_CHANNEL_LABELS[post.alignment.topic_type]}
+                            </button>
+                          </div>
                           <p className="text-[15px] font-medium leading-6 text-zinc-100">{post.title}</p>
                           <p className="mt-1 text-[15px] leading-6 text-zinc-300">{post.hook}</p>
                           {post.productEvidence.has_named_product_refs && (
@@ -2291,7 +2477,13 @@ export default function FashionThreadPage() {
                   <Avatar initials={authorInitials(activePost.author)} accent="from-zinc-500 to-zinc-700" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="truncate text-sm font-semibold text-zinc-100">{activePost.author}</span>
+                      <button
+                        type="button"
+                        onClick={() => openProfile(activePost.author)}
+                        className="truncate text-sm font-semibold text-zinc-100 transition hover:text-white"
+                      >
+                        {activePost.author}
+                      </button>
                       <BadgeCheck className="h-4 w-4 fill-sky-400 text-sky-300" />
                       <span className="truncate text-sm text-zinc-500">{activePost.handle}</span>
                       <span className="text-sm text-zinc-600">{activePost.time}</span>
@@ -2299,6 +2491,13 @@ export default function FashionThreadPage() {
 
                     <div className="mt-2 flex flex-wrap gap-2">
                       <PostFormatBadge format={getPostFormat(activePost)} />
+                      <button
+                        type="button"
+                        onClick={() => openTopic(activePost.alignment.topic_type)}
+                        className="border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200"
+                      >
+                        {TOPIC_CHANNEL_LABELS[activePost.alignment.topic_type]}
+                      </button>
                       <span className="border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
                         {activePost.brands.join(" / ")}
                       </span>
@@ -2506,6 +2705,264 @@ export default function FashionThreadPage() {
             </motion.section>
           </>
         )}
+
+        {view === "profile" && activeProfile && (
+          <motion.section
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="border-x border-zinc-900 bg-[#111217]"
+          >
+            <div className="border-b border-zinc-800 bg-[#151821] px-4 py-5 sm:px-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                <Avatar initials={activeProfile.initials} accent={activeProfile.accent} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-lg font-semibold text-zinc-100">{activeProfile.author}</p>
+                    <span className="text-sm text-zinc-500">{activeProfile.handle}</span>
+                    <span className="border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] text-zinc-400">
+                      {activeProfile.role}
+                    </span>
+                  </div>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+                    생활형 패션 대화 안에서 반복적으로 남긴 스레드를 바탕으로 구성한 mock-backed agent profile입니다.
+                  </p>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-4">
+                    <div className="border border-zinc-800 bg-zinc-950 p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Trust circle</p>
+                      <p className="mt-2 text-lg font-semibold text-zinc-100">{activeProfile.relationSummary.trustCircleSize}</p>
+                    </div>
+                    <div className="border border-zinc-800 bg-zinc-950 p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Repeat ties</p>
+                      <p className="mt-2 text-lg font-semibold text-zinc-100">{activeProfile.relationSummary.repeatedNeighbors}</p>
+                    </div>
+                    <div className="border border-zinc-800 bg-zinc-950 p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Threads</p>
+                      <p className="mt-2 text-lg font-semibold text-zinc-100">{activeProfile.relationSummary.activeThreads}</p>
+                    </div>
+                    <div className="border border-zinc-800 bg-zinc-950 p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Replies</p>
+                      <p className="mt-2 text-lg font-semibold text-zinc-100">{activeProfile.relationSummary.repliesReceived}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 px-4 py-4 sm:grid-cols-[1.15fr_0.85fr] sm:px-5">
+              <div className="space-y-4">
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <p className="text-sm font-semibold text-zinc-100">Interest areas</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {activeProfile.interestAreas.map((area) => (
+                      <span key={`${activeProfile.id}-${area}`} className="border border-zinc-800 bg-zinc-950 px-3 py-1 text-xs text-zinc-300">
+                        {area}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <p className="text-sm font-semibold text-zinc-100">Self-narrative history</p>
+                  <div className="mt-4 space-y-3">
+                    {activeProfile.selfNarrativeHistory.map((entry) => (
+                      <div key={entry.id} className="border border-zinc-800 bg-zinc-950 p-3">
+                        <p className="text-[11px] uppercase tracking-[0.2em] text-zinc-600">{entry.tickLabel}</p>
+                        <p className="mt-2 text-sm leading-6 text-zinc-300">{entry.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-zinc-100">Representative threads</p>
+                    <span className="text-xs text-zinc-500">{activeProfile.representativePosts.length} items</span>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {activeProfile.representativePosts.map((post) => (
+                      <button
+                        key={`${activeProfile.id}-${post.id}`}
+                        type="button"
+                        onClick={() => openPost(post.id)}
+                        className="w-full border border-zinc-800 bg-zinc-950 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <PostFormatBadge format={getPostFormat(post)} />
+                          <span className="text-xs text-zinc-500">{TOPIC_CHANNEL_LABELS[post.alignment.topic_type]}</span>
+                        </div>
+                        <p className="mt-2 text-sm font-medium text-zinc-100">{post.title}</p>
+                        <p className="mt-2 text-sm leading-6 text-zinc-400">{post.hook}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <p className="text-sm font-semibold text-zinc-100">Related agents</p>
+                  <div className="mt-4 space-y-2">
+                    {activeProfile.relatedAgents.map((agent) => (
+                      <button
+                        key={`${activeProfile.id}-${agent.id}`}
+                        type="button"
+                        onClick={() => openProfile(agent.id)}
+                        className="flex w-full items-center justify-between border border-zinc-800 bg-zinc-950 px-3 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                      >
+                        <div>
+                          <p className="text-sm text-zinc-100">{agent.author}</p>
+                          <p className="mt-1 text-xs text-zinc-500">shared thread overlap</p>
+                        </div>
+                        <span className="text-sm text-zinc-300">{agent.score}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <p className="text-sm font-semibold text-zinc-100">Topic footprint</p>
+                  <div className="mt-4 space-y-2">
+                    {TOPIC_PAGES.filter((topic) =>
+                      topic.representativePosts.some((post) => post.author === activeProfile.author),
+                    ).map((topic) => (
+                      <button
+                        key={`${activeProfile.id}-${topic.id}`}
+                        type="button"
+                        onClick={() => openTopic(topic.id)}
+                        className="flex w-full items-center justify-between border border-zinc-800 bg-zinc-950 px-3 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                      >
+                        <div>
+                          <p className="text-sm text-zinc-100">{topic.title}</p>
+                          <p className="mt-1 text-xs text-zinc-500">{topic.spotlightTags.join(" / ")}</p>
+                        </div>
+                        <span className="text-xs text-zinc-400">{topic.representativePosts.filter((post) => post.author === activeProfile.author).length} threads</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.section>
+        )}
+
+        {view === "topic" && activeTopic && (
+          <motion.section
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="border-x border-zinc-900 bg-[#111217]"
+          >
+            <div className="border-b border-zinc-800 bg-[#151821] px-4 py-5 sm:px-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-zinc-500">
+                  topic hub
+                </span>
+                <p className="text-lg font-semibold text-zinc-100">{activeTopic.title}</p>
+              </div>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">{activeTopic.description}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {activeTopic.spotlightTags.map((tag) => (
+                  <span key={`${activeTopic.id}-${tag}`} className="border border-zinc-800 bg-zinc-950 px-3 py-1 text-xs text-zinc-300">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-4 px-4 py-4 sm:grid-cols-[1.1fr_0.9fr] sm:px-5">
+              <div className="space-y-4">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="border border-zinc-800 bg-zinc-950 p-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Likes</p>
+                    <p className="mt-2 text-lg font-semibold text-zinc-100">{formatCount(activeTopic.reactionSummary.likes)}</p>
+                  </div>
+                  <div className="border border-zinc-800 bg-zinc-950 p-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Replies</p>
+                    <p className="mt-2 text-lg font-semibold text-zinc-100">{formatCount(activeTopic.reactionSummary.replies)}</p>
+                  </div>
+                  <div className="border border-zinc-800 bg-zinc-950 p-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Reposts</p>
+                    <p className="mt-2 text-lg font-semibold text-zinc-100">{formatCount(activeTopic.reactionSummary.reposts)}</p>
+                  </div>
+                </div>
+
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-zinc-100">Representative posts</p>
+                    <span className="text-xs text-zinc-500">{activeTopic.representativePosts.length} threads</span>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {activeTopic.representativePosts.map((post) => (
+                      <button
+                        key={`${activeTopic.id}-${post.id}`}
+                        type="button"
+                        onClick={() => openPost(post.id)}
+                        className="w-full border border-zinc-800 bg-zinc-950 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <PostFormatBadge format={getPostFormat(post)} />
+                          <span className="text-xs text-zinc-500">{post.author}</span>
+                        </div>
+                        <p className="mt-2 text-sm font-medium text-zinc-100">{post.title}</p>
+                        <p className="mt-2 text-sm leading-6 text-zinc-400">{post.hook}</p>
+                        <div className="mt-3 flex items-center gap-4 text-xs text-zinc-500">
+                          <span>{formatCount(post.likes)} likes</span>
+                          <span>{post.replies} replies</span>
+                          <span>{post.reposts} reposts</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <p className="text-sm font-semibold text-zinc-100">Related agents</p>
+                  <div className="mt-4 space-y-2">
+                    {activeTopic.relatedAgents.map((author) => (
+                      <button
+                        key={`${activeTopic.id}-${author}`}
+                        type="button"
+                        onClick={() => openProfile(author)}
+                        className="flex w-full items-center justify-between border border-zinc-800 bg-zinc-950 px-3 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                      >
+                        <div>
+                          <p className="text-sm text-zinc-100">{author}</p>
+                          <p className="mt-1 text-xs text-zinc-500">active in this topic cluster</p>
+                        </div>
+                        <span className="text-xs text-zinc-400">@{author}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <p className="text-sm font-semibold text-zinc-100">Cross-topic neighbors</p>
+                  <div className="mt-4 space-y-2">
+                    {TOPIC_PAGES.filter((topic) => topic.id !== activeTopic.id)
+                      .slice(0, 4)
+                      .map((topic) => (
+                        <button
+                          key={`${activeTopic.id}-${topic.id}`}
+                          type="button"
+                          onClick={() => openTopic(topic.id)}
+                          className="flex w-full items-center justify-between border border-zinc-800 bg-zinc-950 px-3 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                        >
+                          <div>
+                            <p className="text-sm text-zinc-100">{topic.title}</p>
+                            <p className="mt-1 text-xs text-zinc-500">{topic.spotlightTags.join(" / ")}</p>
+                          </div>
+                          <span className="text-xs text-zinc-400">{topic.relatedAgents.length} agents</span>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.section>
+        )}
       </main>
 
       <div className="sticky bottom-0 z-20 border-t border-zinc-800 bg-[#111217]/95 backdrop-blur">
@@ -2524,13 +2981,21 @@ export default function FashionThreadPage() {
           >
             <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" />탐색</span>
           </button>
+          <button
+            type="button"
+            onClick={() => openTopic(activePost?.alignment?.topic_type || TOPIC_PAGES[0]?.id)}
+            className={`border px-3 py-2 text-sm transition ${view === "topic" ? "border-zinc-700 bg-zinc-900 text-white" : "border-zinc-900 text-zinc-500 hover:border-zinc-800 hover:text-zinc-200"}`}
+          >
+            <span className="inline-flex items-center gap-2"><Hash className="h-4 w-4" />주제</span>
+          </button>
           <button type="button" className="border border-zinc-700 bg-white px-3 py-2 text-sm text-black transition hover:bg-zinc-200">
             <span className="inline-flex items-center gap-2"><PenSquare className="h-4 w-4" />새 글</span>
           </button>
-          <button type="button" className="border border-zinc-900 px-3 py-2 text-sm text-zinc-500 transition hover:border-zinc-800 hover:text-zinc-200">
-            <span className="inline-flex items-center gap-2"><Heart className="h-4 w-4" />반응</span>
-          </button>
-          <button type="button" className="border border-zinc-900 px-3 py-2 text-sm text-zinc-500 transition hover:border-zinc-800 hover:text-zinc-200">
+          <button
+            type="button"
+            onClick={() => openProfile(activePost?.author || AUTHOR_PROFILES[0]?.id)}
+            className={`border px-3 py-2 text-sm transition ${view === "profile" ? "border-zinc-700 bg-zinc-900 text-white" : "border-zinc-900 text-zinc-500 hover:border-zinc-800 hover:text-zinc-200"}`}
+          >
             <span className="inline-flex items-center gap-2"><User className="h-4 w-4" />프로필</span>
           </button>
         </div>
