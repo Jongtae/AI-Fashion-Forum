@@ -1,24 +1,19 @@
 {
-  "name": "camel-ai-study-fashion-thread",
+  "name": "ai-fashion-forum-workspaces",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "crawl:images": "node scripts/crawl-images.mjs",
-    "poc:outfit-preview": "node scripts/run-openai-outfit-preview-poc.mjs",
-    "poc:outfit-preview:dry-run": "node scripts/run-openai-outfit-preview-poc.mjs --dry-run"
-  },
-  "dependencies": {
-    "framer-motion": "^12.6.3",
-    "lucide-react": "^0.511.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^5.0.2",
-    "vite": "^7.1.3"
+    "dev": "npm run dev:forum",
+    "dev:forum": "npm run dev --workspace @ai-fashion-forum/forum-web",
+    "dev:sim": "npm run dev --workspace @ai-fashion-forum/sim-server",
+    "build": "npm run build --workspace @ai-fashion-forum/forum-web",
+    "preview": "npm run preview --workspace @ai-fashion-forum/forum-web",
+    "crawl:images": "npm run crawl:images --workspace @ai-fashion-forum/forum-web",
+    "poc:outfit-preview": "npm run poc:outfit-preview --workspace @ai-fashion-forum/forum-web",
+    "poc:outfit-preview:dry-run": "npm run poc:outfit-preview:dry-run --workspace @ai-fashion-forum/forum-web"
   }
 }
