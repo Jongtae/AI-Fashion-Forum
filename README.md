@@ -100,6 +100,7 @@ Useful sim-server endpoints:
 - `GET /api/forum-generation-sample`
 - `GET /api/ranking-sample`
 - `GET /api/meta-policy-sample`
+- `GET /api/debug-console-sample`
 - `GET /api/graph-storage-sample`
 
 GitHub settings required:
@@ -125,6 +126,7 @@ Workflow file:
 - Forum generation and relationship updates: [`/docs/forum-generation-and-relationship-updates.md`](./docs/forum-generation-and-relationship-updates.md)
 - Ranking core and experiment flags: [`/docs/ranking-core-and-experiment-flags.md`](./docs/ranking-core-and-experiment-flags.md)
 - Meta policy and events: [`/docs/meta-policy-and-events.md`](./docs/meta-policy-and-events.md)
+- Retrieval and decision-debug console: [`/docs/retrieval-and-decision-debug-console.md`](./docs/retrieval-and-decision-debug-console.md)
 - Graph sync and event log: [`/docs/graph-sync-and-event-log.md`](./docs/graph-sync-and-event-log.md)
 - Product identity: [`/docs/product-identity.md`](./docs/product-identity.md)
 - Phase-2 direction summary: [`/docs/phase-2-ai-native-forum-direction.md`](./docs/phase-2-ai-native-forum-direction.md)

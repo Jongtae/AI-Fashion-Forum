@@ -16,6 +16,7 @@ export function createSeedWorldBootstrap() {
 
 export * from "./content-pipeline.js";
 export * from "./content-indexing.js";
+export * from "./debug-console.js";
 export * from "./forum-generation.js";
 export * from "./graph-storage.js";
 export * from "./identity-update-rules.js";
