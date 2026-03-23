@@ -4,6 +4,7 @@ import {
   createActionSample,
   createExposureSample,
   createForumGenerationSample,
+  createGraphStorageSample,
   createIdentityScenarioSuite,
   createMemoryBootstrapState,
   createMemorySample,
@@ -22,6 +23,7 @@ import {
 
 const port = Number(process.env.SIM_SERVER_PORT || SIM_SERVER_PORT);
 const durableMemoryStorePath = new URL("../data/memory-store.json", import.meta.url);
+const eventLogStorePath = new URL("../data/event-log.json", import.meta.url);
 
 const server = http.createServer(async (request, response) => {
   const { method, url } = request;
@@ -136,6 +138,12 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/graph-storage-sample") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(createGraphStorageSample({ eventLogPath: eventLogStorePath })));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
@@ -156,6 +164,7 @@ const server = http.createServer(async (request, response) => {
           "/api/forum-generation-sample",
           "/api/ranking-sample",
           "/api/meta-policy-sample",
+          "/api/graph-storage-sample",
         ],
       }),
     );
