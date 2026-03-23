@@ -1,93 +1,81 @@
 # Review Checklist
 
-This document is the review-check deliverable for GitHub issue `#41`.
+Use this document when reviewing:
 
-Use it when reviewing shipped UI, mock content, or experimental surfaces.
+- shipped UI
+- seed-world content
+- simulation configs
+- intervention proposals
+- company-loop outputs
 
-The goal is to make review decisions repeatable instead of depending on ad hoc product-owner correction.
+## Review method
 
-## Review Method
+Classify findings into:
 
-Classify findings into four buckets:
 - Keep
 - Reduce
 - Remove
 - Defer
 
-This framing is preferred over open-ended “thoughts” because it produces clearer implementation direction.
-
 ## Keep
 
 Use `Keep` for elements that:
-- strengthen text-led discussion
-- make the post easier to understand
-- support comments, disagreement, or judgment
-- help realism without taking over the surface
+
+- strengthen seed-world realism
+- make fashion-community behavior more legible
+- improve action, trace, or outcome clarity
+- help a simulation or product intervention become easier to evaluate
 
 ## Reduce
 
-Use `Reduce` for elements that are directionally useful but visually too heavy.
+Use `Reduce` for elements that are useful but too heavy.
 
 Common examples:
-- framing labels that repeat context already obvious from the post
-- product previews that feel slightly too large
-- supportive imagery that starts competing with text
+
+- UI chrome that competes with the post
+- simulation metadata exposed too directly in product UI
+- policy structure that over-specifies one surface when a lighter rule would do
 
 ## Remove
 
 Use `Remove` for elements that:
-- explain the system instead of serving the user
-- behave like editorial framing or mock narration
-- make the product feel like a shopping surface, lookbook, or debug panel
-- take attention away from the question being discussed
 
-Common examples:
-- internal evidence/fallback/generated language
-- repeated “reading points” or interpretation boxes
-- explanatory chips that restate the post
-- oversized image modules with weak discussion value
+- make the product feel like a generic feed or generic agent demo
+- explain the system instead of supporting the world
+- introduce fake depth without durable traces or outcomes
+- weaken fashion-community-native tone
 
 ## Defer
 
 Use `Defer` for:
-- experiments whose value is still unproven
-- quality-sensitive image layers that need stronger review gates
-- features that may be valid later but are not needed to reinforce the core identity now
 
-## Identity Review Questions
+- experiments that have not shown a repeatable mechanism
+- scaling plans that are not yet supported by seed-world evidence
+- costly visual or model work that does not improve validation quality
 
-Ask these on every meaningful review:
+## Core review questions
 
-1. Is text still the main content?
-2. Does the UI make the discussion point readable within a second or two?
-3. Are images helping judgment instead of becoming the main attraction?
-4. Do product cards behave like references rather than shopping units?
-5. Does the result avoid lookbook, commerce, and debug/mock-explanation drift?
-6. If this were removed, would discussion quality stay the same or improve?
+1. Does this preserve or improve seed-world realism?
+2. Does this strengthen explainable community dynamics?
+3. Does this keep the project recognizably fashion-community-native?
+4. If this is an intervention, can we observe its effect in logs, traces, interviews, or repeat runs?
+5. If this is a UI change, does it still look like a live product rather than a simulation console?
+6. If this is a simulation/data change, does it make action history and outcomes easier to inspect?
 
-If answers are weak, the item should usually move toward `Reduce`, `Remove`, or `Defer`.
+## Seed-world realism checks
 
-## Outfit Image Regression Checks
+When reviewing content or imagery, also ask:
 
-When reviewing outfit-oriented posts, also ask:
+1. Would a real fashion-community user plausibly post, read, or react to this?
+2. Does the text-image-product relationship still make sense?
+3. Does the content support recognizable taste, trust, or conflict dynamics?
+4. Is this world-specific enough to shape behavior, not just decorate a feed?
 
-1. Does the image really match the claimed context such as mirror selfie, commute, elevator, bathroom, room mirror, or entryway?
-2. Is the asset obviously a leftover editorial or generic fashion seed image?
-3. Does the metadata describe the actual image, or does it merely describe the intended post?
-4. Would a Korean community user plausibly upload this exact image?
+## Company-loop checks
 
-If the answer to any of these is no, the image should usually move toward `Remove` or trigger a replacement task.
+When reviewing product-team outputs, ask:
 
-## Experiment Review Rule
-
-For experiments such as outfit previews, success means:
-- faster context understanding
-- stronger discussion realism
-- clearer judgment or comment potential
-
-Success does not mean:
-- prettier imagery alone
-- more polished visuals alone
-- stronger lifestyle or campaign aesthetics
-
-If an experiment increases visual consumption without improving discussion quality, it should not ship broadly.
+1. Is there a concrete intervention being proposed?
+2. Is the proposed mechanism testable?
+3. Is the expected effect stated clearly?
+4. Will the next run or next review make success/failure observable?

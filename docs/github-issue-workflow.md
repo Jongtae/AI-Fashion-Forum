@@ -2,88 +2,75 @@
 
 This repository treats meaningful work as GitHub Issue-sized units before implementation.
 
+Under the phase-2 direction, issues should describe not only UI work but also simulation, data, and company-loop changes.
+
 ## Default sequence
 
 1. Define the work as a GitHub Issue
 2. Give the issue a clear title, summary, and completion criteria
-3. Check the work against the product identity before implementation
-4. Create one branch for that issue
-5. Keep commits scoped to that issue only
-6. Merge after the issue criteria are satisfied
+3. State which layer the issue belongs to
+4. Check the work against the active product identity before implementation
+5. Create one branch for that issue
+6. Keep commits scoped to that issue only
+7. Merge after the issue criteria are satisfied
+
+## Required issue classification
+
+Every substantial issue should say which layer it affects:
+
+- `seed-world realism`
+- `simulation mechanics`
+- `company loop`
+- `digital twin / productization`
+
+Multiple layers are allowed, but the issue should name the primary layer.
+
+## Required issue details
+
+Before major changes, define:
+
+- issue title
+- issue summary
+- completion criteria
+- expected branch name
+- primary layer
+- whether Data Engineering review is required
+
+Also include an identity check that answers:
+
+- Does this strengthen the AI-native fashion forum direction?
+- Does it improve seed-world realism, explainable dynamics, or product-iteration capability?
+- Does it preserve fashion-community-native specificity?
+- If it changes actions, traces, or schemas, will those changes be reviewable later?
+
+## Meeting-derived work
+
+Use a meeting handoff doc when:
+
+- the issue comes from a product or simulation-design meeting
+- the direction depends on nuanced trade-offs
+- the work changes norms, categories, actions, recsys logic, moderation rules, or seed-world framing
+- the issue needs non-goals, failure modes, or review gates
 
 ## Source of truth
 
-GitHub Issues are the only work-tracking source of truth for this repository.
+GitHub Issues are the only active work-tracking source of truth for this repository.
 
-- Do not create or maintain local `issues/*.md` files for active work tracking
-- Open or update the issue directly on GitHub before starting substantial implementation
-- When resuming work, align with an existing GitHub Issue whenever possible
+- Do not create local issue trackers for active work
+- Open or update the issue directly on GitHub before substantial work
+- When resuming work, align with an existing issue whenever possible
 
 ## Branch naming
 
 - `feat/<issue-slug>`
 - `fix/<issue-slug>`
 - `chore/<issue-slug>`
+- `docs/<issue-slug>` when the issue is doc-heavy and policy-heavy
 
-## Commit style
+## Contributor rule
 
-Recommended pattern:
-
-- `feat: <what changed>`
-- `fix: <what changed>`
-- `chore: <what changed>`
-
-Reference the GitHub issue number in the commit body or PR description whenever possible.
-
-## Mock-specific guidance
-
-- Treat content updates as first-class work items, not as incidental edits
-- If a task changes topic data, source references, or thread realism, give it an issue
-- If a task is too large, split it into smaller issue-sized batches
-
-## Required issue details
-
-Before major mock changes, define:
-
-- issue title
-- issue summary
-- completion criteria
-- expected branch name
-
-Also include an identity check that answers:
-
-- Does this help users understand or debate the post more clearly?
-- Does it keep text as the main content?
-- Does it avoid making the app feel like a lookbook, shopping surface, or image-first feed?
-- If imagery is involved, is it supporting judgment rather than replacing it?
-
-If these questions are not answered clearly, reduce the scope or rewrite the issue before implementation.
-
-## Meeting-derived work
-
-When an issue is created from a product or review meeting, ask whether the issue alone is enough for implementation.
-
-If the answer is no, create a handoff doc under `docs/` and reference it in the issue.
-
-Use:
-
-- [`/docs/meeting-handoff-workflow.md`](./meeting-handoff-workflow.md)
-- [`/docs/meeting-handoff-template.md`](./meeting-handoff-template.md)
-
-Meeting handoff docs are especially recommended when:
-
-- the meeting made nuanced UX or realism decisions
-- the team is trying to prevent a repeated regression
-- the implementation needs explicit non-goals or anti-patterns
-- the issue would otherwise become too compressed or too ambiguous
-
-## Identity-first rule
-
-GitHub Issues are not only work containers. They are the first gate for keeping the service aligned with its product identity.
-
-Contributors should reference:
+Before opening or expanding product-facing work, reference:
 
 - [`/docs/product-identity.md`](./product-identity.md)
+- [`/docs/phase-2-ai-native-forum-direction.md`](./phase-2-ai-native-forum-direction.md)
 - [`/docs/current-product-state.md`](./current-product-state.md)
-
-before opening or expanding product-facing work.

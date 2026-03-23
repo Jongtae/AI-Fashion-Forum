@@ -1,129 +1,104 @@
 # Product Identity
 
-This document is the policy deliverable for GitHub issue `#41`.
+This document is the active product-identity policy for the phase-2 direction.
 
-It defines the core product identity of AI Fashion Forum so future work is judged against the same service goals instead of drifting with each new UI or image idea.
+It supersedes the earlier framing that treated AI Fashion Forum mainly as a text-first fashion discussion mock.
 
 ## Identity Statement
 
-AI Fashion Forum is a text-first fashion discussion platform.
+AI Fashion Forum is an AI-native fashion forum living system.
 
-It is not:
+It combines:
+
+- a believable fashion-community seed world
+- simulated or real social interaction
+- agent/user taste formation
+- a company loop that studies behavior and ships interventions
+
+It is not only:
+
+- a static mock
 - a lookbook app
 - an image-consumption feed
 - a shopping-first product
 - a virtual try-on destination
 
-The service should feel like a believable Korean fashion community where people ask for judgment, compare opinions, and adjust choices through discussion.
+## Product Truths
 
-## Core Product Truths
+1. The forum is a world, not just a screen.
+- Feed, detail, search, profile, saved, and notifications should feel operational.
+- Content, norms, and interaction traces should imply a living society.
 
-The following statements should be treated as product-level rules.
+2. Fashion remains the seed domain.
+- The project should still feel like a real fashion community.
+- Fit judgment, styling coherence, price/value debate, material disappointment, and brand taste are still core social primitives.
 
-1. Text is the main content.
-- Posts should foreground the question, judgment, tension, or trade-off being discussed.
-- The service should be readable even before a user opens any image or product card.
+3. Realism is now seed-world quality.
+- Text, images, reactions, and product references must still cohere.
+- That coherence matters because it seeds simulation behavior, not only because it looks polished.
 
-2. Images are supporting evidence.
-- Images may help users judge fit, mood, proportion, styling, or product references.
-- Images should not become the main reason the product is used.
+4. Community dynamics matter as much as UI realism.
+- The project should show or support taste clusters, role differentiation, norm formation, and conflict patterns.
+- A pretty feed without believable social dynamics is insufficient.
 
-3. Product cards are reference tools.
-- Product cards help users recognize items mentioned in a post.
-- They are not recommendation modules, evidence dashboards, or shopping widgets.
+5. Product iteration is part of the product.
+- Onboarding, prompts, category structure, moderation, and recommendation logic are first-class levers.
+- The project should be judged partly by whether these levers can change outcomes.
 
-4. Outfit previews are realism support only.
-- Outfit previews may be used to help users imagine a styling direction.
-- They must not imply exact try-on, exact product reproduction, or catalog-grade fidelity.
+6. The mock is one layer of a larger system.
+- UI is still important.
+- But the repository must also support seed packs, event schemas, logs, traces, and digital-twin thinking.
 
-5. Discussion quality comes before visual richness.
-- A feature is valuable only if it helps the user understand the post faster, respond more clearly, or debate more specifically.
-- If a feature mainly increases visual consumption, it should be deprioritized.
-
-## What Makes The Service Feel Right
+## What Makes The Product Feel Right
 
 The product should repeatedly reinforce:
-- clear questions
-- concrete judgments
-- disagreement or nuance
-- practical fashion decisions
-- comments that compare, challenge, or refine the post
 
-The strongest post types are:
+- recognizable style clusters
+- recognizable norms about what counts as good posting and good critique
+- posts with concrete fashion stakes
+- comments that show taste, status, trust, disagreement, and learning
+- traces that suggest who is becoming influential, ignored, polarizing, or reliable
+
+Strong content still sounds like:
+
 - “Is this too much for work?”
 - “Does this actually justify the price?”
 - “Is the fit the issue or the styling?”
-- “Would this work for commute / office / weekend?”
 - “Did anyone regret buying this after real wear?”
+- “Why does everyone here hate logo-heavy bags lately?”
 
 ## What To Avoid
 
-The product is drifting in the wrong direction when it starts to feel like:
-- a polished image feed
+The repository is drifting in the wrong direction when it starts to feel like:
+
+- a prettier mock with no social depth
+- a generic multi-agent demo with no fashion-native specificity
 - a shopping surface
-- a recommendation engine
-- a debug/explanation panel
-- an editorial mock that explains itself too much
+- a lookbook feed
+- a debug-heavy research toy that loses product realism
 
 Red flags include:
-- images reading before the post question
-- product blocks louder than the text
-- explanatory UI that summarizes what the product is “doing”
-- large image modules that reduce room for discussion
-- experiments that optimize for prettiness over conversational value
 
-## UI Priority Order
+- images reading before the post or social tension
+- policy docs optimizing only for visual polish
+- simulation claims with no replayable artifacts or traceable events
+- agent behavior that feels random instead of norm-shaped
+- fashion content becoming generic lifestyle filler
 
-When making UI decisions, prefer this order:
+## Identity Decision Test
 
-1. post hook / title
-2. body text and discussion point
-3. comments and reaction potential
-4. supporting image
-5. product reference card
-6. experimental preview layer
+Every meaningful change should be checked against these questions:
 
-If a lower-priority layer starts overpowering a higher-priority one, the design should be revised.
+1. Does this strengthen the seed-world realism needed for a believable fashion forum?
+2. Does this improve explainable community dynamics, not just screen polish?
+3. Does this preserve fashion-community-native tone and stakes?
+4. If this affects data or simulation, does it make actions, traces, or outcomes more legible?
+5. If this affects UI, does it still look like a live product rather than a research console?
 
-## Issue-Level Decision Test
+If the answer is weak or unclear, reduce, defer, or rewrite the work.
 
-Every meaningful change should be evaluated with these questions:
+## Relationship To Other Docs
 
-1. Does this help users understand or debate the post more clearly?
-2. Does this keep text as the main content?
-3. Does this avoid making the app feel like a shopping, lookbook, or feed-consumption product?
-4. Does this reduce or increase explanatory/mock-like UI?
-5. If imagery is involved, is it helping judgment rather than replacing it?
-
-If the answer is weak or unclear, the work should be reduced, deferred, or rejected.
-
-## Experiment Policy
-
-Experiments are allowed only when they support the discussion product.
-
-For image-related experiments:
-- success means stronger context understanding or stronger discussion realism
-- success does not mean prettier visuals alone
-- if the result feels like a lookbook or campaign surface, it failed
-- if the result is weak or confusing, do not ship it
-
-## Review Rule
-
-When reviewing a shipped result, use these categories:
-- Keep
-- Reduce
-- Remove
-- Defer
-
-This keeps review focused on product fit rather than open-ended taste discussion.
-
-## Relationship To Other Policy Docs
-
-This document sits above more specific policy docs.
-
-- [`/docs/product-mention-card-policy.md`](./product-mention-card-policy.md) explains how product references should appear without becoming commerce-heavy
-- [`/docs/generated-image-policy.md`](./generated-image-policy.md) explains when generated imagery is allowed
-- [`/docs/content-image-alignment-data-model.md`](./content-image-alignment-data-model.md) explains how text, products, and supporting imagery align
-- [`/docs/openai-outfit-preview-feasibility-poc.md`](./openai-outfit-preview-feasibility-poc.md) explains a constrained experiment that must remain subordinate to this identity
-
-If any lower-level document conflicts with this identity, this document wins.
+- [`/docs/phase-2-ai-native-forum-direction.md`](./phase-2-ai-native-forum-direction.md) explains the phase-2 operating model
+- [`/docs/current-product-state.md`](./current-product-state.md) explains what is active now
+- seed-world realism docs such as image and content alignment policies remain valid, but they are now subordinate to this larger identity
