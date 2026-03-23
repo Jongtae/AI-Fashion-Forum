@@ -44,6 +44,7 @@ The current agreed direction is:
 - [`/docs/sprint1-biased-exposure-loop.md`](./sprint1-biased-exposure-loop.md)
 - [`/docs/sprint1-memory-writeback.md`](./sprint1-memory-writeback.md)
 - [`/docs/sprint1-state-driven-posts.md`](./sprint1-state-driven-posts.md)
+- [`/docs/sprint1-replay-drift-ui.md`](./sprint1-replay-drift-ui.md)
 
 ### Workflow and governance
 

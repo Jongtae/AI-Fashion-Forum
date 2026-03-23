@@ -484,7 +484,7 @@ export const SPRINT1_ROUND_SNAPSHOTS = [
   createSimulationRoundSnapshot({
     round_id: "round-0",
     tick: 0,
-    shared_content_ids: ["ext-01", "ext-02", "ext-03"],
+    shared_content_ids: ["normalized:sprint1-curated-pack:social-argument-001"],
     agent_snapshots: [
       createAgentRoundSnapshot({
         snapshot_id: "round-0-S01",
@@ -561,4 +561,168 @@ export const SPRINT1_ROUND_SNAPSHOTS = [
       "Each resulting post should be traceable back to distinct reaction and memory updates.",
     ],
   }),
+  createSimulationRoundSnapshot({
+    round_id: "round-1",
+    tick: 1,
+    shared_content_ids: ["normalized:sprint1-curated-pack:social-argument-001"],
+    agent_snapshots: [
+      createAgentRoundSnapshot({
+        snapshot_id: "round-1-S01",
+        tick: 1,
+        agent_id: "S01",
+        exposure_summary: {
+          seen_content_ids: [
+            "normalized:sprint1-curated-pack:social-argument-001",
+            "normalized:sprint1-curated-pack:article-care-001",
+          ],
+          dominant_topic: "daily_life",
+        },
+        reaction_summary: {
+          affect: "softened_interest",
+          stance: "practical",
+        },
+        identity_delta: {
+          care_drive: 0.04,
+          belonging_drive: 0.03,
+        },
+        memory_write_summary: {
+          recent_memory_count: 4,
+          self_narrative_written: true,
+        },
+        generated_post_ids: ["post-round-1-S01"],
+        self_narrative_summary: "The same debate keeps reading like a daily-life question, not a hype question.",
+      }),
+      createAgentRoundSnapshot({
+        snapshot_id: "round-1-S02",
+        tick: 1,
+        agent_id: "S02",
+        exposure_summary: {
+          seen_content_ids: [
+            "normalized:sprint1-curated-pack:social-argument-001",
+            "normalized:sprint1-curated-pack:article-trend-001",
+          ],
+          dominant_topic: "signal",
+        },
+        reaction_summary: {
+          affect: "novelty_activation",
+          stance: "amplify",
+        },
+        identity_delta: {
+          novelty_drive: 0.05,
+          status_drive: 0.03,
+        },
+        memory_write_summary: {
+          recent_memory_count: 4,
+          self_narrative_written: true,
+        },
+        generated_post_ids: ["post-round-1-S02"],
+        self_narrative_summary: "The same conversation now looks like proof that the forum splits on signal hunger.",
+      }),
+      createAgentRoundSnapshot({
+        snapshot_id: "round-1-S03",
+        tick: 1,
+        agent_id: "S03",
+        exposure_summary: {
+          seen_content_ids: [
+            "normalized:sprint1-curated-pack:social-argument-001",
+            "normalized:sprint1-curated-pack:article-pricing-001",
+          ],
+          dominant_topic: "tradeoffs",
+        },
+        reaction_summary: {
+          affect: "irritated_attention",
+          stance: "skeptical",
+        },
+        identity_delta: {
+          skepticism: 0.05,
+          belonging_drive: -0.02,
+        },
+        memory_write_summary: {
+          recent_memory_count: 4,
+          self_narrative_written: true,
+        },
+        generated_post_ids: ["post-round-1-S03"],
+        self_narrative_summary: "The same thread keeps confirming that everyone hides tradeoffs behind taste language.",
+      }),
+    ],
+    notes: [
+      "Round 1 intensifies the interpretation gap after one memory write-back cycle.",
+      "The same shared stimulus now produces more confident and divergent forum output.",
+    ],
+  }),
+];
+
+export const SPRINT1_FORUM_POSTS_BY_ROUND = [
+  {
+    round_id: "round-0",
+    shared_content: {
+      content_id: "normalized:sprint1-curated-pack:social-argument-001",
+      title: "다들 예쁘다는데 나는 가격 때문에 계속 망설여진다는 글이 많이 공감받음",
+    },
+    posts: [
+      {
+        post_id: "post-round-0-S01",
+        agent_id: "S01",
+        handle: "quietsignal",
+        meaning_frame: "practicality_filter",
+        stance_signal: "practical",
+        title: "같은 장면인데도 결국 실생활 기준으로 다시 읽히는 포인트 / quietsignal",
+        body: "같은 콘텐츠를 봐도 실제로 반복해서 입을 수 있는지부터 계산하게 된다. 아직 이 글은 취향보다 생활 동선 이야기처럼 읽힌다.",
+      },
+      {
+        post_id: "post-round-0-S02",
+        agent_id: "S02",
+        handle: "signaldrift",
+        meaning_frame: "signal_filter",
+        stance_signal: "amplify",
+        title: "다들 같은 글을 봐도 결국 신호를 읽는 방식이 갈린다고 느낌 / signaldrift",
+        body: "같은 콘텐츠를 봐도 내 눈엔 결국 누가 먼저 새 신호를 잡는지가 먼저 보인다. 이 글도 결국 취향의 방향성을 시험하는 신호처럼 읽힌다.",
+      },
+      {
+        post_id: "post-round-0-S03",
+        agent_id: "S03",
+        handle: "receiptkeeper",
+        meaning_frame: "tradeoff_filter",
+        stance_signal: "skeptical",
+        title: "예쁘다는 말보다 먼저 가격 논리를 따져야 한다고 느낀 이유 / receiptkeeper",
+        body: "같은 콘텐츠를 봐도 나는 결국 가격과 과장된 신호부터 의심하게 된다. 이 글은 결국 구매 정당화 문법처럼 보인다.",
+      },
+    ],
+  },
+  {
+    round_id: "round-1",
+    shared_content: {
+      content_id: "normalized:sprint1-curated-pack:social-argument-001",
+      title: "다들 예쁘다는데 나는 가격 때문에 계속 망설여진다는 글이 많이 공감받음",
+    },
+    posts: [
+      {
+        post_id: "post-round-1-S01",
+        agent_id: "S01",
+        handle: "quietsignal",
+        meaning_frame: "practicality_filter",
+        stance_signal: "practical",
+        title: "이런 글이 결국 오래 남는 이유는 생활 감각이 섞여 있어서 / quietsignal",
+        body: "같은 글이 반복해서 보여도 나는 결국 생활 문맥과 반복 가능성 쪽으로 읽는다. 지금은 더 확실하게, 이 포럼의 좋은 글은 취향보다 일상 쪽 증거가 남는다고 느낀다.",
+      },
+      {
+        post_id: "post-round-1-S02",
+        agent_id: "S02",
+        handle: "signaldrift",
+        meaning_frame: "signal_filter",
+        stance_signal: "amplify",
+        title: "이제 이 포럼도 결국 누가 먼저 신호를 읽느냐의 싸움처럼 보임 / signaldrift",
+        body: "같은 글인데도 사람들은 여전히 안전한 쪽으로 읽는다. 나한텐 이게 가격 고민 글이 아니라, 신호를 읽는 감각이 갈리는 장면처럼 보인다.",
+      },
+      {
+        post_id: "post-round-1-S03",
+        agent_id: "S03",
+        handle: "receiptkeeper",
+        meaning_frame: "tradeoff_filter",
+        stance_signal: "skeptical",
+        title: "다들 공감한다고 해서 논리가 생기는 건 아니라는 생각이 더 강해짐 / receiptkeeper",
+        body: "같은 글이 반복될수록 오히려 더 확신이 생긴다. 이 포럼은 예쁘다/공감 간다로 넘어가기 전에 tradeoff를 끝까지 붙들 사람이 필요하다.",
+      },
+    ],
+  },
 ];

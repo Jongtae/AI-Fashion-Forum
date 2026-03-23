@@ -142,6 +142,7 @@ Workflow file:
 - Sprint 1 biased exposure loop: [`/docs/sprint1-biased-exposure-loop.md`](./docs/sprint1-biased-exposure-loop.md)
 - Sprint 1 memory write-back: [`/docs/sprint1-memory-writeback.md`](./docs/sprint1-memory-writeback.md)
 - Sprint 1 state-driven posts: [`/docs/sprint1-state-driven-posts.md`](./docs/sprint1-state-driven-posts.md)
+- Sprint 1 replay drift UI: [`/docs/sprint1-replay-drift-ui.md`](./docs/sprint1-replay-drift-ui.md)
 - Action space and light reactions: [`/docs/action-space-and-light-reactions.md`](./docs/action-space-and-light-reactions.md)
 - Forum generation and relationship updates: [`/docs/forum-generation-and-relationship-updates.md`](./docs/forum-generation-and-relationship-updates.md)
 - Ranking core and experiment flags: [`/docs/ranking-core-and-experiment-flags.md`](./docs/ranking-core-and-experiment-flags.md)
