@@ -1,6 +1,7 @@
 import http from "node:http";
 
 import {
+  createExposureSample,
   createMockNormalizedContentBundle,
   createBaselineWorldRules,
   createSeedWorldBootstrap,
@@ -60,6 +61,20 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url?.startsWith("/api/exposure-sample")) {
+    const requestUrl = new URL(url, `http://localhost:${port}`);
+    const agentId = requestUrl.searchParams.get("agent") || "A01";
+    const poolSize = Number(requestUrl.searchParams.get("pool") || 20);
+    const sample = await createExposureSample({
+      agentId,
+      poolSize,
+    });
+
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(sample));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
@@ -72,6 +87,7 @@ const server = http.createServer(async (request, response) => {
           "/api/state-snapshot",
           "/api/run-sample?seed=42&ticks=10",
           "/api/normalized-content-sample",
+          "/api/exposure-sample?agent=A01&pool=20",
         ],
       }),
     );

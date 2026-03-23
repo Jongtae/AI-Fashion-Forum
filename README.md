@@ -92,6 +92,7 @@ Useful sim-server endpoints:
 - `GET /api/state-snapshot`
 - `GET /api/run-sample?seed=42&ticks=10`
 - `GET /api/normalized-content-sample`
+- `GET /api/exposure-sample?agent=A01&pool=20`
 
 GitHub settings required:
 
@@ -108,6 +109,7 @@ Workflow file:
 ### Phase-2 direction and active policy
 
 - Stack ADR baseline: [`/docs/adr/001-stack.md`](./docs/adr/001-stack.md)
+- Chroma indexing and biased exposure: [`/docs/chroma-indexing-and-biased-exposure.md`](./docs/chroma-indexing-and-biased-exposure.md)
 - Content-provider normalization: [`/docs/content-provider-normalization.md`](./docs/content-provider-normalization.md)
 - Product identity: [`/docs/product-identity.md`](./docs/product-identity.md)
 - Phase-2 direction summary: [`/docs/phase-2-ai-native-forum-direction.md`](./docs/phase-2-ai-native-forum-direction.md)
