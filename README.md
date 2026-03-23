@@ -104,6 +104,7 @@ Workflow file:
 
 ### Phase-2 direction and active policy
 
+- Stack ADR baseline: [`/docs/adr/001-stack.md`](./docs/adr/001-stack.md)
 - Product identity: [`/docs/product-identity.md`](./docs/product-identity.md)
 - Phase-2 direction summary: [`/docs/phase-2-ai-native-forum-direction.md`](./docs/phase-2-ai-native-forum-direction.md)
 - Current state summary: [`/docs/current-product-state.md`](./docs/current-product-state.md)
