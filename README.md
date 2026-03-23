@@ -97,6 +97,7 @@ Useful sim-server endpoints:
 - `GET /api/memory-sample?seed=42&ticks=6&agent=A01`
 - `GET /api/identity-scenarios`
 - `GET /api/action-space-sample`
+- `GET /api/forum-generation-sample`
 
 GitHub settings required:
 
@@ -118,6 +119,7 @@ Workflow file:
 - Identity update rules: [`/docs/identity-update-rules.md`](./docs/identity-update-rules.md)
 - Memory and self-narrative: [`/docs/memory-and-self-narrative.md`](./docs/memory-and-self-narrative.md)
 - Action space and light reactions: [`/docs/action-space-and-light-reactions.md`](./docs/action-space-and-light-reactions.md)
+- Forum generation and relationship updates: [`/docs/forum-generation-and-relationship-updates.md`](./docs/forum-generation-and-relationship-updates.md)
 - Product identity: [`/docs/product-identity.md`](./docs/product-identity.md)
 - Phase-2 direction summary: [`/docs/phase-2-ai-native-forum-direction.md`](./docs/phase-2-ai-native-forum-direction.md)
 - Current state summary: [`/docs/current-product-state.md`](./docs/current-product-state.md)
