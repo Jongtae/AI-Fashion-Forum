@@ -39,6 +39,7 @@ The current agreed direction is:
 
 - [`/docs/product-identity.md`](./product-identity.md)
 - [`/docs/phase-2-ai-native-forum-direction.md`](./phase-2-ai-native-forum-direction.md)
+- [`/docs/sprint1-agent-seed-schema.md`](./sprint1-agent-seed-schema.md)
 
 ### Workflow and governance
 

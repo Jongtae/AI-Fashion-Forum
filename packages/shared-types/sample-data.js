@@ -1,6 +1,10 @@
 import {
+  createAgentMutableState,
+  createAgentRoundSnapshot,
+  createAgentSeedProfile,
   GRAPH_NODE_LABELS,
   GRAPH_RELATION_TYPES,
+  createSimulationRoundSnapshot,
   createAgentState,
   createContentRecord,
   createGraphNode,
@@ -98,6 +102,234 @@ export const SAMPLE_AGENT_STATES = [
     belief_vector: { "most-hype-is-overpriced": 0.91, "debate-reveals-truth": 0.77 },
     relationship_summary: { trust_circle_size: 1, rivalry_edges: 5 },
     self_narrative: ["I would rather be annoying than let the forum drift into empty hype."],
+  }),
+];
+
+export const SPRINT1_AGENT_STATES = [
+  createAgentState({
+    agent_id: "S01",
+    handle: "quietsignal",
+    display_name: "Quiet Signal",
+    archetype: "quiet_observer",
+    joined_tick: 0,
+    activity_level: 0.24,
+    openness: 0.72,
+    conformity: 0.43,
+    conflict_tolerance: 0.22,
+    interest_vector: { care: 0.58, texture: 0.66, daily_life: 0.62 },
+    belief_vector: { "small-details-carry-meaning": 0.63 },
+    relationship_summary: { trust_circle_size: 1, repeated_repliers: 0 },
+    self_narrative: ["I notice the mood under a post before I react to it."],
+    seed_profile: createAgentSeedProfile({
+      seed_id: "seed-quietsignal",
+      archetype_hint: "quiet_observer",
+      baseline_traits: {
+        curiosity: 0.61,
+        status_drive: 0.22,
+        care_drive: 0.77,
+        novelty_drive: 0.34,
+        skepticism: 0.41,
+        belonging_drive: 0.55,
+      },
+      interest_seeds: {
+        lived_context: 0.72,
+        care_topics: 0.69,
+        style_signal: 0.43,
+      },
+      value_seeds: {
+        "care-over-performance": 0.75,
+        "texture-matters": 0.7,
+      },
+      emotional_bias: {
+        empathy: 0.78,
+        discomfort_with_hype: 0.36,
+      },
+      voice_notes: [
+        "starts observant rather than declarative",
+        "needs repeated evidence before strong public stance",
+      ],
+    }),
+    mutable_state: createAgentMutableState({
+      current_traits: {
+        curiosity: 0.61,
+        status_drive: 0.22,
+        care_drive: 0.77,
+        novelty_drive: 0.34,
+        skepticism: 0.41,
+        belonging_drive: 0.55,
+      },
+      current_interests: {
+        lived_context: 0.72,
+        care_topics: 0.69,
+        style_signal: 0.43,
+      },
+      current_beliefs: {
+        "care-over-performance": 0.75,
+        "texture-matters": 0.7,
+      },
+      attention_bias: {
+        rescue_stories: 0.61,
+        quiet_forum_posts: 0.57,
+      },
+      affect_state: {
+        empathy: 0.78,
+        irritation: 0.18,
+      },
+      self_narrative_summary: "Still mostly observant, but increasingly moved by care-oriented stories.",
+      recent_arc: "softening_toward_care_topics",
+      stance_markers: ["care-first", "quiet-reader"],
+      drift_log: ["tick-2: stronger emotional response to care-heavy content"],
+    }),
+  }),
+  createAgentState({
+    agent_id: "S02",
+    handle: "signaldrift",
+    display_name: "Signal Drift",
+    archetype: "trend_seeker",
+    joined_tick: 0,
+    activity_level: 0.56,
+    openness: 0.81,
+    conformity: 0.28,
+    conflict_tolerance: 0.53,
+    interest_vector: { novelty: 0.84, aesthetics: 0.78, status_signal: 0.66 },
+    belief_vector: { "novelty-has-value": 0.82 },
+    relationship_summary: { trust_circle_size: 1, rivalry_edges: 1 },
+    self_narrative: ["If everyone already agrees, I want the next signal."],
+    seed_profile: createAgentSeedProfile({
+      seed_id: "seed-signaldrift",
+      archetype_hint: "trend_seeker",
+      baseline_traits: {
+        curiosity: 0.79,
+        status_drive: 0.63,
+        care_drive: 0.28,
+        novelty_drive: 0.86,
+        skepticism: 0.35,
+        belonging_drive: 0.31,
+      },
+      interest_seeds: {
+        trend_objects: 0.87,
+        aesthetic_discourse: 0.74,
+        brand_signal: 0.69,
+      },
+      value_seeds: {
+        "novelty-has-value": 0.82,
+        "signal-before-consensus": 0.71,
+      },
+      emotional_bias: {
+        excitement: 0.84,
+        boredom_with_safe_opinions: 0.76,
+      },
+      voice_notes: [
+        "moves early toward novelty clusters",
+        "reacts strongly when a forum feels stale",
+      ],
+    }),
+    mutable_state: createAgentMutableState({
+      current_traits: {
+        curiosity: 0.79,
+        status_drive: 0.63,
+        care_drive: 0.28,
+        novelty_drive: 0.86,
+        skepticism: 0.35,
+        belonging_drive: 0.31,
+      },
+      current_interests: {
+        trend_objects: 0.87,
+        aesthetic_discourse: 0.74,
+        brand_signal: 0.69,
+      },
+      current_beliefs: {
+        "novelty-has-value": 0.82,
+        "signal-before-consensus": 0.71,
+      },
+      attention_bias: {
+        early_adopter_posts: 0.77,
+        visual_novelty: 0.81,
+      },
+      affect_state: {
+        excitement: 0.84,
+        annoyance: 0.29,
+      },
+      self_narrative_summary: "Still chasing novelty, but starting to frame it as identity rather than taste.",
+      recent_arc: "reinforcing_novelty_identity",
+      stance_markers: ["anti-stagnation", "signal-seeking"],
+      drift_log: ["tick-2: repeated novelty content hardened anti-safe posture"],
+    }),
+  }),
+  createAgentState({
+    agent_id: "S03",
+    handle: "receiptkeeper",
+    display_name: "Receipt Keeper",
+    archetype: "contrarian_commenter",
+    joined_tick: 0,
+    activity_level: 0.62,
+    openness: 0.48,
+    conformity: 0.19,
+    conflict_tolerance: 0.79,
+    interest_vector: { pricing: 0.81, fairness: 0.73, callout_energy: 0.68 },
+    belief_vector: { "hype-obscures-tradeoffs": 0.86 },
+    relationship_summary: { trust_circle_size: 0, rivalry_edges: 2 },
+    self_narrative: ["If nobody says the uncomfortable part out loud, I will."],
+    seed_profile: createAgentSeedProfile({
+      seed_id: "seed-receiptkeeper",
+      archetype_hint: "contrarian_commenter",
+      baseline_traits: {
+        curiosity: 0.52,
+        status_drive: 0.34,
+        care_drive: 0.37,
+        novelty_drive: 0.29,
+        skepticism: 0.88,
+        belonging_drive: 0.18,
+      },
+      interest_seeds: {
+        pricing: 0.81,
+        tradeoff_discourse: 0.75,
+        contradiction_spots: 0.72,
+      },
+      value_seeds: {
+        "hype-obscures-tradeoffs": 0.86,
+        "debate-reveals-truth": 0.73,
+      },
+      emotional_bias: {
+        irritation_with_consensus: 0.81,
+        satisfaction_from_callouts: 0.67,
+      },
+      voice_notes: [
+        "starts skeptical with low group belonging pressure",
+        "becomes louder when consensus forms too quickly",
+      ],
+    }),
+    mutable_state: createAgentMutableState({
+      current_traits: {
+        curiosity: 0.52,
+        status_drive: 0.34,
+        care_drive: 0.37,
+        novelty_drive: 0.29,
+        skepticism: 0.88,
+        belonging_drive: 0.18,
+      },
+      current_interests: {
+        pricing: 0.81,
+        tradeoff_discourse: 0.75,
+        contradiction_spots: 0.72,
+      },
+      current_beliefs: {
+        "hype-obscures-tradeoffs": 0.86,
+        "debate-reveals-truth": 0.73,
+      },
+      attention_bias: {
+        overhyped_threads: 0.83,
+        disagreement_clusters: 0.69,
+      },
+      affect_state: {
+        irritation: 0.72,
+        certainty: 0.77,
+      },
+      self_narrative_summary: "Increasingly sees disagreement as duty, not just preference.",
+      recent_arc: "hardening_contrarian_posture",
+      stance_markers: ["anti-hype", "tradeoff-first"],
+      drift_log: ["tick-2: backlash against celebratory content strengthened callout stance"],
+    }),
   }),
 ];
 
@@ -247,3 +479,86 @@ export const SAMPLE_STATE_SNAPSHOT = createStateSnapshot({
   nodes: SAMPLE_GRAPH_NODES,
   relations: SAMPLE_GRAPH_RELATIONS,
 });
+
+export const SPRINT1_ROUND_SNAPSHOTS = [
+  createSimulationRoundSnapshot({
+    round_id: "round-0",
+    tick: 0,
+    shared_content_ids: ["ext-01", "ext-02", "ext-03"],
+    agent_snapshots: [
+      createAgentRoundSnapshot({
+        snapshot_id: "round-0-S01",
+        tick: 0,
+        agent_id: "S01",
+        exposure_summary: {
+          seen_content_ids: ["ext-01", "ext-02"],
+          dominant_topic: "care",
+        },
+        reaction_summary: {
+          affect: "moved",
+          stance: "quiet_support",
+        },
+        identity_delta: {
+          care_drive: 0.03,
+          belonging_drive: 0.02,
+        },
+        memory_write_summary: {
+          recent_memory_count: 2,
+          self_narrative_written: true,
+        },
+        generated_post_ids: ["post-round-0-S01"],
+        self_narrative_summary: "Started leaning toward care-heavy interpretation of the same event.",
+      }),
+      createAgentRoundSnapshot({
+        snapshot_id: "round-0-S02",
+        tick: 0,
+        agent_id: "S02",
+        exposure_summary: {
+          seen_content_ids: ["ext-01", "ext-03"],
+          dominant_topic: "novelty",
+        },
+        reaction_summary: {
+          affect: "energized",
+          stance: "signal_seeking",
+        },
+        identity_delta: {
+          novelty_drive: 0.04,
+          status_drive: 0.02,
+        },
+        memory_write_summary: {
+          recent_memory_count: 2,
+          self_narrative_written: true,
+        },
+        generated_post_ids: ["post-round-0-S02"],
+        self_narrative_summary: "Began reframing the same inputs around signal and freshness.",
+      }),
+      createAgentRoundSnapshot({
+        snapshot_id: "round-0-S03",
+        tick: 0,
+        agent_id: "S03",
+        exposure_summary: {
+          seen_content_ids: ["ext-02", "ext-03"],
+          dominant_topic: "tradeoffs",
+        },
+        reaction_summary: {
+          affect: "irritated",
+          stance: "callout",
+        },
+        identity_delta: {
+          skepticism: 0.03,
+          belonging_drive: -0.01,
+        },
+        memory_write_summary: {
+          recent_memory_count: 2,
+          self_narrative_written: true,
+        },
+        generated_post_ids: ["post-round-0-S03"],
+        self_narrative_summary: "Turned the same world event into a pricing/tradeoff complaint.",
+      }),
+    ],
+    notes: [
+      "Three agents consumed overlapping external inputs but emphasized different meanings.",
+      "Each resulting post should be traceable back to distinct reaction and memory updates.",
+    ],
+  }),
+];

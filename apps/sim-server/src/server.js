@@ -21,6 +21,8 @@ import {
 import {
   MVP_DEMO_SCENARIO,
   SAMPLE_STATE_SNAPSHOT,
+  SPRINT1_AGENT_STATES,
+  SPRINT1_ROUND_SNAPSHOTS,
   SIM_SERVER_PORT,
 } from "@ai-fashion-forum/shared-types";
 
@@ -227,6 +229,16 @@ const server = http.createServer(async (request, response) => {
 
   if (method === "GET" && url === "/api/state-snapshot") {
     createJsonResponse(response, 200, SAMPLE_STATE_SNAPSHOT);
+    return;
+  }
+
+  if (method === "GET" && url === "/api/sprint1-agent-seed-sample") {
+    createJsonResponse(response, 200, {
+      sprint: "Sprint 1 - Identity Loop Vertical Slice",
+      agent_count: SPRINT1_AGENT_STATES.length,
+      agents: SPRINT1_AGENT_STATES,
+      round_snapshots: SPRINT1_ROUND_SNAPSHOTS,
+    });
     return;
   }
 

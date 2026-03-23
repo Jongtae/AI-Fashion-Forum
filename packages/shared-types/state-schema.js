@@ -7,6 +7,23 @@ export const AGENT_ARCHETYPES = Object.freeze([
   "empathetic_responder",
 ]);
 
+export const AGENT_SEED_AXES = Object.freeze([
+  "curiosity",
+  "status_drive",
+  "care_drive",
+  "novelty_drive",
+  "skepticism",
+  "belonging_drive",
+]);
+
+export const AGENT_MUTABLE_AXES = Object.freeze([
+  "attention_bias",
+  "belief_shift",
+  "affect_intensity",
+  "identity_confidence",
+  "social_posture",
+]);
+
 export const CONTENT_SOURCE_TYPES = Object.freeze([
   "forum_post",
   "external_article",
@@ -68,6 +85,85 @@ function assertArray(name, value) {
   }
 }
 
+function assertObject(name, value) {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${name} must be an object`);
+  }
+}
+
+export function createAgentSeedProfile(input) {
+  const {
+    seed_id,
+    archetype_hint,
+    baseline_traits = {},
+    interest_seeds = {},
+    value_seeds = {},
+    emotional_bias = {},
+    voice_notes = [],
+  } = input;
+
+  assertString("seed_id", seed_id);
+  assertString("archetype_hint", archetype_hint);
+  assertObject("baseline_traits", baseline_traits);
+  assertObject("interest_seeds", interest_seeds);
+  assertObject("value_seeds", value_seeds);
+  assertObject("emotional_bias", emotional_bias);
+  assertArray("voice_notes", voice_notes);
+
+  return {
+    seed_id,
+    archetype_hint,
+    baseline_traits,
+    interest_seeds,
+    value_seeds,
+    emotional_bias,
+    voice_notes,
+  };
+}
+
+export function createAgentMutableState(input) {
+  const {
+    current_traits = {},
+    current_interests = {},
+    current_beliefs = {},
+    attention_bias = {},
+    affect_state = {},
+    self_narrative_summary = "",
+    recent_arc = "stable",
+    stance_markers = [],
+    drift_log = [],
+  } = input;
+
+  assertObject("current_traits", current_traits);
+  assertObject("current_interests", current_interests);
+  assertObject("current_beliefs", current_beliefs);
+  assertObject("attention_bias", attention_bias);
+  assertObject("affect_state", affect_state);
+
+  if (self_narrative_summary && typeof self_narrative_summary !== "string") {
+    throw new Error("self_narrative_summary must be a string");
+  }
+
+  if (recent_arc && typeof recent_arc !== "string") {
+    throw new Error("recent_arc must be a string");
+  }
+
+  assertArray("stance_markers", stance_markers);
+  assertArray("drift_log", drift_log);
+
+  return {
+    current_traits,
+    current_interests,
+    current_beliefs,
+    attention_bias,
+    affect_state,
+    self_narrative_summary,
+    recent_arc,
+    stance_markers,
+    drift_log,
+  };
+}
+
 export function createAgentState(input) {
   const {
     agent_id,
@@ -84,6 +180,8 @@ export function createAgentState(input) {
     belief_vector = {},
     relationship_summary = {},
     self_narrative = [],
+    seed_profile = null,
+    mutable_state = null,
   } = input;
 
   assertString("agent_id", agent_id);
@@ -112,6 +210,8 @@ export function createAgentState(input) {
     belief_vector,
     relationship_summary,
     self_narrative,
+    seed_profile,
+    mutable_state,
   };
 }
 
@@ -196,6 +296,67 @@ export function createStateSnapshot({ agents = [], contents = [], nodes = [], re
       nodes,
       relations,
     },
+  };
+}
+
+export function createAgentRoundSnapshot(input) {
+  const {
+    snapshot_id,
+    tick,
+    agent_id,
+    exposure_summary = {},
+    reaction_summary = {},
+    identity_delta = {},
+    memory_write_summary = {},
+    generated_post_ids = [],
+    self_narrative_summary = "",
+  } = input;
+
+  assertString("snapshot_id", snapshot_id);
+  assertNumber("tick", tick);
+  assertString("agent_id", agent_id);
+  assertObject("exposure_summary", exposure_summary);
+  assertObject("reaction_summary", reaction_summary);
+  assertObject("identity_delta", identity_delta);
+  assertObject("memory_write_summary", memory_write_summary);
+  assertArray("generated_post_ids", generated_post_ids);
+
+  if (self_narrative_summary && typeof self_narrative_summary !== "string") {
+    throw new Error("self_narrative_summary must be a string");
+  }
+
+  return {
+    snapshot_id,
+    tick,
+    agent_id,
+    exposure_summary,
+    reaction_summary,
+    identity_delta,
+    memory_write_summary,
+    generated_post_ids,
+    self_narrative_summary,
+  };
+}
+
+export function createSimulationRoundSnapshot({
+  round_id,
+  tick,
+  agent_snapshots = [],
+  shared_content_ids = [],
+  notes = [],
+} = {}) {
+  assertString("round_id", round_id);
+  assertNumber("tick", tick);
+  assertArray("agent_snapshots", agent_snapshots);
+  assertArray("shared_content_ids", shared_content_ids);
+  assertArray("notes", notes);
+
+  return {
+    round_id,
+    tick,
+    agent_snapshots,
+    shared_content_ids,
+    notes,
   };
 }
 
