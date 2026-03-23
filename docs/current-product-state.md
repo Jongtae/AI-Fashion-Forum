@@ -45,6 +45,7 @@ The current agreed direction is:
 - [`/docs/sprint1-memory-writeback.md`](./sprint1-memory-writeback.md)
 - [`/docs/sprint1-state-driven-posts.md`](./sprint1-state-driven-posts.md)
 - [`/docs/sprint1-replay-drift-ui.md`](./sprint1-replay-drift-ui.md)
+- [`/docs/sprint1-divergence-evaluation.md`](./sprint1-divergence-evaluation.md)
 
 ### Workflow and governance
 

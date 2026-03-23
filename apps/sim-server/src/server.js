@@ -28,6 +28,7 @@ import {
   SPRINT1_AGENT_STATES,
   SPRINT1_ROUND_SNAPSHOTS,
   SIM_SERVER_PORT,
+  createSprint1EvaluationSnapshot,
 } from "@ai-fashion-forum/shared-types";
 
 const port = Number(process.env.SIM_SERVER_PORT || SIM_SERVER_PORT);
@@ -354,6 +355,11 @@ const server = http.createServer(async (request, response) => {
   if (method === "GET" && url === "/api/sprint1-forum-post-sample") {
     const sample = await createSprint1ForumPostSample();
     createJsonResponse(response, 200, sample);
+    return;
+  }
+
+  if (method === "GET" && url === "/api/sprint1-evaluation-sample") {
+    createJsonResponse(response, 200, createSprint1EvaluationSnapshot());
     return;
   }
 
