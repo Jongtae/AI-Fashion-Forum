@@ -7,6 +7,7 @@ import {
   createIdentityScenarioSuite,
   createMemoryBootstrapState,
   createMemorySample,
+  createMetaPolicySample,
   createMockNormalizedContentBundle,
   createRankingSample,
   createBaselineWorldRules,
@@ -129,6 +130,12 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/meta-policy-sample") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(createMetaPolicySample()));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
@@ -148,6 +155,7 @@ const server = http.createServer(async (request, response) => {
           "/api/action-space-sample",
           "/api/forum-generation-sample",
           "/api/ranking-sample",
+          "/api/meta-policy-sample",
         ],
       }),
     );
