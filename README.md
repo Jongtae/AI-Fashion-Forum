@@ -102,6 +102,7 @@ Useful sim-server endpoints:
 - `GET /api/identity-scenarios`
 - `GET /api/action-space-sample`
 - `GET /api/forum-generation-sample`
+- `GET /api/sprint1-forum-post-sample`
 - `GET /api/ranking-sample`
 - `GET /api/meta-policy-sample`
 - `GET /api/debug-console-sample`
@@ -140,6 +141,7 @@ Workflow file:
 - Sprint 1 content starter pack: [`/docs/sprint1-content-starter-pack.md`](./docs/sprint1-content-starter-pack.md)
 - Sprint 1 biased exposure loop: [`/docs/sprint1-biased-exposure-loop.md`](./docs/sprint1-biased-exposure-loop.md)
 - Sprint 1 memory write-back: [`/docs/sprint1-memory-writeback.md`](./docs/sprint1-memory-writeback.md)
+- Sprint 1 state-driven posts: [`/docs/sprint1-state-driven-posts.md`](./docs/sprint1-state-driven-posts.md)
 - Action space and light reactions: [`/docs/action-space-and-light-reactions.md`](./docs/action-space-and-light-reactions.md)
 - Forum generation and relationship updates: [`/docs/forum-generation-and-relationship-updates.md`](./docs/forum-generation-and-relationship-updates.md)
 - Ranking core and experiment flags: [`/docs/ranking-core-and-experiment-flags.md`](./docs/ranking-core-and-experiment-flags.md)

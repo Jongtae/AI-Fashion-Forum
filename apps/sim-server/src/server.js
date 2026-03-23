@@ -6,6 +6,7 @@ import {
   createEvaluationSample,
   createExposureSample,
   createForumGenerationSample,
+  createSprint1ForumPostSample,
   createGraphStorageSample,
   createIdentityScenarioSuite,
   createMemoryBootstrapState,
@@ -347,6 +348,12 @@ const server = http.createServer(async (request, response) => {
 
   if (method === "GET" && url === "/api/forum-generation-sample") {
     createJsonResponse(response, 200, createForumGenerationSample());
+    return;
+  }
+
+  if (method === "GET" && url === "/api/sprint1-forum-post-sample") {
+    const sample = await createSprint1ForumPostSample();
+    createJsonResponse(response, 200, sample);
     return;
   }
 

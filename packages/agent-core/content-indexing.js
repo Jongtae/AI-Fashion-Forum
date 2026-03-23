@@ -402,20 +402,30 @@ function deriveDominantFeeling(agentState, record, sprintScore) {
 
 function deriveMeaningFrame(agentState, record) {
   const mutableState = getSprint1MutableState(agentState);
+  const traits = mutableState.current_traits || {};
+  const topics = record.topics || [];
+  const tags = record.source_metadata?.exposure_tags || {};
+  const hasPricing = topics.includes("pricing");
+  const hasCare = topics.some((topic) => ["care", "cats", "dogs", "daily_life", "pet_episode"].includes(topic));
+  const hasUtility = topics.some((topic) => ["office_style", "utility", "daily_utility", "mirror", "entryway", "repeat_wear"].includes(topic));
+  const noveltyAllowed =
+    tags.novelty_level === "high" ||
+    tags.novelty_level === "medium" ||
+    topics.some((topic) => ["novelty", "signal", "trend_shift", "brand_signal"].includes(topic));
 
-  if ((record.topics || []).includes("pricing")) {
+  if (hasPricing && (traits.skepticism || 0) >= Math.max(traits.care_drive || 0, traits.novelty_drive || 0)) {
     return "tradeoff_filter";
   }
 
-  if ((record.topics || []).some((topic) => ["cats", "dogs", "care"].includes(topic))) {
+  if (hasCare && (traits.care_drive || 0) >= Math.max(traits.novelty_drive || 0, traits.skepticism || 0)) {
     return "care_context";
   }
 
-  if ((mutableState.current_traits?.novelty_drive || 0) > 0.7) {
+  if ((mutableState.current_traits?.novelty_drive || 0) > 0.7 && noveltyAllowed) {
     return "signal_filter";
   }
 
-  if ((record.topics || []).includes("office_style") || (record.topics || []).includes("utility")) {
+  if (hasUtility) {
     return "practicality_filter";
   }
 
@@ -560,5 +570,31 @@ export async function createSprint1ExposureSample({
       })),
     },
     reaction_records,
+  };
+}
+
+export async function createSprint1SharedStimulusSample({
+  contentId = "normalized:sprint1-curated-pack:social-argument-001",
+  agentIds = ["S01", "S02", "S03"],
+} = {}) {
+  const starterPack = await createSprint1StarterPackBundle({
+    startTick: 0,
+  });
+  const contentRecord =
+    starterPack.normalizedRecords.find((record) => record.content_id === contentId) ||
+    starterPack.normalizedRecords[0];
+  const agents = SPRINT1_AGENT_STATES.filter((agent) => agentIds.includes(agent.agent_id));
+
+  return {
+    content: contentRecord,
+    reactions: agents.map((agentState, index) => {
+      const score = scoreSprint1CandidateForAgent(agentState, contentRecord);
+      return createSprint1ReactionRecord({
+        agentState,
+        contentRecord,
+        sprintScore: score,
+        rank: index + 1,
+      });
+    }),
   };
 }
