@@ -1,95 +1,20 @@
 # Real-Photo-Preferred Pet Lifestyle Strategy
 
-This document is the strategy deliverable for GitHub issue `#69`.
+This document remains active under phase 2 as a seed-world sourcing strategy.
 
-It defines how pet-episode and lifestyle imagery should be sourced now that the product direction prefers real photography over generated imagery for this slice.
+## Role in phase 2
 
-## Policy Summary
+Real-source imagery is still preferred for pet-adjacent lifestyle episodes because those episodes should influence the world through believable lived moments, not obviously synthetic cuteness.
 
-For pet-episode and pet-adjacent lifestyle posts:
+## Core rule
 
-- real-source photography is preferred
-- generated imagery is fallback-only
-- fashion and daily-life context must remain more important than the pet
+For pet-episode and pet-adjacent lifestyle content:
 
-This strategy sits upstream of generated fallback work such as GitHub issue `#66`.
+- prefer real-source imagery
+- use generated imagery as fallback only
+- keep fashion and daily-life context more important than the pet
 
-## Real-Photo-Preferred Episode Types
+## Why it matters now
 
-The following episodes should try real-source photography first:
-
-- mirror shot interrupted by a cat or dog
-- entryway or front-door outfit check with a pet waiting nearby
-- laid-out knit, shirt, or skirt scene interrupted by a pet
-- walk-ready or outing-ready outfit scene with leash, bag, shoes, or carrier in frame
-- home snapshot where a pet changes the tone of the fashion post without becoming the main subject
-
-## Acceptance Rules For Real Candidates
-
-A real-source candidate is strong enough when:
-
-- it reads like an actual lived-in photo rather than a campaign
-- the pet is part of the moment, not the hero subject
-- clothing or outfit context is still legible
-- the scene fits the intended episode more than it fits a generic pet-photo mood
-- a Korean community user plausibly could have uploaded something similar
-
-## Current Candidate Inventory
-
-The repository-local candidate list lives in:
-
-- [`/Users/jongtaelee/Documents/camel-ai-study/data/real-photo-preferred-pet-lifestyle-candidates.json`](data/real-photo-preferred-pet-lifestyle-candidates.json)
-
-That inventory currently captures:
-
-- episode target
-- preferred target posts
-- source provider
-- candidate page URL
-- licensing note
-- fit assessment
-- acquisition status
-
-## Current Acquisition Constraint
-
-During issue `#69` execution, candidate page URLs could be identified, but automated fetch access to Pexels page endpoints returned `403` for repository-side bot requests.
-
-That means:
-
-- the original Pexels-first candidates are still curated and logged
-- browser-led download or alternate provider substitution is required when those page endpoints remain blocked
-- real-source replacements have now been packaged for `T10`, `T12`, `T17`, and `T18` through an alternate free-source substitution route
-- generated pet-episode imagery remains fallback-only for any future pet post that still lacks an approved packaged real asset
-
-## Current Packaged Real Assets
-
-Issue `#69` now ships these repository-local real-photo replacements:
-
-- `T10` -> `public/real-photo-pet-scenes/t10-unsplash-real-pet-scene.jpg`
-- `T12` -> `public/real-photo-pet-scenes/t12-unsplash-real-pet-scene.jpg`
-- `T17` -> `public/real-photo-pet-scenes/t17-unsplash-real-pet-scene.jpg`
-- `T18` -> `public/real-photo-pet-scenes/t18-unsplash-real-pet-scene.jpg`
-
-## Fallback-Only Rule
-
-Use AI-generated pet/lifestyle imagery only when all of the following are true:
-
-- a real-source candidate has not yet been acquired or approved
-- the post still needs visual support to remain believable
-- the generated image passes realism review and does not look like a pet campaign
-- the generated image is attached as fallback support, not as the default asset strategy
-
-## Downstream Handoff
-
-Downstream work should follow this order:
-
-1. Check the real-photo candidate inventory for the episode type.
-2. If a candidate can be legally and operationally acquired, prefer that route.
-3. If acquisition is blocked or no strong candidate exists, fall back to issue `#66` style generated support imagery.
-4. Replace generated pet-episode attachments once real-source assets are packaged and approved.
-
-## Related Issues
-
-- Real-photo-preferred strategy: `#69`
-- Generated fallback execution: `#66`
-- Lifestyle direction handoff: `#64`
+This is no longer only an asset-quality rule.
+It is also a world-quality rule for simulations that depend on believable exposure material.

@@ -1,119 +1,104 @@
 # Current Product State
 
-This document is the consolidation deliverable for GitHub issue `#30`.
+This document is the active repository state summary for the phase-2 direction.
 
-It summarizes the major product and implementation decisions that were made through discussion and GitHub issues, and it points contributors to the current source-of-truth documents.
+## Where the project is now
 
-## What Changed Over Time
-
-The project moved through four main stages:
+The repository has moved through five stages:
 
 1. Mock realism and source grounding
-- Early work focused on making the mock feel more like a live product by grounding posts in real products and more believable fashion discussion.
-- Related issues: `#1`, `#2`, `#3`, `#4`
+- the project began as a high-fidelity fashion-community mock
 
 2. Content-image alignment
-- Product discussion identified that text and imagery often did not match, which broke trust.
-- The team then separated:
-  - alignment model definition
-  - asset acquisition workflow
-  - generated image policy
-- Related issues: `#5`, `#6`, `#7`
+- the team created rules to make post claims, imagery, and product references cohere
 
-3. Image/UI implementation drift
-- Later implementation improved trust in some areas, but internal alignment concepts began leaking into user-facing UI.
-- This created heavy, system-explanatory product modules instead of lightweight product previews.
-- Related issues: `#19`, `#20`, `#25`, `#27`
+3. UI/policy stabilization
+- the repository added policy docs to prevent drift into lookbook, commerce, or debug-heavy presentation
 
-4. Policy stabilization
-- The repository now treats markdown policy documents as the source of truth for avoiding repeated UX drift.
-- Related issues: `#29`, `#30`, `#31`
+4. Seed-world expansion
+- the feed expanded into fashion-centered lifestyle and pet-adjacent moments to make the world warmer and more believable
 
-## Source-of-Truth Documents
+5. AI-native pivot and phase-2 alignment
+- the project now treats the visible forum as a seed world inside a larger simulation and digital-twin roadmap
+- the repository is aligning with a MiroFish-to-OASIS progression plus a CAMEL Workforce company loop
 
-The following documents should be treated as active policy/reference material.
-
-### Product identity
-- [`/docs/product-identity.md`](./product-identity.md)
-- Purpose: defines the service identity and the top-level rule that text-led discussion stays primary
-
-### Alignment model
-- [`/docs/content-image-alignment-data-model.md`](./content-image-alignment-data-model.md)
-- Purpose: defines the post-level alignment structure between text intent, products, and image evidence
-
-### Generated image policy
-- [`/docs/generated-image-policy.md`](./generated-image-policy.md)
-- Purpose: defines when generated images are acceptable and how they relate to alignment needs
-
-### Product image binding and layout rules
-- [`/docs/product-image-binding-layout-rules.md`](./product-image-binding-layout-rules.md)
-- Purpose: defines how named products map to product visuals and layout patterns
-
-### User-facing product mention card policy
-- [`/docs/product-mention-card-policy.md`](./product-mention-card-policy.md)
-- Purpose: defines what should and should not appear in the production UI when products are mentioned in posts
-
-### Review checklist
-- [`/docs/review-checklist.md`](./review-checklist.md)
-- Purpose: defines the Keep / Reduce / Remove / Defer review method and the identity review questions used after shipping
-
-### Meeting handoff workflow
-- [`/docs/meeting-handoff-workflow.md`](./meeting-handoff-workflow.md)
-- Purpose: defines when meeting outcomes should be written into `docs/` as implementation handoff material instead of relying on issue text alone
-
-### Lifestyle and pet expansion handoff
-- [`/docs/lifestyle-pet-expansion-meeting-handoff.md`](./lifestyle-pet-expansion-meeting-handoff.md)
-- Purpose: defines the approved shift toward a fashion-centered lifestyle community with pet-episode content and provides shared handoff guidance for frontend implementation and image generation
-
-### Korean UGC outfit-shot guidance
-- [`/docs/korean-ugc-outfit-shot-guidance.md`](./korean-ugc-outfit-shot-guidance.md)
-- Purpose: defines how outfit-oriented imagery should stay grounded in believable Korean everyday mobile UGC instead of preview-surface polish
-
-## Current Product Direction
+## Active direction
 
 The current agreed direction is:
-- the app is a text-first fashion discussion product
-- the app should look like a believable live Korean fashion discussion product
-- text and imagery should support each other
-- named products should show actual product visuals
-- user-facing product cards should remain lightweight mention previews
-- internal evidence/fallback/generated terminology should not appear in production UI
 
-## What Is Historical vs Active
+- AI Fashion Forum is an AI-native fashion forum living system
+- the current mock is a seed-world surface, not the whole product definition
+- MiroFish-style seed validation is the short-run mechanism-testing layer
+- OASIS-style scaling and digital-twin infrastructure is the phase-2 direction
+- CAMEL Workforce-style company agents are the product-iteration layer
+- seed-world realism remains required because bad realism poisons simulation quality
 
-### Historical input
-These issues matter as decision history, but should not be treated as the latest UX source by themselves:
-- `#1` to `#4`
-- `#19`
-- `#20`
-- `#25`
-- `#27`
+## Active document roles
 
-### Active implementation and policy anchors
-These are the current issues/docs that contributors should reference:
-- `#41` product identity and workflow institutionalization
-- `#29` product mention card policy documentation
-- `#30` consolidated repository summary
-- `#31` apply the policy to the current UI
+### Top-level direction
 
-## Current Implementation Risks
+- [`/docs/product-identity.md`](./product-identity.md)
+- [`/docs/phase-2-ai-native-forum-direction.md`](./phase-2-ai-native-forum-direction.md)
 
-The main risks still to watch for are:
-- internal system language leaking into user-facing product UI
-- outfit posts drifting toward preview-surface polish instead of mirror-style Korean UGC
-- legacy mock/editorial assets being mislabeled as everyday Korean outfit evidence
-- product cards becoming too large or too commerce-heavy
-- metadata-only fallbacks pretending to solve a real product-visual requirement
-- repeated mismatch between what posts claim and what imagery actually helps users judge
+### Workflow and governance
 
-## Working Rule for Contributors
+- [`/docs/github-issue-workflow.md`](./github-issue-workflow.md)
+- [`/docs/meeting-handoff-workflow.md`](./meeting-handoff-workflow.md)
+- [`/docs/review-checklist.md`](./review-checklist.md)
 
-Before changing product/image UI, verify:
-1. Is the product mention actually visible with a real image?
-2. Is the user seeing a lightweight preview rather than a debug/evidence module?
-3. Are internal fields and fallback concepts hidden from production UI?
-4. Does the result still feel like a community post instead of a shopping widget?
-5. Is text still the main content rather than the supporting layer?
-6. If the post uses an outfit image, has that asset passed both metadata review and Korean UGC realism review?
+### Seed-world realism and content inputs
 
-If not, revisit the policy documents before shipping.
+- [`/docs/content-image-alignment-data-model.md`](./content-image-alignment-data-model.md)
+- [`/docs/generated-image-policy.md`](./generated-image-policy.md)
+- [`/docs/product-image-binding-layout-rules.md`](./product-image-binding-layout-rules.md)
+- [`/docs/product-mention-card-policy.md`](./product-mention-card-policy.md)
+- [`/docs/korean-ugc-outfit-shot-guidance.md`](./korean-ugc-outfit-shot-guidance.md)
+- [`/docs/lifestyle-pet-expansion-meeting-handoff.md`](./lifestyle-pet-expansion-meeting-handoff.md)
+- [`/docs/real-photo-preferred-pet-lifestyle-strategy.md`](./real-photo-preferred-pet-lifestyle-strategy.md)
+
+## What is now historical vs active
+
+### Historical as final-product framing
+
+The following older framing is no longer sufficient by itself:
+
+- “the goal is only a polished static mock”
+- “text-first fashion discussion UI is the whole product”
+- “image and card policy are the top-level product thesis”
+
+### Still active as seed-world support
+
+These assets and docs still matter:
+
+- post realism work
+- image sourcing and alignment rules
+- product-card constraints
+- Korean UGC guidance
+- fashion/lifestyle/pet content mix decisions
+
+They are now used as:
+
+- world-building inputs
+- seed-pack material
+- realism guardrails
+- simulation scenario components
+
+## Current implementation risks
+
+The main risks are now:
+
+- treating simulation as abstract agent theater without fashion-community specificity
+- keeping docs mock-centric after the project has moved into AI-native validation/scaling
+- failing to define replayable actions, traces, or intervention artifacts
+- letting seed-world realism degrade because it is “only mock content”
+- letting specialized image or UI docs continue to read like the final product thesis
+
+## Working rule for contributors
+
+Before changing docs, data, or product-facing surfaces, verify:
+
+1. Is this a seed-world realism change, a simulation-mechanics change, a company-loop change, or a twin/productization change?
+2. Does the change improve explainability of behavior, not only appearance?
+3. Does the project still look and sound like a believable fashion forum?
+4. If the change introduces new state or actions, are they replayable or at least specifiable?
+5. If the change touches imagery or UI, does it remain subordinate to the larger simulation direction?
