@@ -158,3 +158,19 @@ This preserves the spirit of the original “first 10” list while grouping wor
 - `#111` Implement social-dynamics evaluator and batch experiment runner
 - `#114` Design the sim-server API and background job queue
 - `#115` Set up staging, resilience guardrails, cost tracking, and the MVP demo scenario
+- `#117` Define local-export replay format and GitHub Pages viewer mode
+
+## Additional deployment-mode issue
+
+The main backlog was already issued when the Pages deployment decision was clarified further.
+
+To capture that decision without reshuffling the whole backlog, the repository now also tracks:
+
+- `#117` Define local-export replay format and GitHub Pages viewer mode
+
+This issue cross-cuts:
+
+- `#108` core forum UI
+- `#109` replay timeline UI
+- `#114` sim-server API and queue
+- `#115` demo packaging and operational delivery
