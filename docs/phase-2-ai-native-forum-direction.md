@@ -99,6 +99,12 @@ The repository may still ship a forum-like mock or MVP surface, but that surface
 - sync with the twin
 - receive simulation-driven recommendations
 
+For the current repository deployment model:
+
+- GitHub Pages should be treated as a static replay viewer host
+- live simulation execution belongs in local or server-capable environments
+- exported run artifacts are the contract between simulation execution and the Pages-hosted frontend
+
 ## What stays important
 
 - realism

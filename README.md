@@ -57,6 +57,12 @@ npm run preview
 
 This repository is configured to deploy to GitHub Pages with GitHub Actions on every push to `main`.
 
+Important deployment rule:
+
+- GitHub Pages is used as a static replay viewer host, not as a live simulation server
+- simulation runs should happen locally or on a server-capable environment
+- exported replay artifacts are what the deployed frontend reads
+
 GitHub settings required:
 
 1. Open repository `Settings`
@@ -82,6 +88,7 @@ Workflow file:
 - Meeting handoff workflow: [`/docs/meeting-handoff-workflow.md`](./docs/meeting-handoff-workflow.md)
 - Meeting handoff template: [`/docs/meeting-handoff-template.md`](./docs/meeting-handoff-template.md)
 - Round-1 pivot handoff: [`/docs/identity-formation-agent-pivot-round1-meeting-handoff.md`](./docs/identity-formation-agent-pivot-round1-meeting-handoff.md)
+- Local export replay handoff: [`/docs/local-export-replay-viewer-meeting-handoff.md`](./docs/local-export-replay-viewer-meeting-handoff.md)
 
 ### Seed-world and realism-support docs
 
