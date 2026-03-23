@@ -2,6 +2,7 @@ import http from "node:http";
 
 import {
   createExposureSample,
+  createIdentityScenarioSuite,
   createMemoryBootstrapState,
   createMemorySample,
   createMockNormalizedContentBundle,
@@ -101,6 +102,12 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/identity-scenarios") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(createIdentityScenarioSuite()));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
@@ -116,6 +123,7 @@ const server = http.createServer(async (request, response) => {
           "/api/exposure-sample?agent=A01&pool=20",
           "/api/memory-bootstrap",
           "/api/memory-sample?seed=42&ticks=6&agent=A01",
+          "/api/identity-scenarios",
         ],
       }),
     );

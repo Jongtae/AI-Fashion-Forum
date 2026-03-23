@@ -95,6 +95,7 @@ Useful sim-server endpoints:
 - `GET /api/exposure-sample?agent=A01&pool=20`
 - `GET /api/memory-bootstrap`
 - `GET /api/memory-sample?seed=42&ticks=6&agent=A01`
+- `GET /api/identity-scenarios`
 
 GitHub settings required:
 
@@ -113,6 +114,7 @@ Workflow file:
 - Stack ADR baseline: [`/docs/adr/001-stack.md`](./docs/adr/001-stack.md)
 - Chroma indexing and biased exposure: [`/docs/chroma-indexing-and-biased-exposure.md`](./docs/chroma-indexing-and-biased-exposure.md)
 - Content-provider normalization: [`/docs/content-provider-normalization.md`](./docs/content-provider-normalization.md)
+- Identity update rules: [`/docs/identity-update-rules.md`](./docs/identity-update-rules.md)
 - Memory and self-narrative: [`/docs/memory-and-self-narrative.md`](./docs/memory-and-self-narrative.md)
 - Product identity: [`/docs/product-identity.md`](./docs/product-identity.md)
 - Phase-2 direction summary: [`/docs/phase-2-ai-native-forum-direction.md`](./docs/phase-2-ai-native-forum-direction.md)
