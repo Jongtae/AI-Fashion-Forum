@@ -13,3 +13,5 @@ export function createSeedWorldBootstrap() {
     ],
   };
 }
+
+export * from "./tick-engine.js";
