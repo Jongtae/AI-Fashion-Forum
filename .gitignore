@@ -3,3 +3,5 @@ dist
 .DS_Store
 *.log
 /.codex/
+apps/sim-server/data/
+apps/sim-server/apps/
