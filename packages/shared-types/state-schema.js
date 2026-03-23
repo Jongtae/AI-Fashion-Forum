@@ -21,6 +21,9 @@ export const CONTENT_FORMATS = Object.freeze([
   "daily_snapshot",
   "pet_episode",
   "empathy_post",
+  "trend_report",
+  "style_signal",
+  "scene_note",
 ]);
 
 export const GRAPH_NODE_LABELS = Object.freeze({

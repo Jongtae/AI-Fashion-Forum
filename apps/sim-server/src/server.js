@@ -1,6 +1,7 @@
 import http from "node:http";
 
 import {
+  createMockNormalizedContentBundle,
   createBaselineWorldRules,
   createSeedWorldBootstrap,
   runTicks,
@@ -13,7 +14,7 @@ import {
 
 const port = Number(process.env.SIM_SERVER_PORT || SIM_SERVER_PORT);
 
-const server = http.createServer((request, response) => {
+const server = http.createServer(async (request, response) => {
   const { method, url } = request;
 
   if (method === "GET" && url === "/health") {
@@ -49,13 +50,29 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/normalized-content-sample") {
+    const normalizedBundle = await createMockNormalizedContentBundle({
+      startTick: 20,
+    });
+
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(normalizedBundle));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
       JSON.stringify({
         service: "sim-server",
         scenario: MVP_DEMO_SCENARIO.name,
-        endpoints: ["/health", "/api/demo-scenario", "/api/state-snapshot", "/api/run-sample?seed=42&ticks=10"],
+        endpoints: [
+          "/health",
+          "/api/demo-scenario",
+          "/api/state-snapshot",
+          "/api/run-sample?seed=42&ticks=10",
+          "/api/normalized-content-sample",
+        ],
       }),
     );
     return;
