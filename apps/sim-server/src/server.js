@@ -8,6 +8,7 @@ import {
   createMemoryBootstrapState,
   createMemorySample,
   createMockNormalizedContentBundle,
+  createRankingSample,
   createBaselineWorldRules,
   createSeedWorldBootstrap,
   runTicks,
@@ -122,6 +123,12 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/ranking-sample") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(createRankingSample()));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
@@ -140,6 +147,7 @@ const server = http.createServer(async (request, response) => {
           "/api/identity-scenarios",
           "/api/action-space-sample",
           "/api/forum-generation-sample",
+          "/api/ranking-sample",
         ],
       }),
     );
