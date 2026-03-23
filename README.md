@@ -102,6 +102,7 @@ Useful sim-server endpoints:
 - `GET /api/meta-policy-sample`
 - `GET /api/debug-console-sample`
 - `GET /api/evaluation-sample`
+- `GET /api/batch-experiment-sample`
 - `GET /api/graph-storage-sample`
 
 GitHub settings required:
@@ -129,6 +130,7 @@ Workflow file:
 - Meta policy and events: [`/docs/meta-policy-and-events.md`](./docs/meta-policy-and-events.md)
 - Retrieval and decision-debug console: [`/docs/retrieval-and-decision-debug-console.md`](./docs/retrieval-and-decision-debug-console.md)
 - Core metrics and consistency: [`/docs/core-metrics-and-consistency.md`](./docs/core-metrics-and-consistency.md)
+- Social dynamics and batch runner: [`/docs/social-dynamics-and-batch-runner.md`](./docs/social-dynamics-and-batch-runner.md)
 - Graph sync and event log: [`/docs/graph-sync-and-event-log.md`](./docs/graph-sync-and-event-log.md)
 - Product identity: [`/docs/product-identity.md`](./docs/product-identity.md)
 - Phase-2 direction summary: [`/docs/phase-2-ai-native-forum-direction.md`](./docs/phase-2-ai-native-forum-direction.md)
