@@ -25,4 +25,5 @@ export * from "./memory-stack.js";
 export * from "./action-space.js";
 export * from "./ranking-core.js";
 export * from "./meta-policy.js";
+export * from "./social-dynamics.js";
 export * from "./tick-engine.js";

@@ -13,6 +13,7 @@ import {
   createMetaPolicySample,
   createMockNormalizedContentBundle,
   createRankingSample,
+  createBatchExperimentSample,
   createBaselineWorldRules,
   createSeedWorldBootstrap,
   runTicks,
@@ -158,6 +159,12 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/batch-experiment-sample") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(createBatchExperimentSample()));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
@@ -181,6 +188,7 @@ const server = http.createServer(async (request, response) => {
           "/api/graph-storage-sample",
           "/api/debug-console-sample",
           "/api/evaluation-sample",
+          "/api/batch-experiment-sample",
         ],
       }),
     );
