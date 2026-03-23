@@ -1,6 +1,7 @@
 import http from "node:http";
 
 import {
+  createActionSample,
   createExposureSample,
   createIdentityScenarioSuite,
   createMemoryBootstrapState,
@@ -108,6 +109,12 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/action-space-sample") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(createActionSample()));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
@@ -124,6 +131,7 @@ const server = http.createServer(async (request, response) => {
           "/api/memory-bootstrap",
           "/api/memory-sample?seed=42&ticks=6&agent=A01",
           "/api/identity-scenarios",
+          "/api/action-space-sample",
         ],
       }),
     );

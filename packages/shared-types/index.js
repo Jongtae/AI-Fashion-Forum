@@ -47,3 +47,4 @@ export * from "./state-schema.js";
 export * from "./sample-data.js";
 export * from "./content-provider.js";
 export * from "./memory-schema.js";
+export * from "./action-schema.js";
