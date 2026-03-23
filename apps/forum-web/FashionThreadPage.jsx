@@ -1,5 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  createBaselineWorldRules,
+  createSeededWorld,
+  runSingleTick,
+} from "../../packages/agent-core/tick-engine.js";
+import {
   ArrowLeft,
   BadgeCheck,
   Bookmark,
@@ -7,10 +12,14 @@ import {
   Heart,
   Home,
   MessageCircle,
+  Pause,
   PenSquare,
+  Play,
   Repeat2,
   Search,
   Send,
+  SkipForward,
+  SlidersHorizontal,
   User,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -1251,6 +1260,86 @@ const AUTHOR_PROFILE_MAP = Object.fromEntries(AUTHOR_PROFILES.map((profile) => [
 const TOPIC_PAGES = buildTopicPages(FEED_POSTS);
 const TOPIC_PAGE_MAP = Object.fromEntries(TOPIC_PAGES.map((topic) => [topic.id, topic]));
 
+const SIM_POLICY_FLAGS = {
+  baseline: "baseline",
+  dampenAggression: "dampen_aggression",
+  hideAggression: "hide_aggression",
+};
+
+const SIM_POLICY_OPTIONS = [
+  SIM_POLICY_FLAGS.baseline,
+  SIM_POLICY_FLAGS.dampenAggression,
+  SIM_POLICY_FLAGS.hideAggression,
+];
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function buildSimulationBookmark(entry, index) {
+  const pulse = entry.world_effects?.find((effect) => effect.note?.includes("pulse")) || null;
+  const isMajor = entry.action === "post" || entry.action === "comment" || Boolean(pulse);
+
+  if (!isMajor) {
+    return null;
+  }
+
+  return {
+    id: `bookmark-${entry.tick}-${index}`,
+    tick: entry.tick + 1,
+    title: `Tick ${entry.tick + 1} · ${entry.action}`,
+    note: pulse?.note || entry.reason,
+  };
+}
+
+function buildSimulationRunView(world, policyFlag, runId = "live") {
+  const entries = clone(world.replay.entries);
+  const snapshots = clone(world.replay.snapshots);
+  const bookmarks = entries
+    .map((entry, index) => buildSimulationBookmark(entry, index))
+    .filter(Boolean);
+  const divergenceMoments = entries
+    .map((entry, index) => {
+      const previous = entries[index - 1];
+      const actionShift = !previous || previous.action !== entry.action;
+
+      if (!actionShift && entry.action !== "post") {
+        return null;
+      }
+
+      return {
+        id: `divergence-${entry.tick}`,
+        tick: entry.tick + 1,
+        title: actionShift ? `${entry.action} branch opened` : "identity drift checkpoint",
+        note: entry.reason,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 6);
+
+  return {
+    id: runId,
+    seed: world.seed,
+    policyFlag,
+    tick: world.tick,
+    entries,
+    snapshots,
+    bookmarks,
+    divergenceMoments,
+    latestEntry: entries[entries.length - 1] || null,
+  };
+}
+
+function buildSnapshotAgents(snapshot) {
+  return snapshot.agents.slice(0, 5).map((agent) => ({
+    id: agent.agent_id,
+    handle: agent.handle,
+    activity: agent.activity_level,
+    repeatedRepliers: agent.relationship_summary.repeated_repliers || 0,
+    narrative: agent.self_narrative.slice(-1)[0] || "No new visible narrative yet.",
+  }));
+}
+
 function authorInitials(author) {
   return author
     .split(".")
@@ -1996,6 +2085,7 @@ export default function FashionThreadPage() {
   const [selectedPostId, setSelectedPostId] = useState(FEED_POSTS[0].id);
   const [selectedProfileId, setSelectedProfileId] = useState(AUTHOR_PROFILES[0]?.id || null);
   const [selectedTopicId, setSelectedTopicId] = useState(TOPIC_PAGES[0]?.id || null);
+  const worldRef = useRef(createSeededWorld({ seed: 42, worldRules: createBaselineWorldRules() }));
   const [commentsByPost, setCommentsByPost] = useState(INITIAL_COMMENTS);
   const [postLiked, setPostLiked] = useState(false);
   const [postSaved, setPostSaved] = useState(false);
@@ -2003,11 +2093,25 @@ export default function FashionThreadPage() {
   const [replyOpenId, setReplyOpenId] = useState(null);
   const [expandedReplies, setExpandedReplies] = useState({});
   const [activeSearchQuery, setActiveSearchQuery] = useState("렉토 팬츠");
+  const [simSeedInput, setSimSeedInput] = useState("42");
+  const [simPolicyFlag, setSimPolicyFlag] = useState(SIM_POLICY_FLAGS.baseline);
+  const [liveRun, setLiveRun] = useState(() =>
+    buildSimulationRunView(worldRef.current, SIM_POLICY_FLAGS.baseline),
+  );
+  const [savedRuns, setSavedRuns] = useState([]);
+  const [selectedRunId, setSelectedRunId] = useState("live");
+  const [replayCursor, setReplayCursor] = useState(0);
+  const [isSimRunning, setIsSimRunning] = useState(false);
   const navigationStackRef = useRef([]);
 
   const activePost = FEED_POSTS.find((post) => post.id === selectedPostId) ?? FEED_POSTS[0];
   const activeProfile = AUTHOR_PROFILE_MAP[selectedProfileId] ?? AUTHOR_PROFILES[0];
   const activeTopic = TOPIC_PAGE_MAP[selectedTopicId] ?? TOPIC_PAGES[0];
+  const selectedRun = selectedRunId === "live"
+    ? liveRun
+    : savedRuns.find((run) => run.id === selectedRunId) || liveRun;
+  const replaySnapshot = selectedRun.snapshots[replayCursor] || selectedRun.snapshots[selectedRun.snapshots.length - 1];
+  const replayAgents = replaySnapshot ? buildSnapshotAgents(replaySnapshot) : [];
   const comments = commentsByPost[selectedPostId] ?? [];
 
   const { roots, repliesByParent } = useMemo(() => {
@@ -2112,6 +2216,46 @@ export default function FashionThreadPage() {
     navigateTo("topic", { topicId });
   };
 
+  const syncLiveRun = (world, nextPolicyFlag = simPolicyFlag) => {
+    const nextRun = buildSimulationRunView(world, nextPolicyFlag);
+    setLiveRun(nextRun);
+    setSelectedRunId("live");
+    setReplayCursor(nextRun.entries.length);
+  };
+
+  const resetSimulation = ({
+    seed = Number(simSeedInput) || 42,
+    policyFlag = simPolicyFlag,
+  } = {}) => {
+    const nextWorld = createSeededWorld({
+      seed,
+      worldRules: createBaselineWorldRules(),
+    });
+    worldRef.current = nextWorld;
+    setIsSimRunning(false);
+    syncLiveRun(nextWorld, policyFlag);
+  };
+
+  const stepSimulation = (stepCount = 1) => {
+    for (let index = 0; index < stepCount; index += 1) {
+      runSingleTick(worldRef.current);
+    }
+
+    syncLiveRun(worldRef.current, simPolicyFlag);
+  };
+
+  const saveCurrentRun = () => {
+    const archivedRun = {
+      ...clone(liveRun),
+      id: `saved-${liveRun.seed}-${liveRun.tick}-${savedRuns.length + 1}`,
+      label: `seed ${liveRun.seed} / ${liveRun.policyFlag} / tick ${liveRun.tick}`,
+    };
+
+    setSavedRuns((current) => [archivedRun, ...current].slice(0, 6));
+    setSelectedRunId(archivedRun.id);
+    setReplayCursor(archivedRun.entries.length);
+  };
+
   const toggleCommentLike = (id) => {
     setCommentsByPost((current) => ({
       ...current,
@@ -2170,6 +2314,31 @@ export default function FashionThreadPage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [view, selectedPostId, activeSearchQuery]);
 
+  useEffect(() => {
+    if (!isSimRunning) {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      runSingleTick(worldRef.current);
+      syncLiveRun(worldRef.current, simPolicyFlag);
+    }, 900);
+
+    return () => window.clearInterval(timer);
+  }, [isSimRunning, simPolicyFlag]);
+
+  useEffect(() => {
+    if (selectedRunId === "live") {
+      setReplayCursor(liveRun.entries.length);
+      return;
+    }
+
+    const archived = savedRuns.find((run) => run.id === selectedRunId);
+    if (archived) {
+      setReplayCursor(archived.entries.length);
+    }
+  }, [selectedRunId, liveRun.entries.length, savedRuns]);
+
   const openFeed = () => navigateTo("feed");
   const openSearch = () => navigateTo("search");
 
@@ -2178,7 +2347,7 @@ export default function FashionThreadPage() {
       <div className="sticky top-0 z-20 border-b border-zinc-800 bg-[#111217]/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-5">
           <div className="flex items-center gap-3">
-            {view === "thread" || view === "search" || view === "profile" || view === "topic" ? (
+            {view === "thread" || view === "search" || view === "profile" || view === "topic" || view === "sim" ? (
               <button
                 type="button"
                 onClick={goBack}
@@ -2214,6 +2383,8 @@ export default function FashionThreadPage() {
                       ? `profile / ${activeProfile.author}`
                       : view === "topic"
                         ? `topic / ${activeTopic.title}`
+                        : view === "sim"
+                          ? `sim / seed ${selectedRun.seed}`
                         : activePost.title}
               </p>
             </div>
@@ -2227,6 +2398,8 @@ export default function FashionThreadPage() {
                   ? `${activeProfile.representativePosts.length} threads`
                   : view === "topic"
                     ? `${activeTopic.reactionSummary.replies} replies`
+                    : view === "sim"
+                      ? `tick ${selectedRun.tick}`
                     : `${activePost.replies} replies`}
           </div>
         </div>
@@ -2963,6 +3136,225 @@ export default function FashionThreadPage() {
             </div>
           </motion.section>
         )}
+
+        {view === "sim" && (
+          <motion.section
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="border-x border-zinc-900 bg-[#111217]"
+          >
+            <div className="border-b border-zinc-800 bg-[#151821] px-4 py-5 sm:px-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-zinc-500">
+                      operator surface
+                    </span>
+                    <p className="text-lg font-semibold text-zinc-100">Simulation controls and replay timeline</p>
+                  </div>
+                  <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">
+                    deterministic local world를 브라우저에서 직접 실행하고, seed와 policy를 바꿔가며 identity divergence가 언제 생겼는지 북마크와 타임라인으로 다시 볼 수 있습니다.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:w-[420px]">
+                  <div className="border border-zinc-800 bg-zinc-950 p-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Seed</p>
+                    <input
+                      value={simSeedInput}
+                      onChange={(event) => setSimSeedInput(event.target.value)}
+                      className="mt-2 w-full border border-zinc-800 bg-black px-3 py-2 text-sm text-zinc-100 outline-none"
+                    />
+                  </div>
+                  <div className="border border-zinc-800 bg-zinc-950 p-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Policy</p>
+                    <select
+                      value={simPolicyFlag}
+                      onChange={(event) => {
+                        const nextFlag = event.target.value;
+                        setSimPolicyFlag(nextFlag);
+                        setLiveRun((current) => ({ ...current, policyFlag: nextFlag }));
+                      }}
+                      className="mt-2 w-full border border-zinc-800 bg-black px-3 py-2 text-sm text-zinc-100 outline-none"
+                    >
+                      {SIM_POLICY_OPTIONS.map((flag) => (
+                        <option key={flag} value={flag}>
+                          {flag}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => resetSimulation()}
+                  className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 transition hover:bg-zinc-800"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  Reset run
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsSimRunning((current) => !current)}
+                  className="inline-flex items-center gap-2 border border-zinc-700 bg-white px-3 py-2 text-sm text-black transition hover:bg-zinc-200"
+                >
+                  {isSimRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  {isSimRunning ? "Pause" : "Start / Resume"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => stepSimulation(1)}
+                  className="inline-flex items-center gap-2 border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-900"
+                >
+                  <SkipForward className="h-4 w-4" />
+                  Step tick
+                </button>
+                <button
+                  type="button"
+                  onClick={saveCurrentRun}
+                  className="inline-flex items-center gap-2 border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-900"
+                >
+                  <Bookmark className="h-4 w-4" />
+                  Save run
+                </button>
+              </div>
+            </div>
+
+            <div className="grid gap-4 px-4 py-4 lg:grid-cols-[1.15fr_0.85fr] sm:px-5">
+              <div className="space-y-4">
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-zinc-100">Replay timeline</p>
+                      <p className="mt-1 text-sm text-zinc-500">saved run도 같은 scrubber로 다시 볼 수 있습니다.</p>
+                    </div>
+                    <select
+                      value={selectedRunId}
+                      onChange={(event) => setSelectedRunId(event.target.value)}
+                      className="border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none"
+                    >
+                      <option value="live">live run</option>
+                      {savedRuns.map((run) => (
+                        <option key={run.id} value={run.id}>
+                          {run.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mt-4 border border-zinc-800 bg-zinc-950 p-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-zinc-400">tick cursor</span>
+                      <span className="text-zinc-100">{replayCursor} / {selectedRun.entries.length}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max={Math.max(selectedRun.entries.length, 0)}
+                      value={Math.min(replayCursor, selectedRun.entries.length)}
+                      onChange={(event) => setReplayCursor(Number(event.target.value))}
+                      className="mt-4 w-full accent-white"
+                    />
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      <div className="border border-zinc-800 bg-black p-3">
+                        <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Seed</p>
+                        <p className="mt-2 text-lg font-semibold text-zinc-100">{selectedRun.seed}</p>
+                      </div>
+                      <div className="border border-zinc-800 bg-black p-3">
+                        <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Policy</p>
+                        <p className="mt-2 text-sm font-semibold text-zinc-100">{selectedRun.policyFlag}</p>
+                      </div>
+                      <div className="border border-zinc-800 bg-black p-3">
+                        <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Latest action</p>
+                        <p className="mt-2 text-sm font-semibold text-zinc-100">{selectedRun.latestEntry?.action || "none yet"}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 border border-zinc-800 bg-zinc-950 p-4">
+                    <p className="text-sm font-semibold text-zinc-100">Snapshot at tick {replayCursor}</p>
+                    <div className="mt-4 space-y-2">
+                      {replayAgents.map((agent) => (
+                        <div key={`${selectedRun.id}-${agent.id}-${replayCursor}`} className="border border-zinc-800 bg-black p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm text-zinc-100">{agent.handle}</p>
+                            <span className="text-xs text-zinc-500">activity {agent.activity.toFixed(3)}</span>
+                          </div>
+                          <p className="mt-2 text-xs text-zinc-500">repeated repliers {agent.repeatedRepliers}</p>
+                          <p className="mt-2 text-sm leading-6 text-zinc-300">{agent.narrative}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <p className="text-sm font-semibold text-zinc-100">Bookmarked events</p>
+                  <div className="mt-4 space-y-2">
+                    {selectedRun.bookmarks.length === 0 ? (
+                      <p className="text-sm text-zinc-500">북마크 가능한 큰 이벤트가 아직 없습니다.</p>
+                    ) : (
+                      selectedRun.bookmarks.map((bookmark) => (
+                        <button
+                          key={bookmark.id}
+                          type="button"
+                          onClick={() => setReplayCursor(bookmark.tick)}
+                          className="w-full border border-zinc-800 bg-zinc-950 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm text-zinc-100">{bookmark.title}</p>
+                            <span className="text-xs text-zinc-500">jump</span>
+                          </div>
+                          <p className="mt-2 text-sm leading-6 text-zinc-400">{bookmark.note}</p>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <p className="text-sm font-semibold text-zinc-100">Identity divergence checkpoints</p>
+                  <div className="mt-4 space-y-2">
+                    {selectedRun.divergenceMoments.map((moment) => (
+                      <button
+                        key={moment.id}
+                        type="button"
+                        onClick={() => setReplayCursor(moment.tick)}
+                        className="w-full border border-zinc-800 bg-zinc-950 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm text-zinc-100">{moment.title}</p>
+                          <span className="text-xs text-zinc-500">tick {moment.tick}</span>
+                        </div>
+                        <p className="mt-2 text-sm leading-6 text-zinc-400">{moment.note}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border border-zinc-900 bg-[#111217] p-4">
+                  <p className="text-sm font-semibold text-zinc-100">Action log</p>
+                  <div className="mt-4 space-y-2">
+                    {selectedRun.entries.slice().reverse().slice(0, 8).map((entry) => (
+                      <div key={`${selectedRun.id}-${entry.tick}`} className="border border-zinc-800 bg-zinc-950 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm text-zinc-100">Tick {entry.tick + 1} · {entry.action}</p>
+                          <span className="text-xs text-zinc-500">{entry.actor_id}</span>
+                        </div>
+                        <p className="mt-2 text-sm leading-6 text-zinc-400">{entry.reason}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.section>
+        )}
       </main>
 
       <div className="sticky bottom-0 z-20 border-t border-zinc-800 bg-[#111217]/95 backdrop-blur">
@@ -2980,6 +3372,13 @@ export default function FashionThreadPage() {
             className={`border px-3 py-2 text-sm transition ${view === "search" ? "border-zinc-700 bg-zinc-900 text-white" : "border-zinc-900 text-zinc-500 hover:border-zinc-800 hover:text-zinc-200"}`}
           >
             <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" />탐색</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigateTo("sim")}
+            className={`border px-3 py-2 text-sm transition ${view === "sim" ? "border-zinc-700 bg-zinc-900 text-white" : "border-zinc-900 text-zinc-500 hover:border-zinc-800 hover:text-zinc-200"}`}
+          >
+            <span className="inline-flex items-center gap-2"><SlidersHorizontal className="h-4 w-4" />시뮬</span>
           </button>
           <button
             type="button"
