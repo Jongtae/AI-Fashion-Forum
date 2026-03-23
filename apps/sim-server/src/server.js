@@ -1,6 +1,10 @@
 import http from "node:http";
 
-import { createSeedWorldBootstrap } from "@ai-fashion-forum/agent-core";
+import {
+  createBaselineWorldRules,
+  createSeedWorldBootstrap,
+  runTicks,
+} from "@ai-fashion-forum/agent-core";
 import {
   MVP_DEMO_SCENARIO,
   SAMPLE_STATE_SNAPSHOT,
@@ -30,13 +34,28 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (method === "GET" && url?.startsWith("/api/run-sample")) {
+    const requestUrl = new URL(url, `http://localhost:${port}`);
+    const seed = Number(requestUrl.searchParams.get("seed") || 42);
+    const tickCount = Number(requestUrl.searchParams.get("ticks") || 10);
+    const run = runTicks({
+      seed,
+      tickCount,
+      worldRules: createBaselineWorldRules(),
+    });
+
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(run));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
       JSON.stringify({
         service: "sim-server",
         scenario: MVP_DEMO_SCENARIO.name,
-        endpoints: ["/health", "/api/demo-scenario", "/api/state-snapshot"],
+        endpoints: ["/health", "/api/demo-scenario", "/api/state-snapshot", "/api/run-sample?seed=42&ticks=10"],
       }),
     );
     return;
