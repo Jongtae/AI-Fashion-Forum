@@ -28,6 +28,11 @@ const port = Number(process.env.SIM_SERVER_PORT || SIM_SERVER_PORT);
 const durableMemoryStorePath = new URL("../data/memory-store.json", import.meta.url);
 const eventLogStorePath = new URL("../data/event-log.json", import.meta.url);
 const jobStore = new Map();
+const MAX_TICK_GUARDRAIL = 120;
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
 
 function createJsonResponse(response, statusCode, payload) {
   response.writeHead(statusCode, { "content-type": "application/json" });
@@ -67,10 +72,26 @@ function serializeJob(job) {
     request: job.request,
     result: job.result,
     replay_length: job.result?.entries?.length || 0,
+    cost_tracking: job.cost_tracking,
+    error: job.error || null,
+  };
+}
+
+function estimateRunCost(tickCount) {
+  const estimatedPromptTokens = tickCount * 180;
+  const estimatedCompletionTokens = tickCount * 90;
+  const estimatedUsd = Number(((estimatedPromptTokens + estimatedCompletionTokens) * 0.0000025).toFixed(4));
+
+  return {
+    estimated_prompt_tokens: estimatedPromptTokens,
+    estimated_completion_tokens: estimatedCompletionTokens,
+    estimated_total_tokens: estimatedPromptTokens + estimatedCompletionTokens,
+    estimated_usd: estimatedUsd,
   };
 }
 
 function createSimulationJob({ seed = 42, tickCount = 10, label = "manual_run" } = {}) {
+  const guardedTickCount = Math.min(Math.max(Number(tickCount) || 10, 0), MAX_TICK_GUARDRAIL);
   const job = {
     job_id: `job-${Date.now()}-${jobStore.size + 1}`,
     status: "queued",
@@ -80,9 +101,11 @@ function createSimulationJob({ seed = 42, tickCount = 10, label = "manual_run" }
     max_retries: 2,
     request: {
       seed,
-      tickCount,
+      tickCount: guardedTickCount,
       label,
     },
+    cost_tracking: estimateRunCost(guardedTickCount),
+    error: null,
     result: null,
   };
 
@@ -95,17 +118,25 @@ function runSimulationJob(job, additionalTicks = 0) {
   job.attempts += 1;
   job.updated_at = new Date().toISOString();
 
-  const tickCount = Math.max(job.request.tickCount + additionalTicks, 0);
-  const result = runTicks({
-    seed: job.request.seed,
-    tickCount,
-    worldRules: createBaselineWorldRules(),
-  });
+  try {
+    const tickCount = Math.min(Math.max(job.request.tickCount + additionalTicks, 0), MAX_TICK_GUARDRAIL);
+    const result = runTicks({
+      seed: job.request.seed,
+      tickCount,
+      worldRules: createBaselineWorldRules(),
+    });
 
-  job.request.tickCount = tickCount;
-  job.result = result;
-  job.status = "completed";
-  job.updated_at = new Date().toISOString();
+    job.request.tickCount = tickCount;
+    job.cost_tracking = estimateRunCost(tickCount);
+    job.result = result;
+    job.error = null;
+    job.status = "completed";
+    job.updated_at = new Date().toISOString();
+  } catch (error) {
+    job.status = "failed";
+    job.error = error instanceof Error ? error.message : "unknown_job_error";
+    job.updated_at = new Date().toISOString();
+  }
 
   return job;
 }
@@ -134,6 +165,50 @@ function openApiContract() {
       "/api/jobs/{job_id}/replay": { get: { summary: "Read replay payload for a completed job" } },
       "/api/jobs/{job_id}/retry": { post: { summary: "Retry a job when attempts remain" } },
     },
+  };
+}
+
+function buildDemoState() {
+  const state = clone(SAMPLE_STATE_SNAPSHOT);
+  const extraAgents = [
+    {
+      ...clone(state.agents[0]),
+      agent_id: "A07",
+      handle: "quietwardrobe",
+      display_name: "Quiet Wardrobe",
+    },
+    {
+      ...clone(state.agents[2]),
+      agent_id: "A08",
+      handle: "subwaysignal",
+      display_name: "Subway Signal",
+    },
+  ];
+
+  state.agents = [...state.agents, ...extraAgents];
+  return state;
+}
+
+function createDemoRunPackage() {
+  const initialState = buildDemoState();
+  const run = runTicks({
+    seed: 77,
+    tickCount: 50,
+    initialState,
+    worldRules: createBaselineWorldRules(),
+  });
+
+  return {
+    name: "mvp-v1-demo-run",
+    staging_surface: "GitHub Pages + repository-local sim-server",
+    agent_count: initialState.agents.length,
+    tick_count: run.tickCount,
+    guardrails: {
+      max_tick_guardrail: MAX_TICK_GUARDRAIL,
+      graceful_failure_mode: "job_status_failed_instead_of_process_crash",
+    },
+    cost_tracking: estimateRunCost(run.tickCount),
+    run,
   };
 }
 
@@ -262,6 +337,24 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/staging-status") {
+    createJsonResponse(response, 200, {
+      environment: "github-pages-staging-equivalent",
+      shared_url: "https://jongtae.github.io/AI-Fashion-Forum/",
+      sim_server_mode: "repository_local",
+      guardrails: {
+        max_tick_guardrail: MAX_TICK_GUARDRAIL,
+        graceful_failures: true,
+      },
+    });
+    return;
+  }
+
+  if (method === "GET" && url === "/api/demo-run-package") {
+    createJsonResponse(response, 200, createDemoRunPackage());
+    return;
+  }
+
   if (method === "POST" && url === "/api/jobs/start") {
     try {
       const body = await readJsonBody(request);
@@ -340,6 +433,8 @@ const server = http.createServer(async (request, response) => {
         "/api/evaluation-sample",
         "/api/batch-experiment-sample",
         "/api/openapi-sample",
+        "/api/staging-status",
+        "/api/demo-run-package",
         "/api/jobs/start",
         "/api/jobs/{job_id}",
         "/api/jobs/{job_id}/tick",

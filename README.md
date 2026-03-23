@@ -104,6 +104,8 @@ Useful sim-server endpoints:
 - `GET /api/evaluation-sample`
 - `GET /api/batch-experiment-sample`
 - `GET /api/openapi-sample`
+- `GET /api/staging-status`
+- `GET /api/demo-run-package`
 - `POST /api/jobs/start`
 - `GET /api/jobs/{job_id}`
 - `POST /api/jobs/{job_id}/tick`
@@ -138,6 +140,7 @@ Workflow file:
 - Core metrics and consistency: [`/docs/core-metrics-and-consistency.md`](./docs/core-metrics-and-consistency.md)
 - Social dynamics and batch runner: [`/docs/social-dynamics-and-batch-runner.md`](./docs/social-dynamics-and-batch-runner.md)
 - sim-server API and queue: [`/docs/sim-server-api-and-queue.md`](./docs/sim-server-api-and-queue.md)
+- staging, guardrails, cost, and demo: [`/docs/staging-guardrails-cost-and-demo.md`](./docs/staging-guardrails-cost-and-demo.md)
 - Graph sync and event log: [`/docs/graph-sync-and-event-log.md`](./docs/graph-sync-and-event-log.md)
 - Product identity: [`/docs/product-identity.md`](./docs/product-identity.md)
 - Phase-2 direction summary: [`/docs/phase-2-ai-native-forum-direction.md`](./docs/phase-2-ai-native-forum-direction.md)
