@@ -1,0 +1,14 @@
+{
+  "name": "@ai-fashion-forum/sim-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@ai-fashion-forum/agent-core": "file:../../packages/agent-core",
+    "@ai-fashion-forum/shared-types": "file:../../packages/shared-types"
+  }
+}

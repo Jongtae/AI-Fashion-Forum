@@ -43,8 +43,16 @@ The existing React mock remains useful as:
 
 ```bash
 npm install
-npm run dev
+npm run dev:forum
+npm run dev:sim
 ```
+
+Workspace structure now starts from issue `#94`:
+
+- `apps/forum-web`: Vite-based forum viewer and seed-world mock
+- `apps/sim-server`: local simulation baseline server
+- `packages/shared-types`: shared scenario and service contracts
+- `packages/agent-core`: minimal agent/bootstrap wiring used by server-side flows
 
 ## Production build
 
@@ -62,6 +70,25 @@ Important deployment rule:
 - GitHub Pages is used as a static replay viewer host, not as a live simulation server
 - simulation runs should happen locally or on a server-capable environment
 - exported replay artifacts are what the deployed frontend reads
+
+## Local service baseline
+
+The team can boot each app layer independently:
+
+```bash
+npm run dev:forum
+npm run dev:sim
+```
+
+Default local ports:
+
+- forum web: `5173`
+- sim server: `4318`
+
+Useful sim-server endpoints:
+
+- `GET /health`
+- `GET /api/demo-scenario`
 
 GitHub settings required:
 
@@ -117,4 +144,4 @@ Under the phase-2 direction, these should be treated as seed-world or realism-su
 
 The outfit-preview PoC manifest still lives in:
 
-- [`/src/data/openaiOutfitPreviewManifest.json`](./src/data/openaiOutfitPreviewManifest.json)
+- [`/apps/forum-web/src/data/openaiOutfitPreviewManifest.json`](./apps/forum-web/src/data/openaiOutfitPreviewManifest.json)
