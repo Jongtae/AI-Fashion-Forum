@@ -89,6 +89,9 @@ Useful sim-server endpoints:
 
 - `GET /health`
 - `GET /api/demo-scenario`
+- `GET /api/state-snapshot`
+- `GET /api/run-sample?seed=42&ticks=10`
+- `GET /api/normalized-content-sample`
 
 GitHub settings required:
 
@@ -105,6 +108,7 @@ Workflow file:
 ### Phase-2 direction and active policy
 
 - Stack ADR baseline: [`/docs/adr/001-stack.md`](./docs/adr/001-stack.md)
+- Content-provider normalization: [`/docs/content-provider-normalization.md`](./docs/content-provider-normalization.md)
 - Product identity: [`/docs/product-identity.md`](./docs/product-identity.md)
 - Phase-2 direction summary: [`/docs/phase-2-ai-native-forum-direction.md`](./docs/phase-2-ai-native-forum-direction.md)
 - Current state summary: [`/docs/current-product-state.md`](./docs/current-product-state.md)
