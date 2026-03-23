@@ -13,8 +13,34 @@ It is now defined as:
 - an AI-native fashion forum validation environment
 - a seed-world simulation where fashion taste, norms, and conflict patterns can emerge
 - a future digital twin whose behavior can inform product decisions
+- a society where identity differentiates through biased exposure, affect, reinforcement, and memory
 
 The visible mock remains important, but it is only one layer of the system.
+
+Search and retrieval are not the goal by themselves.
+They are inputs into identity formation.
+
+## System layers
+
+The repository should now be read as a modular system, not a single multi-agent framework:
+
+1. social simulation core
+- Concordia and/or Mesa style world logic
+
+2. orchestration loop
+- LangGraph style long-running stateful execution
+
+3. memory and retrieval
+- long-term memory plus vector retrieval for prior content and episodes
+
+4. relationship and identity graph
+- graph structure for affinities, conflict, clusters, and topic attachment
+
+5. forum environment and UI
+- feed, ranking, reactions, profiles, and surface realism
+
+6. company loop
+- product team and moderator/evaluator agents that observe and intervene
 
 ## Two-loop model
 
@@ -31,21 +57,22 @@ The repository should now be read through two interacting loops:
 
 ## Phase structure
 
-### Phase 1: seed validation with MiroFish
+### Phase 1: seed validation and identity-loop proof
 
 Use small, cheap, repeated simulations to validate:
 
 - whether stable taste clusters emerge
 - whether recognizable community norms appear
 - whether interventions measurably change behavior
+- whether identity differentiation can be explained from prior exposure and memory
 
 Artifacts in this phase include:
 
 - seed packs
-- ontology/graph outputs
 - personas
 - short-run simulation logs
 - interview notes
+- identity-change traces
 
 ### Phase 2: scaling with OASIS
 
@@ -62,6 +89,7 @@ Artifacts in this phase include:
 - simulation databases
 - dashboards
 - digital-twin adapters
+- richer feed and action mechanics inspired by social-platform simulators
 
 ### Productization
 
@@ -88,6 +116,7 @@ These are still essential, but now they are judged as simulation-world quality, 
 - data models should expand beyond post-only records into actions, traces, memory, and trajectories
 - review should evaluate community dynamics and mechanism stability in addition to visual realism
 - meetings and issues should explicitly state whether the work touches seed-world realism, simulation mechanics, company-loop tooling, or twin integration
+- contributors should avoid treating generic collaboration frameworks as the world engine unless they also define long-run identity state, memory, and environment rules
 
 ## Repository rule
 
