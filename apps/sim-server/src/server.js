@@ -2,6 +2,7 @@ import http from "node:http";
 
 import {
   createActionSample,
+  createDebugConsoleSample,
   createExposureSample,
   createForumGenerationSample,
   createGraphStorageSample,
@@ -144,6 +145,12 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/debug-console-sample") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(createDebugConsoleSample()));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
@@ -165,6 +172,7 @@ const server = http.createServer(async (request, response) => {
           "/api/ranking-sample",
           "/api/meta-policy-sample",
           "/api/graph-storage-sample",
+          "/api/debug-console-sample",
         ],
       }),
     );
