@@ -3,6 +3,7 @@ import http from "node:http";
 import {
   createActionSample,
   createExposureSample,
+  createForumGenerationSample,
   createIdentityScenarioSuite,
   createMemoryBootstrapState,
   createMemorySample,
@@ -115,6 +116,12 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (method === "GET" && url === "/api/forum-generation-sample") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify(createForumGenerationSample()));
+    return;
+  }
+
   if (method === "GET" && url === "/") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(
@@ -132,6 +139,7 @@ const server = http.createServer(async (request, response) => {
           "/api/memory-sample?seed=42&ticks=6&agent=A01",
           "/api/identity-scenarios",
           "/api/action-space-sample",
+          "/api/forum-generation-sample",
         ],
       }),
     );
