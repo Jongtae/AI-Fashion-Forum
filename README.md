@@ -99,6 +99,7 @@ Useful sim-server endpoints:
 - `GET /api/memory-sample?seed=42&ticks=6&agent=A01`
 - `GET /api/sprint1-memory-writeback-sample?agent=S01`
 - `GET /api/sprint1-agent-seed-sample`
+- `GET /api/sprint1-evaluation-sample`
 - `GET /api/identity-scenarios`
 - `GET /api/action-space-sample`
 - `GET /api/forum-generation-sample`
@@ -143,6 +144,7 @@ Workflow file:
 - Sprint 1 memory write-back: [`/docs/sprint1-memory-writeback.md`](./docs/sprint1-memory-writeback.md)
 - Sprint 1 state-driven posts: [`/docs/sprint1-state-driven-posts.md`](./docs/sprint1-state-driven-posts.md)
 - Sprint 1 replay drift UI: [`/docs/sprint1-replay-drift-ui.md`](./docs/sprint1-replay-drift-ui.md)
+- Sprint 1 divergence evaluation: [`/docs/sprint1-divergence-evaluation.md`](./docs/sprint1-divergence-evaluation.md)
 - Action space and light reactions: [`/docs/action-space-and-light-reactions.md`](./docs/action-space-and-light-reactions.md)
 - Forum generation and relationship updates: [`/docs/forum-generation-and-relationship-updates.md`](./docs/forum-generation-and-relationship-updates.md)
 - Ranking core and experiment flags: [`/docs/ranking-core-and-experiment-flags.md`](./docs/ranking-core-and-experiment-flags.md)

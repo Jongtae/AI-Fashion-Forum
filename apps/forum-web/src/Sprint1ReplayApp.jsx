@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
+  createSprint1EvaluationSnapshot,
   SPRINT1_AGENT_STATES,
   SPRINT1_FORUM_POSTS_BY_ROUND,
   SPRINT1_ROUND_SNAPSHOTS,
@@ -44,10 +45,14 @@ export default function Sprint1ReplayApp() {
   const [selectedAgentId, setSelectedAgentId] = useState("S01");
   const agentMap = useMemo(() => getAgentMap(), []);
   const roundPostMap = useMemo(() => getRoundPostMap(), []);
+  const evaluationSnapshot = useMemo(() => createSprint1EvaluationSnapshot(), []);
   const selectedRound =
     SPRINT1_ROUND_SNAPSHOTS.find((round) => round.round_id === selectedRoundId) ||
     SPRINT1_ROUND_SNAPSHOTS[0];
   const selectedRoundPosts = roundPostMap.get(selectedRound.round_id) || { posts: [], shared_content: null };
+  const selectedRoundEvaluation =
+    evaluationSnapshot.rounds.find((round) => round.round_id === selectedRound.round_id) ||
+    evaluationSnapshot.rounds[0];
   const selectedAgentSnapshot =
     selectedRound.agent_snapshots.find((snapshot) => snapshot.agent_id === selectedAgentId) ||
     selectedRound.agent_snapshots[0];
@@ -74,9 +79,56 @@ export default function Sprint1ReplayApp() {
               <AgentChip label="Agents" value={String(SPRINT1_AGENT_STATES.length)} />
               <AgentChip label="Rounds" value={String(SPRINT1_ROUND_SNAPSHOTS.length)} />
               <AgentChip label="Shared Stimulus" value="1" />
+              <AgentChip
+                label="Checks"
+                value={`${evaluationSnapshot.summary.pass_count}/${evaluationSnapshot.summary.total_checks}`}
+              />
             </div>
           </div>
         </header>
+
+        <section className="rounded-[28px] border border-zinc-800 bg-zinc-950/70 p-5">
+          <div className="mb-3 text-xs uppercase tracking-[0.25em] text-zinc-500">
+            Sprint 1 Evaluation
+          </div>
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-4">
+              <div className="text-sm font-semibold text-white">Acceptance Checks</div>
+              <div className="mt-3 space-y-2">
+                {evaluationSnapshot.acceptance_checks.map((check) => (
+                  <div
+                    key={check.id}
+                    className={`rounded-2xl border px-4 py-3 text-sm ${
+                      check.passed
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
+                        : "border-rose-500/30 bg-rose-500/10 text-rose-100"
+                    }`}
+                  >
+                    {check.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-3xl border border-zinc-800 bg-black/40 p-4">
+              <div className="text-sm font-semibold text-white">Selected Round Verdict</div>
+              <div className="mt-3 space-y-2">
+                {selectedRoundEvaluation.checks.map((check) => (
+                  <div
+                    key={check.id}
+                    className={`rounded-2xl border px-4 py-3 ${
+                      check.passed
+                        ? "border-emerald-500/30 bg-emerald-500/10"
+                        : "border-rose-500/30 bg-rose-500/10"
+                    }`}
+                  >
+                    <div className="text-sm font-semibold text-white">{check.label}</div>
+                    <div className="mt-1 text-xs leading-5 text-zinc-300">{check.details}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="space-y-4 rounded-[28px] border border-zinc-800 bg-zinc-950/70 p-4">
@@ -236,6 +288,47 @@ export default function Sprint1ReplayApp() {
                     </article>
                   ))}
                 </div>
+              </div>
+            </section>
+
+            <section className="rounded-[28px] border border-zinc-800 bg-zinc-950/70 p-5">
+              <div className="mb-3 text-xs uppercase tracking-[0.25em] text-zinc-500">
+                Traceability Chain
+              </div>
+              <div className="grid gap-3 lg:grid-cols-3">
+                {selectedRoundEvaluation.traceability.map((row) => (
+                  <article key={row.agent_id} className="rounded-3xl border border-zinc-800 bg-black/40 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-sm font-semibold text-white">{agentMap.get(row.agent_id)?.display_name}</div>
+                      <div
+                        className={`rounded-full border px-2.5 py-1 text-[11px] ${
+                          row.trace_complete
+                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
+                            : "border-rose-500/30 bg-rose-500/10 text-rose-100"
+                        }`}
+                      >
+                        {row.trace_complete ? "trace ok" : "trace gap"}
+                      </div>
+                    </div>
+                    <div className="mt-3 space-y-2 text-xs leading-5 text-zinc-300">
+                      <div>
+                        <span className="text-zinc-500">Seen</span> {row.seen_content_ids.join(", ")}
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">Reaction</span> {row.affect} / {row.stance}
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">Arc</span> {row.recent_arc}
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">Post</span>{" "}
+                        {row.resolved_post_titles.length > 0
+                          ? row.resolved_post_titles.join(" / ")
+                          : "missing generated post"}
+                      </div>
+                    </div>
+                  </article>
+                ))}
               </div>
             </section>
           </main>
