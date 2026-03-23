@@ -32,6 +32,14 @@ function clampScore(value) {
   return Math.max(0, Math.min(1, value));
 }
 
+function average(values) {
+  if (!values.length) {
+    return 0;
+  }
+
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
 function getCollectionIdForRecord(record) {
   const collection = CHROMA_COLLECTION_DEFINITIONS.find((definition) =>
     definition.source_types.includes(record.source_type),
@@ -249,6 +257,233 @@ export function selectBiasedExposure({
   };
 }
 
+function getSprint1MutableState(agentState) {
+  return agentState.mutable_state || {
+    current_interests: agentState.interest_vector || {},
+    current_beliefs: agentState.belief_vector || {},
+    attention_bias: {},
+    affect_state: {},
+    stance_markers: [],
+  };
+}
+
+function getSprint1SeedProfile(agentState) {
+  return agentState.seed_profile || {
+    emotional_bias: {},
+    value_seeds: {},
+    voice_notes: [],
+  };
+}
+
+function resolveValueSeed(agentState, key) {
+  const mutableState = getSprint1MutableState(agentState);
+  const seedProfile = getSprint1SeedProfile(agentState);
+  const aliases = {
+    care: ["care-over-performance"],
+    soft_routine: ["daily-utility"],
+    community: ["gentle-feedback-works"],
+    practicality: ["daily-utility", "fit-before-brand"],
+    repeatability: ["daily-utility"],
+    fairness: ["hype-obscures-tradeoffs"],
+    skepticism: ["hype-obscures-tradeoffs"],
+    novelty: ["novelty-has-value", "signal-before-consensus"],
+    signal: ["signal-before-consensus", "novelty-has-value"],
+    warmth: ["care-over-performance"],
+    home_life: ["care-over-performance"],
+    companionship: ["care-over-performance"],
+    comfort: ["texture-matters", "daily-utility"],
+    quality: ["texture-matters"],
+  };
+  const candidates = [key, ...(aliases[key] || [])];
+
+  for (const candidate of candidates) {
+    const value =
+      mutableState.current_beliefs?.[candidate] ??
+      seedProfile.value_seeds?.[candidate];
+
+    if (typeof value === "number") {
+      return value;
+    }
+  }
+
+  return 0;
+}
+
+function scoreTagAlignment(agentState, record) {
+  const mutableState = getSprint1MutableState(agentState);
+  const seedProfile = getSprint1SeedProfile(agentState);
+  const tags = record.source_metadata?.exposure_tags || {};
+
+  const interestPull = average(
+    record.topics.map((topic) => mutableState.current_interests?.[topic] || agentState.interest_vector?.[topic] || 0),
+  );
+
+  const valuePull = average(
+    (tags.value_axes || []).map((key) => resolveValueSeed(agentState, key)),
+  );
+
+  const audiencePull = average(
+    (tags.audience_lenses || []).map((key) => mutableState.attention_bias?.[key] || 0),
+  );
+
+  const emotionalPull = average(
+    record.emotions.map((emotion) => seedProfile.emotional_bias?.[emotion] || mutableState.affect_state?.[emotion] || 0),
+  );
+
+  const tensionPull = average(
+    (tags.tension_axes || []).map((axis) => {
+      if (axis.includes("price") || axis.includes("tradeoff")) {
+        return mutableState.current_beliefs?.["hype-obscures-tradeoffs"] || 0;
+      }
+
+      if (axis.includes("care")) {
+        return mutableState.current_beliefs?.["care-over-performance"] || 0;
+      }
+
+      if (axis.includes("novelty") || axis.includes("freshness")) {
+        return mutableState.current_beliefs?.["novelty-has-value"] || 0;
+      }
+
+      return 0;
+    }),
+  );
+
+  return {
+    interest_pull: Number(interestPull.toFixed(4)),
+    value_pull: Number(valuePull.toFixed(4)),
+    audience_pull: Number(audiencePull.toFixed(4)),
+    emotional_pull: Number(emotionalPull.toFixed(4)),
+    tension_pull: Number(tensionPull.toFixed(4)),
+  };
+}
+
+function scoreSprint1CandidateForAgent(agentState, contentRecord) {
+  const base = scoreCandidateForAgent(agentState, contentRecord, new Map(), new Set());
+  const tagAlignment = scoreTagAlignment(agentState, contentRecord);
+
+  const total = clampScore(
+    base.total * 0.52 +
+      tagAlignment.interest_pull * 0.18 +
+      tagAlignment.value_pull * 0.12 +
+      tagAlignment.audience_pull * 0.08 +
+      tagAlignment.emotional_pull * 0.05 +
+      tagAlignment.tension_pull * 0.05,
+  );
+
+  return {
+    total: Number(total.toFixed(4)),
+    base,
+    tag_alignment: tagAlignment,
+  };
+}
+
+function deriveDominantFeeling(agentState, record, sprintScore) {
+  const emotions = new Set(record.emotions || []);
+  const mutableState = getSprint1MutableState(agentState);
+
+  if (emotions.has("warmth") || emotions.has("amusement")) {
+    return "softened_interest";
+  }
+
+  if (emotions.has("frustration") || sprintScore.tag_alignment.tension_pull > 0.65) {
+    return "irritated_attention";
+  }
+
+  if ((mutableState.current_traits?.novelty_drive || 0) > 0.7) {
+    return "novelty_activation";
+  }
+
+  if (emotions.has("curiosity") || emotions.has("interest")) {
+    return "curious_attention";
+  }
+
+  return "measured_interest";
+}
+
+function deriveMeaningFrame(agentState, record) {
+  const mutableState = getSprint1MutableState(agentState);
+
+  if ((record.topics || []).includes("pricing")) {
+    return "tradeoff_filter";
+  }
+
+  if ((record.topics || []).some((topic) => ["cats", "dogs", "care"].includes(topic))) {
+    return "care_context";
+  }
+
+  if ((mutableState.current_traits?.novelty_drive || 0) > 0.7) {
+    return "signal_filter";
+  }
+
+  if ((record.topics || []).includes("office_style") || (record.topics || []).includes("utility")) {
+    return "practicality_filter";
+  }
+
+  return "context_filter";
+}
+
+function deriveStanceSignal(agentState, record, meaningFrame) {
+  if (meaningFrame === "tradeoff_filter") {
+    return "skeptical";
+  }
+
+  if (meaningFrame === "care_context") {
+    return "empathetic";
+  }
+
+  if (meaningFrame === "signal_filter") {
+    return "amplify";
+  }
+
+  if ((record.topics || []).includes("mirror") || (record.topics || []).includes("entryway")) {
+    return "practical";
+  }
+
+  return agentState.archetype === "quiet_observer" ? "reserved" : "observant";
+}
+
+export function createSprint1ReactionRecord({
+  agentState,
+  contentRecord,
+  sprintScore,
+  rank,
+} = {}) {
+  const dominantFeeling = deriveDominantFeeling(agentState, contentRecord, sprintScore);
+  const meaningFrame = deriveMeaningFrame(agentState, contentRecord);
+  const stanceSignal = deriveStanceSignal(agentState, contentRecord, meaningFrame);
+  const resonanceScore = clampScore(
+    sprintScore.total * 0.7 +
+      sprintScore.tag_alignment.emotional_pull * 0.15 +
+      sprintScore.tag_alignment.value_pull * 0.15,
+  );
+  const shouldWrite = resonanceScore >= 0.25;
+
+  return {
+    reaction_id: `react:${agentState.agent_id}:${contentRecord.content_id}`,
+    agent_id: agentState.agent_id,
+    content_id: contentRecord.content_id,
+    rank,
+    dominant_feeling: dominantFeeling,
+    meaning_frame: meaningFrame,
+    stance_signal: stanceSignal,
+    resonance_score: Number(resonanceScore.toFixed(4)),
+    memory_write_hint: {
+      should_write: shouldWrite,
+      salience: resonanceScore >= 0.7 ? "high" : resonanceScore >= 0.25 ? "medium" : "low",
+      narrative_hint:
+        meaningFrame === "care_context"
+          ? "This felt like evidence that care and daily life matter in the forum."
+          : meaningFrame === "tradeoff_filter"
+            ? "This reinforced a tradeoff-first reading of the same world."
+            : meaningFrame === "signal_filter"
+              ? "This sharpened the sense that novelty separates people."
+              : "This added another practical reading of the same world.",
+    },
+    explanation: `rank=${rank} because total=${sprintScore.total}, feeling=${dominantFeeling}, frame=${meaningFrame}, stance=${stanceSignal}.`,
+    score_breakdown: sprintScore,
+  };
+}
+
 export async function createExposureSample({
   agentId = "A01",
   poolSize = 20,
@@ -283,15 +518,47 @@ export async function createSprint1ExposureSample({
     SPRINT1_AGENT_STATES.find((candidate) => candidate.agent_id === agentId) ||
     SPRINT1_AGENT_STATES[0];
 
+  const candidatePool = starterPack.normalizedRecords
+    .map((record) => ({
+      content_id: record.content_id,
+      title: record.title,
+      source_type: record.source_type,
+      format: record.format,
+      topics: record.topics,
+      emotions: record.emotions,
+      source_metadata: record.source_metadata,
+      score_breakdown: scoreSprint1CandidateForAgent(agentState, record),
+    }))
+    .sort((left, right) => right.score_breakdown.total - left.score_breakdown.total)
+    .slice(0, poolSize);
+
+  const selected = candidatePool.slice(0, Math.min(4, candidatePool.length));
+  const reaction_records = selected.map((record, index) =>
+    createSprint1ReactionRecord({
+      agentState,
+      contentRecord: record,
+      sprintScore: record.score_breakdown,
+      rank: index + 1,
+    }),
+  );
+
   return {
     provider_id: starterPack.provider_id,
     raw_count: starterPack.raw_count,
     normalized_count: starterPack.normalized_count,
     collections: index.collections,
-    exposure: selectBiasedExposure({
-      index,
-      agentState,
+    exposure: {
+      agent_id: agentState.agent_id,
       poolSize,
-    }),
+      candidatePool,
+      selected,
+      exposureLog: selected.map((record, order) => ({
+        rank: order + 1,
+        content_id: record.content_id,
+        reason: `Selected for Sprint 1 because total=${record.score_breakdown.total}, interest_pull=${record.score_breakdown.tag_alignment.interest_pull}, value_pull=${record.score_breakdown.tag_alignment.value_pull}, audience_pull=${record.score_breakdown.tag_alignment.audience_pull}.`,
+        score_breakdown: record.score_breakdown,
+      })),
+    },
+    reaction_records,
   };
 }
