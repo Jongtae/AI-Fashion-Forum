@@ -103,6 +103,12 @@ Useful sim-server endpoints:
 - `GET /api/debug-console-sample`
 - `GET /api/evaluation-sample`
 - `GET /api/batch-experiment-sample`
+- `GET /api/openapi-sample`
+- `POST /api/jobs/start`
+- `GET /api/jobs/{job_id}`
+- `POST /api/jobs/{job_id}/tick`
+- `GET /api/jobs/{job_id}/replay`
+- `POST /api/jobs/{job_id}/retry`
 - `GET /api/graph-storage-sample`
 
 GitHub settings required:
@@ -131,6 +137,7 @@ Workflow file:
 - Retrieval and decision-debug console: [`/docs/retrieval-and-decision-debug-console.md`](./docs/retrieval-and-decision-debug-console.md)
 - Core metrics and consistency: [`/docs/core-metrics-and-consistency.md`](./docs/core-metrics-and-consistency.md)
 - Social dynamics and batch runner: [`/docs/social-dynamics-and-batch-runner.md`](./docs/social-dynamics-and-batch-runner.md)
+- sim-server API and queue: [`/docs/sim-server-api-and-queue.md`](./docs/sim-server-api-and-queue.md)
 - Graph sync and event log: [`/docs/graph-sync-and-event-log.md`](./docs/graph-sync-and-event-log.md)
 - Product identity: [`/docs/product-identity.md`](./docs/product-identity.md)
 - Phase-2 direction summary: [`/docs/phase-2-ai-native-forum-direction.md`](./docs/phase-2-ai-native-forum-direction.md)
