@@ -6,14 +6,14 @@ It defines the repository-native project structure for the MVP-v1 identity-formi
 
 ## Project grouping method
 
-Because GitHub Projects access is not available in the current token context, this repository will use:
+이 저장소는 다음 GitHub 구조로 작업을 추적합니다:
 
 - Milestone: `MVP-v1 Identity-Forming Forum`
 - Label: `project:mvp-v1`
 - Epic labels: `epic:*`
 - Umbrella issue: `#80`
 
-This combination is the project boundary.
+별도의 프로젝트 트래커 없이 GitHub Issues + 위 라벨/마일스톤 조합을 단일 프로젝트 경계로 사용합니다.
 
 ## Why the raw 54-item list was reshaped
 

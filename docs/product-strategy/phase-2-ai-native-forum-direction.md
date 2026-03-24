@@ -2,7 +2,7 @@
 
 This document is the repository-level direction summary for GitHub issue `#76`.
 
-It translates the plan in [`/docs/Step-by-Step Implementation Plan to Validate and Evolve an AI-Native Fashion Forum Using MiroFish an.pdf`](./Step-by-Step%20Implementation%20Plan%20to%20Validate%20and%20Evolve%20an%20AI-Native%20Fashion%20Forum%20Using%20MiroFish%20an.pdf) into the operating direction for this repository.
+초기 계획 원본 PDF는 [`/docs/archive/`](../archive/)에 보관되어 있습니다.
 
 ## Core framing
 
@@ -107,14 +107,7 @@ For the current repository deployment model:
 
 ## What stays important
 
-- realism
-- density
-- polished product state
-- believable community content
-- coherence between text, image, and interaction
-- fashion-community-native tone
-
-These are still essential, but now they are judged as simulation-world quality, not only as UI polish.
+시뮬레이션 월드 품질 기준으로 판단해야 하는 필수 요소 목록은 [product-identity.md](./product-identity.md)를 참조하세요.
 
 ## What changes operationally
 

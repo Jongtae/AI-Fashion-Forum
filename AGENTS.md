@@ -39,3 +39,12 @@
 - If the user asks for quick exploratory work, keep the work small and suggest converting it into an issue before expanding scope.
 - When resuming work, align the task with an existing issue if one already covers the requested change.
 - Default to calling in the Data Engineering team when the work affects how data is sourced, transformed, validated, packaged, or handed off to development.
+
+## Autonomous Continuation
+- If the user says to continue autonomously, keep working through the remaining open implementation issues in dependency order until the open implementation issue count reaches zero, unless a real blocker prevents safe progress.
+- Do not stop just because one issue is complete; immediately move to the next open issue after branch/PR/merge/deploy/close is finished.
+- Treat intermediate status updates as brief progress notes, not as a handoff or stopping point.
+- When the user explicitly asks to "not stop" or to finish "all issues," only pause for:
+  - a real external blocker such as missing permissions, failing infrastructure, or unavailable credentials
+  - a decision with material product risk that cannot be resolved from repository or issue context
+- Epic or tracking issues should be closed only after their covered implementation issues are complete, but they should not block progress on the next actionable issue.

@@ -37,31 +37,24 @@ The current agreed direction is:
 
 ### Top-level direction
 
-- [`/docs/product-identity.md`](./product-identity.md)
-- [`/docs/phase-2-ai-native-forum-direction.md`](./phase-2-ai-native-forum-direction.md)
-- [`/docs/sprint1-agent-seed-schema.md`](./sprint1-agent-seed-schema.md)
-- [`/docs/sprint1-content-starter-pack.md`](./sprint1-content-starter-pack.md)
-- [`/docs/sprint1-biased-exposure-loop.md`](./sprint1-biased-exposure-loop.md)
-- [`/docs/sprint1-memory-writeback.md`](./sprint1-memory-writeback.md)
-- [`/docs/sprint1-state-driven-posts.md`](./sprint1-state-driven-posts.md)
-- [`/docs/sprint1-replay-drift-ui.md`](./sprint1-replay-drift-ui.md)
-- [`/docs/sprint1-divergence-evaluation.md`](./sprint1-divergence-evaluation.md)
+- [product-identity.md](./product-identity.md)
+- [phase-2-ai-native-forum-direction.md](./phase-2-ai-native-forum-direction.md)
+- [Sprint 1 Implementation](../sprint1/) (Issues #140–#146)
 
 ### Workflow and governance
 
-- [`/docs/github-issue-workflow.md`](./github-issue-workflow.md)
-- [`/docs/meeting-handoff-workflow.md`](./meeting-handoff-workflow.md)
-- [`/docs/review-checklist.md`](./review-checklist.md)
+- [github-issue-workflow.md](../governance-workflow/github-issue-workflow.md)
+- [meeting-handoff-workflow.md](../governance-workflow/meeting-handoff-workflow.md)
+- [review-checklist.md](../governance-workflow/review-checklist.md)
 
 ### Seed-world realism and content inputs
 
-- [`/docs/content-image-alignment-data-model.md`](./content-image-alignment-data-model.md)
-- [`/docs/generated-image-policy.md`](./generated-image-policy.md)
-- [`/docs/product-image-binding-layout-rules.md`](./product-image-binding-layout-rules.md)
-- [`/docs/product-mention-card-policy.md`](./product-mention-card-policy.md)
-- [`/docs/korean-ugc-outfit-shot-guidance.md`](./korean-ugc-outfit-shot-guidance.md)
-- [`/docs/lifestyle-pet-expansion-meeting-handoff.md`](./lifestyle-pet-expansion-meeting-handoff.md)
-- [`/docs/real-photo-preferred-pet-lifestyle-strategy.md`](./real-photo-preferred-pet-lifestyle-strategy.md)
+- [content-image-alignment-data-model.md](../data-architecture/content-image-alignment-data-model.md)
+- [generated-image-policy.md](../seed-world-policy/generated-image-policy.md)
+- [product-image-binding-layout-rules.md](../seed-world-policy/product-image-binding-layout-rules.md)
+- [product-mention-card-policy.md](../seed-world-policy/product-mention-card-policy.md)
+- [korean-ugc-outfit-shot-guidance.md](../seed-world-policy/korean-ugc-outfit-shot-guidance.md)
+- [real-photo-preferred-pet-lifestyle-strategy.md](../seed-world-policy/real-photo-preferred-pet-lifestyle-strategy.md)
 
 ## What is now historical vs active
 

@@ -19,8 +19,8 @@ Under the active phase-2 direction, it is becoming an identity-forming forum sim
 
 The stack choice needs to stay aligned with:
 
-- [`/Users/jongtaelee/Documents/camel-ai-study/docs/phase-2-ai-native-forum-direction.md`](/Users/jongtaelee/Documents/camel-ai-study/docs/phase-2-ai-native-forum-direction.md)
-- [`/Users/jongtaelee/Documents/camel-ai-study/docs/ai-forum-world-implementation-plan.md`](/Users/jongtaelee/Documents/camel-ai-study/docs/ai-forum-world-implementation-plan.md)
+- [phase-2-ai-native-forum-direction.md](../product-strategy/phase-2-ai-native-forum-direction.md)
+- [ai-forum-world-implementation-plan.md](../project-planning/ai-forum-world-implementation-plan.md)
 
 This ADR records the MVP-v1 baseline, the role of each chosen library or reference, and what is intentionally excluded from the initial stack.
 
@@ -71,37 +71,16 @@ What is intentionally deferred to later issues:
 
 ## Rejected or intentionally excluded alternatives
 
-### AutoGen as the primary simulation engine
-
-Rejected for the MVP-v1 baseline because it is better suited to multi-agent task collaboration than to a long-running social world with explicit replayable state transitions.
-
-### CrewAI as the primary simulation engine
-
-Rejected for the MVP-v1 baseline because workflow-style agent collaboration is useful in the company loop, but it is not the best fit for a persistent forum-society execution core.
-
-### CAMEL as the core world engine
-
-Rejected as the primary world engine because CAMEL is more valuable here as a company-loop and evaluation-team pattern than as the main forum society runtime.
-
-### A prompt-only identity-change system
-
-Rejected because the project explicitly requires explainable identity updates, threshold behavior, contradiction handling, and repeatable experiment analysis.
-
-### Vector-only memory without a graph layer
-
-Rejected because affinity, conflict, cluster formation, and topic attachment need structural relationship queries that pure embedding recall does not represent clearly enough.
-
-### Graph-only retrieval without a vector layer
-
-Rejected because the system also needs content similarity, prior-post recall, and candidate exposure generation across heterogeneous content records.
-
-### GitHub Pages as the live simulation host
-
-Rejected because the active deployment model is static hosting only; simulation loops, queues, graph sync, and memory systems require local or server-capable runtime environments.
-
-### Next.js as an immediate mandatory frontend requirement
-
-Rejected for the first executable baseline because the repository already had a working React/Vite surface, and preserving that viewer while separating `forum-web` and `sim-server` is the lower-risk MVP-v1 bootstrap path.
+| 대안 | 제외 이유 |
+|------|-----------|
+| AutoGen | 멀티에이전트 작업 협력에 적합. 장기 실행 소셜 시뮬레이션에는 맞지 않음 |
+| CrewAI | 워크플로우 협력 패턴은 company loop에 유용하나, 포럼 사회 실행 코어로는 부적합 |
+| CAMEL (core engine) | company loop 평가팀 패턴으로 활용하는 것이 더 적합. 메인 world engine으로는 제외 |
+| Prompt-only identity | 명시적 규칙, 임계값, 모순 처리, 반복 실험 분석이 필요하므로 제외 |
+| Vector-only memory | 친밀도/갈등/클러스터 형성은 구조적 관계 쿼리가 필요. 임베딩만으로는 표현 불충분 |
+| Graph-only retrieval | 콘텐츠 유사도, 이전 포스트 재호출, 이종 콘텐츠 후보 생성에 벡터 레이어도 필요 |
+| GitHub Pages (live host) | 정적 호스팅만 지원. 시뮬레이션 루프/큐/그래프 싱크는 서버 런타임 필요 |
+| Next.js (즉시 도입) | 기존 React/Vite 표면이 있고, forum-web/sim-server 분리가 더 낮은 위험 경로 |
 
 ## Consequences
 
