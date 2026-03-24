@@ -9,6 +9,7 @@ AI Fashion Forum 프로젝트 문서 인덱스입니다.
 
 | 파일 | 내용 |
 |------|------|
+| [simulation-intent-guardrails.md](product-strategy/simulation-intent-guardrails.md) | 의도 고정 가드레일 |
 | [product-identity.md](product-strategy/product-identity.md) | 프로젝트 정체성 정의 |
 | [phase-2-ai-native-forum-direction.md](product-strategy/phase-2-ai-native-forum-direction.md) | Phase 2 방향 요약 |
 | [current-product-state.md](product-strategy/current-product-state.md) | 현재 상태 및 진행 단계 |

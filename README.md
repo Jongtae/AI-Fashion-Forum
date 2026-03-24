@@ -2,6 +2,10 @@
 
 AI Fashion Forum is an AI-native fashion forum simulation project.
 
+Intent lock:
+
+- [`/docs/product-strategy/simulation-intent-guardrails.md`](./docs/product-strategy/simulation-intent-guardrails.md)
+
 The repository still contains a high-fidelity mobile mock, but the mock is now treated as one visible seed world inside a larger product direction:
 
 - validate community mechanics with seed materials and small simulations
@@ -18,8 +22,13 @@ The phase-2 direction is grounded in:
 The project should feel like:
 
 - a believable fashion-community world with dense lived-in content
-- a simulation environment where agents form taste clusters, norms, and conflict patterns
+- a simulation environment where norms, conflict patterns, clustering, identity shifts, and taste changes can emerge
 - a product lab where interventions can be tested before heavier productization
+
+Important clarification:
+
+- the project goal is the environment, not any single phenomenon inside it
+- taste divergence is one possible emergent outcome, not the repository mission by itself
 
 The repository is no longer only about polishing a static mock.
 It is about building, validating, and evolving an AI-native fashion forum as a living social system.

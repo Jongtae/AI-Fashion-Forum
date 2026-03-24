@@ -2,6 +2,10 @@
 
 This document is the active repository state summary for the phase-2 direction.
 
+Intent lock:
+
+- [`simulation-intent-guardrails.md`](./simulation-intent-guardrails.md)
+
 ## Where the project is now
 
 The repository has moved through five stages:
@@ -32,6 +36,12 @@ The current agreed direction is:
 - OASIS-style scaling and digital-twin infrastructure is the phase-2 direction
 - CAMEL Workforce-style company agents are the product-iteration layer
 - seed-world realism remains required because bad realism poisons simulation quality
+
+The active reading is environment-first:
+
+- the goal is to build the simulation environment and intervention loop
+- phenomena such as taste divergence, norm formation, or clustering are signals to observe inside that environment
+- those phenomena should not be reframed as the top-level mission by themselves
 
 ## Active document roles
 
