@@ -3,6 +3,8 @@ import express from "express";
 
 import { connectDB } from "./db.js";
 import postsRouter from "./routes/posts.js";
+import agentLoopRouter from "./routes/agent-loop.js";
+import feedRouter from "./routes/feed.js";
 
 import {
   createActionSample,
@@ -517,6 +519,8 @@ const server = http.createServer(async (request, response) => {
 const app = express();
 app.use(express.json());
 app.use("/api/posts", postsRouter);
+app.use("/api/agent-loop", agentLoopRouter);
+app.use("/api/feed", feedRouter);
 
 // Error handler for Express routes
 // eslint-disable-next-line no-unused-vars
@@ -529,9 +533,10 @@ app.use((err, _req, res, _next) => {
 const legacyHandler = server.listeners("request")[0];
 server.removeAllListeners("request");
 
-// Route /api/posts* to Express; everything else to the legacy handler
+// Route Express-managed paths; everything else to the legacy handler
+const EXPRESS_PREFIXES = ["/api/posts", "/api/agent-loop", "/api/feed"];
 server.on("request", (req, res) => {
-  if (req.url?.startsWith("/api/posts")) {
+  if (EXPRESS_PREFIXES.some((prefix) => req.url?.startsWith(prefix))) {
     app(req, res);
   } else {
     legacyHandler(req, res);

@@ -28,6 +28,21 @@ export const deletePost = (postId) => request(`/api/posts/${postId}`, { method: 
 export const toggleLike = (postId, userId) =>
   request(`/api/posts/${postId}/like`, { method: "POST", body: { userId } });
 
+// Personalised feed (ranking-core based)
+export const fetchFeed = (params = {}) => {
+  const q = new URLSearchParams(params).toString();
+  return request(`/api/feed${q ? `?${q}` : ""}`);
+};
+
+// Agent loop
+export const triggerAgentTick = (params = {}) =>
+  request("/api/agent-loop/tick", { method: "POST", body: params });
+export const fetchAgentLoopStatus = () => request("/api/agent-loop/status");
+export const fetchAgentStates = (params = {}) => {
+  const q = new URLSearchParams(params).toString();
+  return request(`/api/agent-loop/states${q ? `?${q}` : ""}`);
+};
+
 // Comments
 export const fetchComments = (postId) => request(`/api/posts/${postId}/comments`);
 export const createComment = (postId, data) =>

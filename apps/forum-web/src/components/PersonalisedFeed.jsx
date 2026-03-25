@@ -1,0 +1,157 @@
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchFeed, triggerAgentTick, fetchAgentLoopStatus } from "../api/client.js";
+import PostCard from "./PostCard.jsx";
+
+const FLAGS = ["baseline", "noveltyBoost", "trustBoost", "controversyDampen"];
+
+export default function PersonalisedFeed({ currentUser }) {
+  const [flag, setFlag] = useState("baseline");
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["feed", currentUser.id, flag],
+    queryFn: () => fetchFeed({ userId: currentUser.id, experimentFlag: flag }),
+  });
+
+  const { data: agentStatus } = useQuery({
+    queryKey: ["agent-loop-status"],
+    queryFn: fetchAgentLoopStatus,
+    refetchInterval: 10_000,
+  });
+
+  const tickMutation = useMutation({
+    mutationFn: (ticks) => triggerAgentTick({ ticks }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-loop-status"] });
+    },
+  });
+
+  const feed = data?.feed ?? [];
+
+  return (
+    <div>
+      {/* Agent status banner */}
+      {agentStatus && (
+        <div style={styles.banner}>
+          <span style={styles.bannerText}>
+            🤖 에이전트 라운드 {agentStatus.currentRound} &nbsp;|&nbsp;
+            에이전트 포스트 {agentStatus.db?.agentPostCount ?? 0}개
+          </span>
+          <button
+            style={styles.tickBtn}
+            onClick={() => tickMutation.mutate(3)}
+            disabled={tickMutation.isPending}
+          >
+            {tickMutation.isPending ? "실행 중…" : "+ 에이전트 틱 3회"}
+          </button>
+        </div>
+      )}
+
+      {/* Experiment flag selector */}
+      <div style={styles.flagRow}>
+        <span style={styles.flagLabel}>랭킹 실험:</span>
+        {FLAGS.map((f) => (
+          <button
+            key={f}
+            style={{ ...styles.flagBtn, ...(flag === f ? styles.flagActive : {}) }}
+            onClick={() => setFlag(f)}
+          >
+            {f}
+          </button>
+        ))}
+        <button style={styles.refreshBtn} onClick={() => refetch()}>
+          ↻
+        </button>
+      </div>
+
+      {isLoading && <p style={styles.msg}>피드 계산 중…</p>}
+      {isError && <p style={styles.err}>{error?.message || "피드 로딩 실패"}</p>}
+      {!isLoading && feed.length === 0 && (
+        <p style={styles.msg}>
+          피드가 비어있습니다.{" "}
+          <button style={styles.inlineBtn} onClick={() => tickMutation.mutate(5)}>
+            에이전트 틱 5회 실행
+          </button>
+          해서 에이전트 포스트를 생성해보세요.
+        </p>
+      )}
+
+      <div style={styles.list}>
+        {feed.map((post) => (
+          <div key={post._id} style={styles.feedItem}>
+            {post._score !== undefined && (
+              <div style={styles.score}>score: {post._score}</div>
+            )}
+            <PostCard post={post} currentUser={currentUser} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const styles = {
+  banner: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    background: "#1f2937",
+    color: "#e5e7eb",
+    padding: "10px 14px",
+    borderRadius: 8,
+    marginBottom: 12,
+    fontSize: 13,
+  },
+  bannerText: {},
+  tickBtn: {
+    background: "#374151",
+    color: "#fff",
+    border: "none",
+    borderRadius: 4,
+    padding: "4px 12px",
+    fontSize: 12,
+    cursor: "pointer",
+  },
+  flagRow: {
+    display: "flex",
+    gap: 6,
+    alignItems: "center",
+    marginBottom: 14,
+    flexWrap: "wrap",
+  },
+  flagLabel: { fontSize: 12, color: "#6b7280", marginRight: 4 },
+  flagBtn: {
+    padding: "3px 10px",
+    border: "1px solid #d1d5db",
+    borderRadius: 4,
+    fontSize: 12,
+    background: "#fff",
+    cursor: "pointer",
+    color: "#374151",
+  },
+  flagActive: { background: "#111827", color: "#fff", borderColor: "#111827" },
+  refreshBtn: {
+    padding: "3px 8px",
+    border: "1px solid #d1d5db",
+    borderRadius: 4,
+    fontSize: 14,
+    background: "#f9fafb",
+    cursor: "pointer",
+  },
+  list: { display: "flex", flexDirection: "column", gap: 12 },
+  feedItem: {},
+  score: { fontSize: 11, color: "#9ca3af", marginBottom: 2 },
+  msg: { textAlign: "center", color: "#9ca3af", fontSize: 14, padding: "24px 0" },
+  err: { textAlign: "center", color: "#dc2626", fontSize: 14 },
+  inlineBtn: {
+    background: "none",
+    border: "none",
+    color: "#3b82f6",
+    cursor: "pointer",
+    fontSize: 14,
+    padding: 0,
+  },
+};
