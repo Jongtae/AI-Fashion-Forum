@@ -1,5 +1,6 @@
 import http from "node:http";
 import express from "express";
+import cors from "cors";
 
 import { connectDB } from "./db.js";
 import postsRouter from "./routes/posts.js";
@@ -517,6 +518,7 @@ const server = http.createServer(async (request, response) => {
 
 // ── Express CRUD app (mounted on /api/posts) ──────────────────────────────────
 const app = express();
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use("/api/posts", postsRouter);
 app.use("/api/agent-loop", agentLoopRouter);
