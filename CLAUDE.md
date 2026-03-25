@@ -11,6 +11,12 @@ AI Fashion Forum is an AI-native fashion forum simulation. The repo has two laye
 
 Phase-1 validates mechanics with MiroFish. Phase-2 scales toward a digital-twin environment with OASIS. The existing React mock is seed-world material, not the end product.
 
+Intent lock:
+
+- Read [`docs/product-strategy/simulation-intent-guardrails.md`](./docs/product-strategy/simulation-intent-guardrails.md) before proposing strategy or requirements.
+- Do not treat taste divergence, recommendation quality, or any other single phenomenon as the top-level goal.
+- Treat those as observable outcomes inside the intended simulation environment.
+
 ## Commands
 
 ```bash

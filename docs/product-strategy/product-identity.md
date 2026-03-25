@@ -4,6 +4,10 @@ This document is the active product-identity policy for the phase-2 direction.
 
 It supersedes the earlier framing that treated AI Fashion Forum mainly as a text-first fashion discussion mock.
 
+Intent lock:
+
+- [`/docs/product-strategy/simulation-intent-guardrails.md`](./simulation-intent-guardrails.md)
+
 ## Identity Statement
 
 AI Fashion Forum is an AI-native fashion forum living system.
@@ -14,6 +18,9 @@ It combines:
 - simulated or real social interaction
 - agent/user taste formation
 - a company loop that studies behavior and ships interventions
+
+The repository does not exist to maximize one phenomenon such as taste divergence.
+It exists to build a social simulation environment where multiple explainable dynamics can emerge.
 
 It is not only:
 
@@ -40,6 +47,7 @@ It is not only:
 4. Community dynamics matter as much as UI realism.
 - The project should show or support taste clusters, role differentiation, norm formation, and conflict patterns.
 - A pretty feed without believable social dynamics is insufficient.
+- These are examples of observable dynamics, not isolated end goals.
 
 5. Product iteration is part of the product.
 - Onboarding, prompts, category structure, moderation, and recommendation logic are first-class levers.

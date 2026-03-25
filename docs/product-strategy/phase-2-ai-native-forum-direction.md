@@ -4,6 +4,12 @@ This document is the repository-level direction summary for GitHub issue `#76`.
 
 초기 계획 원본 PDF는 [`/docs/archive/`](../archive/)에 보관되어 있습니다.
 
+Intent lock:
+
+- [`simulation-intent-guardrails.md`](./simulation-intent-guardrails.md)
+
+If there is tension between a phenomenon-first reading and an environment-first reading, follow the environment-first reading.
+
 ## Core framing
 
 AI Fashion Forum is no longer defined only as a polished static mock.
@@ -14,6 +20,12 @@ It is now defined as:
 - a seed-world simulation where fashion taste, norms, and conflict patterns can emerge
 - a future digital twin whose behavior can inform product decisions
 - a society where identity differentiates through biased exposure, affect, reinforcement, and memory
+
+Important clarification:
+
+- taste divergence is not the primary goal
+- it is one possible emergent phenomenon inside the target environment
+- the primary goal is to build an explainable simulation environment where such phenomena can be observed, replayed, and tested
 
 The visible mock remains important, but it is only one layer of the system.
 
@@ -65,6 +77,9 @@ Use small, cheap, repeated simulations to validate:
 - whether recognizable community norms appear
 - whether interventions measurably change behavior
 - whether identity differentiation can be explained from prior exposure and memory
+
+These are validation questions about the environment.
+They should not be mistaken for the product mission in isolation.
 
 Artifacts in this phase include:
 
