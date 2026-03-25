@@ -6,5 +6,7 @@ dist
 apps/sim-server/data/
 apps/sim-server/apps/
 .venv-debate/
+.venv/
+.venv-*/
 scripts/requirement-debate/outputs/
 scripts/requirement-debate/__pycache__/
