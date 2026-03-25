@@ -1,4 +1,11 @@
 import http from "node:http";
+import express from "express";
+import cors from "cors";
+
+import { connectDB } from "./db.js";
+import postsRouter from "./routes/posts.js";
+import agentLoopRouter from "./routes/agent-loop.js";
+import feedRouter from "./routes/feed.js";
 
 import {
   createActionSample,
@@ -509,6 +516,40 @@ const server = http.createServer(async (request, response) => {
   createJsonResponse(response, 404, { ok: false, error: "not_found" });
 });
 
-server.listen(port, () => {
-  console.log(`[sim-server] listening on http://localhost:${port}`);
+// ── Express CRUD app (mounted on /api/posts) ──────────────────────────────────
+const app = express();
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+app.use("/api/posts", postsRouter);
+app.use("/api/agent-loop", agentLoopRouter);
+app.use("/api/feed", feedRouter);
+
+// Error handler for Express routes
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error("[crud-api]", err);
+  res.status(500).json({ error: "internal_server_error" });
 });
+
+// Grab the vanilla handler registered by http.createServer(fn)
+const legacyHandler = server.listeners("request")[0];
+server.removeAllListeners("request");
+
+// Route Express-managed paths; everything else to the legacy handler
+const EXPRESS_PREFIXES = ["/api/posts", "/api/agent-loop", "/api/feed"];
+server.on("request", (req, res) => {
+  if (EXPRESS_PREFIXES.some((prefix) => req.url?.startsWith(prefix))) {
+    app(req, res);
+  } else {
+    legacyHandler(req, res);
+  }
+});
+
+// Connect to MongoDB then start listening
+connectDB()
+  .catch((err) => console.warn("[db] MongoDB unavailable, CRUD endpoints disabled:", err.message))
+  .finally(() => {
+    server.listen(port, () => {
+      console.log(`[sim-server] listening on http://localhost:${port}`);
+    });
+  });

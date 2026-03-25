@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@ai-fashion-forum/shared-types": "file:../../packages/shared-types",
+    "@tanstack/react-query": "^5.95.2",
     "framer-motion": "^12.6.3",
     "lucide-react": "^0.511.0",
     "react": "^19.1.0",

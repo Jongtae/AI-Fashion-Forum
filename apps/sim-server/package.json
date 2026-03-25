@@ -9,6 +9,9 @@
   },
   "dependencies": {
     "@ai-fashion-forum/agent-core": "file:../../packages/agent-core",
-    "@ai-fashion-forum/shared-types": "file:../../packages/shared-types"
+    "@ai-fashion-forum/shared-types": "file:../../packages/shared-types",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mongoose": "^9.3.2"
   }
 }
