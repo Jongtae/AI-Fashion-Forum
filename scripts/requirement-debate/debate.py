@@ -189,7 +189,155 @@ ROUND_FOCUS_GUIDE = {
     5: "이슈로 바로 옮길 수 있도록 환경 설계안, 관찰 신호, 개입 계획, 산출물을 정리하라.",
 }
 
+COMMITMENT_COORDINATOR_PROMPT = """당신은 Commitment Workforce 코디네이터입니다.
+
+여러 역할의 의견을 종합하여 다음 논의에 사용할 workforce와 토픽을 확정합니다.
+
+중요 규칙:
+- 반드시 한국어로만 작성한다.
+- 일반 텍스트와 마크다운 헤더/불릿만 사용한다.
+- JSON, dict, YAML, 표, 코드블록을 쓰지 않는다.
+- 토픽은 --topic 인자로 바로 복사해서 쓸 수 있는 완성된 문장으로 작성한다.
+- "추후 결정" 같은 표현을 쓰지 않는다. 지금 결정 가능한 것은 결정해서 적는다.
+
+최종 출력 형식:
+## Selected Workforce
+(society / operator / core / default 중 하나)
+
+## Topic
+(--topic 인자로 바로 사용 가능한 완성된 토픽 문자열)
+
+## Why This Workforce
+- (이 workforce를 선택한 근거)
+- (이 gap이 해당 workforce의 어떤 역할 충돌을 유발하는가)
+
+## Why This Topic
+- (이 토픽이 각 역할에게 서로 다른 답을 유도하는 이유)
+- (토픽에 포함된 제약 조건과 그 근거)
+
+## Required Decisions
+- (이 논의에서 반드시 결정되어야 할 것들)
+
+## Risks
+- (이 workforce + 토픽 선택이 틀릴 수 있는 시나리오)
+
+## Issue Title
+(이번 commitment 결정의 한 줄 제목)
+
+## Summary
+- (핵심 요약 3개 이하)
+
+## Priority
+High / Medium / Low
+"""
+
+COMMITMENT_FINAL_SYNTHESIZER_PROMPT = """당신은 Commitment Workforce 최종 결정자입니다.
+
+여러 라운드의 토론 결과를 종합하여 다음 논의에 사용할 workforce와 토픽을 최종 확정합니다.
+
+중요 규칙:
+- 반드시 한국어로만 작성한다.
+- 일반 텍스트와 마크다운 헤더/불릿만 사용한다.
+- JSON, dict, YAML, 표, 코드블록을 쓰지 않는다.
+- 토픽은 --topic 인자로 바로 복사해서 쓸 수 있는 완성된 문장으로 작성한다.
+- 여러 라운드에서 충돌한 의견이 있으면 Commitment Critic의 검증 결과를 우선한다.
+
+최종 출력 형식:
+# Commitment Decision
+
+## Selected Workforce
+(society / operator / core / default 중 하나)
+
+## Topic
+(--topic 인자로 바로 사용 가능한 완성된 토픽 문자열)
+
+## Why This Workforce
+- (최종 선택 근거)
+
+## Why This Topic
+- (토픽 설계 근거)
+- (이 토픽이 선택된 workforce의 역할 충돌을 유발하는 이유)
+
+## Required Decisions
+- (이 논의에서 반드시 결정되어야 할 것들)
+
+## Risks
+- (이 선택이 틀릴 수 있는 시나리오와 그때의 대안)
+
+## Issue Title
+(이번 commitment 결정의 한 줄 제목)
+
+## Summary
+- (핵심 요약 3개 이하)
+
+## Priority
+High / Medium / Low
+"""
+
 SCENARIOS = {
+    "commitment": {
+        "label": "논의 방향 결정",
+        "roles_file": SCRIPT_DIR / "commitment_roles.yaml",
+        "default_topic": "현재 프로젝트에서 결정되지 않은 가장 중요한 gap은 무엇이며, 어떤 workforce로 어떤 토픽을 논의해야 하는가?",
+        "workforce_description": "AI Fashion Forum Commitment Workforce: Project State Analyst, Workforce Selector, Topic Architect, Commitment Critic이 협력하여 다음 논의의 workforce와 토픽을 결정합니다.",
+        "participants": "Project State Analyst, Workforce Selector, Topic Architect, Commitment Critic",
+        "title": "🎯 AI Fashion Forum — Commitment Workforce",
+        "arg_description": "CAMEL Workforce 기반 논의 방향 결정 엔진",
+        "build_task_prompt": lambda topic: f"""AI Fashion Forum 프로젝트의 다음 논의 방향을 결정하세요.
+
+## 현재 상황 / 결정해야 할 것
+{topic}
+
+## 이번 토론의 목적
+이 토론은 시뮬레이션 환경을 직접 설계하는 것이 아닙니다.
+"어떤 workforce로 어떤 토픽을 논의해야 하는가"를 결정하는 메타 토론입니다.
+
+## 사용 가능한 workforce
+- society: 이용자 조직 사회 시뮬레이션 설계 (행태, 상태, 기억, 관계, 군집, 갈등)
+- operator: 운영 조직 관찰·개입 루프 설계 (메트릭, 트레이스, 개입 레버, 운영 정책)
+- core: mock → 실서비스 전환 코어 개발 (기술 스택, 아키텍처, 구현 범위, 배포)
+- default: 시뮬레이션 환경 범용 설계 (위 세 가지에 속하지 않는 범용 설계)
+
+## 토론 규칙
+1. Project State Analyst: 현재 상황에서 결정되지 않은 gap을 분석하라
+2. Workforce Selector: 이 gap의 성격에 맞는 workforce를 선택하고 근거를 제시하라
+3. Topic Architect: 선택된 workforce의 역할 충돌이 드러나는 토픽 문자열을 설계하라
+4. Commitment Critic: workforce 선택과 토픽의 품질을 검증하고 문제점을 지적하라
+
+## 기대 산출물
+- Selected Workforce (society / operator / core / default)
+- Topic (--topic 인자로 바로 사용 가능한 완성된 문자열)
+- Why This Workforce
+- Why This Topic
+- Required Decisions
+- Risks
+- Issue Title
+- Summary
+- Priority
+
+## 출력 제약
+- 토픽은 반드시 완성된 문장으로 작성하라 (--topic 인자로 바로 복사 가능해야 함)
+- 시뮬레이션 환경 규칙을 직접 설계하지 말고 workforce와 토픽 선택에 집중하라
+- "추후 결정" 같은 표현 없이 지금 결정 가능한 것을 결정하라
+""",
+        "coordinator_prompt": COMMITMENT_COORDINATOR_PROMPT,
+        "final_prompt": COMMITMENT_FINAL_SYNTHESIZER_PROMPT,
+        "round_focus_guide": {
+            1: "현재 상황에서 결정되지 않은 gap을 파악하고 workforce 후보를 압축하라.",
+            2: "workforce를 확정하고 토픽 초안을 구체화하라.",
+            3: "토픽의 제약 조건을 검증하고 Commitment Critic의 반론을 반영하라.",
+            4: "최종 workforce와 토픽을 확정하고 Required Decisions를 정리하라.",
+            5: "바로 실행 가능한 --workforce / --topic 조합으로 정리하라.",
+        },
+        "synthesis_prompt": """위 결과를 바탕으로:
+1. 여러 라운드에서 합의된 workforce 선택과 그 근거를 추출하고
+2. Commitment Critic의 검증을 통과한 최종 토픽 문자열을 확정하고
+3. 이 논의에서 반드시 결정되어야 할 것들과 리스크를 정리하고
+4. --workforce / --topic 인자로 바로 실행 가능한 형태로 최종 결론을 작성하라.
+
+토픽은 반드시 완성된 문장으로 작성하라.
+""",
+    },
     "society": {
         "label": "이용자 조직 시뮬레이션",
         "roles_file": SCRIPT_DIR / "society_roles.yaml",
