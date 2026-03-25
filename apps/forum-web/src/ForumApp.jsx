@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PostForm from "./components/PostForm.jsx";
 import PostList from "./components/PostList.jsx";
+import PersonalisedFeed from "./components/PersonalisedFeed.jsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +30,7 @@ export default function ForumApp() {
   const currentUser = useCurrentUser();
   const [editingUser, setEditingUser] = useState(false);
   const [draft, setDraft] = useState(currentUser.id);
+  const [tab, setTab] = useState("forum"); // "forum" | "feed"
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -64,13 +66,36 @@ export default function ForumApp() {
           </div>
         </header>
 
+        <nav style={styles.nav}>
+          <button
+            style={{ ...styles.tabBtn, ...(tab === "forum" ? styles.tabActive : {}) }}
+            onClick={() => setTab("forum")}
+          >
+            포럼
+          </button>
+          <button
+            style={{ ...styles.tabBtn, ...(tab === "feed" ? styles.tabActive : {}) }}
+            onClick={() => setTab("feed")}
+          >
+            맞춤 피드
+          </button>
+        </nav>
+
         <main style={styles.main}>
-          <section style={styles.formSection}>
-            <PostForm currentUser={currentUser} />
-          </section>
-          <section style={styles.feedSection}>
-            <PostList currentUser={currentUser} />
-          </section>
+          {tab === "forum" ? (
+            <>
+              <section style={styles.formSection}>
+                <PostForm currentUser={currentUser} />
+              </section>
+              <section style={styles.feedSection}>
+                <PostList currentUser={currentUser} />
+              </section>
+            </>
+          ) : (
+            <section>
+              <PersonalisedFeed currentUser={currentUser} />
+            </section>
+          )}
         </main>
       </div>
     </QueryClientProvider>
@@ -129,4 +154,23 @@ const styles = {
   },
   formSection: {},
   feedSection: {},
+  nav: {
+    background: "#1f2937",
+    padding: "0 24px",
+    display: "flex",
+    gap: 4,
+  },
+  tabBtn: {
+    padding: "10px 16px",
+    background: "transparent",
+    border: "none",
+    color: "#9ca3af",
+    fontSize: 14,
+    cursor: "pointer",
+    borderBottom: "2px solid transparent",
+  },
+  tabActive: {
+    color: "#fff",
+    borderBottomColor: "#3b82f6",
+  },
 };
