@@ -1,123 +1,253 @@
 # Action-State Contract
 
-> Issue #165 | Epic #162
+> Issue #187 | Depends on #185, #186
 
-## 1. 개요
+## 1. Goal
 
-이 문서는 internal forum 콘텐츠 소비와 external web 콘텐츠 소비가 동일한 state model과 memory writeback 경로에 연결되는 방식을 정의한다.
+이 문서는 internal forum 콘텐츠 소비와 external web 콘텐츠 소비가 같은 action-state vocabulary 안에서 어떻게 처리되고, 그 결과가 memory writeback과 trace/schema 설계로 어떻게 이어지는지 정의한다.
 
----
+이 계약 문서의 목적은 세 가지다.
 
-## 2. 콘텐츠 소비 경로
-
-### 2.1 Internal Forum Content
-
-```
-DB posts 컬렉션
-  └─ content-pipeline (mock provider or DB adapter)
-       └─ 정규화: ContentRecord { content_id, title, topics, emotions, format, ... }
-            └─ content-indexing: 에이전트 친화도 기반 후보 풀 생성
-                 └─ action-space: chooseForumAction()
-                      └─ identity-update-rules: applyIdentityExposure()
-                           └─ memory-stack: writeBack()
-```
-
-### 2.2 External Web Content
-
-```
-외부 콘텐츠 소스 (RSS, web scraper, API)
-  └─ content-pipeline (real provider — Sprint 2 구현)
-       └─ 동일 정규화 파이프라인 (ContentRecord)
-            └─ (이후 Internal과 동일)
-```
-
-**핵심**: `ContentRecord` 스키마가 두 경로의 공통 인터페이스. `source_type` 필드로 구분.
-
-| source_type | 의미 |
-|------------|------|
-| `forum_post` | 내부 포럼 포스트 |
-| `forum_comment` | 내부 댓글 |
-| `external_article` | 외부 기사/블로그 |
-| `external_social` | 외부 SNS 포스트 |
+- ingestion source가 달라도 같은 loop contract를 유지한다
+- action request와 execution result를 분리해서 설명한다
+- 후속 schema issue `#188`이 필요한 linkage field를 바로 추출할 수 있게 한다
 
 ---
 
-## 3. ContentRecord 스키마
+## 2. Contract Layers
+
+Sprint 1 기준 action-state contract는 아래 네 층으로 본다.
+
+1. `ingestion envelope`
+2. `action request`
+3. `execution result`
+4. `memory writeback`
+
+각 층은 같은 run key와 linkage key를 공유해야 한다.
+
+---
+
+## 3. Ingestion Envelope
+
+internal / external source는 다르지만 agent loop에 들어올 때는 같은 envelope로 정규화한다.
 
 ```js
 {
-  content_id: String,         // 고유 ID
+  ingestion_id: String,
+  source_family: "internal_forum" | "external_web",
+  source_type: "forum_post" | "forum_comment" | "external_article" | "external_social",
+  content_id: String,
   title: String,
-  format: String,             // CONTENT_FORMATS 참조
-  source_type: String,        // 위 표 참조
-  topics: [String],           // interest_vector 키와 매핑
-  emotions: [String],         // reaction type 결정에 사용
-  intensity: Number,          // 0–1, 콘텐츠 강도
-  social_proof: Number,       // 0–1, 사회적 증거 (좋아요 수 등)
-  direction: Number,          // +1 긍정 / -1 부정
-  created_tick: Number,
+  body: String | null,
+  topics: [String],
+  emotions: [String],
+  intensity: Number,
+  social_proof: Number,
+  direction: Number,
+  created_tick: Number | null,
+  metadata: Object,
 }
 ```
 
+핵심 원칙:
+
+- loop 안에서는 source가 달라도 `content_id`, `topics`, `emotions`, `direction` 같은 공통 필드로 해석한다
+- source-specific metadata는 `metadata`에 넣되 loop 판단 필드는 공통 필드로 승격한다
+- external source 부재는 empty envelope가 아니라 source degradation reason으로 남긴다
+
 ---
 
-## 4. Action Request 계약
+## 4. Action Request Contract
 
-에이전트 행동 발생 시 다음 필드를 포함한 ActionRecord가 생성된다.
+action request는 "무엇을 하려 했는가"를 설명한다.
 
 ```js
 {
-  action_id: String,          // "ACT:{agentId}:{tick}:{type}"
+  action_id: String,
+  round: Number,
   tick: Number,
   agent_id: String,
-  type: "silence" | "lurk" | "react" | "comment" | "post",
-  target_content_id: String,
+  ingestion_id: String,
+  action_type: "silence" | "lurk" | "react" | "comment" | "post" | "learn" | "reflect",
   visibility: "stored_only" | "public_lightweight" | "public_visible",
-  payload: {
-    reason: String,           // 행동 선택 이유
-    // type별 추가 필드
+  reason: String,
+  target_ref: {
+    target_type: "content" | "post" | "comment" | "agent" | null,
+    target_id: String | null,
   },
-  ui: { label: String, icon: String, secondaryText: String },
+  payload: Object,
 }
 ```
 
+Sprint 1 처리 기준:
+
+- `learn`, `reflect`는 reserved action으로 허용되지만 live runtime mandatory action은 아니다
+- `target_ref`는 null 가능해야 한다. 특히 `post`, `learn`, `reflect`는 direct forum target이 없을 수 있다
+- action request는 성공 여부와 무관하게 먼저 식별 가능한 단위여야 한다
+
 ---
 
-## 5. Memory Writeback 계약
+## 5. Execution Result Contract
 
-`applyIdentityExposure()` 호출 후 변경된 agentState는 다음 경로로 영속화된다.
+execution result는 "실제로 어떤 경로로 끝났는가"를 설명한다.
 
+```js
+{
+  action_id: String,
+  execution_status: "success" | "degraded" | "blocked" | "invalid" | "failed",
+  block_reason: String | null,
+  error_class: String | null,
+  persistence_result: {
+    trace_written: Boolean,
+    event_written: Boolean,
+    artifact_written: Boolean,
+    snapshot_written: Boolean,
+  },
+  artifact_refs: {
+    post_id: String | null,
+    comment_id: String | null,
+    interaction_id: String | null,
+  },
+  moderation_result: {
+    moderation_status: String | null,
+    moderation_label: String | null,
+  }
+}
 ```
-applyIdentityExposure() 반환값 (nextAgent)
-  └─ AgentState 컬렉션 upsert
-       └─ { agentId, round, tick, seedAxes, mutableAxes, rawSnapshot }
+
+이 필드들은 `#186`의 exception vocabulary를 직접 반영한다.
+
+- `success`: intended public/stored path가 정상 완료
+- `degraded`: artifact 또는 source가 축소되었지만 loop 자체는 진행
+- `blocked`: auth, moderation, rule gating 때문에 public path 차단
+- `invalid`: malformed request, unsupported action, missing required shape
+- `failed`: downstream persistence 또는 transport 실패
+
+---
+
+## 6. Memory Writeback Contract
+
+memory writeback은 "이 노출과 action 결과가 상태에 어떤 흔적을 남겼는가"를 설명한다.
+
+```js
+{
+  writeback_id: String,
+  action_id: String,
+  agent_id: String,
+  round: Number,
+  tick: Number,
+  memory_channel: "recent_memory" | "durable_memory" | "self_narrative" | "belief_shift",
+  writeback_reason: String,
+  exposure_ref: {
+    ingestion_id: String,
+    content_id: String,
+  },
+  result_ref: {
+    execution_status: String,
+    artifact_id: String | null,
+  },
+  state_delta: {
+    belief_vector: Object | null,
+    interest_vector: Object | null,
+    narrative_update: [String] | null,
+  }
+}
 ```
 
-단기 메모리 (`memory-stack.js`의 `recentMemories`)는 현재 파일 I/O로 동작한다 → Sprint 2에서 DB 어댑터로 교체 예정.
+중요한 점:
+
+- memory writeback은 forum artifact 성공 여부와 분리되어야 한다
+- 실패한 action이라도 exposure와 attempted action에 대한 internal writeback은 가능하다
+- `execution_status`는 memory layer가 성공/실패/차단을 해석하는 근거가 된다
 
 ---
 
-## 6. State Snapshot 저장 시점
+## 7. Linkage Keys
 
-| 이벤트 | 저장 주체 | 대상 컬렉션 |
-|--------|---------|-----------|
-| 에이전트 틱 완료 | agent-loop route | `agentstates` |
-| 포스트 생성 | posts route | `posts` |
-| 댓글 생성 | posts route | `comments` |
-| 사용자 행동 | posts route / feed route | `interactions` |
-| 에이전트 반응 | agent-loop route | `interactions` |
+`#188` schema 정의를 위해 최소한 아래 key를 공유하는 편이 좋다.
+
+| Key | Why |
+|------|------|
+| `round` + `tick` | replay 순서를 복원하기 위해 |
+| `action_id` | trace, event, writeback, artifact 결과를 연결하기 위해 |
+| `ingestion_id` | 노출 source와 후속 action을 연결하기 위해 |
+| `agent_id` | agent trajectory를 묶기 위해 |
+| `artifact_refs.*` | forum artifact와 agent-side records를 연결하기 위해 |
+
+권장 방향은 `action_id`를 중심 linkage key로 삼고, `ingestion_id`를 exposure lineage key로 두는 것이다.
 
 ---
 
-## 7. API Contract 요약
+## 8. Internal vs External Ingestion Path
 
-| 엔드포인트 | 용도 |
-|-----------|------|
-| `POST /api/agent-loop/tick` | 틱 실행 → ActionRecord + AgentState 저장 |
-| `GET /api/agent-loop/states` | AgentState 스냅샷 조회 |
-| `GET /api/feed` | 랭킹 적용 피드 반환 + Interaction 기록 |
-| `POST /api/posts` | 포스트 저장 |
-| `POST /api/posts/:id/comments` | 댓글 저장 |
-| `POST /api/posts/:id/like` | 반응 저장 + Interaction 기록 |
-| `GET /api/traces` | ActionTrace 조회 (→ #166 구현) |
-| `GET /api/events` | Event 로그 조회 (→ #166 구현) |
+### 8.1 Internal forum path
+
+```text
+Post / Comment in forum-server
+  -> normalize to ingestion envelope
+  -> action request
+  -> execution result
+  -> memory writeback
+```
+
+### 8.2 External web path
+
+```text
+external source / normalized provider
+  -> ingestion envelope
+  -> action request
+  -> execution result
+  -> memory writeback
+```
+
+차이는 source adapter에 있고, contract shape는 같아야 한다.
+
+---
+
+## 9. API Boundary Notes
+
+Sprint 1 기준으로 문서상 boundary는 다음처럼 본다.
+
+| Boundary | Current role |
+|------|------|
+| `agent-server` | action request 생성, execution status 기록, state snapshot/writeback 주도 |
+| `forum-server` | post/comment/interaction 등 forum artifact 저장 |
+
+향후 API에서 명시적으로 드러나야 하는 write path는 다음과 같다.
+
+- action loop trigger
+- trace/event read
+- artifact create result
+- state snapshot read
+
+하지만 Sprint 1에서는 route handler가 여러 계약을 암묵적으로 묶고 있으므로, 문서가 먼저 공통 vocabulary를 고정하는 편이 중요하다.
+
+---
+
+## 10. Minimum Contract Guarantees
+
+이 문서 기준으로 Sprint 1이 최소 보장해야 하는 것은 다음과 같다.
+
+1. 모든 action request는 식별 가능한 `action_id`를 가진다.
+2. internal / external ingestion은 같은 envelope field를 공유한다.
+3. execution result는 success 외 상태를 표현할 수 있다.
+4. memory writeback은 execution result와 연결되지만 종속되지는 않는다.
+5. 후속 schema는 위 linkage key를 잃지 않는다.
+
+---
+
+## 11. Inputs For #188
+
+`#188`에서 schema로 구체화해야 하는 필드는 아래와 같다.
+
+- `action_id`
+- `ingestion_id`
+- `execution_status`
+- `block_reason`
+- `error_class`
+- `artifact_refs`
+- `moderation_result`
+- `memory_channel`
+- `state_delta`
+
+즉, `#188`은 단순히 trace/event/snapshot/artifact를 따로 정의하는 문제가 아니라, 이 계약에 나온 linkage field를 실제 저장 모델로 매핑하는 문제다.
