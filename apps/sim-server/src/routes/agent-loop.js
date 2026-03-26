@@ -12,6 +12,8 @@ import { Post } from "../models/Post.js";
 import { Comment } from "../models/Comment.js";
 import { AgentState } from "../models/AgentState.js";
 import { Interaction } from "../models/Interaction.js";
+import { ActionTrace } from "../models/ActionTrace.js";
+import { SimEvent } from "../models/SimEvent.js";
 
 const router = Router();
 
@@ -122,6 +124,40 @@ router.post("/tick", async (req, res) => {
 
   const insertedPosts = postDocs.length > 0 ? await Post.insertMany(postDocs) : [];
   const insertedComments = commentDocs.length > 0 ? await Comment.insertMany(commentDocs) : [];
+
+  // Persist ActionTrace records
+  const traceDocs = result.entries.map((entry, i) => ({
+    actionId: entry.action_id || `ACT:${entry.actor_id}:${entry.tick}:${entry.action}:${i}`,
+    agentId: entry.actor_id,
+    tick: entry.tick,
+    round,
+    actionType: entry.action,
+    visibility:
+      entry.action === "silence" || entry.action === "lurk"
+        ? "stored_only"
+        : entry.action === "react"
+        ? "public_lightweight"
+        : "public_visible",
+    payload: entry,
+  }));
+
+  if (traceDocs.length > 0) {
+    await ActionTrace.insertMany(traceDocs, { ordered: false }).catch(() => {});
+  }
+
+  // Emit SimEvents for tick lifecycle
+  const simEvents = [
+    { eventType: "agent_tick_start", round, tick: 0, payload: { seed, ticks } },
+    { eventType: "agent_tick_end", round, tick: result.tickCount, payload: { postsCreated: insertedPosts.length } },
+    ...result.entries.map((entry) => ({
+      eventType: `action_${entry.action}`,
+      agentId: entry.actor_id,
+      round,
+      tick: entry.tick,
+      payload: entry,
+    })),
+  ];
+  await SimEvent.insertMany(simEvents).catch(() => {});
 
   // Persist agent state snapshots
   const finalSnapshot = result.snapshots[result.snapshots.length - 1];

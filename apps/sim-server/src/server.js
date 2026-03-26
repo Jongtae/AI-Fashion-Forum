@@ -6,6 +6,8 @@ import { connectDB } from "./db.js";
 import postsRouter from "./routes/posts.js";
 import agentLoopRouter from "./routes/agent-loop.js";
 import feedRouter from "./routes/feed.js";
+import tracesRouter from "./routes/traces.js";
+import authRouter from "./routes/auth.js";
 
 import {
   createActionSample,
@@ -523,6 +525,9 @@ app.use(express.json());
 app.use("/api/posts", postsRouter);
 app.use("/api/agent-loop", agentLoopRouter);
 app.use("/api/feed", feedRouter);
+app.use("/api/traces", tracesRouter);
+app.use("/api/events", tracesRouter);
+app.use("/api/auth", authRouter);
 
 // Error handler for Express routes
 // eslint-disable-next-line no-unused-vars
@@ -536,7 +541,7 @@ const legacyHandler = server.listeners("request")[0];
 server.removeAllListeners("request");
 
 // Route Express-managed paths; everything else to the legacy handler
-const EXPRESS_PREFIXES = ["/api/posts", "/api/agent-loop", "/api/feed"];
+const EXPRESS_PREFIXES = ["/api/posts", "/api/agent-loop", "/api/feed", "/api/traces", "/api/events", "/api/auth"];
 server.on("request", (req, res) => {
   if (EXPRESS_PREFIXES.some((prefix) => req.url?.startsWith(prefix))) {
     app(req, res);
