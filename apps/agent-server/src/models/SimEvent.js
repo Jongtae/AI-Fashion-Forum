@@ -40,6 +40,12 @@ const simEventSchema = new Schema(
     userId: { type: String },
     round: { type: Number },
     tick: { type: Number },
+    actionId: { type: String, index: true },
+    executionStatus: {
+      type: String,
+      enum: ["success", "degraded", "blocked", "invalid", "failed"],
+    },
+    ingestionId: { type: String },
     payload: { type: Schema.Types.Mixed }, // 이벤트별 상세 데이터
     relatedId: { type: String },            // postId, commentId, actionId 등
     relatedType: { type: String },
@@ -53,6 +59,7 @@ const simEventSchema = new Schema(
 
 simEventSchema.index({ eventType: 1, createdAt: -1 });
 simEventSchema.index({ agentId: 1, round: 1 });
+simEventSchema.index({ actionId: 1, createdAt: -1 });
 simEventSchema.index({ createdAt: -1 });
 
 export const SimEvent = mongoose.model("SimEvent", simEventSchema);

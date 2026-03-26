@@ -13,6 +13,7 @@ import {
 import { AgentState } from "../models/AgentState.js";
 import { ActionTrace } from "../models/ActionTrace.js";
 import { SimEvent } from "../models/SimEvent.js";
+import { StoredAction } from "../models/StoredAction.js";
 
 const router = Router();
 
@@ -217,8 +218,24 @@ router.post("/tick", async (req, res) => {
     };
   });
 
+  const storedActionDocs = traceDocs.map((traceDoc) => ({
+    actionId: traceDoc.actionId,
+    agentId: traceDoc.agentId,
+    round: traceDoc.round,
+    tick: traceDoc.tick,
+    actionType: traceDoc.actionType,
+    visibility: traceDoc.visibility,
+    executionStatus: traceDoc.executionStatus,
+    targetContentId: traceDoc.targetContentId,
+    artifactId: traceDoc.artifactId,
+    artifactType: traceDoc.artifactType,
+    persistence: traceDoc.persistence,
+    payload: traceDoc.payload,
+  }));
+
   if (traceDocs.length > 0) {
     await ActionTrace.insertMany(traceDocs, { ordered: false }).catch(() => {});
+    await StoredAction.insertMany(storedActionDocs, { ordered: false }).catch(() => {});
   }
 
   // ── Emit SimEvents ────────────────────────────────────────────────────────
@@ -230,7 +247,15 @@ router.post("/tick", async (req, res) => {
       agentId: entry.actor_id,
       round,
       tick: entry.tick,
+      actionId: entry.action_id,
+      executionStatus: traceDocs.find((traceDoc) => traceDoc.actionId === entry.action_id)?.executionStatus || "success",
       payload: entry,
+      relatedId:
+        traceDocs.find((traceDoc) => traceDoc.actionId === entry.action_id)?.artifactId ||
+        entry.action_id,
+      relatedType:
+        traceDocs.find((traceDoc) => traceDoc.actionId === entry.action_id)?.artifactType ||
+        "action",
     })),
   ];
   await SimEvent.insertMany(simEvents).catch(() => {});
