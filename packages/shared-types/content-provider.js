@@ -36,6 +36,11 @@ export const INGESTIBLE_CONTENT_SOURCE_TYPES = Object.freeze(
   CONTENT_SOURCE_TYPES.filter((sourceType) => sourceType !== "forum_post"),
 );
 
+export const CONTENT_INGESTION_SOURCE_FAMILIES = Object.freeze([
+  "internal_forum",
+  "external_web",
+]);
+
 export const CONTENT_PROVIDER_INTERFACE = Object.freeze({
   name: "ContentProvider",
   version: "0.1.0",
@@ -59,6 +64,55 @@ export const CONTENT_PROVIDER_INTERFACE = Object.freeze({
     "Source metadata must preserve provenance so retrieval and replay can explain origin.",
   ]),
 });
+
+export function createIngestionEnvelope(input) {
+  const {
+    ingestion_id,
+    source_family,
+    source_type,
+    content_id,
+    title,
+    body = "",
+    topics = [],
+    emotions = [],
+    intensity = 0.6,
+    social_proof = 0.4,
+    direction = 1,
+    created_tick = 0,
+    metadata = {},
+  } = input;
+
+  assertString("ingestion_id", ingestion_id);
+  assertEnum("source_family", source_family, CONTENT_INGESTION_SOURCE_FAMILIES);
+  assertEnum("source_type", source_type, CONTENT_SOURCE_TYPES);
+  assertString("content_id", content_id);
+  assertString("title", title);
+  if (body && typeof body !== "string") {
+    throw new Error("body must be a string");
+  }
+  assertArray("topics", topics);
+  assertArray("emotions", emotions);
+  assertNumber("intensity", intensity);
+  assertNumber("social_proof", social_proof);
+  assertNumber("direction", direction);
+  assertNumber("created_tick", created_tick);
+
+  return {
+    ingestion_id,
+    source_family,
+    source_type,
+    content_id,
+    title,
+    body,
+    topics,
+    emotions,
+    intensity,
+    social_proof,
+    direction,
+    created_tick,
+    metadata,
+  };
+}
 
 export function createProviderRecord(input) {
   const {

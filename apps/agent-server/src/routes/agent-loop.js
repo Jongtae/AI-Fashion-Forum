@@ -7,6 +7,7 @@ import {
 import {
   SAMPLE_STATE_SNAPSHOT,
   createActionExecutionResult,
+  createIngestionEnvelope,
   createPersistedAgentSnapshot,
   getActionVisibility,
 } from "@ai-fashion-forum/shared-types";
@@ -100,8 +101,26 @@ router.post("/tick", async (req, res) => {
   const createdPosts = [];
   const createdComments = [];
   const artifactResults = new Map();
+  const ingestionByActionId = new Map();
 
   for (const entry of result.entries) {
+    const ingestionEnvelope = createIngestionEnvelope({
+      ingestion_id: `ING:${entry.actor_id}:${round}:${entry.tick}:${entry.action}`,
+      source_family: "internal_forum",
+      source_type: "forum_post",
+      content_id: entry.target_content_id || `simulated:${entry.action_id}`,
+      title: entry.reason || `${entry.action} action`,
+      body: entry.reason || "",
+      topics: ["simulated_action"],
+      emotions: entry.action === "react" ? ["curiosity"] : [],
+      created_tick: entry.tick,
+      metadata: {
+        simulated: true,
+        action_type: entry.action,
+      },
+    });
+    ingestionByActionId.set(entry.action_id, ingestionEnvelope);
+
     latestEntryByAgent.set(entry.actor_id, entry);
     const agent = result.snapshots[0]?.agents?.find((a) => a.agent_id === entry.actor_id)
       || { agent_id: entry.actor_id, handle: entry.actor_id };
@@ -207,6 +226,9 @@ router.post("/tick", async (req, res) => {
       round: execution.round,
       actionType: execution.action_type,
       visibility: execution.visibility,
+      ingestionId: ingestionByActionId.get(execution.action_id)?.ingestion_id || null,
+      sourceFamily: ingestionByActionId.get(execution.action_id)?.source_family || null,
+      sourceType: ingestionByActionId.get(execution.action_id)?.source_type || null,
       executionStatus: execution.execution_status,
       blockReason: execution.block_reason,
       errorClass: execution.error_class,
@@ -226,6 +248,9 @@ router.post("/tick", async (req, res) => {
     actionType: traceDoc.actionType,
     visibility: traceDoc.visibility,
     executionStatus: traceDoc.executionStatus,
+    ingestionId: traceDoc.ingestionId,
+    sourceFamily: traceDoc.sourceFamily,
+    sourceType: traceDoc.sourceType,
     targetContentId: traceDoc.targetContentId,
     artifactId: traceDoc.artifactId,
     artifactType: traceDoc.artifactType,
@@ -249,6 +274,7 @@ router.post("/tick", async (req, res) => {
       tick: entry.tick,
       actionId: entry.action_id,
       executionStatus: traceDocs.find((traceDoc) => traceDoc.actionId === entry.action_id)?.executionStatus || "success",
+      ingestionId: ingestionByActionId.get(entry.action_id)?.ingestion_id || null,
       payload: entry,
       relatedId:
         traceDocs.find((traceDoc) => traceDoc.actionId === entry.action_id)?.artifactId ||
@@ -278,6 +304,7 @@ router.post("/tick", async (req, res) => {
               action_type: latestEntry.action,
               reason: latestEntry.reason,
               target_content_id: latestEntry.target_content_id || null,
+              ingestion_id: ingestionByActionId.get(latestEntry.action_id)?.ingestion_id || null,
             }
           : {},
         reaction_summary: latestEntry?.action === "react" ? { lastReactionActionId: latestEntry.action_id } : {},
