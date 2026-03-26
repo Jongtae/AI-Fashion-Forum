@@ -35,9 +35,15 @@ Required raw record fields:
 
 Every provider record normalizes into the shared `ContentRecord` schema from `packages/shared-types/state-schema.js`.
 
+For Sprint 1 agent-loop writeback, the repository also uses a shared ingestion envelope from `packages/shared-types/content-provider.js`.
+
+That envelope keeps internal forum exposure and external web exposure on the same identity-update entry path, even when external fetch is not yet implemented.
+
 Important preserved metadata:
 
 - `source_type`
+- `source_family`
+- `ingestion_id`
 - `topics`
 - `emotions`
 - `source_metadata.provider_id`

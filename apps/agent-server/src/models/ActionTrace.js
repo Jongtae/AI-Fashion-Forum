@@ -21,6 +21,8 @@ const actionTraceSchema = new Schema(
       type: String,
       enum: ["stored_only", "public_lightweight", "public_visible"],
     },
+    ingestionId: { type: String, index: true },
+    sourceFamily: { type: String },
     executionStatus: {
       type: String,
       enum: ["success", "degraded", "blocked", "invalid", "failed"],
