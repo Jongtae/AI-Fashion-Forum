@@ -21,6 +21,16 @@ const postSchema = new Schema(
       enum: ["approved", "flagged", "removed"],
       default: "approved",
     },
+    moderationLabel: {
+      type: String,
+      enum: ["safe", "review"],
+      default: "safe",
+    },
+    moderationScore: { type: Number, default: 0 },
+    moderationReasons: [{ type: String }],
+    moderationCategories: [{ type: String }],
+    moderationModelVersion: { type: String },
+    moderationEvaluatedAt: { type: Date },
     reportCount: { type: Number, default: 0 },
   },
   { timestamps: true }

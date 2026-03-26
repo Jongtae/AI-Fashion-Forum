@@ -148,6 +148,14 @@ Useful forum-server endpoints:
 - `GET /api/operator/reports`
 - `GET /api/operator/feedback`
 - `GET /api/operator/feedback/summary`
+- `GET /api/operator/moderation/queue`
+- `POST /api/operator/moderation/recheck/{postId}`
+
+Moderation prototype notes:
+
+- forum-server now computes a lightweight text moderation prediction when posts are created or updated
+- predictions store score, label, matched reasons, and model version on each post document
+- flagged posts can be reviewed through the operator moderation queue and rechecked after edits
 
 GitHub settings required:
 
