@@ -1,66 +1,66 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PostForm from "./components/PostForm.jsx";
 import PostList from "./components/PostList.jsx";
 import PersonalisedFeed from "./components/PersonalisedFeed.jsx";
+import AuthModal from "./components/AuthModal.jsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: 1, staleTime: 10_000 },
+    // 실시간 업데이트: 30초마다 자동 갱신
+    queries: { retry: 1, staleTime: 10_000, refetchInterval: 30_000 },
   },
 });
 
-// In a real app this would come from an auth context / session.
-// For now we use a simple "guest user" that can be changed via the UI.
-function useCurrentUser() {
-  const [userId, setUserId] = useState(
-    () => localStorage.getItem("forum_user_id") || "user-guest"
-  );
-
-  function changeUser(id) {
-    const trimmed = id.trim() || "user-guest";
-    localStorage.setItem("forum_user_id", trimmed);
-    setUserId(trimmed);
-  }
-
-  return { id: userId, type: "user", changeUser };
+function loadStoredUser() {
+  try {
+    const stored = localStorage.getItem("auth_user");
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return null;
 }
 
 export default function ForumApp() {
-  const currentUser = useCurrentUser();
-  const [editingUser, setEditingUser] = useState(false);
-  const [draft, setDraft] = useState(currentUser.id);
-  const [tab, setTab] = useState("forum"); // "forum" | "feed"
+  const [authUser, setAuthUser] = useState(loadStoredUser);
+  const [showAuth, setShowAuth] = useState(false);
+  const [tab, setTab] = useState("forum");
+
+  // currentUser: 로그인 시 JWT 사용자, 미로그인 시 guest
+  const currentUser = authUser
+    ? { id: authUser.username, type: "user" }
+    : { id: "user-guest", type: "user" };
+
+  function handleAuthSuccess(user) {
+    setAuthUser(user);
+    setShowAuth(false);
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_user");
+    setAuthUser(null);
+    queryClient.clear();
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
       <div style={styles.root}>
+        {showAuth && (
+          <AuthModal onSuccess={handleAuthSuccess} onClose={() => setShowAuth(false)} />
+        )}
+
         <header style={styles.header}>
           <span style={styles.logo}>✦ AI Fashion Forum</span>
           <div style={styles.userRow}>
-            {editingUser ? (
+            {authUser ? (
               <>
-                <input
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  style={styles.userInput}
-                />
-                <button
-                  style={styles.saveBtn}
-                  onClick={() => {
-                    currentUser.changeUser(draft);
-                    setEditingUser(false);
-                  }}
-                >
-                  저장
-                </button>
+                <span style={styles.userId}>👤 {authUser.displayName || authUser.username}</span>
+                <button style={styles.editBtn} onClick={handleLogout}>로그아웃</button>
               </>
             ) : (
               <>
-                <span style={styles.userId}>👤 {currentUser.id}</span>
-                <button style={styles.editBtn} onClick={() => { setDraft(currentUser.id); setEditingUser(true); }}>
-                  변경
-                </button>
+                <span style={styles.userId}>🔒 게스트</span>
+                <button style={styles.editBtn} onClick={() => setShowAuth(true)}>로그인</button>
               </>
             )}
           </div>

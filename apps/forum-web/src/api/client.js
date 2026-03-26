@@ -1,8 +1,17 @@
 const SIM_SERVER_BASE = import.meta.env.VITE_SIM_SERVER_URL || "http://localhost:4318";
 
+function getToken() {
+  return localStorage.getItem("auth_token");
+}
+
 async function request(path, options = {}) {
+  const token = getToken();
   const res = await fetch(`${SIM_SERVER_BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...options.headers },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
     ...options,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
@@ -27,6 +36,11 @@ export const updatePost = (postId, data) =>
 export const deletePost = (postId) => request(`/api/posts/${postId}`, { method: "DELETE" });
 export const toggleLike = (postId, userId) =>
   request(`/api/posts/${postId}/like`, { method: "POST", body: { userId } });
+
+// Auth
+export const register = (data) => request("/api/auth/register", { method: "POST", body: data });
+export const login = (data) => request("/api/auth/login", { method: "POST", body: data });
+export const getMe = () => request("/api/auth/me");
 
 // Personalised feed (ranking-core based)
 export const fetchFeed = (params = {}) => {
