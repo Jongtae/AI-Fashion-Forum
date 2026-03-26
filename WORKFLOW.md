@@ -42,6 +42,51 @@ When rules change, update only this file.
 - If local docs or notes also track the work, update them second; do not leave the GitHub Issue checklist stale.
 - Before closing an issue, make sure the issue itself contains enough history that someone can reconstruct what changed from the issue comments and linked PR/commits.
 
+## Diligent Issue Handling
+
+- Treat diligence as an enforceable workflow requirement, not as a personal preference.
+- Do not start implementation from an issue that is still incomplete, vague, or missing verification details.
+- An issue is not ready for implementation until it contains all of the following:
+  - a clear problem or outcome summary
+  - explicit scope, including what is out of scope when that boundary matters
+  - completion criteria written as verifiable checklist items
+  - a verification plan covering tests, manual checks, or deployment/runtime confirmation as applicable
+- If any required issue section is missing or too vague, first update or propose updates to the issue before coding.
+- Treat incomplete issues as draft work items, not executable work items.
+- Write completion criteria as outcome-based truths to verify, not as vague activity notes such as "update code" or "do testing."
+- Keep the issue body aligned with reality during execution; when scope, risks, or validation steps change, update the issue before or alongside the code changes.
+- If new work appears during implementation and is not required to close the current issue cleanly, split it into a separate issue instead of silently expanding scope.
+- Leave meaningful work-log comments throughout execution, not only at the end.
+- Each meaningful work-log update should include:
+  - current branch name
+  - what changed since the last update
+  - what was verified
+  - what remains
+  - blockers or risks, if any
+- Do not treat local implementation progress as sufficient evidence of diligence unless the issue history also reflects that progress.
+- Do not close an issue with unchecked completion criteria, missing verification notes, or stale scope.
+- Before closing an issue, confirm that a third party can understand what was changed, how it was verified, and whether any follow-up work remains by reading the issue and its linked PR or commits.
+- If follow-up work remains, record it explicitly in the issue and open or reference the next issue instead of hiding unfinished work inside a closed issue.
+- A diligently handled issue is only complete when the implementation, verification, documentation in the issue, and closure state all agree.
+
+## Issue Relationship Handling
+
+- Before starting any open issue, first identify its type and its relationship to other issues.
+- Treat epics as coordination containers by default, not as the normal implementation unit.
+- Prefer executing the most specific actionable issue, such as a task, bug, or subtask, rather than starting from a parent epic.
+- Before implementation, check whether the issue:
+  - belongs to an epic
+  - has child issues
+  - depends on another open issue
+  - is blocked by another unfinished issue
+- Do not start an issue if an unfinished dependency must be completed first for safe, correct, or reviewable execution.
+- If the issue is part of a larger chain, work in dependency order before considering convenience or personal preference.
+- If an epic contains multiple actionable child issues, prefer the next unblocked child issue with the clearest completion path.
+- Do not silently collapse multiple related issues into one implementation branch unless the issue structure is updated first and that consolidation is explicitly justified.
+- Do not close an epic while its required child issues remain open, unless the epic is being intentionally re-scoped and its issue body is updated to reflect that change.
+- When progress is made on a child issue, update the parent epic or related tracking issue when needed so that the relationship remains understandable from the issue history.
+- If issue relationships are unclear, ambiguous, or missing, clarify or update that structure before starting substantial implementation work.
+
 ## Collaboration Notes
 
 - If the user asks for quick exploratory work, keep the work small and suggest converting it into an issue before expanding scope.
