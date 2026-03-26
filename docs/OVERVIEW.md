@@ -61,6 +61,7 @@ agent loop, action-state contract, backend 연결 초안 문서.
 | [action-state-contract.md](agent-core/action-state-contract.md) | action-state contract와 memory writeback 경로 |
 | [agent-action-loop-backend-outline.md](agent-core/agent-action-loop-backend-outline.md) | Sprint 1 기준 agent action loop backend 설계 초안 |
 | [state-transition-exception-rules.md](agent-core/state-transition-exception-rules.md) | 상태 전이 규칙과 예외 처리 기준 |
+| [backend-artifact-schema.md](agent-core/backend-artifact-schema.md) | trace/snapshot/event/forum artifact schema 정의 |
 
 ---
 
