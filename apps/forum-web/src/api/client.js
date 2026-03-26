@@ -1,12 +1,13 @@
-const SIM_SERVER_BASE = import.meta.env.VITE_SIM_SERVER_URL || "http://localhost:4318";
+const FORUM_SERVER_BASE = import.meta.env.VITE_FORUM_SERVER_URL || "http://localhost:4000";
+const AGENT_SERVER_BASE = import.meta.env.VITE_AGENT_SERVER_URL || "http://localhost:4001";
 
 function getToken() {
   return localStorage.getItem("auth_token");
 }
 
-async function request(path, options = {}) {
+async function _request(base, path, options = {}) {
   const token = getToken();
-  const res = await fetch(`${SIM_SERVER_BASE}${path}`, {
+  const res = await fetch(`${base}${path}`, {
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -24,42 +25,45 @@ async function request(path, options = {}) {
   return res.json();
 }
 
-// Posts
+const forumRequest = (path, options = {}) => _request(FORUM_SERVER_BASE, path, options);
+const agentRequest = (path, options = {}) => _request(AGENT_SERVER_BASE, path, options);
+
+// ── Posts (forum-server) ──────────────────────────────────────────────────────
 export const fetchPosts = (params = {}) => {
   const q = new URLSearchParams(params).toString();
-  return request(`/api/posts${q ? `?${q}` : ""}`);
+  return forumRequest(`/api/posts${q ? `?${q}` : ""}`);
 };
-export const fetchPost = (postId) => request(`/api/posts/${postId}`);
-export const createPost = (data) => request("/api/posts", { method: "POST", body: data });
+export const fetchPost = (postId) => forumRequest(`/api/posts/${postId}`);
+export const createPost = (data) => forumRequest("/api/posts", { method: "POST", body: data });
 export const updatePost = (postId, data) =>
-  request(`/api/posts/${postId}`, { method: "PUT", body: data });
-export const deletePost = (postId) => request(`/api/posts/${postId}`, { method: "DELETE" });
+  forumRequest(`/api/posts/${postId}`, { method: "PUT", body: data });
+export const deletePost = (postId) => forumRequest(`/api/posts/${postId}`, { method: "DELETE" });
 export const toggleLike = (postId, userId) =>
-  request(`/api/posts/${postId}/like`, { method: "POST", body: { userId } });
+  forumRequest(`/api/posts/${postId}/like`, { method: "POST", body: { userId } });
 
-// Auth
-export const register = (data) => request("/api/auth/register", { method: "POST", body: data });
-export const login = (data) => request("/api/auth/login", { method: "POST", body: data });
-export const getMe = () => request("/api/auth/me");
+// ── Comments (forum-server) ───────────────────────────────────────────────────
+export const fetchComments = (postId) => forumRequest(`/api/posts/${postId}/comments`);
+export const createComment = (postId, data) =>
+  forumRequest(`/api/posts/${postId}/comments`, { method: "POST", body: data });
+export const deleteComment = (postId, commentId) =>
+  forumRequest(`/api/posts/${postId}/comments/${commentId}`, { method: "DELETE" });
 
-// Personalised feed (ranking-core based)
+// ── Auth (forum-server) ───────────────────────────────────────────────────────
+export const register = (data) => forumRequest("/api/auth/register", { method: "POST", body: data });
+export const login = (data) => forumRequest("/api/auth/login", { method: "POST", body: data });
+export const getMe = () => forumRequest("/api/auth/me");
+
+// ── Feed (forum-server) ───────────────────────────────────────────────────────
 export const fetchFeed = (params = {}) => {
   const q = new URLSearchParams(params).toString();
-  return request(`/api/feed${q ? `?${q}` : ""}`);
+  return forumRequest(`/api/feed${q ? `?${q}` : ""}`);
 };
 
-// Agent loop
+// ── Agent loop (agent-server) ─────────────────────────────────────────────────
 export const triggerAgentTick = (params = {}) =>
-  request("/api/agent-loop/tick", { method: "POST", body: params });
-export const fetchAgentLoopStatus = () => request("/api/agent-loop/status");
+  agentRequest("/api/agent-loop/tick", { method: "POST", body: params });
+export const fetchAgentLoopStatus = () => agentRequest("/api/agent-loop/status");
 export const fetchAgentStates = (params = {}) => {
   const q = new URLSearchParams(params).toString();
-  return request(`/api/agent-loop/states${q ? `?${q}` : ""}`);
+  return agentRequest(`/api/agent-loop/states${q ? `?${q}` : ""}`);
 };
-
-// Comments
-export const fetchComments = (postId) => request(`/api/posts/${postId}/comments`);
-export const createComment = (postId, data) =>
-  request(`/api/posts/${postId}/comments`, { method: "POST", body: data });
-export const deleteComment = (postId, commentId) =>
-  request(`/api/posts/${postId}/comments/${commentId}`, { method: "DELETE" });

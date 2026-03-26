@@ -5,7 +5,6 @@ import path from "node:path";
 import {
   SAMPLE_AGENT_STATES,
   SAMPLE_STATE_SNAPSHOT,
-  SPRINT1_AGENT_STATES,
   createStateSnapshot,
   createDurableMemoryRecord,
   createMemoryStoreSnapshot,
@@ -410,7 +409,7 @@ export async function createSprint1MemoryWritebackSample({
   storeFilePath,
 } = {}) {
   const starterState = createStateSnapshot({
-    agents: SPRINT1_AGENT_STATES,
+    agents: SAMPLE_AGENT_STATES,
     contents: [],
     nodes: [],
     relations: [],

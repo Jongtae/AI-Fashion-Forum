@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "npm run dev:forum",
     "dev:forum": "npm run dev --workspace @ai-fashion-forum/forum-web",
-    "dev:sim": "npm run dev --workspace @ai-fashion-forum/sim-server",
+    "dev:forum-server": "npm run dev --workspace @ai-fashion-forum/forum-server",
+    "dev:agent-server": "npm run dev --workspace @ai-fashion-forum/agent-server",
     "build": "npm run build --workspace @ai-fashion-forum/forum-web",
     "preview": "npm run preview --workspace @ai-fashion-forum/forum-web",
     "crawl:images": "npm run crawl:images --workspace @ai-fashion-forum/forum-web",

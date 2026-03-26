@@ -1,7 +1,6 @@
 import {
   SAMPLE_AGENT_STATES,
   SAMPLE_CONTENT_RECORDS,
-  SPRINT1_AGENT_STATES,
   createStateSnapshot,
 } from "@ai-fashion-forum/shared-types";
 
@@ -167,7 +166,7 @@ function buildSprint1PostBody(updatedAgent, reactionRecord, contentRecord) {
 export async function createSprint1ForumPostSample() {
   const sharedSample = await createSprint1SharedStimulusSample();
   const starterState = createStateSnapshot({
-    agents: SPRINT1_AGENT_STATES,
+    agents: SAMPLE_AGENT_STATES,
     contents: [],
     nodes: [],
     relations: [],

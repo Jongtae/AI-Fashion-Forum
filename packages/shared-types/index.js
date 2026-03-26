@@ -1,15 +1,10 @@
+export const FORUM_SERVER_PORT = 4000;
+export const AGENT_SERVER_PORT = 4001;
+
 export const WORKSPACE_APPS = Object.freeze({
   forumWeb: "@ai-fashion-forum/forum-web",
-  simServer: "@ai-fashion-forum/sim-server",
-});
-
-export const SIM_SERVER_PORT = 4318;
-
-export const MVP_DEMO_SCENARIO = Object.freeze({
-  id: "mvp-v1-seed-world",
-  name: "MVP-v1 Seed World",
-  description: "Identity-forming fashion forum seed world with replay-friendly local services.",
-  primaryLayer: "seed-world realism",
+  forumServer: "@ai-fashion-forum/forum-server",
+  agentServer: "@ai-fashion-forum/agent-server",
 });
 
 export const LOCAL_SERVICE_BASELINE = Object.freeze([
@@ -20,10 +15,16 @@ export const LOCAL_SERVICE_BASELINE = Object.freeze([
     defaultPort: 5173,
   }),
   Object.freeze({
-    id: "sim-server",
-    displayName: "Sim Server",
-    devCommand: "npm run dev:sim",
-    defaultPort: SIM_SERVER_PORT,
+    id: "forum-server",
+    displayName: "Forum Server",
+    devCommand: "npm run dev:forum-server",
+    defaultPort: FORUM_SERVER_PORT,
+  }),
+  Object.freeze({
+    id: "agent-server",
+    displayName: "Agent Server",
+    devCommand: "npm run dev:agent-server",
+    defaultPort: AGENT_SERVER_PORT,
   }),
 ]);
 
@@ -45,7 +46,6 @@ export function createServiceStatus(id, overrides = {}) {
 
 export * from "./state-schema.js";
 export * from "./sample-data.js";
-export * from "./sprint1-evaluation.js";
 export * from "./content-provider.js";
 export * from "./memory-schema.js";
 export * from "./action-schema.js";

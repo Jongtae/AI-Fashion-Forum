@@ -1,5 +1,5 @@
 {
-  "name": "@ai-fashion-forum/sim-server",
+  "name": "@ai-fashion-forum/agent-server",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -10,10 +10,8 @@
   "dependencies": {
     "@ai-fashion-forum/agent-core": "file:../../packages/agent-core",
     "@ai-fashion-forum/shared-types": "file:../../packages/shared-types",
-    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.2"
   }
 }

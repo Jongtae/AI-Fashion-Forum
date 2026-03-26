@@ -1,7 +1,6 @@
 import {
   SAMPLE_AGENT_STATES,
   SAMPLE_CONTENT_RECORDS,
-  SPRINT1_AGENT_STATES,
   createContentRecord,
 } from "@ai-fashion-forum/shared-types";
 
@@ -525,8 +524,8 @@ export async function createSprint1ExposureSample({
   });
   const index = buildChromaContentIndex(starterPack.normalizedRecords);
   const agentState =
-    SPRINT1_AGENT_STATES.find((candidate) => candidate.agent_id === agentId) ||
-    SPRINT1_AGENT_STATES[0];
+    SAMPLE_AGENT_STATES.find((candidate) => candidate.agent_id === agentId) ||
+    SAMPLE_AGENT_STATES[0];
 
   const candidatePool = starterPack.normalizedRecords
     .map((record) => ({
@@ -583,7 +582,7 @@ export async function createSprint1SharedStimulusSample({
   const contentRecord =
     starterPack.normalizedRecords.find((record) => record.content_id === contentId) ||
     starterPack.normalizedRecords[0];
-  const agents = SPRINT1_AGENT_STATES.filter((agent) => agentIds.includes(agent.agent_id));
+  const agents = SAMPLE_AGENT_STATES.filter((agent) => agentIds.includes(agent.agent_id));
 
   return {
     content: contentRecord,
