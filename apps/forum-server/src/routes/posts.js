@@ -3,6 +3,7 @@ import { Post } from "../models/Post.js";
 import { Comment } from "../models/Comment.js";
 import { Interaction } from "../models/Interaction.js";
 import { Report } from "../models/Report.js";
+import { normalizeInteractionPayload } from "../lib/engagement.js";
 
 const router = Router();
 
@@ -139,14 +140,15 @@ router.post("/:postId/like", async (req, res) => {
 
   // Record interaction
   if (!alreadyLiked) {
-    await new Interaction({
+    await new Interaction(normalizeInteractionPayload({
       actorId: userId,
       actorType: "user",
       targetId: req.params.postId,
       targetType: "post",
       eventType: "like",
       agentId: post.authorType === "agent" ? post.authorId : undefined,
-    }).save();
+      source: "post_like",
+    })).save();
   }
 
   res.json({ liked: !alreadyLiked, likes: post.likes });
@@ -172,14 +174,15 @@ router.post("/:postId/comments", async (req, res) => {
 
   // Record interaction
   if (req.body.authorType === "user") {
-    await new Interaction({
+    await new Interaction(normalizeInteractionPayload({
       actorId: req.body.authorId,
       actorType: "user",
       targetId: req.params.postId,
       targetType: "post",
       eventType: "comment",
       agentId: post.authorType === "agent" ? post.authorId : undefined,
-    }).save();
+      source: "post_comment",
+    })).save();
   }
 
   res.status(201).json(comment);
@@ -229,6 +232,18 @@ router.post("/:postId/report", async (req, res) => {
   if (existing) return res.status(409).json({ error: "already_reported" });
 
   await Report.create({ postId: req.params.postId, reporterId, reason, detail });
+
+  await Interaction.create(
+    normalizeInteractionPayload({
+      actorId: reporterId,
+      actorType: "user",
+      targetId: req.params.postId,
+      targetType: "post",
+      eventType: "report",
+      metadata: { reason, detail: detail ?? null },
+      source: "post_report",
+    })
+  );
 
   // 누적 신고 수 반영 + 임계치 초과 시 자동 플래그
   post.reportCount += 1;

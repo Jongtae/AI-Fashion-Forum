@@ -128,6 +128,27 @@ Useful sim-server endpoints:
 - `POST /api/jobs/{job_id}/retry`
 - `GET /api/graph-storage-sample`
 
+Useful forum-server endpoints:
+
+- `GET /health`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `GET /api/posts`
+- `POST /api/posts`
+- `POST /api/posts/{postId}/comments`
+- `POST /api/posts/{postId}/report`
+- `GET /api/feed`
+- `POST /api/engagement/interactions`
+- `GET /api/engagement/interactions`
+- `POST /api/engagement/feedback`
+- `GET /api/engagement/feedback`
+- `GET /api/operator/metrics`
+- `GET /api/operator/logs`
+- `GET /api/operator/reports`
+- `GET /api/operator/feedback`
+- `GET /api/operator/feedback/summary`
+
 GitHub settings required:
 
 1. Open repository `Settings`
