@@ -154,11 +154,13 @@ async function seed() {
 
   // 4. Migrate SPRINT1_FORUM_POSTS_BY_ROUND
   const postDocs = [];
-  for (const [roundId, posts] of Object.entries(SPRINT1_FORUM_POSTS_BY_ROUND)) {
-    const round = parseInt(roundId.replace("round_", ""), 10) || 0;
+  for (const [roundId, roundData] of Object.entries(SPRINT1_FORUM_POSTS_BY_ROUND)) {
+    const round = parseInt(roundId, 10) || 0;
+    // roundData may be an array of posts directly, or an object with a .posts array
+    const posts = Array.isArray(roundData) ? roundData : (roundData?.posts ?? []);
     for (const p of posts) {
       postDocs.push({
-        content: p.content ?? p.body ?? p.text ?? JSON.stringify(p),
+        content: p.body ?? p.content ?? p.text ?? p.title ?? JSON.stringify(p),
         authorId: p.agent_id ?? p.authorId ?? "unknown",
         authorType: "agent",
         tags: p.tags ?? [],

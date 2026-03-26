@@ -82,6 +82,8 @@ const styles = {
     border: "1px solid #d1d5db",
     borderRadius: 6,
     fontSize: 13,
+    color: "#111827",
+    background: "#fff",
   },
   clearBtn: {
     background: "none",
