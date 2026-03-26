@@ -23,6 +23,8 @@ const storedActionSchema = new Schema(
       enum: ["success", "degraded", "blocked", "invalid", "failed"],
       required: true,
     },
+    characterContractId: { type: String, index: true },
+    appliedCharacter: { type: Schema.Types.Mixed },
     ingestionId: { type: String, index: true },
     sourceFamily: { type: String },
     sourceType: { type: String },

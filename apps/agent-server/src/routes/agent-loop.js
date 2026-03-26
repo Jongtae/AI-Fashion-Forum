@@ -6,9 +6,11 @@ import {
 } from "@ai-fashion-forum/agent-core";
 import {
   SAMPLE_STATE_SNAPSHOT,
+  applyCharacterOverridesToState,
   createActionExecutionResult,
   createIngestionEnvelope,
   createPersistedAgentSnapshot,
+  ensureStateCharacterContracts,
   getActionVisibility,
 } from "@ai-fashion-forum/shared-types";
 import { AgentState } from "../models/AgentState.js";
@@ -47,7 +49,7 @@ let currentWorld = null;
 let currentRound = 0;
 
 function buildInitialState() {
-  return JSON.parse(JSON.stringify(SAMPLE_STATE_SNAPSHOT));
+  return ensureStateCharacterContracts(JSON.parse(JSON.stringify(SAMPLE_STATE_SNAPSHOT)));
 }
 
 function agentToSeedAxes(agent) {
@@ -81,21 +83,34 @@ function agentToMutableAxes(agent) {
 router.post("/tick", async (req, res) => {
   const ticks = Math.min(20, Math.max(1, parseInt(req.body?.ticks) || 1));
   const seed = parseInt(req.body?.seed) || Date.now() % 100000;
+  const characterOverrides = req.body?.character_overrides || [];
 
   if (!currentWorld) {
     currentWorld = buildInitialState();
   }
 
+  const seededWorld = ensureStateCharacterContracts(JSON.parse(JSON.stringify(currentWorld)));
+  const { state: worldWithCharacters, appliedOverrides } = applyCharacterOverridesToState(
+    seededWorld,
+    characterOverrides
+  );
+
   const result = runTicks({
     seed,
     tickCount: ticks,
-    initialState: currentWorld,
+    initialState: worldWithCharacters,
     worldRules: createBaselineWorldRules(),
   });
 
   currentRound += 1;
   const round = currentRound;
   const latestEntryByAgent = new Map();
+  const characterByAgent = new Map(
+    (result.finalState?.agents || worldWithCharacters.agents || []).map((agent) => [
+      agent.agent_id,
+      agent.character_contract || null,
+    ])
+  );
 
   // ── Create posts and comments via forum-server API ────────────────────────
   const createdPosts = [];
@@ -226,6 +241,9 @@ router.post("/tick", async (req, res) => {
       round: execution.round,
       actionType: execution.action_type,
       visibility: execution.visibility,
+      characterContractId:
+        characterByAgent.get(execution.agent_id)?.character_contract_id || null,
+      appliedCharacter: characterByAgent.get(execution.agent_id)?.summary || null,
       ingestionId: ingestionByActionId.get(execution.action_id)?.ingestion_id || null,
       sourceFamily: ingestionByActionId.get(execution.action_id)?.source_family || null,
       sourceType: ingestionByActionId.get(execution.action_id)?.source_type || null,
@@ -248,6 +266,8 @@ router.post("/tick", async (req, res) => {
     actionType: traceDoc.actionType,
     visibility: traceDoc.visibility,
     executionStatus: traceDoc.executionStatus,
+    characterContractId: traceDoc.characterContractId,
+    appliedCharacter: traceDoc.appliedCharacter,
     ingestionId: traceDoc.ingestionId,
     sourceFamily: traceDoc.sourceFamily,
     sourceType: traceDoc.sourceType,
@@ -265,7 +285,16 @@ router.post("/tick", async (req, res) => {
 
   // ── Emit SimEvents ────────────────────────────────────────────────────────
   const simEvents = [
-    { eventType: "agent_tick_start", round, tick: 0, payload: { seed, ticks } },
+    {
+      eventType: "agent_tick_start",
+      round,
+      tick: 0,
+      payload: {
+        seed,
+        ticks,
+        characterOverridesApplied: appliedOverrides,
+      },
+    },
     { eventType: "agent_tick_end", round, tick: result.tickCount, payload: { postsCreated: createdPosts.length } },
     ...result.entries.map((entry) => ({
       eventType: `action_${entry.action}`,
@@ -321,6 +350,8 @@ router.post("/tick", async (req, res) => {
             round,
             tick: result.tickCount,
             sourceActionId: persistedSnapshot.source_action_id,
+            characterContractId: agent.character_contract?.character_contract_id || null,
+            appliedCharacter: agent.character_contract?.summary || null,
             executionStatus: persistedSnapshot.execution_status,
             writebackIds: persistedSnapshot.writeback_ids,
             seedAxes: agentToSeedAxes(agent),
@@ -345,6 +376,7 @@ router.post("/tick", async (req, res) => {
     ticks: result.tickCount,
     postsCreated: createdPosts.length,
     commentsCreated: createdComments.length,
+    characterOverridesApplied: appliedOverrides,
     entries: result.entries.map((e) => ({ tick: e.tick, actor: e.actor_id, action: e.action })),
   });
 });
