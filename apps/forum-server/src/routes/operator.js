@@ -6,6 +6,7 @@ import { Interaction } from "../models/Interaction.js";
 import { Report } from "../models/Report.js";
 import { Feedback } from "../models/Feedback.js";
 import { buildFeedbackFilter, buildInteractionFilter } from "../lib/engagement.js";
+import { buildModerationState } from "../lib/moderation.js";
 
 const router = Router();
 
@@ -145,6 +146,64 @@ router.get("/feedback/summary", async (req, res) => {
       count: item.count,
       avgRating: item.avgRating ? Number(item.avgRating.toFixed(2)) : null,
     })),
+  });
+});
+
+router.get("/moderation/queue", async (req, res) => {
+  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 50));
+  const minScore = typeof req.query.minScore === "string" ? Number(req.query.minScore) : 0.45;
+  const status = req.query.status || "flagged";
+
+  const posts = await Post.find({
+    moderationStatus: status,
+    moderationScore: { $gte: Number.isFinite(minScore) ? minScore : 0.45 },
+  })
+    .sort({ moderationScore: -1, createdAt: -1 })
+    .limit(limit)
+    .lean();
+
+  res.json({
+    posts: posts.map((post) => ({
+      id: post._id,
+      content: post.content,
+      moderationStatus: post.moderationStatus,
+      moderationLabel: post.moderationLabel,
+      moderationScore: post.moderationScore,
+      moderationReasons: post.moderationReasons ?? [],
+      moderationCategories: post.moderationCategories ?? [],
+      moderationModelVersion: post.moderationModelVersion ?? null,
+      moderationEvaluatedAt: post.moderationEvaluatedAt ?? null,
+      reportCount: post.reportCount,
+      createdAt: post.createdAt,
+    })),
+    total: posts.length,
+  });
+});
+
+router.post("/moderation/recheck/:postId", async (req, res) => {
+  const post = await Post.findById(req.params.postId);
+  if (!post) return res.status(404).json({ error: "Post not found" });
+
+  Object.assign(
+    post,
+    buildModerationState({
+      content: post.content,
+      tags: post.tags,
+      existingStatus: post.moderationStatus,
+    })
+  );
+
+  await post.save();
+
+  res.json({
+    id: post._id,
+    moderationStatus: post.moderationStatus,
+    moderationLabel: post.moderationLabel,
+    moderationScore: post.moderationScore,
+    moderationReasons: post.moderationReasons,
+    moderationCategories: post.moderationCategories,
+    moderationModelVersion: post.moderationModelVersion,
+    moderationEvaluatedAt: post.moderationEvaluatedAt,
   });
 });
 

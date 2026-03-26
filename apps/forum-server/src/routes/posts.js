@@ -4,6 +4,7 @@ import { Comment } from "../models/Comment.js";
 import { Interaction } from "../models/Interaction.js";
 import { Report } from "../models/Report.js";
 import { normalizeInteractionPayload } from "../lib/engagement.js";
+import { buildModerationState } from "../lib/moderation.js";
 
 const router = Router();
 
@@ -50,6 +51,10 @@ router.post("/", async (req, res) => {
     tags: req.body.tags ?? [],
     imageUrls: req.body.imageUrls ?? [],
     format: req.body.format,
+    ...buildModerationState({
+      content: req.body.content.trim(),
+      tags: req.body.tags ?? [],
+    }),
   });
 
   await post.save();
@@ -101,6 +106,14 @@ router.put("/:postId", async (req, res) => {
   if (tags !== undefined) post.tags = tags;
   if (imageUrls !== undefined) post.imageUrls = imageUrls;
   if (format !== undefined) post.format = format;
+  Object.assign(
+    post,
+    buildModerationState({
+      content: post.content,
+      tags: post.tags,
+      existingStatus: post.moderationStatus,
+    })
+  );
 
   await post.save();
   res.json(post);
