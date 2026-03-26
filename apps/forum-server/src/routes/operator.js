@@ -4,6 +4,8 @@ import { Comment } from "../models/Comment.js";
 import { User } from "../models/User.js";
 import { Interaction } from "../models/Interaction.js";
 import { Report } from "../models/Report.js";
+import { Feedback } from "../models/Feedback.js";
+import { buildFeedbackFilter, buildInteractionFilter } from "../lib/engagement.js";
 
 const router = Router();
 
@@ -25,7 +27,9 @@ router.get("/metrics", async (req, res) => {
     totalLikes,
     flaggedPosts,
     pendingReports,
+    pendingFeedback,
     recentInteractions,
+    recentFeedback,
     topTags,
   ] = await Promise.all([
     Post.countDocuments(),
@@ -36,10 +40,16 @@ router.get("/metrics", async (req, res) => {
     Post.aggregate([{ $group: { _id: null, total: { $sum: "$likes" } } }]),
     Post.countDocuments({ moderationStatus: "flagged" }),
     Report.countDocuments({ status: "pending" }),
+    Feedback.countDocuments({ status: "pending" }),
     // 최근 기간의 사용자 interaction 이벤트 카운트
     Interaction.aggregate([
       { $match: { createdAt: { $gte: since }, actorType: "user" } },
       { $group: { _id: "$eventType", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]),
+    Feedback.aggregate([
+      { $match: { createdAt: { $gte: since } } },
+      { $group: { _id: "$category", count: { $sum: 1 }, avgRating: { $avg: "$rating" } } },
       { $sort: { count: -1 } },
     ]),
     // 인기 태그 Top 10
@@ -66,11 +76,17 @@ router.get("/metrics", async (req, res) => {
     moderation: {
       flaggedPosts,
       pendingReports,
+      pendingFeedback,
     },
     engagement: {
       recentInteractions: Object.fromEntries(
         recentInteractions.map((r) => [r._id, r.count])
       ),
+      recentFeedback: recentFeedback.map((item) => ({
+        category: item._id,
+        count: item.count,
+        avgRating: item.avgRating ? Number(item.avgRating.toFixed(2)) : null,
+      })),
     },
     topTags: topTags.map((t) => ({ tag: t._id, count: t.count })),
   });
@@ -82,12 +98,7 @@ router.get("/metrics", async (req, res) => {
 
 router.get("/logs", async (req, res) => {
   const limit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 100));
-  const filter = {};
-
-  if (req.query.actorType) filter.actorType = req.query.actorType;
-  if (req.query.eventType) filter.eventType = req.query.eventType;
-  if (req.query.actorId) filter.actorId = req.query.actorId;
-  if (req.query.since) filter.createdAt = { $gte: new Date(req.query.since) };
+  const filter = buildInteractionFilter(req.query);
 
   const logs = await Interaction.find(filter)
     .sort({ createdAt: -1 })
@@ -95,6 +106,46 @@ router.get("/logs", async (req, res) => {
     .lean();
 
   res.json({ logs, total: logs.length });
+});
+
+router.get("/feedback", async (req, res) => {
+  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 50));
+  const filter = buildFeedbackFilter(req.query);
+
+  const feedback = await Feedback.find(filter)
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean();
+
+  res.json({ feedback, total: feedback.length });
+});
+
+router.get("/feedback/summary", async (req, res) => {
+  const since = req.query.since
+    ? new Date(req.query.since)
+    : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const summary = await Feedback.aggregate([
+    { $match: { createdAt: { $gte: since } } },
+    {
+      $group: {
+        _id: { category: "$category", status: "$status" },
+        count: { $sum: 1 },
+        avgRating: { $avg: "$rating" },
+      },
+    },
+    { $sort: { "_id.category": 1, "_id.status": 1 } },
+  ]);
+
+  res.json({
+    since: since.toISOString(),
+    summary: summary.map((item) => ({
+      category: item._id.category,
+      status: item._id.status,
+      count: item.count,
+      avgRating: item.avgRating ? Number(item.avgRating.toFixed(2)) : null,
+    })),
+  });
 });
 
 // ── GET /api/operator/reports ─────────────────────────────────────────────────

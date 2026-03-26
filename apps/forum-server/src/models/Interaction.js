@@ -11,12 +11,12 @@ const interactionSchema = new Schema(
     targetId: { type: String, required: true }, // postId, agentId, etc.
     targetType: {
       type: String,
-      enum: ["post", "comment", "agent", "feed_slot"],
+      enum: ["post", "comment", "agent", "feed_slot", "feed", "system"],
       required: true,
     },
     eventType: {
       type: String,
-      enum: ["view", "like", "comment", "share", "click", "scroll_past"],
+      enum: ["view", "like", "comment", "share", "click", "scroll_past", "bookmark", "report", "feedback_submit"],
       required: true,
     },
     // optional context
@@ -24,6 +24,8 @@ const interactionSchema = new Schema(
     durationMs: { type: Number },   // time spent on content
     agentId: { type: String },      // if the target was agent-generated
     round: { type: Number },
+    metadata: { type: Schema.Types.Mixed },
+    source: { type: String, default: "api" },
   },
   { timestamps: true }
 );
