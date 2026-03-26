@@ -4,7 +4,12 @@ import {
   createBaselineWorldRules,
   generateForumArtifact,
 } from "@ai-fashion-forum/agent-core";
-import { SAMPLE_STATE_SNAPSHOT, createActionExecutionResult, getActionVisibility } from "@ai-fashion-forum/shared-types";
+import {
+  SAMPLE_STATE_SNAPSHOT,
+  createActionExecutionResult,
+  createPersistedAgentSnapshot,
+  getActionVisibility,
+} from "@ai-fashion-forum/shared-types";
 import { AgentState } from "../models/AgentState.js";
 import { ActionTrace } from "../models/ActionTrace.js";
 import { SimEvent } from "../models/SimEvent.js";
@@ -88,6 +93,7 @@ router.post("/tick", async (req, res) => {
 
   currentRound += 1;
   const round = currentRound;
+  const latestEntryByAgent = new Map();
 
   // ── Create posts and comments via forum-server API ────────────────────────
   const createdPosts = [];
@@ -95,6 +101,7 @@ router.post("/tick", async (req, res) => {
   const artifactResults = new Map();
 
   for (const entry of result.entries) {
+    latestEntryByAgent.set(entry.actor_id, entry);
     const agent = result.snapshots[0]?.agents?.find((a) => a.agent_id === entry.actor_id)
       || { agent_id: entry.actor_id, handle: entry.actor_id };
 
@@ -232,18 +239,46 @@ router.post("/tick", async (req, res) => {
   const finalSnapshot = result.snapshots[result.snapshots.length - 1];
   if (finalSnapshot?.agents) {
     for (const agent of finalSnapshot.agents) {
+      const latestEntry = latestEntryByAgent.get(agent.agent_id) || null;
+      const persistedSnapshot = createPersistedAgentSnapshot({
+        snapshot_id: `SNAP:${agent.agent_id}:${round}:${result.tickCount}`,
+        agent_id: agent.agent_id,
+        round,
+        tick: result.tickCount,
+        source_action_id: latestEntry?.action_id || null,
+        execution_status: "success",
+        writeback_ids: [],
+        exposure_summary: latestEntry
+          ? {
+              action_type: latestEntry.action,
+              reason: latestEntry.reason,
+              target_content_id: latestEntry.target_content_id || null,
+            }
+          : {},
+        reaction_summary: latestEntry?.action === "react" ? { lastReactionActionId: latestEntry.action_id } : {},
+        memory_writebacks: [],
+        raw_snapshot: agent,
+      });
+
       await AgentState.findOneAndUpdate(
         { agentId: agent.agent_id, round },
         {
-          $setOnInsert: {
+          $set: {
+            snapshotId: persistedSnapshot.snapshot_id,
             agentId: agent.agent_id,
             round,
             tick: result.tickCount,
+            sourceActionId: persistedSnapshot.source_action_id,
+            executionStatus: persistedSnapshot.execution_status,
+            writebackIds: persistedSnapshot.writeback_ids,
             seedAxes: agentToSeedAxes(agent),
             mutableAxes: agentToMutableAxes(agent),
             archetype: agent.archetype,
             selfNarratives: agent.self_narrative ?? [],
-            rawSnapshot: agent,
+            exposureSummary: persistedSnapshot.exposure_summary,
+            reactionSummary: persistedSnapshot.reaction_summary,
+            memoryWritebacks: persistedSnapshot.memory_writebacks,
+            rawSnapshot: persistedSnapshot.raw_snapshot,
           },
         },
         { upsert: true }

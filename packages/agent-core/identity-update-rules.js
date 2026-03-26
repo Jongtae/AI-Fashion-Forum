@@ -1,4 +1,8 @@
-import { SAMPLE_AGENT_STATES, serializeSnapshot } from "@ai-fashion-forum/shared-types";
+import {
+  SAMPLE_AGENT_STATES,
+  createMemoryWritebackRecord,
+  serializeSnapshot,
+} from "@ai-fashion-forum/shared-types";
 
 function clampUnit(value) {
   return Math.max(0, Math.min(1, Number(value.toFixed(4))));
@@ -72,6 +76,9 @@ export function applyIdentityExposure({
   agentState,
   exposure,
   tick = 0,
+  round = 0,
+  action_id = null,
+  execution_status = "success",
 } = {}) {
   const nextAgent = cloneAgent(agentState);
   const beliefKey = getBeliefKey(exposure);
@@ -130,6 +137,23 @@ export function applyIdentityExposure({
       trajectory,
       exposure_summary: exposure.summary,
     },
+    writebackRecord: createMemoryWritebackRecord({
+      writeback_id: `WB:${nextAgent.agent_id}:${round}:${tick}:${beliefKey}`,
+      action_id,
+      agent_id: nextAgent.agent_id,
+      round,
+      tick,
+      execution_status,
+      memory_channel: "belief_shift",
+      belief_key: beliefKey,
+      dominant_topic: dominantTopic,
+      summary: exposure.summary || "",
+      state_delta: {
+        interest_delta: Number((nextAgent.interest_vector[dominantTopic] - previousInterest).toFixed(4)),
+        belief_delta: beliefDeltaLogged,
+        contradiction_path: contradictionPath,
+      },
+    }),
   };
 }
 
