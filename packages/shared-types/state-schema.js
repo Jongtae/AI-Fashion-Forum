@@ -360,6 +360,101 @@ export function createSimulationRoundSnapshot({
   };
 }
 
+export function createMemoryWritebackRecord(input) {
+  const {
+    writeback_id,
+    action_id = null,
+    agent_id,
+    round = 0,
+    tick,
+    execution_status = "success",
+    memory_channel = "belief_shift",
+    belief_key = null,
+    dominant_topic = null,
+    summary = "",
+    state_delta = {},
+  } = input;
+
+  assertString("writeback_id", writeback_id);
+  if (action_id !== null) {
+    assertString("action_id", action_id);
+  }
+  assertString("agent_id", agent_id);
+  assertNumber("round", round);
+  assertNumber("tick", tick);
+  assertString("execution_status", execution_status);
+  assertString("memory_channel", memory_channel);
+  assertObject("state_delta", state_delta);
+
+  if (belief_key !== null) {
+    assertString("belief_key", belief_key);
+  }
+  if (dominant_topic !== null) {
+    assertString("dominant_topic", dominant_topic);
+  }
+  if (summary && typeof summary !== "string") {
+    throw new Error("summary must be a string");
+  }
+
+  return {
+    writeback_id,
+    action_id,
+    agent_id,
+    round,
+    tick,
+    execution_status,
+    memory_channel,
+    belief_key,
+    dominant_topic,
+    summary,
+    state_delta,
+  };
+}
+
+export function createPersistedAgentSnapshot(input) {
+  const {
+    snapshot_id,
+    agent_id,
+    round,
+    tick,
+    source_action_id = null,
+    execution_status = "success",
+    writeback_ids = [],
+    exposure_summary = {},
+    reaction_summary = {},
+    memory_writebacks = [],
+    raw_snapshot = {},
+  } = input;
+
+  assertString("snapshot_id", snapshot_id);
+  assertString("agent_id", agent_id);
+  assertNumber("round", round);
+  assertNumber("tick", tick);
+  if (source_action_id !== null) {
+    assertString("source_action_id", source_action_id);
+  }
+  assertString("execution_status", execution_status);
+  assertArray("writeback_ids", writeback_ids);
+  assertObject("exposure_summary", exposure_summary);
+  assertObject("reaction_summary", reaction_summary);
+  assertArray("memory_writebacks", memory_writebacks);
+  assertObject("raw_snapshot", raw_snapshot);
+
+  return {
+    snapshot_id,
+    agent_id,
+    round,
+    tick,
+    source_action_id,
+    execution_status,
+    writeback_ids,
+    exposure_summary,
+    reaction_summary,
+    memory_writebacks,
+    raw_snapshot,
+  };
+}
+
 export function serializeSnapshot(snapshot) {
   return JSON.parse(JSON.stringify(snapshot));
 }

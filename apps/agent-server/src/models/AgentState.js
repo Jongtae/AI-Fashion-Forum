@@ -6,9 +6,13 @@ const { Schema } = mongoose;
 // Mirrors the structure of SPRINT1_ROUND_SNAPSHOTS in shared-types.
 const agentStateSchema = new Schema(
   {
+    snapshotId: { type: String, index: true },
     agentId: { type: String, required: true, index: true },
     round: { type: Number, required: true },
     tick: { type: Number, required: true },
+    sourceActionId: { type: String },
+    executionStatus: { type: String, default: "success" },
+    writebackIds: [{ type: String }],
     // seed axes (curiosity, status_drive, etc.)
     seedAxes: { type: Map, of: Number },
     // mutable axes (attention_bias, belief_shift, etc.)
@@ -18,6 +22,7 @@ const agentStateSchema = new Schema(
     recentMemories: [{ type: Schema.Types.Mixed }],
     durableMemories: [{ type: Schema.Types.Mixed }],
     selfNarratives: [{ type: Schema.Types.Mixed }],
+    memoryWritebacks: [{ type: Schema.Types.Mixed }],
     // summary of this round's exposure
     exposureSummary: { type: Schema.Types.Mixed },
     // summary of reactions made this round
