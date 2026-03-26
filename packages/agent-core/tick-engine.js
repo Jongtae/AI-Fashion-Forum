@@ -1,4 +1,9 @@
-import { SAMPLE_STATE_SNAPSHOT, serializeSnapshot } from "@ai-fashion-forum/shared-types";
+import {
+  SAMPLE_STATE_SNAPSHOT,
+  createActionRecord,
+  getActionVisibility,
+  serializeSnapshot,
+} from "@ai-fashion-forum/shared-types";
 
 function mulberry32(seed) {
   let state = seed >>> 0;
@@ -15,11 +20,27 @@ function cloneState(state) {
   return serializeSnapshot(state);
 }
 
-function createReplayEntry({ tick, actor_id, action, reason, world_effects }) {
+function createReplayEntry({ tick, actor_id, action, reason, world_effects, target_content_id = null }) {
+  const actionRecord = createActionRecord({
+    action_id: `ACT:${actor_id}:${tick}:${action}`,
+    tick,
+    agent_id: actor_id,
+    type: action,
+    target_content_id,
+    visibility: getActionVisibility(action),
+    payload: {
+      reason,
+      world_effects,
+    },
+  });
+
   return {
     tick,
     actor_id,
     action,
+    action_id: actionRecord.action_id,
+    visibility: actionRecord.visibility,
+    target_content_id: actionRecord.target_content_id,
     reason,
     world_effects,
   };
@@ -74,7 +95,7 @@ function generateTickAction(world, actor) {
 
   if (roll < 0.2) {
     return {
-      type: "linger",
+      type: "lurk",
       reason: `${actor.handle} stayed in observation mode this tick.`,
     };
   }

@@ -21,6 +21,13 @@ const actionTraceSchema = new Schema(
       type: String,
       enum: ["stored_only", "public_lightweight", "public_visible"],
     },
+    executionStatus: {
+      type: String,
+      enum: ["success", "degraded", "blocked", "invalid", "failed"],
+      default: "success",
+    },
+    blockReason: { type: String },
+    errorClass: { type: String },
     targetContentId: { type: String }, // postId or contentRecord id
     sourceType: { type: String },       // "forum_post" | "external_article" | etc.
     topicAffinity: { type: Number },
@@ -29,6 +36,7 @@ const actionTraceSchema = new Schema(
       enum: ["reinforce", "reconsideration", "backlash", "ignore"],
     },
     payload: { type: Schema.Types.Mixed },
+    persistence: { type: Schema.Types.Mixed },
     // resulting artifact (if post/comment was created)
     artifactId: { type: String },       // Post._id or Comment._id
     artifactType: { type: String },     // "post" | "comment"

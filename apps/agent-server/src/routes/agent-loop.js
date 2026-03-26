@@ -4,7 +4,7 @@ import {
   createBaselineWorldRules,
   generateForumArtifact,
 } from "@ai-fashion-forum/agent-core";
-import { SAMPLE_STATE_SNAPSHOT } from "@ai-fashion-forum/shared-types";
+import { SAMPLE_STATE_SNAPSHOT, createActionExecutionResult, getActionVisibility } from "@ai-fashion-forum/shared-types";
 import { AgentState } from "../models/AgentState.js";
 import { ActionTrace } from "../models/ActionTrace.js";
 import { SimEvent } from "../models/SimEvent.js";
@@ -92,6 +92,7 @@ router.post("/tick", async (req, res) => {
   // ── Create posts and comments via forum-server API ────────────────────────
   const createdPosts = [];
   const createdComments = [];
+  const artifactResults = new Map();
 
   for (const entry of result.entries) {
     const agent = result.snapshots[0]?.agents?.find((a) => a.agent_id === entry.actor_id)
@@ -122,8 +123,13 @@ router.post("/tick", async (req, res) => {
           agentTick: entry.tick,
         });
         createdPosts.push(post);
+        artifactResults.set(entry.action_id, { artifactId: post._id.toString(), artifactType: "post" });
       } catch (err) {
         console.warn("[agent-loop] post creation failed:", err.message);
+        artifactResults.set(entry.action_id, {
+          errorClass: "forum_post_failed",
+          executionStatus: "failed",
+        });
       }
     } else if (entry.action === "comment") {
       // Find a recent agent post to comment on via forum-server
@@ -139,28 +145,70 @@ router.post("/tick", async (req, res) => {
             agentTick: entry.tick,
           });
           createdComments.push(comment);
+          artifactResults.set(entry.action_id, {
+            artifactId: comment._id.toString(),
+            artifactType: "comment",
+          });
+        } else {
+          artifactResults.set(entry.action_id, {
+            executionStatus: "degraded",
+            blockReason: "missing_target_post",
+          });
         }
       } catch (err) {
         console.warn("[agent-loop] comment creation failed:", err.message);
+        artifactResults.set(entry.action_id, {
+          errorClass: "forum_comment_failed",
+          executionStatus: "failed",
+        });
       }
     }
   }
 
   // ── Persist ActionTrace records ───────────────────────────────────────────
-  const traceDocs = result.entries.map((entry, i) => ({
-    actionId: entry.action_id || `ACT:${entry.actor_id}:${entry.tick}:${entry.action}:${i}`,
-    agentId: entry.actor_id,
-    tick: entry.tick,
-    round,
-    actionType: entry.action,
-    visibility:
-      entry.action === "silence" || entry.action === "lurk"
-        ? "stored_only"
-        : entry.action === "react"
-        ? "public_lightweight"
-        : "public_visible",
-    payload: entry,
-  }));
+  const traceDocs = result.entries.map((entry, i) => {
+    const artifactResult = artifactResults.get(entry.action_id) || {};
+    const execution = createActionExecutionResult({
+      action_id: entry.action_id || `ACT:${entry.actor_id}:${entry.tick}:${entry.action}:${i}`,
+      agent_id: entry.actor_id,
+      tick: entry.tick,
+      round,
+      action_type: entry.action,
+      visibility: entry.visibility || getActionVisibility(entry.action),
+      target_content_id: entry.target_content_id ?? null,
+      execution_status: artifactResult.executionStatus || "success",
+      block_reason: artifactResult.blockReason || null,
+      error_class: artifactResult.errorClass || null,
+      artifact_refs: {
+        artifact_id: artifactResult.artifactId || null,
+        artifact_type: artifactResult.artifactType || null,
+      },
+      persistence: {
+        trace_written: true,
+        event_written: true,
+        artifact_written: Boolean(artifactResult.artifactId),
+        snapshot_written: false,
+      },
+      payload: entry,
+    });
+
+    return {
+      actionId: execution.action_id,
+      agentId: execution.agent_id,
+      tick: execution.tick,
+      round: execution.round,
+      actionType: execution.action_type,
+      visibility: execution.visibility,
+      executionStatus: execution.execution_status,
+      blockReason: execution.block_reason,
+      errorClass: execution.error_class,
+      targetContentId: execution.target_content_id,
+      payload: execution.payload,
+      persistence: execution.persistence,
+      artifactId: execution.artifact_refs.artifact_id,
+      artifactType: execution.artifact_refs.artifact_type,
+    };
+  });
 
   if (traceDocs.length > 0) {
     await ActionTrace.insertMany(traceDocs, { ordered: false }).catch(() => {});
