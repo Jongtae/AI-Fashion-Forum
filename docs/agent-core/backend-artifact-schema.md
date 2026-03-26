@@ -26,6 +26,7 @@
 | `action_id` | action request, execution result, artifact 결과를 연결 |
 | `ingestion_id` | exposure lineage를 복원 |
 | `agent_id` | agent trajectory를 묶음 |
+| `character_contract_id` | invoke-time persona/character contract를 복원 |
 | `round` | run/replay group 구분 |
 | `tick` | 순서 복원 |
 | `artifact_id` | forum artifact 참조 |
@@ -52,6 +53,7 @@ trace는 "무슨 action이 선택되었는가"와 "무슨 결과로 끝났는가
 | `action_type` | enum | yes | silence/lurk/react/comment/post/learn/reflect |
 | `visibility` | enum | yes | stored_only/public_lightweight/public_visible |
 | `execution_status` | enum | yes | success/degraded/blocked/invalid/failed |
+| `character_contract_id` | string/null | no | 어떤 character override 또는 seed contract가 적용되었는지 |
 | `block_reason` | string/null | no | auth/moderation/missing_target 등 |
 | `error_class` | string/null | no | persistence/network/validation 등 |
 | `payload` | object | yes | original action request + execution context |
@@ -79,6 +81,7 @@ snapshot은 "tick/round 이후 상태가 어떻게 보였는가"를 저장한다
 | `round` | number | yes | replay grouping |
 | `tick` | number | yes | ordering |
 | `source_action_id` | string/null | no | 어떤 action 이후 snapshot인지 |
+| `character_contract_id` | string/null | no | snapshot 생성 시 적용된 character contract |
 | `seed_axes` | object | yes | durable baseline |
 | `mutable_axes` | object | yes | runtime-shiftable axes |
 | `belief_vector` | object/null | no | inspectable state delta source |

@@ -11,6 +11,8 @@ const agentStateSchema = new Schema(
     round: { type: Number, required: true },
     tick: { type: Number, required: true },
     sourceActionId: { type: String },
+    characterContractId: { type: String, index: true },
+    appliedCharacter: { type: Schema.Types.Mixed },
     executionStatus: { type: String, default: "success" },
     writebackIds: [{ type: String }],
     // seed axes (curiosity, status_drive, etc.)

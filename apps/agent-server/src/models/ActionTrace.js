@@ -23,6 +23,8 @@ const actionTraceSchema = new Schema(
     },
     ingestionId: { type: String, index: true },
     sourceFamily: { type: String },
+    characterContractId: { type: String, index: true },
+    appliedCharacter: { type: Schema.Types.Mixed },
     executionStatus: {
       type: String,
       enum: ["success", "degraded", "blocked", "invalid", "failed"],

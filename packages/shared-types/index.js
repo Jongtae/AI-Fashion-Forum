@@ -49,3 +49,4 @@ export * from "./sample-data.js";
 export * from "./content-provider.js";
 export * from "./memory-schema.js";
 export * from "./action-schema.js";
+export * from "./character-contract.js";
