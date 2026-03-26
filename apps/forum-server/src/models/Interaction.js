@@ -6,8 +6,8 @@ const { Schema } = mongoose;
 // Used by ranking-core and identity-update-rules for personalisation.
 const interactionSchema = new Schema(
   {
-    actorId: { type: String, required: true }, // userId
-    actorType: { type: String, enum: ["user"], required: true },
+    actorId: { type: String, required: true }, // userId or agentId
+    actorType: { type: String, enum: ["user", "agent"], required: true },
     targetId: { type: String, required: true }, // postId, agentId, etc.
     targetType: {
       type: String,

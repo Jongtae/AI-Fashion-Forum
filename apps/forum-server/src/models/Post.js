@@ -15,6 +15,13 @@ const postSchema = new Schema(
     // agent-generated post metadata
     agentRound: { type: Number },
     agentTick: { type: Number },
+    // moderation
+    moderationStatus: {
+      type: String,
+      enum: ["approved", "flagged", "removed"],
+      default: "approved",
+    },
+    reportCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

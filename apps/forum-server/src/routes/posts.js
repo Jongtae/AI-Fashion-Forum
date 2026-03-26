@@ -2,6 +2,7 @@ import { Router } from "express";
 import { Post } from "../models/Post.js";
 import { Comment } from "../models/Comment.js";
 import { Interaction } from "../models/Interaction.js";
+import { Report } from "../models/Report.js";
 
 const router = Router();
 
@@ -206,6 +207,37 @@ router.delete("/:postId/comments/:commentId", async (req, res) => {
   });
   if (!comment) return res.status(404).json({ error: "Comment not found" });
   res.json({ deleted: true, commentId: req.params.commentId });
+});
+
+// ── POST /api/posts/:postId/report ────────────────────────────────────────────
+
+router.post("/:postId/report", async (req, res) => {
+  const { reporterId, reason, detail } = req.body;
+
+  if (!reporterId) return res.status(400).json({ error: "reporterId is required" });
+
+  const VALID_REASONS = ["spam", "inappropriate", "harassment", "misinformation", "other"];
+  if (!VALID_REASONS.includes(reason)) {
+    return res.status(400).json({ error: `reason must be one of: ${VALID_REASONS.join(", ")}` });
+  }
+
+  const post = await Post.findById(req.params.postId);
+  if (!post) return res.status(404).json({ error: "Post not found" });
+
+  // 중복 신고 방지 (unique index on postId + reporterId)
+  const existing = await Report.findOne({ postId: req.params.postId, reporterId });
+  if (existing) return res.status(409).json({ error: "already_reported" });
+
+  await Report.create({ postId: req.params.postId, reporterId, reason, detail });
+
+  // 누적 신고 수 반영 + 임계치 초과 시 자동 플래그
+  post.reportCount += 1;
+  if (post.reportCount >= 3 && post.moderationStatus === "approved") {
+    post.moderationStatus = "flagged";
+  }
+  await post.save();
+
+  res.status(201).json({ reported: true, moderationStatus: post.moderationStatus });
 });
 
 export default router;
