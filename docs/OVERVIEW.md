@@ -52,6 +52,17 @@ AI Fashion Forum 프로젝트 문서 인덱스입니다.
 
 ---
 
+## agent-core/ — action/state backend contracts
+agent loop, action-state contract, backend 연결 초안 문서.
+
+| 파일 | 내용 |
+|------|------|
+| [action-trigger-state-transition.md](agent-core/action-trigger-state-transition.md) | 행동 선택과 상태 전이 규정 |
+| [action-state-contract.md](agent-core/action-state-contract.md) | action-state contract와 memory writeback 경로 |
+| [agent-action-loop-backend-outline.md](agent-core/agent-action-loop-backend-outline.md) | Sprint 1 기준 agent action loop backend 설계 초안 |
+
+---
+
 ## data-architecture/ — 데이터 & 스키마
 상태 모델, 메모리 스택, 콘텐츠 정합성 정의.
 
