@@ -19,6 +19,8 @@ const simEventSchema = new Schema(
         // content events
         "content_consumed",
         "content_ingested_external",
+        "forum_post_created",
+        "agent_identity_updated",
         // action events
         "action_silence",
         "action_lurk",

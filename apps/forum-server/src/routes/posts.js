@@ -3,6 +3,7 @@ import { Post } from "../models/Post.js";
 import { Comment } from "../models/Comment.js";
 import { Interaction } from "../models/Interaction.js";
 import { Report } from "../models/Report.js";
+import { publishForumPostCreated } from "../lib/redis.js";
 
 const router = Router();
 
@@ -52,6 +53,27 @@ router.post("/", async (req, res) => {
   });
 
   await post.save();
+
+  try {
+    await publishForumPostCreated({
+      eventId: `post:${post._id}:${post.createdAt.getTime()}`,
+      eventType: "post.created",
+      occurredAt: new Date().toISOString(),
+      post: {
+        _id: post._id.toString(),
+        content: post.content,
+        authorId: post.authorId,
+        authorType: post.authorType,
+        tags: post.tags ?? [],
+        likes: post.likes ?? 0,
+        format: post.format || "forum_post",
+        createdAt: post.createdAt?.toISOString?.() || new Date().toISOString(),
+      },
+    });
+  } catch (err) {
+    console.warn("[forum-server] failed to publish post.created:", err.message);
+  }
+
   res.status(201).json(post);
 });
 

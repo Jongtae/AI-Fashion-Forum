@@ -3,6 +3,7 @@ import cors from "cors";
 import { connectDB } from "./db.js";
 import agentLoopRouter from "./routes/agent-loop.js";
 import tracesRouter from "./routes/traces.js";
+import { startForumEventSubscriber } from "./services/forum-event-subscriber.js";
 
 const PORT = Number(process.env.AGENT_SERVER_PORT || 4001);
 
@@ -23,6 +24,11 @@ app.use((err, _req, res, _next) => {
 });
 
 connectDB()
+  .then(async () => {
+    await startForumEventSubscriber().catch((err) => {
+      console.warn("[agent-server] forum event subscriber unavailable:", err.message);
+    });
+  })
   .catch((err) => console.warn("[db] MongoDB unavailable:", err.message))
   .finally(() => {
     app.listen(PORT, () => {
