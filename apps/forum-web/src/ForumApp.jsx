@@ -4,6 +4,7 @@ import PostForm from "./components/PostForm.jsx";
 import PostList from "./components/PostList.jsx";
 import PersonalisedFeed from "./components/PersonalisedFeed.jsx";
 import AuthModal from "./components/AuthModal.jsx";
+import Sprint1ReplayPanel from "./components/Sprint1ReplayPanel.jsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,6 +80,12 @@ export default function ForumApp() {
           >
             맞춤 피드
           </button>
+          <button
+            style={{ ...styles.tabBtn, ...(tab === "replay" ? styles.tabActive : {}) }}
+            onClick={() => setTab("replay")}
+          >
+            Sprint 1 Replay
+          </button>
         </nav>
 
         <main style={styles.main}>
@@ -91,9 +98,13 @@ export default function ForumApp() {
                 <PostList currentUser={currentUser} />
               </section>
             </>
-          ) : (
+          ) : tab === "feed" ? (
             <section>
               <PersonalisedFeed currentUser={currentUser} />
+            </section>
+          ) : (
+            <section>
+              <Sprint1ReplayPanel />
             </section>
           )}
         </main>
