@@ -6,6 +6,7 @@ import PersonalisedFeed from "./components/PersonalisedFeed.jsx";
 import AuthModal from "./components/AuthModal.jsx";
 import Sprint1ReplayPanel from "./components/Sprint1ReplayPanel.jsx";
 import RunReplayViewer from "./components/RunReplayViewer.jsx";
+import OperatorDashboard from "./components/OperatorDashboard.jsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -93,6 +94,12 @@ export default function ForumApp() {
           >
             Sprint 1 (Legacy)
           </button>
+          <button
+            style={{ ...styles.tabBtn, ...(tab === "operator" ? styles.tabActive : {}) }}
+            onClick={() => setTab("operator")}
+          >
+            Operator
+          </button>
         </nav>
 
         <main style={styles.main}>
@@ -112,6 +119,10 @@ export default function ForumApp() {
           ) : tab === "replay-viewer" ? (
             <section>
               <RunReplayViewer />
+            </section>
+          ) : tab === "operator" ? (
+            <section>
+              <OperatorDashboard />
             </section>
           ) : (
             <section>
