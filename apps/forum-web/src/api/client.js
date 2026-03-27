@@ -83,3 +83,8 @@ export const triggerRun = (params = {}) =>
 export const fetchLatestReplay = () => agentRequest("/api/run/replay/latest");
 export const fetchReplay = (runId) => agentRequest(`/api/run/replay/${runId}`);
 export const fetchLatestReport = () => agentRequest("/api/run/report/latest");
+
+// ── Operator dashboard (forum-server) ─────────────────────────────────────────
+export const fetchOperatorDashboard = () => forumRequest("/api/operator/dashboard");
+export const reviewModerationItem = (postId, data) =>
+  forumRequest(`/api/operator/moderation/review/${postId}`, { method: "PATCH", body: data });

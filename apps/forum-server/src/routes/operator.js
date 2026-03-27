@@ -207,6 +207,126 @@ router.post("/moderation/recheck/:postId", async (req, res) => {
   });
 });
 
+// ── GET /api/operator/dashboard ──────────────────────────────────────────────
+// MVP 1-page operator dashboard: 5 sections in a single call.
+// Sections: flag rate, high-conflict threads, moderation queue,
+//           low-engagement posts, engagement summary.
+
+router.get("/dashboard", async (req, res) => {
+  const [
+    totalPosts,
+    flaggedCount,
+    highConflictPosts,
+    moderationQueue,
+    lowEngagementPosts,
+    recentFeedbackCounts,
+  ] = await Promise.all([
+    Post.countDocuments(),
+
+    Post.countDocuments({ moderationStatus: "flagged" }),
+
+    // 논쟁성 높은 스레드 Top 5: reportCount DESC, then moderationScore DESC
+    Post.find({ reportCount: { $gt: 0 } })
+      .sort({ reportCount: -1, moderationScore: -1 })
+      .limit(5)
+      .select("content tags reportCount moderationScore moderationLabel createdAt authorId authorType")
+      .lean(),
+
+    // 규칙 위반 후보 (moderation queue) — flagged posts, up to 10
+    Post.find({ moderationStatus: "flagged" })
+      .sort({ moderationScore: -1, createdAt: -1 })
+      .limit(10)
+      .select("content tags moderationScore moderationLabel moderationReasons moderationStatus createdAt authorId authorType")
+      .lean(),
+
+    // 유저 반응 저하 포스트: likes=0, commentCount=0, not agent
+    Post.find({ likes: 0, commentCount: 0 })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("content tags likes commentCount createdAt authorId authorType")
+      .lean(),
+
+    // Feedback 요약 (최근 7일)
+    Feedback.aggregate([
+      { $match: { createdAt: { $gte: new Date(Date.now() - 7 * 24 * 3600 * 1000) } } },
+      { $group: { _id: "$category", count: { $sum: 1 }, avgRating: { $avg: "$rating" } } },
+      { $sort: { count: -1 } },
+    ]),
+  ]);
+
+  const flagRate = totalPosts > 0 ? Number((flaggedCount / totalPosts).toFixed(4)) : 0;
+
+  res.json({
+    computed_at: new Date().toISOString(),
+    summary: {
+      total_posts: totalPosts,
+      flagged_posts: flaggedCount,
+      flag_rate: flagRate,
+    },
+    high_conflict_threads: highConflictPosts.map((p) => ({
+      id: p._id,
+      content_preview: p.content?.slice(0, 120),
+      report_count: p.reportCount,
+      moderation_score: p.moderationScore,
+      moderation_label: p.moderationLabel,
+      author_type: p.authorType,
+      created_at: p.createdAt,
+    })),
+    moderation_queue: moderationQueue.map((p) => ({
+      id: p._id,
+      content_preview: p.content?.slice(0, 120),
+      moderation_score: p.moderationScore,
+      moderation_label: p.moderationLabel,
+      moderation_reasons: p.moderationReasons ?? [],
+      author_type: p.authorType,
+      created_at: p.createdAt,
+    })),
+    low_engagement_posts: lowEngagementPosts.map((p) => ({
+      id: p._id,
+      content_preview: p.content?.slice(0, 80),
+      likes: p.likes,
+      comment_count: p.commentCount,
+      author_type: p.authorType,
+      created_at: p.createdAt,
+    })),
+    feedback_summary: recentFeedbackCounts.map((f) => ({
+      category: f._id,
+      count: f.count,
+      avg_rating: f.avgRating ? Number(f.avgRating.toFixed(2)) : null,
+    })),
+  });
+});
+
+// ── PATCH /api/operator/moderation/review/:postId ─────────────────────────────
+// Operator feedback for a flagged post: approve | reject | recheck.
+
+router.patch("/moderation/review/:postId", async (req, res) => {
+  const { decision, reason } = req.body;
+  if (!["approve", "reject", "recheck"].includes(decision)) {
+    return res.status(400).json({ error: "decision must be approve | reject | recheck" });
+  }
+
+  const post = await Post.findById(req.params.postId);
+  if (!post) return res.status(404).json({ error: "Post not found" });
+
+  if (decision === "recheck") {
+    const { buildModerationState } = await import("../lib/moderation.js");
+    Object.assign(post, buildModerationState({ content: post.content, tags: post.tags, existingStatus: post.moderationStatus }));
+  } else {
+    post.moderationStatus = decision === "approve" ? "approved" : "removed";
+    if (reason) post.moderationReasons = [reason];
+  }
+
+  await post.save();
+
+  res.json({
+    id: post._id,
+    decision,
+    moderationStatus: post.moderationStatus,
+    moderationScore: post.moderationScore,
+  });
+});
+
 // ── GET /api/operator/reports ─────────────────────────────────────────────────
 // 신고 목록 조회. Query: status, limit
 
