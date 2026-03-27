@@ -93,6 +93,12 @@ GitHub Actions (`.github/workflows/deploy-pages.yml`) builds and deploys `dist/`
 - GitHub Pages is used as a static replay viewer host, not as a live simulation server
 - simulation runs happen locally or on a server-capable environment
 
+GitHub Actions (`.github/workflows/autonomous-issue-processor.yml`) can also run at 21:50 Asia/Seoul time to process ready open issues automatically.
+
+- The workflow expects `OPENAI_API_KEY` to be configured in repository secrets
+- It only attempts issues that include a `Completion Criteria` section and are not marked with skip/blocker labels
+- When it succeeds, it opens a branch and PR and tries to merge so the linked issue can close automatically
+
 GitHub Pages settings required:
 
 1. Open repository `Settings`
