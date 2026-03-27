@@ -16,6 +16,14 @@ export const CORE_METRIC_FORMULAS = Object.freeze({
     "Weighted agreement between an agent's latest actions, self-narrative, and prior belief anchors.",
   conflictHeat:
     "Share of tick actions or exposures that contain frustration, rivalry, or backlash-coded signals.",
+  contentDiversity:
+    "Distinct meaning frames across generated posts divided by total posts. 1.0 = every post has a unique frame.",
+  echoChamberIndex:
+    "Proportion of agents whose top two exposure reactions share the same meaning frame (reinforce ratio). 0 = no echo, 1 = full echo.",
+  moderationFlagRate:
+    "Proportion of generated posts with skeptical or sharp stance signal, used as a moderation flag proxy.",
+  divergenceLegible:
+    "Boolean. True when at least two distinct meaning frames appear across generated posts.",
 });
 
 function average(values) {
@@ -95,6 +103,107 @@ export function computeTickLevelMetrics(runResult) {
       ),
     };
   });
+}
+
+// ── Sprint 1 / run-level metrics ──────────────────────────────────────────────
+
+export function computeContentDiversity(generatedPosts) {
+  if (!generatedPosts || generatedPosts.length === 0) {
+    return 0;
+  }
+
+  const distinctFrames = new Set(generatedPosts.map((p) => p.meaning_frame).filter(Boolean)).size;
+  return clamp(distinctFrames / generatedPosts.length);
+}
+
+export function computeEchoChamberIndex(exposureByAgent) {
+  // exposureByAgent: { agent_id: { reaction_records: [...] } }
+  const entries = Object.values(exposureByAgent || {});
+
+  if (entries.length === 0) {
+    return 0;
+  }
+
+  const reinforced = entries.filter((agentExposure) => {
+    const reactions = agentExposure?.reaction_records ?? [];
+    if (reactions.length < 2) {
+      return false;
+    }
+
+    return reactions[0].meaning_frame === reactions[1].meaning_frame;
+  }).length;
+
+  return clamp(reinforced / entries.length);
+}
+
+export function computeModerationFlagRate(generatedPosts) {
+  if (!generatedPosts || generatedPosts.length === 0) {
+    return 0;
+  }
+
+  const flagged = generatedPosts.filter((p) =>
+    p.stance_signal === "skeptical" || p.stance_signal === "sharp",
+  ).length;
+
+  return clamp(flagged / generatedPosts.length);
+}
+
+// ── Run-level report ──────────────────────────────────────────────────────────
+
+export function createRunReport({
+  runId,
+  seed,
+  ticks,
+  createdAt,
+  generatedPosts = [],
+  exposureByAgent = {},
+  tickMetrics = [],
+  agentConsistency = [],
+  sprint1Verdicts = {},
+} = {}) {
+  const lastTickMetric = tickMetrics[tickMetrics.length - 1] ?? {};
+  const contentDiversity = computeContentDiversity(generatedPosts);
+  const echoChamberIndex = computeEchoChamberIndex(exposureByAgent);
+  const moderationFlagRate = computeModerationFlagRate(generatedPosts);
+  const avgConsistency = agentConsistency.length > 0
+    ? clamp(average(agentConsistency.map((a) => a.consistency_score ?? 0)))
+    : 0;
+
+  return {
+    run_id: runId,
+    seed,
+    ticks,
+    created_at: createdAt ?? new Date().toISOString(),
+    metric_formulas: CORE_METRIC_FORMULAS,
+    metrics: {
+      identityDifferentiation: lastTickMetric.identityDifferentiation ?? 0,
+      visibleParticipationRate: lastTickMetric.visibleParticipationRate ?? 0,
+      consistencyScore: avgConsistency,
+      conflictHeat: lastTickMetric.conflictHeat ?? 0,
+      contentDiversity,
+      echoChamberIndex,
+      moderationFlagRate,
+      divergenceLegible: sprint1Verdicts.divergence_legible ?? false,
+    },
+    sprint1_verdicts: sprint1Verdicts,
+    agent_consistency: agentConsistency,
+    tick_timeline: tickMetrics,
+    post_summary: {
+      total: generatedPosts.length,
+      meaning_frame_distribution: Object.fromEntries(
+        [...new Set(generatedPosts.map((p) => p.meaning_frame).filter(Boolean))].map((f) => [
+          f,
+          generatedPosts.filter((p) => p.meaning_frame === f).length,
+        ]),
+      ),
+      stance_distribution: Object.fromEntries(
+        [...new Set(generatedPosts.map((p) => p.stance_signal).filter(Boolean))].map((s) => [
+          s,
+          generatedPosts.filter((p) => p.stance_signal === s).length,
+        ]),
+      ),
+    },
+  };
 }
 
 export function createScenarioExpectations() {
