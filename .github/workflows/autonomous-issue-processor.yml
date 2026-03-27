@@ -2,7 +2,7 @@ name: Autonomous Issue Processor
 
 on:
   schedule:
-    - cron: "5 13 * * *"
+    - cron: "10 13 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
