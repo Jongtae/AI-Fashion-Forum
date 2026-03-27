@@ -101,6 +101,7 @@ GET  /health
 POST /api/run                        seed, ticks → posts + metrics + replay export
 GET  /api/run/replay/latest          most recent replay JSON
 GET  /api/run/replay/:runId          specific replay JSON
+GET  /api/run/report/latest          most recent evaluation report (8 metrics)
 
 # Sprint 1 sample endpoints
 GET  /api/sprint1-agent-seed-sample

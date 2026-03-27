@@ -12,6 +12,7 @@ import {
   createBaselineWorldRules,
   computeTickLevelMetrics,
   computeAgentConsistencyScore,
+  createRunReport,
 } from "@ai-fashion-forum/agent-core";
 import {
   SAMPLE_AGENT_STATES,
@@ -158,13 +159,27 @@ router.post("/", async (req, res) => {
   };
 
   const lastTickMetric = tickMetrics[tickMetrics.length - 1] ?? null;
+  const createdAt = new Date().toISOString();
 
-  // ── Step 6: Replay export ─────────────────────────────────────────────────
+  // ── Step 6: Evaluation report ─────────────────────────────────────────────
+  const report = createRunReport({
+    runId,
+    seed,
+    ticks,
+    createdAt,
+    generatedPosts,
+    exposureByAgent,
+    tickMetrics,
+    agentConsistency,
+    sprint1Verdicts,
+  });
+
+  // ── Step 7: Replay export ─────────────────────────────────────────────────
   const replayExport = {
     run_id: runId,
     seed,
     ticks,
-    created_at: new Date().toISOString(),
+    created_at: createdAt,
     agents: runtime.state.agents.map((a) => ({
       agent_id: a.agent_id,
       handle: a.handle,
@@ -184,16 +199,14 @@ router.post("/", async (req, res) => {
     ),
     posts: createdPosts,
     tick_entries: tickResult.entries,
-    metrics: {
-      tick_metrics: tickMetrics,
-      agent_consistency: agentConsistency,
-      sprint1_verdicts: sprint1Verdicts,
-    },
+    report,
   };
 
   fs.mkdirSync(REPLAY_DIR, { recursive: true });
   const replayFile = `${runId}.json`;
+  const reportFile = `${runId}-report.json`;
   fs.writeFileSync(path.join(REPLAY_DIR, replayFile), JSON.stringify(replayExport, null, 2), "utf8");
+  fs.writeFileSync(path.join(REPLAY_DIR, reportFile), JSON.stringify(report, null, 2), "utf8");
 
   await SimEvent.insertMany([
     {
@@ -205,6 +218,7 @@ router.post("/", async (req, res) => {
         posts_created: createdPosts.filter((p) => !p.postError).length,
         sprint1_verdicts: sprint1Verdicts,
         replay_file: replayFile,
+        report_file: reportFile,
       },
     },
   ]).catch(() => {});
@@ -215,12 +229,32 @@ router.post("/", async (req, res) => {
     ticks,
     posts_created: createdPosts.filter((p) => !p.postError).length,
     replay_file: replayFile,
-    metrics: {
-      last_tick: lastTickMetric,
-      agent_consistency: agentConsistency,
-      sprint1_verdicts: sprint1Verdicts,
-    },
+    report_file: reportFile,
+    report: report.metrics,
+    sprint1_verdicts: sprint1Verdicts,
   });
+});
+
+// ── GET /api/run/report/latest ────────────────────────────────────────────────
+// Returns the most recently generated evaluation report JSON.
+
+router.get("/report/latest", (_req, res) => {
+  if (!fs.existsSync(REPLAY_DIR)) {
+    return res.status(404).json({ error: "no_reports_yet" });
+  }
+
+  const files = fs
+    .readdirSync(REPLAY_DIR)
+    .filter((f) => f.endsWith("-report.json"))
+    .map((f) => ({ name: f, mtime: fs.statSync(path.join(REPLAY_DIR, f)).mtimeMs }))
+    .sort((a, b) => b.mtime - a.mtime);
+
+  if (files.length === 0) {
+    return res.status(404).json({ error: "no_reports_yet" });
+  }
+
+  const content = JSON.parse(fs.readFileSync(path.join(REPLAY_DIR, files[0].name), "utf8"));
+  res.json(content);
 });
 
 // ── GET /api/run/replay/latest ────────────────────────────────────────────────
