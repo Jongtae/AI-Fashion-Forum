@@ -137,7 +137,7 @@ export function createForumGenerationSample() {
   };
 }
 
-function buildSprint1PostTitle(updatedAgent, reactionRecord) {
+export function buildSprint1PostTitle(updatedAgent, reactionRecord) {
   const titles = {
     care_context: "같은 글이어도 결국 남는 건 돌봄 문맥이라는 생각",
     signal_filter: "다들 같은 글을 봐도 결국 신호를 읽는 방식이 갈린다고 느낌",
@@ -149,7 +149,7 @@ function buildSprint1PostTitle(updatedAgent, reactionRecord) {
   return `${titles[reactionRecord.meaning_frame] || titles.context_filter} / ${updatedAgent.handle}`;
 }
 
-function buildSprint1PostBody(updatedAgent, reactionRecord, contentRecord) {
+export function buildSprint1PostBody(updatedAgent, reactionRecord, contentRecord) {
   const narrative = updatedAgent.mutable_state?.self_narrative_summary || updatedAgent.self_narrative?.slice(-1)[0] || "";
 
   const bodyOpeners = {
@@ -164,7 +164,9 @@ function buildSprint1PostBody(updatedAgent, reactionRecord, contentRecord) {
 }
 
 export async function createSprint1ForumPostSample() {
-  const sharedSample = await createSprint1SharedStimulusSample();
+  const sharedSample = await createSprint1SharedStimulusSample({
+    agentIds: SAMPLE_AGENT_STATES.map((agent) => agent.agent_id),
+  });
   const starterState = createStateSnapshot({
     agents: SAMPLE_AGENT_STATES,
     contents: [],

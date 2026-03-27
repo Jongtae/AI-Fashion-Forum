@@ -96,15 +96,26 @@ Default local ports:
 
 ```
 GET  /health
+
+# End-to-end loop (M2-1 vertical slice)
+POST /api/run                        seed, ticks → posts + metrics + replay export
+GET  /api/run/replay/latest          most recent replay JSON
+GET  /api/run/replay/:runId          specific replay JSON
+
+# Sprint 1 sample endpoints
 GET  /api/sprint1-agent-seed-sample
 GET  /api/sprint1-exposure-sample?agent=S01
 GET  /api/sprint1-memory-writeback-sample?agent=S01
 GET  /api/sprint1-forum-post-sample
 GET  /api/sprint1-evaluation-sample
 GET  /api/run-sample?seed=42&ticks=10
+
+# Agent loop (incremental ticks)
 POST /api/agent-loop/tick
 GET  /api/agent-loop/status
 GET  /api/agent-loop/states
+
+# Traces
 GET  /api/traces
 GET  /api/traces/:agentId/summary
 GET  /api/events
