@@ -11,7 +11,6 @@
     "dev:forum": "npm run dev --workspace @ai-fashion-forum/forum-web",
     "dev:forum-server": "npm run dev --workspace @ai-fashion-forum/forum-server",
     "dev:agent-server": "npm run dev --workspace @ai-fashion-forum/agent-server",
-    "issues:auto": "node scripts/autonomous-issue-processor.mjs",
     "boot:local": "concurrently --names \"forum-web,forum-server,agent-server\" --prefix-colors \"cyan,green,yellow\" \"npm run dev:forum\" \"npm run dev:forum-server\" \"npm run dev:agent-server\"",
     "build": "npm run build --workspace @ai-fashion-forum/forum-web",
     "preview": "npm run preview --workspace @ai-fashion-forum/forum-web",
