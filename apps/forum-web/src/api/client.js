@@ -76,3 +76,10 @@ export const fetchSprint1MemoryWriteback = (agentId = "A01") =>
   agentRequest(`/api/sprint1-memory-writeback-sample?agent=${agentId}`);
 export const fetchSprint1ForumPosts = () => agentRequest("/api/sprint1-forum-post-sample");
 export const fetchSprint1Evaluation = () => agentRequest("/api/sprint1-evaluation-sample");
+
+// ── End-to-end run (agent-server) ─────────────────────────────────────────────
+export const triggerRun = (params = {}) =>
+  agentRequest("/api/run", { method: "POST", body: params });
+export const fetchLatestReplay = () => agentRequest("/api/run/replay/latest");
+export const fetchReplay = (runId) => agentRequest(`/api/run/replay/${runId}`);
+export const fetchLatestReport = () => agentRequest("/api/run/report/latest");
