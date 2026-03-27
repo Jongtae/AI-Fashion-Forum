@@ -67,3 +67,12 @@ export const fetchAgentStates = (params = {}) => {
   const q = new URLSearchParams(params).toString();
   return agentRequest(`/api/agent-loop/states${q ? `?${q}` : ""}`);
 };
+
+// ── Sprint 1 samples (agent-server) ──────────────────────────────────────────
+export const fetchSprint1AgentSeeds = () => agentRequest("/api/sprint1-agent-seed-sample");
+export const fetchSprint1ExposureSample = (agentId = "A01") =>
+  agentRequest(`/api/sprint1-exposure-sample?agent=${agentId}`);
+export const fetchSprint1MemoryWriteback = (agentId = "A01") =>
+  agentRequest(`/api/sprint1-memory-writeback-sample?agent=${agentId}`);
+export const fetchSprint1ForumPosts = () => agentRequest("/api/sprint1-forum-post-sample");
+export const fetchSprint1Evaluation = () => agentRequest("/api/sprint1-evaluation-sample");

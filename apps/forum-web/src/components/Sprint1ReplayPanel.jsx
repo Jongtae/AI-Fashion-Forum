@@ -1,0 +1,299 @@
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchSprint1ForumPosts, fetchSprint1Evaluation } from "../api/client.js";
+
+// ── Meaning frame display labels ──────────────────────────────────────────────
+const FRAME_LABELS = {
+  tradeoff_filter: "가치 트레이드오프",
+  care_context: "케어 맥락",
+  signal_filter: "신호 필터",
+  practicality_filter: "실용성 필터",
+  context_filter: "컨텍스트 필터",
+};
+
+const STANCE_LABELS = {
+  align: "공감",
+  resist: "저항",
+  reframe: "재해석",
+  absorb: "흡수",
+  deflect: "회피",
+};
+
+// ── Verdict badge ─────────────────────────────────────────────────────────────
+function VerdictBadge({ label, pass }) {
+  return (
+    <span style={{ ...styles.badge, ...(pass ? styles.badgePass : styles.badgeFail) }}>
+      {pass ? "✓" : "✗"} {label}
+    </span>
+  );
+}
+
+// ── Shared stimulus card ──────────────────────────────────────────────────────
+function StimulusCard({ content }) {
+  if (!content) return null;
+  return (
+    <div style={styles.stimulusCard}>
+      <div style={styles.stimulusLabel}>공유 자극 (Shared Stimulus)</div>
+      <div style={styles.stimulusTitle}>{content.title || content.content_id}</div>
+      {content.topics?.length > 0 && (
+        <div style={styles.tagRow}>
+          {content.topics.map((t) => (
+            <span key={t} style={styles.tag}>{t}</span>
+          ))}
+        </div>
+      )}
+      {content.emotions?.length > 0 && (
+        <div style={styles.tagRow}>
+          {content.emotions.map((e) => (
+            <span key={e} style={{ ...styles.tag, ...styles.emotionTag }}>{e}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Per-agent post card ───────────────────────────────────────────────────────
+function AgentPostCard({ post }) {
+  const [expanded, setExpanded] = useState(false);
+  const frameLabel = FRAME_LABELS[post.meaning_frame] || post.meaning_frame;
+  const stanceLabel = STANCE_LABELS[post.stance_signal] || post.stance_signal;
+
+  return (
+    <div style={styles.agentCard}>
+      <div style={styles.agentHeader}>
+        <span style={styles.agentHandle}>@{post.handle}</span>
+        <span style={styles.agentId}>{post.agent_id}</span>
+      </div>
+      <div style={styles.metaRow}>
+        <span style={styles.frameBadge}>{frameLabel}</span>
+        <span style={styles.stanceBadge}>{stanceLabel}</span>
+      </div>
+      <div style={styles.postTitle}>{post.title}</div>
+      <div style={styles.postBody}>{post.body}</div>
+      {post.trace && (
+        <button
+          style={styles.traceToggle}
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded ? "추적 정보 숨기기 ▲" : "추적 정보 보기 ▼"}
+        </button>
+      )}
+      {expanded && post.trace && (
+        <div style={styles.tracePanel}>
+          <div style={styles.traceRow}>
+            <span style={styles.traceKey}>감정</span>
+            <span>{post.trace.dominant_feeling}</span>
+          </div>
+          <div style={styles.traceRow}>
+            <span style={styles.traceKey}>내러티브</span>
+            <span>{post.trace.self_narrative_summary || "—"}</span>
+          </div>
+          <div style={styles.traceRow}>
+            <span style={styles.traceKey}>아크</span>
+            <span>{post.trace.recent_arc}</span>
+          </div>
+          <div style={styles.traceRow}>
+            <span style={styles.traceKey}>출처 콘텐츠</span>
+            <span style={styles.traceId}>{post.source_content_id}</span>
+          </div>
+          <div style={styles.traceRow}>
+            <span style={styles.traceKey}>반응 ID</span>
+            <span style={styles.traceId}>{post.source_reaction_id}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Evaluation verdicts panel ─────────────────────────────────────────────────
+function EvaluationPanel({ evaluation }) {
+  if (!evaluation?.verdicts) return null;
+  const { verdicts } = evaluation;
+  return (
+    <div style={styles.evalPanel}>
+      <div style={styles.evalTitle}>Sprint 1 수용 기준</div>
+      <div style={styles.badgeRow}>
+        <VerdictBadge label="발산 가독성" pass={verdicts.divergence_legible} />
+        <VerdictBadge label="추적 완전성" pass={verdicts.traceability_complete} />
+        <VerdictBadge label="자극 일관성" pass={verdicts.shared_stimulus_consistent} />
+      </div>
+      {verdicts.detail && (
+        <div style={styles.evalDetail}>
+          <span>의미 프레임: {verdicts.detail.meaningFrames?.join(", ")}</span>
+          <span>스탠스 신호: {verdicts.detail.stanceSignals?.join(", ")}</span>
+          <span>포스트 수: {verdicts.detail.postCount}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main panel ────────────────────────────────────────────────────────────────
+export default function Sprint1ReplayPanel() {
+  const { data: postData, isLoading: postsLoading, error: postsError } = useQuery({
+    queryKey: ["sprint1-forum-posts"],
+    queryFn: fetchSprint1ForumPosts,
+    staleTime: 60_000,
+    retry: 1,
+  });
+
+  const { data: evalData, isLoading: evalLoading } = useQuery({
+    queryKey: ["sprint1-evaluation"],
+    queryFn: fetchSprint1Evaluation,
+    staleTime: 60_000,
+    retry: 1,
+  });
+
+  if (postsLoading || evalLoading) {
+    return <div style={styles.loading}>Sprint 1 데이터 로딩 중...</div>;
+  }
+
+  if (postsError) {
+    return (
+      <div style={styles.error}>
+        <div style={styles.errorTitle}>에이전트 서버에 연결할 수 없습니다</div>
+        <div style={styles.errorMsg}>
+          <code>npm run dev:agent-server</code> (port 4001) 가 실행 중인지 확인하세요.
+        </div>
+      </div>
+    );
+  }
+
+  const posts = postData?.posts ?? [];
+  const sharedContent = postData?.shared_content;
+
+  return (
+    <div style={styles.root}>
+      <div style={styles.panelTitle}>Sprint 1 — Identity Drift Replay</div>
+
+      <EvaluationPanel evaluation={evalData} />
+
+      <StimulusCard content={sharedContent} />
+
+      <div style={styles.sectionTitle}>에이전트별 포스트 ({posts.length}개)</div>
+      <div style={styles.postList}>
+        {posts.map((post) => (
+          <AgentPostCard key={post.post_id} post={post} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Styles ────────────────────────────────────────────────────────────────────
+const styles = {
+  root: { display: "flex", flexDirection: "column", gap: 16 },
+  loading: { padding: 32, textAlign: "center", color: "#6b7280" },
+  error: {
+    padding: 20,
+    background: "#fef2f2",
+    border: "1px solid #fecaca",
+    borderRadius: 8,
+  },
+  errorTitle: { fontWeight: 600, color: "#dc2626", marginBottom: 4 },
+  errorMsg: { fontSize: 13, color: "#6b7280" },
+  panelTitle: { fontSize: 16, fontWeight: 700, color: "#111827" },
+  sectionTitle: { fontSize: 13, fontWeight: 600, color: "#6b7280", marginTop: 8 },
+
+  // Stimulus card
+  stimulusCard: {
+    background: "#f0f9ff",
+    border: "1px solid #bae6fd",
+    borderRadius: 8,
+    padding: 14,
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  },
+  stimulusLabel: { fontSize: 11, fontWeight: 600, color: "#0ea5e9", textTransform: "uppercase" },
+  stimulusTitle: { fontSize: 15, fontWeight: 600, color: "#0c4a6e" },
+  tagRow: { display: "flex", flexWrap: "wrap", gap: 4 },
+  tag: {
+    fontSize: 11,
+    background: "#e0f2fe",
+    color: "#0369a1",
+    borderRadius: 4,
+    padding: "2px 6px",
+  },
+  emotionTag: { background: "#fce7f3", color: "#9d174d" },
+
+  // Evaluation
+  evalPanel: {
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    borderRadius: 8,
+    padding: 14,
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  evalTitle: { fontSize: 12, fontWeight: 600, color: "#475569", textTransform: "uppercase" },
+  badgeRow: { display: "flex", flexWrap: "wrap", gap: 6 },
+  badge: { fontSize: 12, borderRadius: 12, padding: "3px 10px", fontWeight: 500 },
+  badgePass: { background: "#dcfce7", color: "#166534" },
+  badgeFail: { background: "#fee2e2", color: "#991b1b" },
+  evalDetail: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 12,
+    fontSize: 11,
+    color: "#64748b",
+  },
+
+  // Agent post card
+  postList: { display: "flex", flexDirection: "column", gap: 12 },
+  agentCard: {
+    background: "#fff",
+    border: "1px solid #e5e7eb",
+    borderRadius: 8,
+    padding: 14,
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  },
+  agentHeader: { display: "flex", justifyContent: "space-between", alignItems: "center" },
+  agentHandle: { fontSize: 13, fontWeight: 600, color: "#111827" },
+  agentId: { fontSize: 11, color: "#9ca3af" },
+  metaRow: { display: "flex", gap: 6 },
+  frameBadge: {
+    fontSize: 11,
+    background: "#ede9fe",
+    color: "#5b21b6",
+    borderRadius: 4,
+    padding: "2px 6px",
+    fontWeight: 500,
+  },
+  stanceBadge: {
+    fontSize: 11,
+    background: "#fef3c7",
+    color: "#92400e",
+    borderRadius: 4,
+    padding: "2px 6px",
+    fontWeight: 500,
+  },
+  postTitle: { fontSize: 14, fontWeight: 600, color: "#1f2937" },
+  postBody: { fontSize: 13, color: "#4b5563", lineHeight: 1.5 },
+  traceToggle: {
+    fontSize: 11,
+    background: "transparent",
+    border: "none",
+    color: "#6b7280",
+    cursor: "pointer",
+    textAlign: "left",
+    padding: 0,
+  },
+  tracePanel: {
+    background: "#f9fafb",
+    border: "1px solid #f3f4f6",
+    borderRadius: 6,
+    padding: 10,
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+  },
+  traceRow: { display: "flex", gap: 8, fontSize: 11, alignItems: "flex-start" },
+  traceKey: { color: "#9ca3af", minWidth: 72, flexShrink: 0 },
+  traceId: { color: "#6b7280", fontFamily: "monospace", wordBreak: "break-all" },
+};
