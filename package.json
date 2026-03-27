@@ -11,10 +11,14 @@
     "dev:forum": "npm run dev --workspace @ai-fashion-forum/forum-web",
     "dev:forum-server": "npm run dev --workspace @ai-fashion-forum/forum-server",
     "dev:agent-server": "npm run dev --workspace @ai-fashion-forum/agent-server",
+    "boot:local": "concurrently --names \"forum-web,forum-server,agent-server\" --prefix-colors \"cyan,green,yellow\" \"npm run dev:forum\" \"npm run dev:forum-server\" \"npm run dev:agent-server\"",
     "build": "npm run build --workspace @ai-fashion-forum/forum-web",
     "preview": "npm run preview --workspace @ai-fashion-forum/forum-web",
     "crawl:images": "npm run crawl:images --workspace @ai-fashion-forum/forum-web",
     "poc:outfit-preview": "npm run poc:outfit-preview --workspace @ai-fashion-forum/forum-web",
     "poc:outfit-preview:dry-run": "npm run poc:outfit-preview:dry-run --workspace @ai-fashion-forum/forum-web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }

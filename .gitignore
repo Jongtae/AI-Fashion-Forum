@@ -2,6 +2,8 @@ node_modules
 dist
 .DS_Store
 *.log
+.env
+.env.local
 /.codex/
 apps/sim-server/data/
 apps/sim-server/apps/

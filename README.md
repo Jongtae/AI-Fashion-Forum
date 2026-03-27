@@ -36,22 +36,37 @@ The existing React mock remains useful as seed-world UI, content realism referen
 ## Local development
 
 ```bash
+# 1. Copy environment variables
+cp .env.example .env   # edit as needed
+
+# 2. Start infrastructure (MongoDB + Redis)
+docker-compose up -d
+
+# 3. Install dependencies
 npm install
 
-# Frontend (port 5173)
-npm run dev:forum
-
-# Forum backend (port 4000)
-npm run dev:forum-server
-
-# Agent / simulation server (port 4001)
-npm run dev:agent-server
+# 4. Boot all three services at once
+npm run boot:local
+# → forum-web  (port 5173)
+# → forum-server  (port 4000)
+# → agent-server  (port 4001)
 ```
 
-Infrastructure (MongoDB + Redis):
+Or start each service independently:
 
 ```bash
-docker-compose up -d
+npm run dev:forum         # forum-web only
+npm run dev:forum-server  # forum-server only
+npm run dev:agent-server  # agent-server only
+```
+
+Run the end-to-end simulation loop (after servers are up):
+
+```bash
+curl -X POST http://localhost:4001/api/run \
+  -H "Content-Type: application/json" \
+  -d '{"seed": 42, "ticks": 5}'
+# Returns: posts_created, replay_file, 8-metric report
 ```
 
 Workspace structure:
