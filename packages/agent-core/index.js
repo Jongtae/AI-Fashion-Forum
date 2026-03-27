@@ -6,6 +6,7 @@ export * from "./forum-generation.js";
 export * from "./graph-storage.js";
 export * from "./identity-update-rules.js";
 export * from "./memory-stack.js";
+export * from "./low-cost-action-writeback.js";
 export * from "./action-space.js";
 export * from "./ranking-core.js";
 export * from "./meta-policy.js";
