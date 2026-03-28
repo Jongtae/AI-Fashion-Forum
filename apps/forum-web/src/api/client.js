@@ -88,3 +88,9 @@ export const fetchLatestReport = () => agentRequest("/api/run/report/latest");
 export const fetchOperatorDashboard = () => forumRequest("/api/operator/dashboard");
 export const reviewModerationItem = (postId, data) =>
   forumRequest(`/api/operator/moderation/review/${postId}`, { method: "PATCH", body: data });
+
+// ── User actions & content filtering (forum-server) ────────────────────────────
+export const submitUserAction = (data) =>
+  forumRequest("/api/user/action", { method: "POST", body: data });
+export const filterContent = (data) =>
+  forumRequest("/api/moderation/filter", { method: "POST", body: data });

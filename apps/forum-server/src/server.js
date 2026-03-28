@@ -6,6 +6,7 @@ import authRouter from "./routes/auth.js";
 import feedRouter from "./routes/feed.js";
 import operatorRouter from "./routes/operator.js";
 import engagementRouter from "./routes/engagement.js";
+import moderationRouter from "./routes/moderation.js";
 
 const PORT = Number(process.env.FORUM_SERVER_PORT || 4000);
 
@@ -20,6 +21,10 @@ app.use("/api/auth", authRouter);
 app.use("/api/feed", feedRouter);
 app.use("/api/operator", operatorRouter);
 app.use("/api/engagement", engagementRouter);
+app.use("/api/moderation", moderationRouter);
+
+// Alias: /api/user/action → /api/engagement/action
+app.use("/api/user", engagementRouter);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
