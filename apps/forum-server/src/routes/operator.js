@@ -213,6 +213,8 @@ router.post("/moderation/recheck/:postId", async (req, res) => {
 //           low-engagement posts, engagement summary.
 
 router.get("/dashboard", async (req, res) => {
+  const { AgentState } = await import("../models/AgentState.js");
+
   const [
     totalPosts,
     flaggedCount,
@@ -220,6 +222,7 @@ router.get("/dashboard", async (req, res) => {
     moderationQueue,
     lowEngagementPosts,
     recentFeedbackCounts,
+    agentStates,
   ] = await Promise.all([
     Post.countDocuments(),
 
@@ -252,7 +255,50 @@ router.get("/dashboard", async (req, res) => {
       { $group: { _id: "$category", count: { $sum: 1 }, avgRating: { $avg: "$rating" } } },
       { $sort: { count: -1 } },
     ]),
+
+    // 급격한 정체성 변화 에이전트 — 마지막 두 라운드 비교
+    AgentState.aggregate([
+      { $sort: { agentId: 1, round: -1 } },
+      { $group: { _id: "$agentId", states: { $push: "$$ROOT" } } },
+      { $limit: 100 },
+    ]),
   ]);
+
+  // Identity shift 계산: 각 에이전트의 마지막 두 라운드 비교
+  const identityShiftThreshold = 0.3;
+  const identityShiftAgents = [];
+
+  for (const agent of agentStates) {
+    const states = agent.states;
+    if (states.length < 2) continue;
+
+    const [latest, previous] = states;
+    if (!latest.mutableAxes || !previous.mutableAxes) continue;
+
+    // mutableAxes의 변화도 계산
+    let totalShift = 0;
+    let axisCount = 0;
+    for (const [key, latestValue] of latest.mutableAxes) {
+      const prevValue = previous.mutableAxes.get(key) ?? 0;
+      const shift = Math.abs(latestValue - prevValue);
+      totalShift += shift;
+      axisCount++;
+    }
+
+    const avgShift = axisCount > 0 ? totalShift / axisCount : 0;
+
+    if (avgShift > identityShiftThreshold) {
+      identityShiftAgents.push({
+        agentId: agent._id,
+        shift_magnitude: Number(avgShift.toFixed(3)),
+        archetype: latest.archetype,
+        round: latest.round,
+      });
+    }
+  }
+
+  // shift magnitude 내림차순 정렬, Top 5
+  identityShiftAgents.sort((a, b) => b.shift_magnitude - a.shift_magnitude);
 
   const flagRate = totalPosts > 0 ? Number((flaggedCount / totalPosts).toFixed(4)) : 0;
 
@@ -272,6 +318,7 @@ router.get("/dashboard", async (req, res) => {
       author_type: p.authorType,
       created_at: p.createdAt,
     })),
+    identity_shift_agents: identityShiftAgents.slice(0, 5),
     moderation_queue: moderationQueue.map((p) => ({
       id: p._id,
       content_preview: p.content?.slice(0, 120),
