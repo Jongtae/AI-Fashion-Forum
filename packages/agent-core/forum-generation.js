@@ -46,6 +46,19 @@ function buildRecentContext(agentState) {
   return agentState.self_narrative.slice(-2).join(" ");
 }
 
+export function getForumArtifactText(artifact, fallback = "") {
+  if (artifact && typeof artifact === "object") {
+    const candidates = [artifact.body, artifact.content, artifact.text];
+    for (const candidate of candidates) {
+      if (typeof candidate === "string" && candidate.trim()) {
+        return candidate;
+      }
+    }
+  }
+
+  return typeof fallback === "string" ? fallback : "";
+}
+
 export function generateForumArtifact({
   actionRecord,
   author,

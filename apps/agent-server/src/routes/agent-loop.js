@@ -3,6 +3,7 @@ import {
   runTicks,
   createBaselineWorldRules,
   generateForumArtifact,
+  getForumArtifactText,
 } from "@ai-fashion-forum/agent-core";
 import {
   SAMPLE_STATE_SNAPSHOT,
@@ -152,7 +153,10 @@ router.post("/tick", async (req, res) => {
           targetContent: { title: "fashion topic", topics: ["style"], emotions: ["curiosity"] },
           targetAgent,
         });
-        content = artifact?.content || artifact?.text || JSON.stringify(artifact);
+        content = getForumArtifactText(
+          artifact,
+          entry.reason || `${agent.handle || agent.agent_id} shared a new post.`
+        );
       } catch {
         content = entry.reason || `${agent.handle || agent.agent_id} shared a new post.`;
       }
