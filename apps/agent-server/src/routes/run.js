@@ -85,12 +85,17 @@ router.post("/", async (req, res) => {
   }
 
   // ── Step 2: State-driven post generation (after memory writeback) ─────────
-  const generatedPosts = runtime.state.agents.map((updatedAgent) => {
+  const generatedPosts = runtime.state.agents.map((updatedAgent, index) => {
     const exposureSample = exposureByAgent[updatedAgent.agent_id];
-    const topReaction = exposureSample?.reaction_records?.[0];
-    const topContent = exposureSample?.exposure?.selected?.[0];
+    const reactions = exposureSample?.reaction_records || [];
+    const selectedContents = exposureSample?.exposure?.selected || [];
+    const variationSeed = seed + index;
+    const reactionIndex = reactions.length ? variationSeed % reactions.length : 0;
+    const contentIndex = selectedContents.length ? variationSeed % selectedContents.length : 0;
+    const selectedReaction = reactions[reactionIndex] || reactions[0] || null;
+    const selectedContent = selectedContents[contentIndex] || selectedContents[0] || null;
 
-    if (!topReaction || !topContent) {
+    if (!selectedReaction || !selectedContent) {
       return null;
     }
 
@@ -98,17 +103,19 @@ router.post("/", async (req, res) => {
       post_id: `${runId}:post:${updatedAgent.agent_id}`,
       agent_id: updatedAgent.agent_id,
       handle: updatedAgent.handle,
-      source_content_id: topReaction.content_id,
-      source_reaction_id: topReaction.reaction_id,
-      meaning_frame: topReaction.meaning_frame,
-      stance_signal: topReaction.stance_signal,
-      title: buildSprint1PostTitle(updatedAgent, topReaction),
-      body: buildSprint1PostBody(updatedAgent, topReaction, topContent),
+      source_content_id: selectedReaction.content_id,
+      source_reaction_id: selectedReaction.reaction_id,
+      meaning_frame: selectedReaction.meaning_frame,
+      stance_signal: selectedReaction.stance_signal,
+      title: buildSprint1PostTitle(updatedAgent, selectedReaction, variationSeed),
+      body: buildSprint1PostBody(updatedAgent, selectedReaction, selectedContent, variationSeed),
       trace: {
-        dominant_feeling: topReaction.dominant_feeling,
-        resonance_score: topReaction.resonance_score,
+        dominant_feeling: selectedReaction.dominant_feeling,
+        resonance_score: selectedReaction.resonance_score,
         self_narrative_summary: updatedAgent.mutable_state?.self_narrative_summary || "",
         recent_arc: updatedAgent.mutable_state?.recent_arc || "stable",
+        selected_content_id: selectedContent.content_id,
+        variation_seed: variationSeed,
       },
     };
   }).filter(Boolean);
