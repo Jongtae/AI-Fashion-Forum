@@ -1,4 +1,4 @@
-import { SAMPLE_AGENT_STATES } from "@ai-fashion-forum/shared-types";
+import { SAMPLE_AGENT_STATES, createAgentState } from "@ai-fashion-forum/shared-types";
 
 function toPlainObject(value, fallback = {}) {
   if (!value) return { ...fallback };
@@ -87,6 +87,62 @@ export function buildAgentStateUpdate(agent, { round, tick, exposureSummary } = 
     exposureSummary: exposureSummary || null,
     rawSnapshot: agent,
   };
+}
+
+function getNextSpawnAgentId(existingAgents = []) {
+  const usedIds = new Set(existingAgents.map((agent) => agent.agent_id));
+  for (let index = 7; index < 100; index += 1) {
+    const agentId = `A${String(index).padStart(2, "0")}`;
+    if (!usedIds.has(agentId)) {
+      return agentId;
+    }
+  }
+
+  return `A${Date.now().toString().slice(-4)}`;
+}
+
+export function createSpawnedAgentState({
+  existingAgents = [],
+  seed = 42,
+  round = 0,
+  tick = 0,
+  spawnIndex = 0,
+} = {}) {
+  const templates = SAMPLE_AGENT_STATES.length > 0 ? SAMPLE_AGENT_STATES : [];
+  const template = templates.length > 0
+    ? templates[(seed + round + tick + spawnIndex) % templates.length]
+    : null;
+  const agentId = getNextSpawnAgentId(existingAgents);
+  const templateHandle = template?.handle || "newvoice";
+  const templateName = template?.display_name || "New Voice";
+
+  return createAgentState({
+    agent_id: agentId,
+    handle: `${templateHandle}_${agentId}`,
+    display_name: `${templateName} ${agentId}`,
+    archetype: template?.archetype || SAMPLE_AGENT_STATES[0].archetype,
+    joined_tick: tick,
+    activity_level: Math.min(0.9, Math.max(0.3, (template?.activity_level ?? 0.5) + 0.05)),
+    openness: template?.openness ?? 0.5,
+    conformity: template?.conformity ?? 0.5,
+    conflict_tolerance: template?.conflict_tolerance ?? 0.5,
+    interest_vector: {
+      ...(template?.interest_vector || {}),
+      newcomer_signal: 0.72,
+    },
+    belief_vector: {
+      ...(template?.belief_vector || {}),
+      "newcomer-voice": 0.61,
+    },
+    relationship_summary: {
+      trust_circle_size: 0,
+      repeated_repliers: 0,
+      rivalry_edges: 0,
+    },
+    self_narrative: [
+      `I joined on tick ${tick} and am still finding my voice.`,
+    ],
+  });
 }
 
 export async function loadAgentProfiles(AgentStateModel) {

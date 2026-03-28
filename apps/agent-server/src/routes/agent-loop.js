@@ -13,6 +13,11 @@ import {
   ensureStateCharacterContracts,
   getActionVisibility,
 } from "@ai-fashion-forum/shared-types";
+import {
+  agentToMutableAxes,
+  agentToSeedAxes,
+  createSpawnedAgentState,
+} from "../lib/agent-state.js";
 import { AgentState } from "../models/AgentState.js";
 import { ActionTrace } from "../models/ActionTrace.js";
 import { SimEvent } from "../models/SimEvent.js";
@@ -56,7 +61,9 @@ function buildInitialState() {
 // Run N agent ticks. Posts/comments are created via forum-server API.
 
 router.post("/tick", async (req, res) => {
-  const ticks = Math.min(20, Math.max(1, parseInt(req.body?.ticks) || 1));
+  const requestedTicks = Math.min(20, Math.max(1, parseInt(req.body?.ticks) || 1));
+  const speed = Math.min(10, Math.max(1, parseInt(req.body?.speed) || 1));
+  const ticks = Math.min(50, requestedTicks * speed);
   const seed = parseInt(req.body?.seed) || Date.now() % 100000;
   const characterOverrides = req.body?.character_overrides || [];
 
@@ -64,6 +71,7 @@ router.post("/tick", async (req, res) => {
     currentWorld = buildInitialState();
   }
 
+  const round = currentRound + 1;
   const seededWorld = ensureStateCharacterContracts(JSON.parse(JSON.stringify(currentWorld)));
   const { state: worldWithCharacters, appliedOverrides } = applyCharacterOverridesToState(
     seededWorld,
@@ -75,10 +83,27 @@ router.post("/tick", async (req, res) => {
     tickCount: ticks,
     initialState: worldWithCharacters,
     worldRules: createBaselineWorldRules(),
+    spawnAgent: ({ world, tick: currentTick }) => {
+      const targetCount = Math.min(
+        10,
+        SAMPLE_STATE_SNAPSHOT.agents.length + Math.floor(currentTick / 4)
+      );
+
+      if (world.state.agents.length >= targetCount) {
+        return null;
+      }
+
+      return createSpawnedAgentState({
+        existingAgents: world.state.agents,
+        seed,
+        round,
+        tick: currentTick,
+        spawnIndex: world.state.agents.length - SAMPLE_STATE_SNAPSHOT.agents.length,
+      });
+    },
   });
 
-  currentRound += 1;
-  const round = currentRound;
+  currentRound = round;
   const latestEntryByAgent = new Map();
   const characterByAgent = new Map(
     (result.finalState?.agents || worldWithCharacters.agents || []).map((agent) => [
@@ -112,8 +137,10 @@ router.post("/tick", async (req, res) => {
     ingestionByActionId.set(entry.action_id, ingestionEnvelope);
 
     latestEntryByAgent.set(entry.actor_id, entry);
-    const agent = result.snapshots[0]?.agents?.find((a) => a.agent_id === entry.actor_id)
-      || { agent_id: entry.actor_id, handle: entry.actor_id };
+    const agent =
+      (result.finalState?.agents || worldWithCharacters.agents || []).find(
+        (a) => a.agent_id === entry.actor_id
+      ) || { agent_id: entry.actor_id, handle: entry.actor_id };
 
     if (entry.action === "post") {
       let content;
@@ -349,6 +376,8 @@ router.post("/tick", async (req, res) => {
   res.json({
     round,
     ticks: result.tickCount,
+    requestedTicks,
+    speed,
     postsCreated: createdPosts.length,
     commentsCreated: createdComments.length,
     characterOverridesApplied: appliedOverrides,

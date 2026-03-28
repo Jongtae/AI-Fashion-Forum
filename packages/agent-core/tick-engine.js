@@ -168,6 +168,7 @@ export function runTicks(options = {}) {
     tickCount = 1,
     initialState = SAMPLE_STATE_SNAPSHOT,
     worldRules = [],
+    spawnAgent = null,
   } = options;
 
   const world = createSeededWorld({
@@ -177,6 +178,20 @@ export function runTicks(options = {}) {
   });
 
   for (let index = 0; index < tickCount; index += 1) {
+    if (typeof spawnAgent === "function") {
+      const spawnedAgent = spawnAgent({
+        world,
+        tickIndex: index,
+        tick: world.tick,
+        remainingTicks: tickCount - index,
+      });
+
+      if (spawnedAgent && spawnedAgent.agent_id) {
+        world.state.agents.push(cloneState(spawnedAgent));
+        world.replay.snapshots.push(cloneState(world.state));
+      }
+    }
+
     runSingleTick(world);
   }
 
