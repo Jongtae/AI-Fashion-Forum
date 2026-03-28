@@ -17,6 +17,15 @@ Intent lock:
 - Do not treat taste divergence, recommendation quality, or any other single phenomenon as the top-level goal.
 - Treat those as observable outcomes inside the intended simulation environment.
 
+## Current Implementation Priority
+
+**Phase 1: Basic Forum Foundation** (Issue #253)
+- Forum CRUD operations (POST/GET/PUT/DELETE for posts, comments, reactions)
+- Database schema and API contracts
+- Authentication and validation layers
+
+This phase must complete before advancing to Phase 2 agent backend features (#247–#251). See Issue #245 for rationale.
+
 ## Commands
 
 ```bash
