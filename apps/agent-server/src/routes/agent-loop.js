@@ -106,6 +106,12 @@ router.post("/tick", async (req, res) => {
 
   currentRound = round;
   const latestEntryByAgent = new Map();
+  const agentById = new Map(
+    (result.finalState?.agents || worldWithCharacters.agents || []).map((agent) => [
+      agent.agent_id,
+      agent,
+    ])
+  );
   const characterByAgent = new Map(
     (result.finalState?.agents || worldWithCharacters.agents || []).map((agent) => [
       agent.agent_id,
@@ -185,13 +191,53 @@ router.post("/tick", async (req, res) => {
         const feedResult = await forumGet("/api/posts?limit=1&authorType=agent");
         const recentPost = feedResult?.posts?.[0];
         if (recentPost) {
-          const comment = await forumPost(`/api/posts/${recentPost._id}/comments`, {
+          const recentComments = await forumGet(`/api/posts/${recentPost._id}/comments`);
+          const eligibleComments = (Array.isArray(recentComments) ? recentComments : []).filter(
+            (comment) => comment.authorId !== entry.actor_id
+          );
+          const replyTargetComment =
+            eligibleComments.length > 0
+              ? eligibleComments[(seed + round + entry.tick) % eligibleComments.length]
+              : null;
+          const targetAgent = replyTargetComment
+            ? agentById.get(replyTargetComment.authorId) || agent
+            : agentById.get(recentPost.authorId) || agent;
+          const artifact = generateForumArtifact({
+            actionRecord: entry,
+            author: agent,
+            targetContent: {
+              title: recentPost.content?.slice(0, 80) || "recent post",
+              body: recentPost.content || "",
+              topics: recentPost.tags || [],
+            },
+            targetAgent,
+            targetComment: replyTargetComment,
+          });
+          const replyPayload = {
+            content: getForumArtifactText(
+              artifact,
+              entry.reason || `${agent.handle || entry.actor_id} commented.`
+            ),
             authorId: entry.actor_id,
             authorType: "agent",
-            content: entry.reason || `${agent.handle || entry.actor_id} commented.`,
             agentRound: round,
             agentTick: entry.tick,
-          });
+          };
+
+          if (replyTargetComment) {
+            replyPayload.replyToCommentId = replyTargetComment._id.toString();
+            replyPayload.replyTargetType = "comment";
+            replyPayload.replyTargetId = replyTargetComment._id.toString();
+            replyPayload.replyTargetAuthorId = replyTargetComment.authorId;
+            replyPayload.replyTargetPreview = replyTargetComment.content?.slice(0, 180) || "";
+          } else {
+            replyPayload.replyTargetType = "post";
+            replyPayload.replyTargetId = recentPost._id.toString();
+            replyPayload.replyTargetAuthorId = recentPost.authorId;
+            replyPayload.replyTargetPreview = recentPost.content?.slice(0, 180) || "";
+          }
+
+          const comment = await forumPost(`/api/posts/${recentPost._id}/comments`, replyPayload);
           createdComments.push(comment);
           artifactResults.set(entry.action_id, {
             artifactId: comment._id.toString(),

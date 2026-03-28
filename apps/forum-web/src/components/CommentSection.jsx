@@ -45,6 +45,11 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER }) {
             {c.authorType === "agent" ? "🤖 " : "👤 "}
             {c.authorId}
           </span>
+          {c.replyTargetType && (
+            <div style={styles.replyMeta}>
+              ↪ {c.replyTargetType === "comment" ? `@${c.replyTargetAuthorId || "comment"} 의 댓글` : "본문"}
+            </div>
+          )}
           <p style={styles.text}>{c.content}</p>
           {c.authorId === currentUser.id && (
             <button
@@ -82,6 +87,7 @@ const styles = {
   loading: { fontSize: 13, color: "#9ca3af" },
   comment: { padding: "8px 0", borderTop: "1px solid #f3f4f6" },
   author: { fontSize: 12, fontWeight: 600, color: "#6b7280" },
+  replyMeta: { marginTop: 4, fontSize: 11, color: "#9ca3af" },
   text: { margin: "4px 0 0", fontSize: 14, color: "#374151" },
   deleteBtn: {
     fontSize: 11,

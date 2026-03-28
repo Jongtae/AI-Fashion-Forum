@@ -240,6 +240,21 @@ test("posts comments likes and reports persist through the CRUD routes", async (
         lean: async () => clone(matches),
       };
     }),
+    patch(Comment, "findOne", (query = {}) => {
+      const match = store.comments.find((comment) => {
+        if (query.postId && String(comment.postId) !== String(query.postId)) {
+          return false;
+        }
+        if (query._id && String(comment._id) !== String(query._id)) {
+          return false;
+        }
+        return true;
+      });
+
+      return {
+        lean: async () => (match ? clone(match) : null),
+      };
+    }),
     patch(Comment, "deleteMany", async (filter = {}) => {
       store.comments = store.comments.filter((comment) => {
         if (filter.postId) {
@@ -349,11 +364,29 @@ test("posts comments likes and reports persist through the CRUD routes", async (
   const createdComment = await commentRes.json();
   assert.equal(commentRes.status, 201);
   assert.equal(store.comments.length, 1);
+  assert.equal(createdComment.replyTargetType, "post");
+  assert.equal(createdComment.replyTargetAuthorId, "u-1");
+
+  const replyRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}/comments`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      content: "Agreeing with the comment above.",
+      authorId: "u-4",
+      authorType: "user",
+      replyToCommentId: createdComment._id,
+    }),
+  });
+  const repliedComment = await replyRes.json();
+  assert.equal(replyRes.status, 201);
+  assert.equal(repliedComment.replyTargetType, "comment");
+  assert.equal(repliedComment.replyTargetAuthorId, "u-3");
+  assert.equal(repliedComment.replyToCommentId, createdComment._id);
 
   const commentListRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}/comments`);
   const commentListBody = await commentListRes.json();
   assert.equal(commentListRes.status, 200);
-  assert.equal(commentListBody.length, 1);
+  assert.equal(commentListBody.length, 2);
 
   const deleteCommentRes = await fetch(
     `${baseUrl}/api/posts/${createdPost._id}/comments/${createdComment._id}`,
@@ -362,7 +395,8 @@ test("posts comments likes and reports persist through the CRUD routes", async (
     },
   );
   assert.equal(deleteCommentRes.status, 200);
-  assert.equal(store.comments.length, 0);
+  assert.equal(store.comments.length, 1);
+  assert.equal(store.comments[0].replyTargetType, "comment");
 
   const reportRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}/report`, {
     method: "POST",

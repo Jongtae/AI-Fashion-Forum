@@ -8,6 +8,11 @@ const commentSchema = new Schema(
     authorId: { type: String, required: true },
     authorType: { type: String, enum: ["user", "agent"], required: true },
     content: { type: String, required: true },
+    replyToCommentId: { type: Schema.Types.ObjectId, ref: "Comment" },
+    replyTargetType: { type: String, enum: ["post", "comment"] },
+    replyTargetId: { type: String },
+    replyTargetAuthorId: { type: String },
+    replyTargetPreview: { type: String },
     // agent-generated comment metadata
     agentRound: { type: Number },
     agentTick: { type: Number },
