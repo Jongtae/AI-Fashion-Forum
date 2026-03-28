@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { triggerAgentTick } from "./api/client.js";
 import PostForm from "./components/PostForm.jsx";
 import PostList from "./components/PostList.jsx";
+import PostDetail from "./components/PostDetail.jsx";
 import PersonalisedFeed from "./components/PersonalisedFeed.jsx";
 import AuthModal from "./components/AuthModal.jsx";
 import Sprint1ReplayPanel from "./components/Sprint1ReplayPanel.jsx";
@@ -27,6 +29,10 @@ export default function ForumApp() {
   const [authUser, setAuthUser] = useState(loadStoredUser);
   const [showAuth, setShowAuth] = useState(false);
   const [tab, setTab] = useState("forum");
+  const [selectedPostId, setSelectedPostId] = useState(null);
+  const [timeSpeed, setTimeSpeed] = useState(1);
+  const [isAutoRunning, setIsAutoRunning] = useState(true);
+  const autoTickInFlightRef = useRef(false);
 
   // currentUser: 로그인 시 JWT 사용자, 미로그인 시 guest
   const currentUser = authUser
@@ -45,6 +51,42 @@ export default function ForumApp() {
     queryClient.clear();
   }
 
+  useEffect(() => {
+    if (!isAutoRunning) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const runAutoTick = async () => {
+      if (cancelled || autoTickInFlightRef.current) {
+        return;
+      }
+
+      autoTickInFlightRef.current = true;
+
+      try {
+        await triggerAgentTick({ ticks: 1, speed: timeSpeed });
+        await queryClient.invalidateQueries({ queryKey: ["agent-loop-status"] });
+        await queryClient.invalidateQueries({ queryKey: ["feed"] });
+        await queryClient.invalidateQueries({ queryKey: ["posts"] });
+        await queryClient.invalidateQueries({ queryKey: ["agent-states"] });
+      } catch (err) {
+        console.warn("[forum-web] auto simulation tick failed:", err?.message || err);
+      } finally {
+        autoTickInFlightRef.current = false;
+      }
+    };
+
+    const intervalId = window.setInterval(runAutoTick, 1000);
+    void runAutoTick();
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [isAutoRunning, timeSpeed]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <div style={styles.root}>
@@ -55,6 +97,28 @@ export default function ForumApp() {
         <header style={styles.header}>
           <span style={styles.logo}>✦ AI Fashion Forum</span>
           <div style={styles.userRow}>
+            <label style={styles.speedControl}>
+              <span style={styles.speedLabel}>속도</span>
+              <select
+                style={styles.speedSelect}
+                value={timeSpeed}
+                onChange={(e) => setTimeSpeed(Number(e.target.value))}
+              >
+                <option value={1}>1x</option>
+                <option value={2}>2x</option>
+                <option value={5}>5x</option>
+                <option value={10}>10x</option>
+              </select>
+            </label>
+            <button
+              style={{
+                ...styles.autoBtn,
+                ...(isAutoRunning ? styles.autoBtnOn : styles.autoBtnOff),
+              }}
+              onClick={() => setIsAutoRunning((prev) => !prev)}
+            >
+              {isAutoRunning ? "자동 진행 중" : "자동 일시정지"}
+            </button>
             {authUser ? (
               <>
                 <span style={styles.userId}>👤 {authUser.displayName || authUser.username}</span>
@@ -104,21 +168,29 @@ export default function ForumApp() {
 
         <main style={styles.main}>
           {tab === "forum" ? (
-            <>
-              <section style={styles.formSection}>
-                <PostForm currentUser={currentUser} />
-              </section>
-              <section style={styles.feedSection}>
-                <PostList currentUser={currentUser} />
-              </section>
-            </>
+            selectedPostId ? (
+              <PostDetail
+                postId={selectedPostId}
+                currentUser={currentUser}
+                onBack={() => setSelectedPostId(null)}
+              />
+            ) : (
+              <>
+                <section style={styles.formSection}>
+                  <PostForm currentUser={currentUser} />
+                </section>
+                <section style={styles.feedSection}>
+                  <PostList currentUser={currentUser} onSelectPost={setSelectedPostId} />
+                </section>
+              </>
+            )
           ) : tab === "feed" ? (
             <section>
-              <PersonalisedFeed currentUser={currentUser} />
+              <PersonalisedFeed currentUser={currentUser} timeSpeed={timeSpeed} />
             </section>
           ) : tab === "replay-viewer" ? (
             <section>
-              <RunReplayViewer />
+              <RunReplayViewer timeSpeed={timeSpeed} />
             </section>
           ) : tab === "operator" ? (
             <section>
@@ -150,6 +222,39 @@ const styles = {
   },
   logo: { fontSize: 18, fontWeight: 700, letterSpacing: -0.5 },
   userRow: { display: "flex", alignItems: "center", gap: 8 },
+  speedControl: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    color: "#d1d5db",
+    fontSize: 12,
+    marginRight: 8,
+  },
+  speedLabel: { opacity: 0.85 },
+  speedSelect: {
+    background: "#1f2937",
+    color: "#fff",
+    border: "1px solid #4b5563",
+    borderRadius: 4,
+    padding: "3px 8px",
+    fontSize: 12,
+  },
+  autoBtn: {
+    border: "1px solid transparent",
+    borderRadius: 999,
+    padding: "4px 10px",
+    fontSize: 12,
+    cursor: "pointer",
+  },
+  autoBtnOn: {
+    background: "#10b981",
+    color: "#06281f",
+  },
+  autoBtnOff: {
+    background: "#374151",
+    color: "#e5e7eb",
+    borderColor: "#6b7280",
+  },
   userId: { fontSize: 13, color: "#d1d5db" },
   editBtn: {
     fontSize: 12,

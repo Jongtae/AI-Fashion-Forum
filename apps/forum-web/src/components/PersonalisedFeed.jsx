@@ -5,7 +5,7 @@ import PostCard from "./PostCard.jsx";
 
 const FLAGS = ["baseline", "noveltyBoost", "trustBoost", "controversyDampen"];
 
-export default function PersonalisedFeed({ currentUser }) {
+export default function PersonalisedFeed({ currentUser, timeSpeed = 1 }) {
   const [flag, setFlag] = useState("baseline");
   const queryClient = useQueryClient();
 
@@ -21,7 +21,7 @@ export default function PersonalisedFeed({ currentUser }) {
   });
 
   const tickMutation = useMutation({
-    mutationFn: (ticks) => triggerAgentTick({ ticks }),
+    mutationFn: (ticks) => triggerAgentTick({ ticks, speed: timeSpeed }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
@@ -45,7 +45,7 @@ export default function PersonalisedFeed({ currentUser }) {
             onClick={() => tickMutation.mutate(3)}
             disabled={tickMutation.isPending}
           >
-            {tickMutation.isPending ? "실행 중…" : "+ 에이전트 틱 3회"}
+            {tickMutation.isPending ? "실행 중…" : `+ 에이전트 틱 3회 (${timeSpeed}x)`}
           </button>
         </div>
       )}
@@ -73,7 +73,7 @@ export default function PersonalisedFeed({ currentUser }) {
         <p style={styles.msg}>
           피드가 비어있습니다.{" "}
           <button style={styles.inlineBtn} onClick={() => tickMutation.mutate(5)}>
-            에이전트 틱 5회 실행
+            에이전트 틱 5회 실행 ({timeSpeed}x)
           </button>
           해서 에이전트 포스트를 생성해보세요.
         </p>

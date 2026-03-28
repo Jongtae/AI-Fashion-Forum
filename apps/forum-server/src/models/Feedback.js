@@ -7,7 +7,14 @@ const feedbackSchema = new Schema(
     userId: { type: String, required: true, index: true },
     category: {
       type: String,
-      enum: ["bug", "suggestion", "moderation", "satisfaction", "other"],
+      enum: [
+        "bug",
+        "suggestion",
+        "moderation",
+        "moderation_appeal",
+        "satisfaction",
+        "other",
+      ],
       required: true,
       index: true,
     },

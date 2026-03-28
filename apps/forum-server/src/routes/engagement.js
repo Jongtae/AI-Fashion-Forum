@@ -84,4 +84,20 @@ router.patch("/feedback/:feedbackId", async (req, res) => {
   res.json(feedback);
 });
 
+// ── POST /api/engagement/action ───────────────────────────────────────────────
+// Alias for user action logging (POST /api/user/action -> /api/engagement/action)
+router.post("/action", async (req, res) => {
+  const errors = validateInteractionPayload(req.body);
+  if (errors.length) return res.status(400).json({ error: errors.join("; ") });
+
+  const interaction = await Interaction.create(normalizeInteractionPayload(req.body));
+  res.status(201).json({
+    id: interaction._id,
+    actorId: interaction.actorId,
+    actorType: interaction.actorType,
+    eventType: interaction.eventType,
+    createdAt: interaction.createdAt,
+  });
+});
+
 export default router;

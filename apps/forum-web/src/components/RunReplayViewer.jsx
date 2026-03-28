@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchLatestReplay, triggerRun } from "../api/client.js";
 
+const REPLAY_REFRESH_MS = 5_000;
+
 // ── Label maps ────────────────────────────────────────────────────────────────
 const FRAME_LABELS = {
   tradeoff_filter: "가치 트레이드오프",
@@ -207,13 +209,13 @@ function AgentStatePanel({ agents }) {
 }
 
 // ── Run trigger panel ─────────────────────────────────────────────────────────
-function RunTriggerPanel({ onRunComplete }) {
+function RunTriggerPanel({ onRunComplete, timeSpeed = 1 }) {
   const queryClient = useQueryClient();
   const [seed, setSeed] = useState(42);
   const [ticks, setTicks] = useState(5);
 
   const mutation = useMutation({
-    mutationFn: () => triggerRun({ seed, ticks }),
+    mutationFn: () => triggerRun({ seed, ticks, speed: timeSpeed }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["latest-replay"] });
       onRunComplete?.();
@@ -250,7 +252,7 @@ function RunTriggerPanel({ onRunComplete }) {
           onClick={() => mutation.mutate()}
           disabled={mutation.isPending}
         >
-          {mutation.isPending ? "실행 중..." : "▶ Run"}
+          {mutation.isPending ? "실행 중..." : `▶ Run (${timeSpeed}x)`}
         </button>
       </div>
       {mutation.isError && (
@@ -268,17 +270,37 @@ function RunTriggerPanel({ onRunComplete }) {
 }
 
 // ── Main viewer ───────────────────────────────────────────────────────────────
-export default function RunReplayViewer() {
-  const { data: replay, isLoading, error, refetch } = useQuery({
+export default function RunReplayViewer({ timeSpeed = 1 }) {
+  const {
+    data: replay,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+    dataUpdatedAt,
+  } = useQuery({
     queryKey: ["latest-replay"],
     queryFn: fetchLatestReplay,
     retry: 1,
     staleTime: 10_000,
+    refetchInterval: (query) => (query.state.data ? REPLAY_REFRESH_MS : false),
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   return (
     <div style={styles.root}>
-      <RunTriggerPanel onRunComplete={refetch} />
+      <RunTriggerPanel onRunComplete={refetch} timeSpeed={timeSpeed} />
+
+      <div style={styles.liveHint}>
+        {isFetching ? "최신 replay 확인 중…" : "최신 replay를 5초마다 자동 갱신합니다."}
+        {dataUpdatedAt ? (
+          <span style={styles.liveHintMeta}>
+            마지막 갱신: {new Date(dataUpdatedAt).toLocaleTimeString("ko-KR")}
+          </span>
+        ) : null}
+      </div>
 
       {isLoading && <div style={styles.loading}>Replay 로딩 중...</div>}
 
@@ -328,6 +350,22 @@ export default function RunReplayViewer() {
 // ── Styles ────────────────────────────────────────────────────────────────────
 const styles = {
   root: { display: "flex", flexDirection: "column", gap: 16 },
+  liveHint: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 12,
+    alignItems: "center",
+    padding: "10px 14px",
+    borderRadius: 8,
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    color: "#475569",
+    fontSize: 12,
+  },
+  liveHintMeta: {
+    color: "#64748b",
+    whiteSpace: "nowrap",
+  },
   loading: { padding: 32, textAlign: "center", color: "#6b7280" },
 
   // Run trigger

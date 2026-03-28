@@ -5,8 +5,19 @@ import { User } from "../models/User.js";
 import { Interaction } from "../models/Interaction.js";
 import { Report } from "../models/Report.js";
 import { Feedback } from "../models/Feedback.js";
+import { ModerationDecision } from "../models/ModerationDecision.js";
 import { buildFeedbackFilter, buildInteractionFilter } from "../lib/engagement.js";
 import { buildModerationState } from "../lib/moderation.js";
+import {
+  getPendingNotifications,
+  acknowledgeNotification,
+  recordEscalationAction,
+  getEscalationStatistics,
+} from "../lib/notification.js";
+import {
+  getAppealStatistics,
+  getAuditLog,
+} from "../lib/moderation-decision.js";
 
 const router = Router();
 
@@ -213,6 +224,8 @@ router.post("/moderation/recheck/:postId", async (req, res) => {
 //           low-engagement posts, engagement summary.
 
 router.get("/dashboard", async (req, res) => {
+  const { AgentState } = await import("../models/AgentState.js");
+
   const [
     totalPosts,
     flaggedCount,
@@ -220,6 +233,8 @@ router.get("/dashboard", async (req, res) => {
     moderationQueue,
     lowEngagementPosts,
     recentFeedbackCounts,
+    agentStates,
+    appealStats,
   ] = await Promise.all([
     Post.countDocuments(),
 
@@ -252,7 +267,54 @@ router.get("/dashboard", async (req, res) => {
       { $group: { _id: "$category", count: { $sum: 1 }, avgRating: { $avg: "$rating" } } },
       { $sort: { count: -1 } },
     ]),
+
+    // 급격한 정체성 변화 에이전트 — 마지막 두 라운드 비교
+    AgentState.aggregate([
+      { $sort: { agentId: 1, round: -1 } },
+      { $group: { _id: "$agentId", states: { $push: "$$ROOT" } } },
+      { $limit: 100 },
+    ]),
+
+    // Appeal statistics
+    getAppealStatistics(),
   ]);
+
+  // Identity shift 계산: 각 에이전트의 마지막 두 라운드 비교
+  const identityShiftThreshold = 0.3;
+  const identityShiftAgents = [];
+
+  for (const agent of agentStates) {
+    const states = agent.states;
+    if (states.length < 2) continue;
+
+    const [latest, previous] = states;
+    if (!latest.mutableAxes || !previous.mutableAxes) continue;
+
+    // mutableAxes의 변화도 계산
+    let totalShift = 0;
+    let axisCount = 0;
+    // lean() 쿼리로 인해 Map이 객체로 변환되므로 Object.entries() 사용
+    for (const [key, latestValue] of Object.entries(latest.mutableAxes || {})) {
+      const prevValue = (previous.mutableAxes && previous.mutableAxes[key]) ?? 0;
+      const shift = Math.abs(latestValue - prevValue);
+      totalShift += shift;
+      axisCount++;
+    }
+
+    const avgShift = axisCount > 0 ? totalShift / axisCount : 0;
+
+    if (avgShift > identityShiftThreshold) {
+      identityShiftAgents.push({
+        agentId: agent._id,
+        shift_magnitude: Number(avgShift.toFixed(3)),
+        archetype: latest.archetype,
+        round: latest.round,
+      });
+    }
+  }
+
+  // shift magnitude 내림차순 정렬, Top 5
+  identityShiftAgents.sort((a, b) => b.shift_magnitude - a.shift_magnitude);
 
   const flagRate = totalPosts > 0 ? Number((flaggedCount / totalPosts).toFixed(4)) : 0;
 
@@ -272,6 +334,7 @@ router.get("/dashboard", async (req, res) => {
       author_type: p.authorType,
       created_at: p.createdAt,
     })),
+    identity_shift_agents: identityShiftAgents.slice(0, 5),
     moderation_queue: moderationQueue.map((p) => ({
       id: p._id,
       content_preview: p.content?.slice(0, 120),
@@ -294,6 +357,12 @@ router.get("/dashboard", async (req, res) => {
       count: f.count,
       avg_rating: f.avgRating ? Number(f.avgRating.toFixed(2)) : null,
     })),
+    appeal_metrics: {
+      totalAppeals: appealStats.totalAppeals,
+      pendingAppeals: appealStats.pendingAppeals,
+      overturnedAppeals: appealStats.overturnedAppeals,
+      overturnRatePercent: Number(appealStats.overturnRatePercent),
+    },
   });
 });
 
@@ -365,6 +434,298 @@ router.patch("/reports/:reportId", async (req, res) => {
   });
 
   res.json(report);
+});
+
+// ── GET /api/operator/notifications ──────────────────────────────────────────────
+// Get pending escalation notifications for operator
+//
+// Query Parameters:
+//   - severity: "high"|"medium"|"low" (filter by severity)
+//   - limit: max results (default: 50)
+//   - status: "pending"|"acknowledged"|"resolved" (default: pending)
+//
+// Returns array of notification objects with id, severity, contentId, escalationReason, etc.
+
+router.get("/notifications", (req, res) => {
+  const { severity = null, limit = 50, status = "pending" } = req.query;
+
+  const notifications = getPendingNotifications({
+    severity,
+    limit: Math.min(parseInt(limit) || 50, 500),
+    status,
+  });
+
+  res.json({
+    notifications,
+    total: notifications.length,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ── POST /api/operator/notifications/:notificationId/acknowledge ──────────────────
+// Mark notification as acknowledged by operator
+
+router.post("/notifications/:notificationId/acknowledge", (req, res) => {
+  const { notificationId } = req.params;
+  const { operatorId } = req.body;
+
+  if (!operatorId) {
+    return res.status(400).json({ error: "operatorId is required" });
+  }
+
+  try {
+    const notification = acknowledgeNotification(notificationId, operatorId);
+    res.json(notification);
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+// ── POST /api/operator/notifications/:notificationId/action ──────────────────────
+// Record action taken on escalated content
+//
+// Request Body:
+//   - action: "removed"|"hidden"|"approved_appeal"
+//   - operatorId: operator ID
+//   - reason: optional reason for action
+
+router.post("/notifications/:notificationId/action", async (req, res) => {
+  const { notificationId } = req.params;
+  const { action, operatorId, reason = "" } = req.body;
+
+  if (!action || !operatorId) {
+    return res.status(400).json({ error: "action and operatorId are required" });
+  }
+
+  if (!["removed", "hidden", "approved_appeal"].includes(action)) {
+    return res.status(400).json({ error: "Invalid action" });
+  }
+
+  try {
+    const notification = recordEscalationAction(notificationId, action, operatorId, reason);
+
+    // Update related post if action is "removed" or "hidden"
+    if (notification.postId && action === "removed") {
+      await Post.findByIdAndUpdate(notification.postId, {
+        moderationStatus: "removed",
+        escalatedAt: new Date(),
+        escalatedBy: operatorId,
+      });
+    }
+
+    res.json(notification);
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+// ── GET /api/operator/escalations/stats ──────────────────────────────────────────
+// Get escalation statistics for operator dashboard
+//
+// Returns:
+//   - total: total escalations
+//   - byStatus: {pending, acknowledged, resolved}
+//   - bySeverity: {high, medium, low}
+//   - avgResolutionTimeMinutes: average time to resolve
+
+router.get("/escalations/stats", (req, res) => {
+  const stats = getEscalationStatistics();
+
+  res.json({
+    escalations: stats,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ── GET /api/operator/audit-log/stats ────────────────────────────────────
+// Get moderation & appeal statistics with bias detection metrics
+// NOTE: This must come before /audit-log/:postId to avoid route conflicts
+
+router.get("/audit-log/stats", async (req, res) => {
+  try {
+    const since = req.query.since
+      ? new Date(req.query.since)
+      : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Last 7 days
+
+    const [
+      totalDecisions,
+      removedCount,
+      approvedCount,
+      flaggedCount,
+      appealStats,
+      operatorStats,
+      escalationStats,
+    ] = await Promise.all([
+      ModerationDecision.countDocuments({ decidedAt: { $gte: since } }),
+      ModerationDecision.countDocuments({ decision: "removed", decidedAt: { $gte: since } }),
+      ModerationDecision.countDocuments({ decision: "approved", decidedAt: { $gte: since } }),
+      ModerationDecision.countDocuments({ decision: "flagged", decidedAt: { $gte: since } }),
+      getAppealStatistics(),
+      ModerationDecision.aggregate([
+        { $match: { decidedAt: { $gte: since } } },
+        {
+          $group: {
+            _id: "$decidedBy",
+            total: { $sum: 1 },
+            removed: {
+              $sum: { $cond: [{ $eq: ["$decision", "removed"] }, 1, 0] },
+            },
+            appealed: {
+              $sum: { $cond: [{ $eq: ["$appealed", true] }, 1, 0] },
+            },
+          },
+        },
+        { $sort: { total: -1 } },
+      ]),
+      ModerationDecision.countDocuments({ escalated: true, decidedAt: { $gte: since } }),
+    ]);
+
+    // Calculate bias detection metrics
+    const biasMetrics = operatorStats
+      .filter((op) => op.total >= 5) // Only include operators with 5+ decisions
+      .map((op) => {
+        const overrideRate = op.appealed > 0 ? (op.appealed / op.total) * 100 : 0;
+        return {
+          operatorId: op._id,
+          totalDecisions: op.total,
+          removedCount: op.removed,
+          removedRate: ((op.removed / op.total) * 100).toFixed(1),
+          appealedCount: op.appealed,
+          appealRate: overrideRate.toFixed(1),
+          flagged: overrideRate > 50 ? "HIGH_APPEAL_RATE" : overrideRate > 25 ? "MODERATE_APPEAL_RATE" : "NORMAL",
+        };
+      });
+
+    const removalRate = totalDecisions > 0 ? ((removedCount / totalDecisions) * 100).toFixed(1) : 0;
+    const approvalRate = totalDecisions > 0 ? ((approvedCount / totalDecisions) * 100).toFixed(1) : 0;
+    const flagRate = totalDecisions > 0 ? ((flaggedCount / totalDecisions) * 100).toFixed(1) : 0;
+
+    res.json({
+      period: {
+        since: since.toISOString(),
+        until: new Date().toISOString(),
+      },
+      summary: {
+        totalDecisions,
+        removedCount,
+        removedRate: Number(removalRate),
+        approvedCount,
+        approvalRate: Number(approvalRate),
+        flaggedCount,
+        flagRate: Number(flagRate),
+      },
+      appeals: {
+        totalAppeals: appealStats.totalAppeals,
+        pendingAppeals: appealStats.pendingAppeals,
+        overturnedAppeals: appealStats.overturnedAppeals,
+        overturnRatePercent: Number(appealStats.overturnRatePercent),
+      },
+      escalations: {
+        escalatedCount: escalationStats,
+        escalationRate: totalDecisions > 0 ? ((escalationStats / totalDecisions) * 100).toFixed(1) : 0,
+      },
+      biasMetrics,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("[operator/audit-log/stats]", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /api/operator/audit-log ──────────────────────────────────────────
+// Get immutable audit trail of all moderation decisions
+// Supports filtering by decision type, status, operator, timeframe
+//
+// Query Parameters:
+//   - limit: Results per page (default: 50, max: 500)
+//   - offset: Pagination offset (default: 0)
+//   - decision: Filter by decision (approved|flagged|removed)
+//   - decisionType: Filter by decision type (1|2|3)
+//   - escalated: Filter by escalation status (true|false)
+//   - appealed: Filter by appeal status (true|false)
+//   - since: ISO date string (filter by createdAt >= since)
+
+router.get("/audit-log", async (req, res) => {
+  try {
+    const limit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 50));
+    const offset = Math.max(0, parseInt(req.query.offset) || 0);
+
+    const filter = {};
+    if (req.query.decision) filter.decision = req.query.decision;
+    if (req.query.decisionType) filter.decisionType = req.query.decisionType;
+    if (req.query.escalated === "true") filter.escalated = true;
+    if (req.query.escalated === "false") filter.escalated = false;
+    if (req.query.appealed === "true") filter.appealed = true;
+    if (req.query.appealed === "false") filter.appealed = false;
+
+    if (req.query.since) {
+      const sinceDate = new Date(req.query.since);
+      if (!isNaN(sinceDate.getTime())) {
+        filter.createdAt = { $gte: sinceDate };
+      }
+    }
+
+    const [decisions, total] = await Promise.all([
+      ModerationDecision.find(filter)
+        .sort({ decidedAt: -1 })
+        .skip(offset)
+        .limit(limit)
+        .lean(),
+      ModerationDecision.countDocuments(filter),
+    ]);
+
+    res.json({
+      decisions: decisions.map((d) => ({
+        id: d._id,
+        postId: d.postId,
+        authorId: d.authorId,
+        decision: d.decision,
+        decisionType: d.decisionType,
+        score: d.score,
+        reason: d.reason,
+        escalated: d.escalated,
+        escalationSeverity: d.escalationSeverity,
+        decidedBy: d.decidedBy,
+        decidedAt: d.decidedAt,
+        appealed: d.appealed,
+        appealStatus: d.appealStatus,
+        appealDecision: d.appealDecision,
+        createdAt: d.createdAt,
+      })),
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + limit < total,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("[operator/audit-log]", err);
+    res.status(500).json({ error: "audit_log_query_failed" });
+  }
+});
+
+// ── GET /api/operator/audit-log/:postId ──────────────────────────────────
+// Get complete audit trail for a specific post (including appeals)
+
+router.get("/audit-log/:postId", async (req, res) => {
+  try {
+    const auditLog = await getAuditLog(req.params.postId);
+
+    if (!auditLog) {
+      return res.status(404).json({ error: "No moderation decisions found for this post" });
+    }
+
+    res.json({
+      auditLog,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("[operator/audit-log/:postId]", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

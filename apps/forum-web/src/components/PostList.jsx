@@ -5,7 +5,7 @@ import PostCard from "./PostCard.jsx";
 
 const PAGE_SIZE = 20;
 
-export default function PostList({ currentUser }) {
+export default function PostList({ currentUser, onSelectPost }) {
   const [tagFilter, setTagFilter] = useState("");
 
   const {
@@ -63,7 +63,12 @@ export default function PostList({ currentUser }) {
 
       <div style={styles.list} onScroll={handleScroll}>
         {posts.map((post) => (
-          <PostCard key={post._id} post={post} currentUser={currentUser} />
+          <PostCard
+            key={post._id}
+            post={post}
+            currentUser={currentUser}
+            onSelectPost={onSelectPost}
+          />
         ))}
         {isFetchingNextPage && <p style={styles.msg}>더 불러오는 중…</p>}
         {!hasNextPage && posts.length > 0 && (

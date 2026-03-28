@@ -25,7 +25,9 @@ function postToContentRecord(post) {
 // Lightweight ranking that mirrors ranking-core signal logic
 // without requiring the full SAMPLE_CONTENT_RECORDS format.
 function computeScore({ agentState, contentRecord, weights, recencyMs }) {
-  const interests = Object.entries(agentState.interest_vector || {});
+  const interests = Object.entries(
+    agentState.interest_vector || agentState.rawSnapshot?.interest_vector || {}
+  );
   const interestMatch =
     interests.length === 0
       ? 0
@@ -33,8 +35,11 @@ function computeScore({ agentState, contentRecord, weights, recencyMs }) {
           return sum + (contentRecord.topics.includes(topic) ? weight : 0);
         }, 0) / interests.length;
 
-  const trustSignal = Math.min(1, (agentState.relationship_summary?.trust_circle_size || 0) / 10);
-  const noveltySignal = 0.4 + (agentState.openness || 0.5) * 0.2;
+  const trustSignal = Math.min(
+    1,
+    ((agentState.relationship_summary || agentState.rawSnapshot?.relationship_summary)?.trust_circle_size || 0) / 10
+  );
+  const noveltySignal = 0.4 + (agentState.openness || agentState.rawSnapshot?.openness || 0.5) * 0.2;
 
   // Recency: posts within last 1 hour score 1.0, decays over 24h
   const ageHours = recencyMs / 3_600_000;
@@ -91,6 +96,14 @@ router.get("/", async (req, res) => {
       interest_vector: {},
       openness: 0.5,
       relationship_summary: { trust_circle_size: 3 },
+    };
+  } else {
+    agentState = {
+      ...agentState,
+      interest_vector: agentState.interest_vector || agentState.rawSnapshot?.interest_vector || {},
+      relationship_summary:
+        agentState.relationship_summary || agentState.rawSnapshot?.relationship_summary || {},
+      openness: agentState.openness ?? agentState.rawSnapshot?.openness ?? 0.5,
     };
   }
 

@@ -1,0 +1,691 @@
+{
+  "analysis_metadata": {
+    "date": "2026-03-28",
+    "analyzer": "Claude Code",
+    "scope": "Issues #272, #273, #275 - Moderation & Operator Bundle",
+    "files_examined": [
+      "apps/forum-server/src/routes/operator.js",
+      "apps/agent-server/src/routes/logging.js",
+      "packages/agent-core/meta-policy.js",
+      "apps/forum-server/src/lib/moderation.js",
+      "apps/forum-server/src/routes/moderation.js",
+      "apps/forum-server/src/models/Post.js",
+      "apps/forum-server/src/models/Report.js",
+      "apps/forum-server/src/models/Feedback.js",
+      "apps/forum-server/src/models/Interaction.js",
+      "apps/forum-server/src/models/AgentState.js",
+      "apps/agent-server/src/models/ActionTrace.js",
+      "apps/forum-server/src/lib/engagement.js",
+      "docs/operator-policies/moderation-rules-and-policies.md",
+      "docs/operator-policies/policy-experiment-framework.md"
+    ]
+  },
+  "issues": [
+    {
+      "issue": 272,
+      "title": "Task: 운영자 대시보드와 개입 효과 metric 설계",
+      "state": "CLOSED",
+      "parent_epic": 263,
+      "acceptance_criteria": [
+        "참여도, 다양성, 모더레이션 비율, 에코챔버 지수가 정의된다.",
+        "운영자 대시보드에서 최소한의 추세 시각화가 가능하다.",
+        "개입 전후 비교가 가능한 metric contract가 존재한다.",
+        "운영 레버별 실험 결과를 기록할 수 있다."
+      ],
+      "current_status": {
+        "implemented": [
+          "GET /api/operator/metrics - 기본 집계 메트릭 (totalPosts, totalComments, totalUsers, agentPosts, userPosts, totalLikes, flaggedPosts, pendingReports, pendingFeedback)",
+          "GET /api/operator/dashboard - MVP 1-page dashboard with 5 sections",
+          "Dashboard sections: summary (total_posts, flagged_posts, flag_rate), high_conflict_threads, identity_shift_agents, moderation_queue, low_engagement_posts, feedback_summary",
+          "Identity shift calculation - mutableAxes 변화도 계산 (threshold: 0.3)",
+          "Flag rate computation - flaggedCount / totalPosts",
+          "Moderation queue display - flagged posts sorted by moderationScore DESC",
+          "Feedback summary aggregation - 최근 7일 피드백 분류별 집계",
+          "Agent state tracking via AgentState model with mutableAxes and seedAxes",
+          "Interaction logging via Interaction model with eventType tracking",
+          "Feedback collection via Feedback model with category and rating"
+        ],
+        "partially_implemented": [
+          {
+            "feature": "Engagement metrics (참여도)",
+            "status": "기본 수치만 수집됨 (likes, commentCount). 추세 분석 및 사용자별 참여도 분화 미구현",
+            "location": "operator.js:17-94",
+            "missing_parts": [
+              "Time-series engagement trend (일별/주별 추이)",
+              "Per-user engagement distribution",
+              "Engagement velocity (참여도 변화율)",
+              "User-agent interaction asymmetry metrics"
+            ]
+          },
+          {
+            "feature": "Diversity metrics (다양성)",
+            "status": "태그 분포 기본 수집 (topTags). 콘텐츠 다양성 지표 미구현",
+            "location": "operator.js:56-62",
+            "missing_parts": [
+              "Topic entropy (정보이론적 다양성 지수)",
+              "Content type distribution (format별 분포)",
+              "Author diversity (agent vs user 발화 비율 시간별 추이)",
+              "Vocabulary diversity per agent",
+              "Topic clustering and dispersion metrics"
+            ]
+          },
+          {
+            "feature": "Echo chamber index (에코챔버 지수)",
+            "status": "completely unimplemented",
+            "location": "Not present in operator.js",
+            "missing_parts": [
+              "Echo chamber detection algorithm (사용자-에이전트 간 콘텐츠 폐쇄도)",
+              "Topic homogeneity metric",
+              "Sentiment clustering score",
+              "Filter bubble measurement"
+            ]
+          },
+          {
+            "feature": "Moderation intervention metrics (모더레이션 비율)",
+            "status": "기본 통계만 있음 (flaggedPosts, pendingReports)",
+            "location": "operator.js:77-81",
+            "missing_parts": [
+              "Operator approval rate vs auto-flag rate",
+              "Appeal rate (모더레이션 항소율)",
+              "Override rate per rule category",
+              "Decision latency (operator response time)",
+              "Consistency metric (동일 위반에 대한 일관성)"
+            ]
+          },
+          {
+            "feature": "Policy experiment tracking (실험 결과 기록)",
+            "status": "meta-policy.js에는 정책 선택지 정의 있으나, 실험 이력 저장/비교 미구현",
+            "location": "meta-policy.js:11-15, operator.js:NOT_PRESENT",
+            "missing_parts": [
+              "PolicyChange model - 정책 변경 이력 추적",
+              "Experiment session management (A/B 테스트 세션 ID)",
+              "Before/after metric snapshots (정책 변경 전후 스냅샷)",
+              "Policy effectiveness scoring",
+              "Intervention outcome tracking"
+            ]
+          },
+          {
+            "feature": "Trend visualization data (추세 시각화)",
+            "status": "기본 endpoint는 있으나 시계열 데이터 미제공",
+            "location": "operator.js:17-94",
+            "missing_parts": [
+              "Time-grouped metrics (hourly/daily/weekly)",
+              "Cumulative metrics (누적 값 추이)",
+              "Comparative baselines (정책 변경 전후 비교 베이스라인)",
+              "Anomaly detection signals"
+            ]
+          }
+        ],
+        "not_implemented": [
+          "Echo chamber index calculation algorithm",
+          "Diversity metrics (entropy, topic distribution, author variance)",
+          "Time-series engagement trends",
+          "Policy experiment lifecycle management (PolicyChange model, experiment sessions)",
+          "Intervention outcome tracking (policy change 적용 결과 저장)",
+          "Dashboard time-range filtering (현재는 fixed 24h, 7d만 가능)",
+          "Comparative metrics API (policy A vs policy B metrics)",
+          "KPI thresholds and alerts (flag rate threshold 0.05-0.15 모니터링)",
+          "Decision consistency metrics",
+          "Appeal handling and pattern analysis"
+        ]
+      },
+      "subtasks": [
+        {
+          "id": "272-1",
+          "title": "Echo chamber index 계산 알고리즘 설계 및 구현",
+          "description": "에코챔버 현상을 정량화하는 지수 개발. 사용자와 에이전트 간의 콘텐츠 폐쇄도, 태그 클러스터링 정도, 감정의 균질성을 측정하는 지표 3가지 통합 산출",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/lib/diversity-metrics.js (new)",
+            "apps/forum-server/src/lib/echo-chamber.js (new)",
+            "apps/forum-server/src/routes/operator.js (modify: add /api/operator/metrics 응답에 echo_chamber_index 추가)"
+          ],
+          "acceptance_criteria": [
+            "echo-chamber.js: computeEchoChamberIndex(agentId, tagDistribution, sentimentDistribution) → {score, components: {topicHomogeneity, sentimentCluster, contentPolarity}}",
+            "0 <= score <= 1 범위 (1 = 완전 에코챔버)",
+            "GET /api/operator/metrics 응답에 echo_chamber_index 필드 포함",
+            "테스트: 다양한 태그 분포에서 정확히 계산되는지 검증"
+          ],
+          "effort": "medium",
+          "dependencies": ["Interaction, Post 모델에서 태그/감정 분포 수집 가능함"]
+        },
+        {
+          "id": "272-2",
+          "title": "Diversity metrics (topic entropy, author variance) 구현",
+          "description": "콘텐츠 다양성을 정량화하는 여러 지표 구현. 정보이론의 entropy, 작성자 유형 분포, 주제 다양도 등을 측정",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/lib/diversity-metrics.js (create/expand)",
+            "apps/forum-server/src/routes/operator.js (modify: /api/operator/metrics 응답에 diversity 섹션 추가)"
+          ],
+          "acceptance_criteria": [
+            "computeTopicEntropy(posts) → shannon entropy score for tag distribution",
+            "computeAuthorVariance(posts) → variance between agent/user authorship over time",
+            "computeContentTypeDistribution(posts) → {format: count, ...}",
+            "GET /api/operator/metrics에 diversity 섹션 포함: {topic_entropy, author_variance, format_distribution}",
+            "모든 메트릭 0-1 범위 정규화"
+          ],
+          "effort": "medium"
+        },
+        {
+          "id": "272-3",
+          "title": "Policy experiment tracking infrastructure 설계 및 모델 생성",
+          "description": "정책 변경 이력과 실험 세션을 추적하기 위한 데이터 모델 및 API 구현. 정책 변경 전후 메트릭 스냅샷 저장 및 비교 기능",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/models/PolicyChange.js (new) - 정책 변경 이력 저장",
+            "apps/forum-server/src/models/ExperimentSession.js (new) - A/B 테스트 세션 관리",
+            "apps/forum-server/src/lib/experiment-tracking.js (new) - 실험 메트릭 수집/비교",
+            "apps/forum-server/src/routes/operator.js (modify: add POST /api/operator/experiments/start, GET /api/operator/experiments/:sessionId/results)"
+          ],
+          "acceptance_criteria": [
+            "PolicyChange model: { policyFlag, appliedAt, targetAgent(s), beforeSnapshot, afterSnapshot, duration, outcome }",
+            "ExperimentSession model: { sessionId, policyFlag, startedAt, endedAt, participants, metrics }",
+            "POST /api/operator/experiments/start - 실험 세션 생성 (정책 적용 전 메트릭 스냅샷)",
+            "POST /api/operator/experiments/:sessionId/end - 실험 종료 및 결과 비교",
+            "GET /api/operator/experiments/:sessionId/results - 정책 변경 전후 메트릭 비교 반환"
+          ],
+          "effort": "large"
+        },
+        {
+          "id": "272-4",
+          "title": "Operator metrics 시계열 데이터 및 trending 지원",
+          "description": "메트릭을 시간 단위로 그룹화하고 추이를 분석할 수 있도록 개선. 대시보드 시각화에 필요한 시계열 데이터 제공",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/lib/metrics-aggregation.js (new) - 시간별 집계",
+            "apps/forum-server/src/routes/operator.js (modify: GET /api/operator/metrics?granularity=hourly|daily|weekly&since=... 지원)"
+          ],
+          "acceptance_criteria": [
+            "granularity 파라미터 지원 (hourly, daily, weekly)",
+            "각 시간 구간별로 메트릭 집계: {timestamp, flag_rate, engagement_rate, diversity, ...}",
+            "since/until 파라미터로 시간 범위 필터링",
+            "누적 값(cumulative) 옵션 제공",
+            "시각화 가능한 JSON 형식 반환"
+          ],
+          "effort": "medium"
+        }
+      ]
+    },
+    {
+      "issue": 273,
+      "title": "Task: 운영 정책 실험 및 피드백 루프 구축",
+      "state": "CLOSED",
+      "parent_epic": 263,
+      "acceptance_criteria": [
+        "정책 변경 전후 비교 절차가 정의된다.",
+        "사용자 피드백 수집 방식이 포함된다.",
+        "실험 결과를 바탕으로 다음 개입안을 정리할 수 있다.",
+        "실패하거나 불명확한 개입은 재검토 대상으로 남는다."
+      ],
+      "current_status": {
+        "implemented": [
+          "Feedback 모델 완성 (userId, category, rating, message, metadata, status)",
+          "Feedback categories: [bug, suggestion, moderation, satisfaction, other]",
+          "GET /api/operator/feedback - 피드백 목록 조회",
+          "GET /api/operator/feedback/summary - 피드백 요약 (7일간 category별 집계)",
+          "applyModerationPolicies() 함수 구현 (meta-policy.js)",
+          "MODERATION_POLICY_FLAGS: baseline, dampen_aggression, hide_aggression",
+          "Policy application with content filtering and scoring adjustment",
+          "Interaction 로깅으로 사용자 행동 추적 (eventType 기반)",
+          "PATCH /api/operator/moderation/review/:postId - operator 개입 결정 저장"
+        ],
+        "partially_implemented": [
+          {
+            "feature": "정책 변경 전후 비교 절차",
+            "status": "함수 레벨 구현은 되어있으나, 시스템 레벨의 비교 워크플로우 미완성",
+            "location": "meta-policy.js:73-159, operator.js:17-94",
+            "missing_parts": [
+              "실험 세션 라이프사이클 관리 (start/end/collect)",
+              "Before/after 메트릭 스냅샷 자동 저장",
+              "정책 변경 이벤트 로깅 (PolicyChange 모델 부재)",
+              "A/B 테스트 그룹 분리 (control vs treatment group)",
+              "시간 범위 설정 및 추적 (experiment duration)"
+            ]
+          },
+          {
+            "feature": "사용자 피드백 수집",
+            "status": "Feedback 모델과 API는 있으나, 피드백 타입과 분류 미흡",
+            "location": "apps/forum-server/src/models/Feedback.js, operator.js:112-150",
+            "missing_parts": [
+              "moderation_appeal 카테고리 미지원 (docs에는 언급되나 enum에 없음)",
+              "Feedback.category enum이 [bug, suggestion, moderation, satisfaction, other]로 제한적",
+              "정책 변경에 대한 사용자 피드백 수집 메커니즘 부재",
+              "피드백-포스트 간 트레이서빌리티 약함 (targetId 필드 있으나 operator 의사결정과의 연결 미약)"
+            ]
+          },
+          {
+            "feature": "실험 결과 정리 및 다음 개입안 생성",
+            "status": "operator 대시보드에서 현재 상태는 조회 가능하나, 실험 결과 해석 및 추천 로직 미구현",
+            "location": "operator.js:215-346",
+            "missing_parts": [
+              "실험 결과 자동 해석 로직 (통계적 유의성 검정)",
+              "다음 정책 추천 알고리즘 부재",
+              "Intervention outcome tracking model 부재",
+              "효과 크기(effect size) 계산",
+              "신뢰도 구간(confidence interval) 계산"
+            ]
+          },
+          {
+            "feature": "재검토 대상 관리",
+            "status": "Report.status로 pending/reviewed/dismissed 구분은 되나, 재검토 워크플로우 미완성",
+            "location": "apps/forum-server/src/routes/operator.js:397-416",
+            "missing_parts": [
+              "Appeal process workflow (User → Feedback.moderation_appeal → Review Queue)",
+              "Pattern analysis for repeated appeals (동일 규칙에 대한 반복 항소 추적)",
+              "Rule refinement trigger 메커니즘 (N개 항소 이상 시 규칙 재검토 필요 플래그)",
+              "재검토 큐(review backlog) 관리 모델",
+              "Decision override audit log"
+            ]
+          }
+        ],
+        "not_implemented": [
+          "ExperimentSession 모델 및 라이프사이클 관리",
+          "PolicyChange 모델 (정책 변경 이력 추적)",
+          "A/B 테스트 그룹 분리 및 할당",
+          "정책 실험 결과 자동 해석 (통계 분석)",
+          "Intervention outcome model (개입 결과 추적)",
+          "Appeal workflow (사용자 항소 → operator review → 규칙 개선)",
+          "Pattern-based rule refinement (N개 항소 → rule update 트리거)",
+          "Effect size, confidence interval 계산",
+          "Policy effectiveness scoring 알고리즘",
+          "실패 또는 불명확 개입 자동 플래깅",
+          "실험 결과 리포트 생성",
+          "Statistical significance testing"
+        ]
+      },
+      "subtasks": [
+        {
+          "id": "273-1",
+          "title": "정책 실험 세션 라이프사이클 및 데이터 모델 구현",
+          "description": "정책 변경 전후를 비교하기 위한 실험 세션 관리. 시작 시 메트릭 스냅샷 수집, 종료 시 결과 비교 및 저장",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/models/ExperimentSession.js (new)",
+            "apps/forum-server/src/models/PolicyChange.js (new)",
+            "apps/forum-server/src/lib/experiment-tracking.js (new)",
+            "apps/forum-server/src/routes/operator.js (modify: add experiment endpoints)"
+          ],
+          "acceptance_criteria": [
+            "ExperimentSession: { sessionId, name, policyFlag, startedAt, endedAt, duration, targetAgents, status (running|completed|failed), beforeSnapshot, afterSnapshot }",
+            "PolicyChange: { policyChangeId, sessionId, policyFlag, appliedAt, agents, outcome }",
+            "POST /api/operator/experiments/start - 실험 시작, 현재 메트릭 스냅샷 저장",
+            "POST /api/operator/experiments/:sessionId/end - 실험 종료, 최종 메트릭 스냅샷 저장",
+            "GET /api/operator/experiments/:sessionId/comparison - 전후 메트릭 비교 반환"
+          ],
+          "effort": "large"
+        },
+        {
+          "id": "273-2",
+          "title": "Feedback 카테고리 확장 및 moderation_appeal 워크플로우 구현",
+          "description": "피드백 수집 시스템 확장. moderation_appeal 카테고리 추가 및 사용자 항소 처리 워크플로우 구현",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/models/Feedback.js (modify: category enum 확장)",
+            "apps/forum-server/src/routes/operator.js (add: POST /api/operator/appeals/:reportId - 항소 접수, GET /api/operator/appeals/pending - 대기 중인 항소)"
+          ],
+          "acceptance_criteria": [
+            "Feedback.category enum에 moderation_appeal 추가",
+            "moderation_appeal feedback 구조: { userId, targetId (postId), targetType: 'post', message: '항소 사유', metadata: { originalDecision, appealReason } }",
+            "POST /api/operator/appeals/:reportId - appeal 제출 (기존 Report와 연결)",
+            "GET /api/operator/appeals/pending - pending appeal 목록 조회",
+            "PATCH /api/operator/appeals/:appealId - appeal 검토 및 결정 (overturn, uphold, escalate)"
+          ],
+          "effort": "medium"
+        },
+        {
+          "id": "273-3",
+          "title": "실험 결과 해석 및 통계 분석 모듈 구현",
+          "description": "정책 실험의 효과를 정량화하고 통계적으로 유의한지 검정. Effect size, confidence interval, statistical significance 계산",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/lib/experiment-analysis.js (new) - 통계 분석",
+            "apps/forum-server/src/lib/policy-effectiveness.js (new) - 정책 효과 평가",
+            "apps/forum-server/src/routes/operator.js (modify: GET /api/operator/experiments/:sessionId/analysis)"
+          ],
+          "acceptance_criteria": [
+            "computeEffectSize(baseline, experiment) → cohen's d or similar",
+            "computeConfidenceInterval(metrics, confidence=0.95) → {lower, upper}",
+            "computeStatisticalSignificance(baseline, experiment) → {pValue, isSignificant, powerAnalysis}",
+            "GET /api/operator/experiments/:sessionId/analysis 반환: { before, after, delta, effectSize, confidence, significance, recommendation }",
+            "recommendation: 'adopt', 'reject', 'refine', 'needs_more_data'",
+            "모든 계산에 충분한 표본 크기 체크 포함"
+          ],
+          "effort": "large"
+        },
+        {
+          "id": "273-4",
+          "title": "Appeal pattern analysis 및 자동 규칙 개선 트리거",
+          "description": "동일 규칙에 대한 반복 항소 패턴 분석. N개 이상의 항소가 특정 규칙에 집중되면 규칙 재검토 필요 플래그 생성",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/lib/appeal-analysis.js (new)",
+            "apps/forum-server/src/models/RuleRefinementQueue.js (new) - 규칙 개선 대상 추적",
+            "apps/forum-server/src/routes/operator.js (add: GET /api/operator/appeals/patterns, GET /api/operator/refinements/pending)"
+          ],
+          "acceptance_criteria": [
+            "trackAppealsByRule() - 규칙별 항소 집계",
+            "GET /api/operator/appeals/patterns - {rule, appealCount, overturnRate, topReasons}",
+            "자동 트리거: appealCount >= 3 AND overturnRate >= 0.6 → RuleRefinementQueue에 추가",
+            "GET /api/operator/refinements/pending - 규칙 개선 대상 목록",
+            "PATCH /api/operator/rules/:ruleId/refine - 규칙 업데이트 (새로운 terms 추가, weight 조정 등)"
+          ],
+          "effort": "medium"
+        }
+      ]
+    },
+    {
+      "issue": 275,
+      "title": "Task: 모더레이션 정책과 플래그 처리 규칙 정의",
+      "state": "CLOSED",
+      "parent_epic": 263,
+      "acceptance_criteria": [
+        "flag 기준과 에스컬레이션 조건이 문서화된다.",
+        "moderation decision flow가 정의된다.",
+        "규칙 위반 유형별 운영 개입이 구분된다.",
+        "정책 충돌과 예외 처리 원칙이 포함된다."
+      ],
+      "current_status": {
+        "implemented": [
+          "CATEGORY_RULES 정의 (moderation.js:3-29) - harassment, hate, sexual, scam, self_harm",
+          "Flag categories with weights: harassment (0.38), hate (0.42), sexual (0.36), scam (0.28), self_harm (0.45)",
+          "scoreModerationText() 함수 - 자동 평가 (점수 계산, 라벨링, 플래그 결정)",
+          "buildModerationState() - 포스트에 모더레이션 상태 반영",
+          "moderationStatus enum: approved, flagged, removed",
+          "moderationLabel enum: safe, review",
+          "Score normalization (0-1 범위)",
+          "Intensity boost calculation (uppercase ratio, exclamation ratio)",
+          "Category weight accumulation with diminishing returns",
+          "Category tagging support (tags에서 위반 카테고리 감지)",
+          "POST /api/moderation/filter - 실시간 필터링 API",
+          "GET /api/operator/moderation/queue - 플래그된 포스트 큐",
+          "PATCH /api/operator/moderation/review/:postId - operator 검토 및 결정",
+          "Tests for moderation scoring (moderation.test.js)"
+        ],
+        "partially_implemented": [
+          {
+            "feature": "Flag 기준과 에스컬레이션 조건 문서화",
+            "status": "문서만 있고 코드 레벨 엔포스먼트 미흡",
+            "location": "docs/operator-policies/moderation-rules-and-policies.md, moderation.js:3-29",
+            "missing_parts": [
+              "Self-harm automatic escalation (즉시 removed + 알림) - 코드에서 구현 안 됨",
+              "Multiple matched categories 우선 검토 - 코드에 로직 없음",
+              "Repeated flagged posts tracking (reportCount >= 3) - reportCount는 있으나 자동 처리 로직 미흡",
+              "Escalation endpoint (즉시 제거 및 알림 발송) 미구현"
+            ]
+          },
+          {
+            "feature": "Moderation decision flow",
+            "status": "기본 흐름은 구현되어 있으나, 일부 분기(branch) 미완성",
+            "location": "operator.js:348-376, moderation.js:97-110",
+            "missing_parts": [
+              "Type 1 (Clear Violation, score >= 0.65) - 자동 거부 로직 미구현",
+              "Type 2 (Borderline, 0.45 <= score < 0.65) - recheck policy 자동 적용 미구현",
+              "Type 3 (Context-Dependent) - override reason 저장은 되나, context 해석 로직 미구현",
+              "Author feedback generation (거부 시 사유 및 가이드라인 링크 자동 생성) 미구현",
+              "Decision audit log - who, when, why를 명확히 추적하는 로직 미흡"
+            ]
+          },
+          {
+            "feature": "규칙 위반 유형별 운영 개입 구분",
+            "status": "문서에는 명시되어 있으나 코드에서 Type 1/2/3 구분이 자동화되지 않음",
+            "location": "docs/operator-policies/moderation-rules-and-policies.md:56-72, operator.js:348-376",
+            "missing_parts": [
+              "Post moderation decision 타입 자동 분류 로직 (score 기반)",
+              "Type별 자동 처리 워크플로우 (Type 1 → auto reject, Type 2 → auto recheck, Type 3 → human review)",
+              "Decision type을 Post 모델에 저장 (moderationDecisionType 필드 부재)",
+              "Context-aware nudge generation (author에게 보낼 메시지) 미구현"
+            ]
+          },
+          {
+            "feature": "정책 충돌 및 예외 처리",
+            "status": "원칙은 문서에만 있고, 코드 레벨 구현 미흡",
+            "location": "docs/operator-policies/moderation-rules-and-policies.md:73-83",
+            "missing_parts": [
+              "Self-harm priority enforcement (다른 규칙보다 우선) - 코드에 if-else 있으나 미흡",
+              "Community context 기반 override - context 매개변수 미지원",
+              "Operator override authority 기록 - override reason은 저장되나 audit trail 약함",
+              "Emergency policy 적용 (dampen_aggression, hide_aggression) - meta-policy에만 있고 operator flow와 미통합"
+            ]
+          }
+        ],
+        "not_implemented": [
+          "Self-harm automatic escalation (즉시 removed + 알림 메커니즘)",
+          "Score >= 0.65 자동 거부 로직 (Type 1)",
+          "Score 0.45-0.65 자동 recheck 정책 적용 (Type 2)",
+          "Decision type 자동 분류 (Type 1/2/3)",
+          "Post 모델의 moderationDecisionType 필드",
+          "Author feedback/nudge 자동 생성",
+          "Context-aware override (교육적 콘텐츠 감지)",
+          "Decision audit log 상세화",
+          "Appeal process 통합 (275 ← 273의 appeal workflow 미통합)",
+          "Emergency policy trigger (meta-policy flags와의 통합)",
+          "KPI 모니터링 및 알림 (flag rate target 0.05-0.15)",
+          "Rule version management (A/B 테스트용 다중 버전 지원)",
+          "Language-specific rule sets (영어/한국어 분리)"
+        ]
+      },
+      "subtasks": [
+        {
+          "id": "275-1",
+          "title": "Moderation decision type 자동 분류 및 처리 로직 구현",
+          "description": "flag score를 기반으로 Type 1/2/3을 자동 분류하고, 각 타입별로 다른 처리 로직 적용. Type 1은 자동 거부, Type 2는 정책 실험, Type 3은 휴먼 리뷰",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/lib/moderation.js (modify: add classifyDecisionType(), generateAuthorFeedback())",
+            "apps/forum-server/src/models/Post.js (modify: add moderationDecisionType enum field)",
+            "apps/forum-server/src/routes/operator.js (modify: update /api/operator/moderation/queue to include decision type recommendations)",
+            "apps/forum-server/src/routes/moderation.js (modify: POST /api/moderation/filter to return decision type hint)"
+          ],
+          "acceptance_criteria": [
+            "classifyDecisionType(score) → 'clear_violation' (≥0.65) | 'borderline' (0.45-0.65) | 'context_dependent' (score < 0.45 but tags suggest violation)",
+            "Post.moderationDecisionType enum: ['clear_violation', 'borderline', 'context_dependent', 'unknown']",
+            "generateAuthorFeedback(decision, reason, categories) → formatted message for author",
+            "GET /api/operator/moderation/queue 응답에 recommended_action 필드 포함 (auto_reject, recheck, human_review)",
+            "POST /api/moderation/filter 응답에 decision_type 힌트 포함",
+            "자동 거부 트리거: score >= 0.65 → moderationStatus = 'removed' (PATCH 없이 자동 처리 옵션 추가)"
+          ],
+          "effort": "medium"
+        },
+        {
+          "id": "275-2",
+          "title": "Self-harm automatic escalation 및 긴급 알림 메커니즘 구현",
+          "description": "자해 관련 콘텐츠는 즉시 removed 처리하고, operator에 알림 발송. 추가로 외부 리소스(상담 전화 등) 제공",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/lib/moderation.js (modify: add checkSelfHarmEscalation())",
+            "apps/forum-server/src/lib/notification.js (new) - operator 알림 발송",
+            "apps/forum-server/src/routes/operator.js (modify: add GET /api/operator/escalations - 긴급 건 목록)"
+          ],
+          "acceptance_criteria": [
+            "checkSelfHarmEscalation(categories) → true if self_harm is present",
+            "self_harm content auto-escalation: 즉시 moderationStatus = 'removed'",
+            "Operator 알림: POST /api/notifications/escalate (internal)",
+            "GET /api/operator/escalations - { escalationType: 'self_harm', postId, authorId, content, timestamp }",
+            "Author에게 긴급 리소스 전달: helpline, support_resources 링크",
+            "Test: self_harm 포함 포스트 생성 시 자동으로 removed 처리되는지 검증"
+          ],
+          "effort": "medium"
+        },
+        {
+          "id": "275-3",
+          "title": "Decision audit log 및 appeal integration 구현",
+          "description": "모더레이션 결정의 전체 이력을 추적. 누가, 언제, 왜 결정했는지 기록하고, appeal과 연결. 기존 Report 모델과의 관계 정의",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/models/ModerationDecision.js (new) - 각 결정을 별도 기록",
+            "apps/forum-server/src/lib/moderation.js (modify: add recordModerationDecision())",
+            "apps/forum-server/src/routes/operator.js (modify: PATCH /api/operator/moderation/review/:postId to record decisions)"
+          ],
+          "acceptance_criteria": [
+            "ModerationDecision: { postId, originalScore, originalLabel, decision (auto|reviewed|appealed), decidedBy, decidedAt, reason, override, context, outcome }",
+            "PATCH /api/operator/moderation/review/:postId 시 ModerationDecision record 자동 생성",
+            "Appeal과 ModerationDecision 연결 (appealId 참조)",
+            "GET /api/operator/decisions/:postId/history - 해당 포스트의 결정 이력 조회",
+            "Decision consistency check (동일 규칙 위반에 대한 일관성 검증 가능)"
+          ],
+          "effort": "medium"
+        },
+        {
+          "id": "275-4",
+          "title": "Emergency policy 통합 및 operator dashboard 컨트롤 추가",
+          "description": "meta-policy.js의 dampen_aggression, hide_aggression 플래그를 operator가 런타임에 활성화/비활성화할 수 있도록 통합. 긴급 상황(공격적 콘텐츠 급증) 시 정책 임시 적용",
+          "files_to_create_or_modify": [
+            "apps/forum-server/src/models/ActivePolicy.js (new) - 현재 활성화된 정책 추적",
+            "apps/forum-server/src/routes/operator.js (add: POST /api/operator/policies/activate, DELETE /api/operator/policies/:policyId)",
+            "apps/forum-server/src/lib/moderation.js (modify: scoreModerationText() 호출 전 active policy 확인)"
+          ],
+          "acceptance_criteria": [
+            "ActivePolicy: { policyFlag, activatedAt, activatedBy, reason, targetAgents (optional), expiresAt }",
+            "POST /api/operator/policies/activate - { policyFlag: 'dampen_aggression'|'hide_aggression', reason, duration }",
+            "DELETE /api/operator/policies/:policyId - 정책 즉시 해제",
+            "GET /api/operator/policies/active - 현재 활성화된 정책 목록",
+            "scoreModerationText() 호출 시 active policy 적용: dampen → 점수 감소, hide → 임계값 상향",
+            "Audit log: policy activation/deactivation 기록"
+          ],
+          "effort": "medium"
+        }
+      ]
+    }
+  ],
+  "cross_issue_analysis": {
+    "dependency_chain": "272 (metrics) ← 273 (experiments) ← 275 (decision rules)",
+    "integration_points": [
+      {
+        "point": "Policy experiment tracking",
+        "issue_272": "Experiment session model과 before/after snapshot",
+        "issue_273": "Experiment result analysis 및 appeal integration",
+        "issue_275": "Emergency policy activation"
+      },
+      {
+        "point": "Appeal workflow",
+        "issue_273": "Appeal submission and pattern analysis",
+        "issue_275": "Appeal linked to ModerationDecision (decision audit trail)"
+      },
+      {
+        "point": "Dashboard metrics",
+        "issue_272": "Operator metrics and diversity calculation",
+        "issue_273": "Experiment results comparison",
+        "issue_275": "Decision type distribution, appeal rate, override rate"
+      }
+    ],
+    "shared_data_models": [
+      {
+        "model": "Post",
+        "current_fields": "moderationStatus, moderationLabel, moderationScore, moderationReasons, moderationCategories, reportCount",
+        "missing_fields_by_issue": {
+          "272": ["moderationDecisionType"],
+          "273": ["appealId"],
+          "275": ["moderationDecisionType", "escalated"]
+        }
+      },
+      {
+        "model": "Feedback",
+        "current_fields": "userId, category (bug|suggestion|moderation|satisfaction|other), rating, message, status",
+        "missing_fields_by_issue": {
+          "273": ["모더레이션 appeal 카테고리 추가 필요"]
+        }
+      },
+      {
+        "model": "ExperimentSession (not yet created)",
+        "required_for_issues": ["272", "273"],
+        "fields": "sessionId, name, policyFlag, startedAt, endedAt, targetAgents, beforeSnapshot, afterSnapshot, status"
+      },
+      {
+        "model": "ModerationDecision (not yet created)",
+        "required_for_issues": ["273", "275"],
+        "fields": "postId, originalScore, decision, decidedBy, decidedAt, reason, override, appealId"
+      },
+      {
+        "model": "PolicyChange (not yet created)",
+        "required_for_issues": ["272", "273"],
+        "fields": "policyChangeId, sessionId, policyFlag, appliedAt, agents, outcome"
+      },
+      {
+        "model": "ActivePolicy (not yet created)",
+        "required_for_issues": ["275"],
+        "fields": "policyFlag, activatedAt, activatedBy, reason, targetAgents, expiresAt"
+      }
+    ]
+  },
+  "implementation_sequence_recommendation": [
+    {
+      "phase": "Phase 1: Foundation (Week 1-2)",
+      "tasks": ["275-1", "275-2"],
+      "rationale": "Decision classification와 self-harm escalation은 기존 moderation.js 기반이므로 가장 빨리 구현 가능. 이후 단계의 기초가 됨"
+    },
+    {
+      "phase": "Phase 2: Experiment Infrastructure (Week 2-3)",
+      "tasks": ["272-3", "273-1"],
+      "rationale": "ExperimentSession, PolicyChange 모델 구현. 272-2 (diversity metrics)와 병렬 가능"
+    },
+    {
+      "phase": "Phase 3: Metrics & Analysis (Week 3-4)",
+      "tasks": ["272-1", "272-2", "273-3"],
+      "rationale": "Echo chamber, diversity metrics, statistical analysis. 실험 결과 해석에 필요"
+    },
+    {
+      "phase": "Phase 4: Appeal & Feedback Loop (Week 4-5)",
+      "tasks": ["273-2", "273-4", "275-3"],
+      "rationale": "Appeal workflow와 decision audit log. 273-3의 통계 분석 결과 기반 규칙 개선"
+    },
+    {
+      "phase": "Phase 5: Polish & Integration (Week 5-6)",
+      "tasks": ["272-4", "275-4"],
+      "rationale": "시계열 데이터, emergency policy. 최종 통합 및 대시보드 완성"
+    }
+  ],
+  "risk_assessment": [
+    {
+      "risk": "Moderation decision overlap (auto-reject vs operator review)",
+      "severity": "medium",
+      "mitigation": "Score >= 0.65 자동 거부 로직은 optional flag로 제공. Default는 operator 검토"
+    },
+    {
+      "risk": "Self-harm escalation의 false positive",
+      "severity": "high",
+      "mitigation": "정기적 검수 및 appeal process. self_harm 규칙 강화 필요"
+    },
+    {
+      "risk": "Experiment session 중 정책 변경 시 데이터 오염",
+      "severity": "medium",
+      "mitigation": "ExperimentSession.status로 running 중인 실험 추적. 중단된 실험은 별도 처리"
+    },
+    {
+      "risk": "Echo chamber index 계산 성능 (대규모 데이터)",
+      "severity": "medium",
+      "mitigation": "캐싱 및 정기적 배치 계산. 실시간 계산은 sample 기반"
+    },
+    {
+      "risk": "Appeal rate 급증 시 operator 부하",
+      "severity": "medium",
+      "mitigation": "자동 분류 및 우선순위 지정. escalation threshold 설정"
+    }
+  ],
+  "testing_strategy": [
+    {
+      "category": "Unit Tests",
+      "coverage": [
+        "scoreModerationText() - 각 카테고리별 정확도",
+        "classifyDecisionType() - score range별 분류",
+        "computeEchoChamberIndex() - 다양한 분포에서의 계산",
+        "Appeal pattern detection - 반복 항소 감지"
+      ]
+    },
+    {
+      "category": "Integration Tests",
+      "coverage": [
+        "Post creation → auto moderation evaluation → flagged status",
+        "Operator review → decision record → audit log",
+        "Experiment session → before/after metrics → result analysis",
+        "Appeal submission → pattern detection → rule refinement trigger"
+      ]
+    },
+    {
+      "category": "E2E Tests",
+      "coverage": [
+        "전체 moderation workflow (create → flag → review → appeal)",
+        "정책 실험 full lifecycle (start → apply → monitor → end → compare)",
+        "Emergency policy activation (activate → apply → monitor → deactivate)"
+      ]
+    }
+  ],
+  "documentation_requirements": [
+    "Flag 기준 및 점수 계산 알고리즘 (moderation-rules-and-policies.md 최신화)",
+    "Decision type 분류 기준 (Type 1/2/3 상세)",
+    "Appeal process workflow (diagram)",
+    "Experiment session lifecycle (diagram)",
+    "Echo chamber index 계산 방법 (수학적 설명)",
+    "Statistical analysis methods (effect size, confidence interval)",
+    "Emergency policy 활성화 기준 및 모니터링"
+  ]
+}

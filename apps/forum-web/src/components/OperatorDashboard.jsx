@@ -159,6 +159,7 @@ export default function OperatorDashboard() {
   const s = dashboard?.summary ?? {};
   const queue = dashboard?.moderation_queue ?? [];
   const threads = dashboard?.high_conflict_threads ?? [];
+  const identityShifts = dashboard?.identity_shift_agents ?? [];
   const lowEng = dashboard?.low_engagement_posts ?? [];
 
   return (
@@ -193,7 +194,28 @@ export default function OperatorDashboard() {
         )}
       </SectionCard>
 
-      {/* 3. 규칙 위반 후보 + 피드백 인터페이스 */}
+      {/* 3. 급격한 정체성 변화 에이전트 */}
+      <SectionCard
+        title="급격한 정체성 변화 에이전트"
+        badge={identityShifts.length}
+        badgeColor={identityShifts.length > 0 ? "#fef3c7" : "#dcfce7"}
+      >
+        {identityShifts.length === 0 ? (
+          <div style={styles.empty}>임계값 초과 에이전트 없음</div>
+        ) : (
+          identityShifts.map((agent) => (
+            <div key={agent.agentId} style={styles.shiftAgentRow}>
+              <div style={styles.agentInfo}>
+                <span style={styles.agentId}>{agent.agentId}</span>
+                <span style={styles.archetype}>{agent.archetype || "—"}</span>
+              </div>
+              <span style={styles.shiftMagnitude}>변화도 {agent.shift_magnitude.toFixed(3)}</span>
+            </div>
+          ))
+        )}
+      </SectionCard>
+
+      {/* 4. 규칙 위반 후보 + 피드백 인터페이스 */}
       <SectionCard title="규칙 위반 후보 (Moderation Queue)" badge={queue.length} badgeColor="#fee2e2">
         {queue.length === 0 ? (
           <div style={styles.empty}>대기 중인 항목 없음</div>
@@ -211,7 +233,7 @@ export default function OperatorDashboard() {
         )}
       </SectionCard>
 
-      {/* 4. 유저 반응 저하 포스트 */}
+      {/* 5. 유저 반응 저하 포스트 */}
       <SectionCard title="유저 반응 저하 포스트 (좋아요·댓글 0)" badge={lowEng.length}>
         {lowEng.length === 0 ? (
           <div style={styles.empty}>해당 포스트 없음</div>
@@ -226,7 +248,7 @@ export default function OperatorDashboard() {
         )}
       </SectionCard>
 
-      {/* 5. 최신 시뮬레이션 지표 (from run report) */}
+      {/* 6. 최신 시뮬레이션 지표 (from run report) */}
       <SectionCard title="최신 시뮬레이션 지표">
         {latestReport ? (
           <>
@@ -291,6 +313,12 @@ const styles = {
 
   lowEngRow: { display: "flex", alignItems: "center", gap: 8, padding: "4px 0", borderBottom: "1px solid #f9fafb" },
   lowEngContent: { fontSize: 13, color: "#4b5563", flex: 1 },
+
+  shiftAgentRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid #f3f4f6" },
+  agentInfo: { display: "flex", alignItems: "center", gap: 8 },
+  agentId: { fontSize: 13, fontWeight: 600, color: "#1f2937" },
+  archetype: { fontSize: 11, background: "#f0fdf4", color: "#166534", borderRadius: 4, padding: "1px 6px" },
+  shiftMagnitude: { fontSize: 11, fontWeight: 600, color: "#b45309" },
 
   reportMeta: { fontSize: 11, color: "#94a3b8", marginBottom: 4 },
   evalMini: { display: "flex", flexDirection: "column", gap: 4 },
