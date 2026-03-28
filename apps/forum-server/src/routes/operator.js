@@ -7,6 +7,12 @@ import { Report } from "../models/Report.js";
 import { Feedback } from "../models/Feedback.js";
 import { buildFeedbackFilter, buildInteractionFilter } from "../lib/engagement.js";
 import { buildModerationState } from "../lib/moderation.js";
+import {
+  getPendingNotifications,
+  acknowledgeNotification,
+  recordEscalationAction,
+  getEscalationStatistics,
+} from "../lib/notification.js";
 
 const router = Router();
 
@@ -413,6 +419,107 @@ router.patch("/reports/:reportId", async (req, res) => {
   });
 
   res.json(report);
+});
+
+// ── GET /api/operator/notifications ──────────────────────────────────────────────
+// Get pending escalation notifications for operator
+//
+// Query Parameters:
+//   - severity: "high"|"medium"|"low" (filter by severity)
+//   - limit: max results (default: 50)
+//   - status: "pending"|"acknowledged"|"resolved" (default: pending)
+//
+// Returns array of notification objects with id, severity, contentId, escalationReason, etc.
+
+router.get("/notifications", (req, res) => {
+  const { severity = null, limit = 50, status = "pending" } = req.query;
+
+  const notifications = getPendingNotifications({
+    severity,
+    limit: Math.min(parseInt(limit) || 50, 500),
+    status,
+  });
+
+  res.json({
+    notifications,
+    total: notifications.length,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ── POST /api/operator/notifications/:notificationId/acknowledge ──────────────────
+// Mark notification as acknowledged by operator
+
+router.post("/notifications/:notificationId/acknowledge", (req, res) => {
+  const { notificationId } = req.params;
+  const { operatorId } = req.body;
+
+  if (!operatorId) {
+    return res.status(400).json({ error: "operatorId is required" });
+  }
+
+  try {
+    const notification = acknowledgeNotification(notificationId, operatorId);
+    res.json(notification);
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+// ── POST /api/operator/notifications/:notificationId/action ──────────────────────
+// Record action taken on escalated content
+//
+// Request Body:
+//   - action: "removed"|"hidden"|"approved_appeal"
+//   - operatorId: operator ID
+//   - reason: optional reason for action
+
+router.post("/notifications/:notificationId/action", async (req, res) => {
+  const { notificationId } = req.params;
+  const { action, operatorId, reason = "" } = req.body;
+
+  if (!action || !operatorId) {
+    return res.status(400).json({ error: "action and operatorId are required" });
+  }
+
+  if (!["removed", "hidden", "approved_appeal"].includes(action)) {
+    return res.status(400).json({ error: "Invalid action" });
+  }
+
+  try {
+    const notification = recordEscalationAction(notificationId, action, operatorId, reason);
+
+    // Update related post if action is "removed" or "hidden"
+    if (notification.postId && action === "removed") {
+      await Post.findByIdAndUpdate(notification.postId, {
+        moderationStatus: "removed",
+        escalatedAt: new Date(),
+        escalatedBy: operatorId,
+      });
+    }
+
+    res.json(notification);
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+// ── GET /api/operator/escalations/stats ──────────────────────────────────────────
+// Get escalation statistics for operator dashboard
+//
+// Returns:
+//   - total: total escalations
+//   - byStatus: {pending, acknowledged, resolved}
+//   - bySeverity: {high, medium, low}
+//   - avgResolutionTimeMinutes: average time to resolve
+
+router.get("/escalations/stats", (req, res) => {
+  const stats = getEscalationStatistics();
+
+  res.json({
+    escalations: stats,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 export default router;
