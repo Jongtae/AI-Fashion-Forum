@@ -1,0 +1,377 @@
+{
+  "title": "trace/snapshot/event Replay Contract Examples",
+  "description": "Concrete examples of trace/snapshot/event chain for replay validation",
+  "examples": {
+    "scenario": "Agent posts about eco-friendly fashion → lurks similar content → generates snapshot chain",
+    "baseline_snapshot": {
+      "snapshot_id": "agent_001#round_1#tick_0#a1b2c3d4",
+      "agent_id": "agent_001",
+      "round": 1,
+      "tick": 0,
+      "source_action_id": null,
+      "character_contract_id": "char_seed_001",
+      "seed_axes": {
+        "extraversion": 0.6,
+        "openness": 0.7
+      },
+      "mutable_axes": {
+        "fashion_interest": 0.5,
+        "sustainability_concern": 0.3
+      },
+      "belief_vector": {
+        "fashion_is_important": 0.8,
+        "sustainability_matters": 0.4
+      },
+      "interest_vector": {
+        "trends": 0.7,
+        "eco_friendly": 0.3
+      },
+      "self_narratives": [
+        "I am a fashion-forward person"
+      ],
+      "raw_snapshot": {
+        "characteristic": {
+          "style": "trendy",
+          "interests": ["fashion", "trends"]
+        },
+        "belief": {
+          "fashion_important": true,
+          "sustainability_concern": 0.4
+        },
+        "memory": {
+          "recent_posts": ["post_trending_spring_2026"],
+          "relationships": {}
+        },
+        "mutable_axes": {
+          "fashion_interest": 0.5,
+          "sustainability_concern": 0.3
+        },
+        "relationship_state": {}
+      },
+      "created_at": "2026-03-28T09:00:00Z"
+    },
+    "action_1": {
+      "action_id": "act_post_001",
+      "action_type": "post",
+      "agent_id": "agent_001",
+      "round": 1,
+      "tick": 1,
+      "ingestion_id": "ing_seed_001",
+      "character_contract_id": "char_seed_001",
+      "payload": {
+        "content": "I've been thinking about sustainable fashion lately. It's not just about looking good, it's about making a difference.",
+        "tags": ["sustainability", "eco-friendly", "fashion-ethics"],
+        "context": "reaction to recent web article on sustainable brands"
+      },
+      "created_at": "2026-03-28T09:05:00Z"
+    },
+    "trace_1": {
+      "action_id": "act_post_001",
+      "agent_id": "agent_001",
+      "round": 1,
+      "tick": 1,
+      "ingestion_id": "ing_seed_001",
+      "action_type": "post",
+      "visibility": "public_visible",
+      "execution_status": "success",
+      "created_after_snapshot_id": "agent_001#round_1#tick_0#a1b2c3d4",
+      "state_before": {
+        "characteristic": {
+          "style": "trendy",
+          "interests": ["fashion", "trends"]
+        },
+        "belief": {
+          "fashion_important": true,
+          "sustainability_concern": 0.4
+        },
+        "memory": {
+          "recent_posts": ["post_trending_spring_2026"],
+          "relationships": {}
+        },
+        "mutable_axes": {
+          "fashion_interest": 0.5,
+          "sustainability_concern": 0.3
+        },
+        "relationship_state": {}
+      },
+      "state_after": {
+        "characteristic": {
+          "style": "trendy + eco-conscious",
+          "interests": ["fashion", "trends", "sustainability"]
+        },
+        "belief": {
+          "fashion_important": true,
+          "sustainability_concern": 0.7
+        },
+        "memory": {
+          "recent_posts": ["post_trending_spring_2026", "act_post_001"],
+          "relationships": {}
+        },
+        "mutable_axes": {
+          "fashion_interest": 0.5,
+          "sustainability_concern": 0.7
+        },
+        "relationship_state": {}
+      },
+      "state_delta": {
+        "fields_changed": ["characteristic", "belief", "memory", "mutable_axes"],
+        "field_history": {
+          "characteristic.interests": {
+            "added": ["sustainability"]
+          },
+          "belief.sustainability_concern": {
+            "old": 0.4,
+            "new": 0.7
+          },
+          "memory.recent_posts": {
+            "added": ["act_post_001"]
+          }
+        }
+      },
+      "artifact_refs": {
+        "post_id": "post_abc001"
+      },
+      "created_at": "2026-03-28T09:05:05Z"
+    },
+    "snapshot_1_after_post": {
+      "snapshot_id": "agent_001#round_1#tick_1#e5f6g7h8",
+      "agent_id": "agent_001",
+      "round": 1,
+      "tick": 1,
+      "source_action_id": "act_post_001",
+      "character_contract_id": "char_seed_001",
+      "seed_axes": {
+        "extraversion": 0.6,
+        "openness": 0.7
+      },
+      "mutable_axes": {
+        "fashion_interest": 0.5,
+        "sustainability_concern": 0.7
+      },
+      "belief_vector": {
+        "fashion_is_important": 0.8,
+        "sustainability_matters": 0.7
+      },
+      "interest_vector": {
+        "trends": 0.7,
+        "eco_friendly": 0.7
+      },
+      "self_narratives": [
+        "I am a fashion-forward person",
+        "I care about the environment"
+      ],
+      "raw_snapshot": {
+        "characteristic": {
+          "style": "trendy + eco-conscious",
+          "interests": ["fashion", "trends", "sustainability"]
+        },
+        "belief": {
+          "fashion_important": true,
+          "sustainability_concern": 0.7
+        },
+        "memory": {
+          "recent_posts": ["post_trending_spring_2026", "act_post_001"],
+          "relationships": {}
+        },
+        "mutable_axes": {
+          "fashion_interest": 0.5,
+          "sustainability_concern": 0.7
+        },
+        "relationship_state": {}
+      },
+      "created_at": "2026-03-28T09:05:06Z"
+    },
+    "action_2": {
+      "action_id": "act_lurk_001",
+      "action_type": "lurk",
+      "agent_id": "agent_001",
+      "round": 1,
+      "tick": 2,
+      "ingestion_id": "ing_consumption_001",
+      "character_contract_id": "char_seed_001",
+      "payload": {
+        "target": "post_def002",
+        "target_author": "user_designer_001",
+        "context": "observing comments on sustainable brand post"
+      },
+      "created_at": "2026-03-28T09:10:00Z"
+    },
+    "event_2_content_consumed": {
+      "event_id": "evt_consumed_001",
+      "event_type": "content_consumed",
+      "consumption_source": "internal_forum",
+      "agent_id": "agent_001",
+      "round": 1,
+      "tick": 2,
+      "action_id": "act_lurk_001",
+      "ingestion_id": "ing_consumption_001",
+      "content_ref": {
+        "source_type": "post",
+        "source_id": "post_def002",
+        "author": "user_designer_001",
+        "topic_tags": ["sustainable-fashion", "designer-perspective"]
+      },
+      "expected_state_delta": {
+        "characteristic": {
+          "delta": "deepened_eco_interest"
+        },
+        "belief": {
+          "delta": "designers_care_about_sustainability"
+        },
+        "memory": {
+          "added_topics": ["sustainable-design"]
+        }
+      },
+      "snapshot_id": "agent_001#round_1#tick_2#i9j0k1l2",
+      "created_at": "2026-03-28T09:10:05Z"
+    },
+    "trace_2_lurk": {
+      "action_id": "act_lurk_001",
+      "agent_id": "agent_001",
+      "round": 1,
+      "tick": 2,
+      "ingestion_id": "ing_consumption_001",
+      "action_type": "lurk",
+      "visibility": "stored_only",
+      "execution_status": "success",
+      "created_after_snapshot_id": "agent_001#round_1#tick_1#e5f6g7h8",
+      "state_before": {
+        "characteristic": {
+          "style": "trendy + eco-conscious",
+          "interests": ["fashion", "trends", "sustainability"]
+        },
+        "belief": {
+          "fashion_important": true,
+          "sustainability_concern": 0.7
+        },
+        "memory": {
+          "recent_posts": ["post_trending_spring_2026", "act_post_001"],
+          "relationships": {}
+        },
+        "mutable_axes": {
+          "fashion_interest": 0.5,
+          "sustainability_concern": 0.7
+        },
+        "relationship_state": {}
+      },
+      "state_after": {
+        "characteristic": {
+          "style": "trendy + eco-conscious + design-aware",
+          "interests": ["fashion", "trends", "sustainability", "sustainable-design"]
+        },
+        "belief": {
+          "fashion_important": true,
+          "sustainability_concern": 0.8,
+          "designer_perspective_matters": true
+        },
+        "memory": {
+          "recent_posts": ["post_trending_spring_2026", "act_post_001"],
+          "lurked_posts": ["post_def002"],
+          "relationships": {
+            "user_designer_001": {
+              "interaction_count": 1,
+              "last_exposure": "2026-03-28T09:10:00Z"
+            }
+          }
+        },
+        "mutable_axes": {
+          "fashion_interest": 0.5,
+          "sustainability_concern": 0.8,
+          "design_interest": 0.6
+        },
+        "relationship_state": {}
+      },
+      "state_delta": {
+        "fields_changed": ["characteristic", "belief", "memory", "mutable_axes"],
+        "field_history": {
+          "characteristic.interests": {
+            "added": ["sustainable-design"]
+          },
+          "belief.sustainability_concern": {
+            "old": 0.7,
+            "new": 0.8
+          },
+          "belief.designer_perspective_matters": {
+            "added": true
+          },
+          "memory.lurked_posts": {
+            "added": ["post_def002"]
+          },
+          "memory.relationships.user_designer_001": {
+            "added": {
+              "interaction_count": 1
+            }
+          }
+        }
+      },
+      "created_at": "2026-03-28T09:10:06Z"
+    },
+    "snapshot_2_after_lurk": {
+      "snapshot_id": "agent_001#round_1#tick_2#i9j0k1l2",
+      "agent_id": "agent_001",
+      "round": 1,
+      "tick": 2,
+      "source_action_id": "act_lurk_001",
+      "character_contract_id": "char_seed_001",
+      "seed_axes": {
+        "extraversion": 0.6,
+        "openness": 0.7
+      },
+      "mutable_axes": {
+        "fashion_interest": 0.5,
+        "sustainability_concern": 0.8,
+        "design_interest": 0.6
+      },
+      "belief_vector": {
+        "fashion_is_important": 0.8,
+        "sustainability_matters": 0.8,
+        "design_perspective_important": 0.7
+      },
+      "interest_vector": {
+        "trends": 0.7,
+        "eco_friendly": 0.8,
+        "sustainable_design": 0.6
+      },
+      "self_narratives": [
+        "I am a fashion-forward person",
+        "I care about the environment",
+        "I'm learning from designers about sustainable approaches"
+      ],
+      "raw_snapshot": {
+        "characteristic": {
+          "style": "trendy + eco-conscious + design-aware",
+          "interests": ["fashion", "trends", "sustainability", "sustainable-design"]
+        },
+        "belief": {
+          "fashion_important": true,
+          "sustainability_concern": 0.8,
+          "designer_perspective_matters": true
+        },
+        "memory": {
+          "recent_posts": ["post_trending_spring_2026", "act_post_001"],
+          "lurked_posts": ["post_def002"],
+          "relationships": {
+            "user_designer_001": {
+              "interaction_count": 1,
+              "last_exposure": "2026-03-28T09:10:00Z"
+            }
+          }
+        },
+        "mutable_axes": {
+          "fashion_interest": 0.5,
+          "sustainability_concern": 0.8,
+          "design_interest": 0.6
+        },
+        "relationship_state": {}
+      },
+      "created_at": "2026-03-28T09:10:07Z"
+    },
+    "validation_rules": {
+      "rule_1_state_before_matches_previous": "trace_1.state_before == snapshot_0.raw_snapshot ✓",
+      "rule_2_state_after_becomes_next_snapshot": "trace_1.state_after == snapshot_1.raw_snapshot ✓",
+      "rule_3_snapshot_reference_correct": "trace_1.created_after_snapshot_id == snapshot_0.snapshot_id ✓",
+      "rule_4_content_consumption_merge": "internal_lurk event merges into same state model as post ✓",
+      "rule_5_consistency_chain": "snapshot_0 → trace_1 → snapshot_1 → trace_2 → snapshot_2 all consistent ✓"
+    }
+  }
+}
