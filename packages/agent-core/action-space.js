@@ -4,7 +4,11 @@ import {
   SAMPLE_CONTENT_RECORDS,
   createActionRecord,
   createLightReactionPayload,
-} from "@ai-fashion-forum/shared-types";
+} from "../shared-types/index.js";
+
+function getMutableState(agentState) {
+  return agentState.mutable_state || {};
+}
 
 function clamp(value) {
   return Math.max(0, Math.min(1, Number(value.toFixed(3))));
@@ -26,16 +30,28 @@ function getReactionType(agentState, contentRecord) {
   return LIGHT_REACTION_TYPES[agentState.agent_id.charCodeAt(2) % LIGHT_REACTION_TYPES.length];
 }
 
+export function getEffectiveTopicAffinity(agentState, contentRecord) {
+  const mutableState = getMutableState(agentState);
+  const baseInterestVector = agentState.interest_vector || {};
+  const currentInterests = mutableState.current_interests || {};
+  const attentionBias = mutableState.attention_bias || {};
+
+  return (
+    contentRecord.topics.reduce((sum, topic) => {
+      const interestSignal =
+        (baseInterestVector[topic] || 0) + (currentInterests[topic] || 0);
+      const biasSignal = attentionBias[topic] || 0;
+      return sum + clamp(interestSignal + biasSignal * 0.5);
+    }, 0) / Math.max(contentRecord.topics.length, 1)
+  );
+}
+
 export function chooseForumAction({
   agentState,
   contentRecord,
   tick = 0,
 } = {}) {
-  const topicAffinity =
-    contentRecord.topics.reduce(
-      (sum, topic) => sum + (agentState.interest_vector[topic] || 0),
-      0,
-    ) / Math.max(contentRecord.topics.length, 1);
+  const topicAffinity = getEffectiveTopicAffinity(agentState, contentRecord);
 
   if (agentState.activity_level < 0.4 && topicAffinity < 0.2) {
     return createActionRecord({
