@@ -55,7 +55,9 @@ async function postToForum(urlPath, body) {
 
 router.post("/", async (req, res) => {
   const seed = parseInt(req.body?.seed) || 42;
-  const ticks = Math.min(10, Math.max(1, parseInt(req.body?.ticks) || 5));
+  const requestedTicks = Math.min(10, Math.max(1, parseInt(req.body?.ticks) || 5));
+  const speed = Math.min(10, Math.max(1, parseInt(req.body?.speed) || 1));
+  const ticks = Math.min(50, requestedTicks * speed);
   const runId = `run-${seed}-${Date.now()}`;
 
   const runtime = createMemoryRuntime({
@@ -226,6 +228,8 @@ router.post("/", async (req, res) => {
   res.json({
     run_id: runId,
     seed,
+    requested_ticks: requestedTicks,
+    speed,
     ticks,
     posts_created: createdPosts.filter((p) => !p.postError).length,
     replay_file: replayFile,
@@ -267,7 +271,7 @@ router.get("/replay/latest", (_req, res) => {
 
   const files = fs
     .readdirSync(REPLAY_DIR)
-    .filter((f) => f.endsWith(".json"))
+    .filter((f) => f.endsWith(".json") && !f.endsWith("-report.json"))
     .map((f) => ({ name: f, mtime: fs.statSync(path.join(REPLAY_DIR, f)).mtimeMs }))
     .sort((a, b) => b.mtime - a.mtime);
 
