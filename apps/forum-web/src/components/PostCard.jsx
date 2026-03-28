@@ -5,7 +5,7 @@ import CommentSection from "./CommentSection.jsx";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
-export default function PostCard({ post, currentUser = DEFAULT_USER }) {
+export default function PostCard({ post, currentUser = DEFAULT_USER, onSelectPost }) {
   const [showComments, setShowComments] = useState(false);
   const queryClient = useQueryClient();
 
@@ -32,7 +32,12 @@ export default function PostCard({ post, currentUser = DEFAULT_USER }) {
         <span style={styles.time}>{new Date(post.createdAt).toLocaleDateString("ko-KR")}</span>
       </div>
 
-      <p style={styles.content}>{post.content}</p>
+      <p
+        style={{ ...styles.content, cursor: onSelectPost ? "pointer" : "default" }}
+        onClick={() => onSelectPost?.(post._id)}
+      >
+        {post.content}
+      </p>
 
       {post.tags?.length > 0 && (
         <div style={styles.tags}>

@@ -278,8 +278,9 @@ router.get("/dashboard", async (req, res) => {
     // mutableAxes의 변화도 계산
     let totalShift = 0;
     let axisCount = 0;
-    for (const [key, latestValue] of latest.mutableAxes) {
-      const prevValue = previous.mutableAxes.get(key) ?? 0;
+    // lean() 쿼리로 인해 Map이 객체로 변환되므로 Object.entries() 사용
+    for (const [key, latestValue] of Object.entries(latest.mutableAxes || {})) {
+      const prevValue = (previous.mutableAxes && previous.mutableAxes[key]) ?? 0;
       const shift = Math.abs(latestValue - prevValue);
       totalShift += shift;
       axisCount++;

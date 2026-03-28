@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PostForm from "./components/PostForm.jsx";
 import PostList from "./components/PostList.jsx";
+import PostDetail from "./components/PostDetail.jsx";
 import PersonalisedFeed from "./components/PersonalisedFeed.jsx";
 import AuthModal from "./components/AuthModal.jsx";
 import Sprint1ReplayPanel from "./components/Sprint1ReplayPanel.jsx";
@@ -27,6 +28,7 @@ export default function ForumApp() {
   const [authUser, setAuthUser] = useState(loadStoredUser);
   const [showAuth, setShowAuth] = useState(false);
   const [tab, setTab] = useState("forum");
+  const [selectedPostId, setSelectedPostId] = useState(null);
 
   // currentUser: 로그인 시 JWT 사용자, 미로그인 시 guest
   const currentUser = authUser
@@ -104,14 +106,22 @@ export default function ForumApp() {
 
         <main style={styles.main}>
           {tab === "forum" ? (
-            <>
-              <section style={styles.formSection}>
-                <PostForm currentUser={currentUser} />
-              </section>
-              <section style={styles.feedSection}>
-                <PostList currentUser={currentUser} />
-              </section>
-            </>
+            selectedPostId ? (
+              <PostDetail
+                postId={selectedPostId}
+                currentUser={currentUser}
+                onBack={() => setSelectedPostId(null)}
+              />
+            ) : (
+              <>
+                <section style={styles.formSection}>
+                  <PostForm currentUser={currentUser} />
+                </section>
+                <section style={styles.feedSection}>
+                  <PostList currentUser={currentUser} onSelectPost={setSelectedPostId} />
+                </section>
+              </>
+            )
           ) : tab === "feed" ? (
             <section>
               <PersonalisedFeed currentUser={currentUser} />
