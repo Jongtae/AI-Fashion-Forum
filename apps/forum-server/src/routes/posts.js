@@ -4,7 +4,8 @@ import { Comment } from "../models/Comment.js";
 import { Interaction } from "../models/Interaction.js";
 import { Report } from "../models/Report.js";
 import { normalizeInteractionPayload } from "../lib/engagement.js";
-import { buildModerationState } from "../lib/moderation.js";
+import { buildModerationState, classifyDecisionType } from "../lib/moderation.js";
+import { recordModerationDecision } from "../lib/moderation-decision.js";
 
 const router = Router();
 
@@ -44,6 +45,11 @@ router.post("/", async (req, res) => {
   const errors = validatePost(req.body);
   if (errors.length) return res.status(400).json({ error: errors.join("; ") });
 
+  const moderationState = buildModerationState({
+    content: req.body.content.trim(),
+    tags: req.body.tags ?? [],
+  });
+
   const post = new Post({
     content: req.body.content.trim(),
     authorId: req.body.authorId,
@@ -51,13 +57,36 @@ router.post("/", async (req, res) => {
     tags: req.body.tags ?? [],
     imageUrls: req.body.imageUrls ?? [],
     format: req.body.format,
-    ...buildModerationState({
-      content: req.body.content.trim(),
-      tags: req.body.tags ?? [],
-    }),
+    ...moderationState,
   });
 
   await post.save();
+
+  // Record moderation decision to audit log
+  try {
+    const decisionType = classifyDecisionType({
+      score: moderationState.moderationScore,
+      shouldFlag: moderationState.moderationStatus !== "approved",
+      dominantCategories: moderationState.moderationCategories || [],
+    });
+
+    await recordModerationDecision({
+      postId: post._id.toString(),
+      authorId: req.body.authorId,
+      decisionType: decisionType.type,
+      decision: moderationState.moderationStatus || "approved",
+      reason: (moderationState.moderationReasons || [])[0] || null,
+      reasoning: `Auto-flagged by moderation filter (score: ${moderationState.moderationScore})`,
+      score: moderationState.moderationScore,
+      decidedBy: "system",
+      contentSnapshot: req.body.content.trim().substring(0, 500),
+      tags: req.body.tags ?? [],
+    });
+  } catch (logErr) {
+    console.warn("[posts] Failed to record moderation decision:", logErr.message);
+    // Don't fail the request if logging fails
+  }
+
   res.status(201).json(post);
 });
 
