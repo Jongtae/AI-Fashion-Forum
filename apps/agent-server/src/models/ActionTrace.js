@@ -14,7 +14,7 @@ const actionTraceSchema = new Schema(
     round: { type: Number },
     actionType: {
       type: String,
-      enum: ["silence", "lurk", "react", "comment", "post"],
+      enum: ["silence", "lurk", "react", "comment", "post", "exposure"],
       required: true,
     },
     visibility: {

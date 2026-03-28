@@ -15,6 +15,14 @@ const agentStateSchema = new Schema(
     appliedCharacter: { type: Schema.Types.Mixed },
     executionStatus: { type: String, default: "success" },
     writebackIds: [{ type: String }],
+    handle: { type: String },
+    display_name: { type: String },
+    interest_vector: { type: Schema.Types.Mixed },
+    belief_vector: { type: Schema.Types.Mixed },
+    openness: { type: Number },
+    conformity: { type: Number },
+    conflict_tolerance: { type: Number },
+    relationship_summary: { type: Schema.Types.Mixed },
     // seed axes (curiosity, status_drive, etc.)
     seedAxes: { type: Map, of: Number },
     // mutable axes (attention_bias, belief_shift, etc.)

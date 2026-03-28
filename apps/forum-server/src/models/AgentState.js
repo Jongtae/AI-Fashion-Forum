@@ -9,6 +9,14 @@ const agentStateSchema = new Schema(
     agentId: { type: String, required: true, index: true },
     round: { type: Number, required: true },
     tick: { type: Number, required: true },
+    handle: { type: String },
+    display_name: { type: String },
+    interest_vector: { type: Schema.Types.Mixed },
+    belief_vector: { type: Schema.Types.Mixed },
+    openness: { type: Number },
+    conformity: { type: Number },
+    conflict_tolerance: { type: Number },
+    relationship_summary: { type: Schema.Types.Mixed },
     // seed axes (curiosity, status_drive, etc.)
     seedAxes: { type: Map, of: Number },
     // mutable axes (attention_bias, belief_shift, etc.)

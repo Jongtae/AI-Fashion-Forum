@@ -6,6 +6,7 @@ import { Report } from "../models/Report.js";
 import { normalizeInteractionPayload } from "../lib/engagement.js";
 import { buildModerationState, classifyDecisionType } from "../lib/moderation.js";
 import { recordModerationDecision } from "../lib/moderation-decision.js";
+import { publishForumPostCreated } from "../lib/redis.js";
 
 const router = Router();
 
@@ -62,6 +63,8 @@ router.post("/", async (req, res) => {
 
   await post.save();
 
+  const publishedAt = post.createdAt ? new Date(post.createdAt) : new Date();
+
   // Record moderation decision to audit log
   try {
     const decisionType = classifyDecisionType({
@@ -85,6 +88,26 @@ router.post("/", async (req, res) => {
   } catch (logErr) {
     console.warn("[posts] Failed to record moderation decision:", logErr.message);
     // Don't fail the request if logging fails
+  }
+
+  try {
+    await publishForumPostCreated({
+      eventId: `post:${post._id}:${publishedAt.getTime()}`,
+      eventType: "post.created",
+      occurredAt: publishedAt.toISOString(),
+      post: {
+        _id: post._id.toString(),
+        content: post.content,
+        authorId: post.authorId,
+        authorType: post.authorType,
+        tags: post.tags ?? [],
+        likes: post.likes ?? 0,
+        format: post.format || "forum_post",
+        createdAt: publishedAt.toISOString(),
+      },
+    });
+  } catch (err) {
+    console.warn("[forum-server] failed to publish post.created:", err.message);
   }
 
   res.status(201).json(post);

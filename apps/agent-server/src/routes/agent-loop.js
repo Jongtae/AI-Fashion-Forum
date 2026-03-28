@@ -52,31 +52,6 @@ function buildInitialState() {
   return ensureStateCharacterContracts(JSON.parse(JSON.stringify(SAMPLE_STATE_SNAPSHOT)));
 }
 
-function agentToSeedAxes(agent) {
-  return new Map(
-    Object.entries({
-      curiosity: agent.curiosity ?? agent.openness ?? 0.5,
-      status_drive: agent.status_drive ?? 0.5,
-      care_drive: agent.care_drive ?? 0.5,
-      novelty_drive: agent.novelty_drive ?? agent.activity_level ?? 0.5,
-      skepticism: agent.skepticism ?? 0.5,
-      belonging_drive: agent.belonging_drive ?? agent.conformity ?? 0.5,
-    })
-  );
-}
-
-function agentToMutableAxes(agent) {
-  return new Map(
-    Object.entries({
-      attention_bias: 0.5,
-      belief_shift: 0,
-      affect_intensity: agent.conflict_tolerance ?? 0.5,
-      identity_confidence: 0.6,
-      social_posture: agent.conformity ?? 0.5,
-    })
-  );
-}
-
 // ── POST /api/agent-loop/tick ─────────────────────────────────────────────────
 // Run N agent ticks. Posts/comments are created via forum-server API.
 

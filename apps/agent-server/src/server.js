@@ -6,6 +6,7 @@ import tracesRouter from "./routes/traces.js";
 import sprint1SamplesRouter from "./routes/sprint1-samples.js";
 import runRouter from "./routes/run.js";
 import loggingRouter from "./routes/logging.js";
+import { startForumEventSubscriber } from "./services/forum-event-subscriber.js";
 
 const PORT = Number(process.env.AGENT_SERVER_PORT || 4001);
 
@@ -29,6 +30,11 @@ app.use((err, _req, res, _next) => {
 });
 
 connectDB()
+  .then(async () => {
+    await startForumEventSubscriber().catch((err) => {
+      console.warn("[agent-server] forum event subscriber unavailable:", err.message);
+    });
+  })
   .catch((err) => console.warn("[db] MongoDB unavailable:", err.message))
   .finally(() => {
     app.listen(PORT, () => {
