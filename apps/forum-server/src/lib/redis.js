@@ -20,7 +20,14 @@ async function getPublisher() {
 
 export async function publishForumPostCreated(event) {
   const publisher = await getPublisher();
-  await publisher.publish(FORUM_POST_CREATED_CHANNEL, JSON.stringify(event));
+  try {
+    await publisher.publish(FORUM_POST_CREATED_CHANNEL, JSON.stringify(event));
+  } finally {
+    if (publisher.isOpen) {
+      await publisher.disconnect().catch(() => {});
+      publisherPromise = null;
+    }
+  }
 }
 
 export { FORUM_POST_CREATED_CHANNEL, REDIS_URL };

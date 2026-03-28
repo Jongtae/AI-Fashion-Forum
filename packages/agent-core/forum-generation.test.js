@@ -57,9 +57,77 @@ test("generateForumArtifact returns readable body text", () => {
   });
 
   assert.strictEqual(artifact.type, "comment");
-  assert.match(artifact.body, /officemirror replies in a steady tone/i);
+  assert.match(artifact.body, /officemirror replies to the post in a steady tone/i);
   assert.ok(!artifact.body.includes("artifact_id"));
   assert.ok(!artifact.body.includes("relationship_context"));
+});
+
+test("generateForumArtifact writes a comment reply to the post body", () => {
+  const artifact = generateForumArtifact({
+    actionRecord: {
+      action_id: "ACT:A03:1:comment",
+      tick: 1,
+      type: "comment",
+    },
+    author: {
+      agent_id: "A03",
+      handle: "trendwatcher",
+      relationship_summary: {
+        trust_circle_size: 2,
+        rivalry_edges: 0,
+        repeated_repliers: 0,
+      },
+      belief_vector: { practicality: 0.5 },
+      self_narrative: ["Tick 1: still comparing fits."],
+    },
+    targetContent: {
+      title: "weekday mirror check",
+      body: "I think the jacket is doing more work than the shirt here.",
+      topics: ["jacket", "shirt"],
+    },
+    targetAgent: {
+      belief_vector: { practicality: 0.6 },
+    },
+  });
+
+  assert.match(artifact.body, /weekday mirror check|jacket|shirt/i);
+  assert.match(artifact.body, /answers in a steady tone|focus on practicality|On the post about/i);
+});
+
+test("generateForumArtifact writes a comment reply to another comment", () => {
+  const artifact = generateForumArtifact({
+    actionRecord: {
+      action_id: "ACT:A04:2:comment",
+      tick: 2,
+      type: "comment",
+    },
+    author: {
+      agent_id: "A04",
+      handle: "detailloop",
+      relationship_summary: {
+        trust_circle_size: 3,
+        rivalry_edges: 0,
+        repeated_repliers: 1,
+      },
+      belief_vector: { care: 0.5 },
+      self_narrative: ["Tick 2: following the thread more closely."],
+    },
+    targetContent: {
+      title: "quiet office outfit",
+      body: "The coat length is what makes this work for me.",
+      topics: ["coat", "fit"],
+    },
+    targetAgent: {
+      belief_vector: { care: 0.6 },
+    },
+    targetComment: {
+      authorId: "A02",
+      content: "I think the sleeve balance is the real story here.",
+    },
+  });
+
+  assert.match(artifact.body, /A02|sleeve balance/i);
+  assert.match(artifact.body, /replies to @A02|following up on @A02|follows up on @A02/i);
 });
 
 test("sprint 1 post copy varies by seed", () => {

@@ -42,10 +42,6 @@ function getTone(relationshipState) {
   return "guarded";
 }
 
-function buildRecentContext(agentState) {
-  return agentState.self_narrative.slice(-2).join(" ");
-}
-
 function pickVariant(variants = [], seed = 0) {
   if (!variants.length) {
     return "";
@@ -61,12 +57,27 @@ function summarizeContentRecord(contentRecord = {}) {
     ? contentRecord.topics.join(", ")
     : "general forum signals";
   const body = typeof contentRecord.body === "string" ? contentRecord.body.trim() : "";
+  const content = typeof contentRecord.content === "string" ? contentRecord.content.trim() : "";
+  const text = body || content;
   const bodySnippet = body ? body.split(/(?<=[.!?])\s+/)[0].slice(0, 160) : "";
 
   return {
     title,
     topics,
+    text,
     bodySnippet,
+  };
+}
+
+function summarizeCommentRecord(commentRecord = {}) {
+  const authorId = commentRecord?.authorId || "someone";
+  const text = typeof commentRecord?.content === "string" ? commentRecord.content.trim() : "";
+  const snippet = text ? text.split(/(?<=[.!?])\s+/)[0].slice(0, 160) : "that point";
+
+  return {
+    authorId,
+    text,
+    snippet,
   };
 }
 
@@ -88,16 +99,29 @@ export function generateForumArtifact({
   author,
   targetContent,
   targetAgent,
+  targetComment = null,
 } = {}) {
   const relationshipState = deriveRelationshipState(author, targetAgent);
   const tone = getTone(relationshipState);
-  const recentContext = buildRecentContext(author);
   const identityAnchor = Object.keys(author.belief_vector)[0] || "style-choice";
+  const targetSummary = summarizeContentRecord(targetContent);
+  const commentSummary = summarizeCommentRecord(targetComment);
 
-  const bodyTemplates = {
-    comment: `${author.handle} replies in a ${tone} tone, grounding the response in ${identityAnchor} while referring back to ${recentContext || "recent forum memory"}.`,
+  const replyVariants = targetComment
+    ? [
+        `${author.handle} replies to @${commentSummary.authorId} in a ${tone} tone, grounding the response in ${identityAnchor} while referring back to "${commentSummary.snippet}".`,
+        `Picking up @${commentSummary.authorId}'s point, ${author.handle} answers in a ${tone} tone and keeps the thread on ${identityAnchor}.`,
+        `${author.handle} follows up on @${commentSummary.authorId}'s comment with a ${tone} tone, pulling the thread back to "${commentSummary.snippet}".`,
+      ]
+    : [
+        `${author.handle} replies to the post in a ${tone} tone, grounding the response in ${identityAnchor} while referring back to "${targetSummary.bodySnippet || targetSummary.title}".`,
+        `On the post about ${targetSummary.topics}, ${author.handle} answers in a ${tone} tone and keeps the focus on ${identityAnchor}.`,
+        `${author.handle} jumps in on the thread with a ${tone} tone, using the post itself to revisit "${targetSummary.bodySnippet || targetSummary.title}".`,
+      ];
+
+  const postTemplates = {
     quote: `${author.handle} quote-posts the thread in a ${tone} tone, reframing it through ${identityAnchor}.`,
-    post: `${author.handle} starts a fresh thread in a ${tone} tone after recent exposure around ${targetContent.topics.join(", ")}.`,
+    post: `${author.handle} starts a fresh thread in a ${tone} tone after recent exposure around ${targetSummary.topics}.`,
   };
 
   const artifactType = ["comment", "quote", "post"].includes(actionRecord.type)
@@ -109,12 +133,15 @@ export function generateForumArtifact({
     source_action_id: actionRecord.action_id,
     type: artifactType,
     tone,
-    title: `${targetContent.title} / ${artifactType}`,
-    body: bodyTemplates[artifactType],
+    title: `${targetSummary.title} / ${artifactType}`,
+    body:
+      artifactType === "comment"
+        ? pickVariant(replyVariants, actionRecord.tick + author.agent_id.length)
+        : postTemplates[artifactType],
     relationship_context: relationshipState,
     ui: {
       label: `${artifactType} in ${tone} tone`,
-      secondaryText: targetContent.title,
+      secondaryText: targetSummary.title,
     },
   };
 }

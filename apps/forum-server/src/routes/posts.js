@@ -1,4 +1,5 @@
 import { Router } from "express";
+import mongoose from "mongoose";
 import { Post } from "../models/Post.js";
 import { Comment } from "../models/Comment.js";
 import { Interaction } from "../models/Interaction.js";
@@ -67,24 +68,26 @@ router.post("/", async (req, res) => {
 
   // Record moderation decision to audit log
   try {
-    const decisionType = classifyDecisionType({
-      score: moderationState.moderationScore,
-      shouldFlag: moderationState.moderationStatus !== "approved",
-      dominantCategories: moderationState.moderationCategories || [],
-    });
+    if (mongoose.connection.readyState === 1) {
+      const decisionType = classifyDecisionType({
+        score: moderationState.moderationScore,
+        shouldFlag: moderationState.moderationStatus !== "approved",
+        dominantCategories: moderationState.moderationCategories || [],
+      });
 
-    await recordModerationDecision({
-      postId: post._id.toString(),
-      authorId: req.body.authorId,
-      decisionType: decisionType.type,
-      decision: moderationState.moderationStatus || "approved",
-      reason: (moderationState.moderationReasons || [])[0] || null,
-      reasoning: `Auto-flagged by moderation filter (score: ${moderationState.moderationScore})`,
-      score: moderationState.moderationScore,
-      decidedBy: "system",
-      contentSnapshot: req.body.content.trim().substring(0, 500),
-      tags: req.body.tags ?? [],
-    });
+      await recordModerationDecision({
+        postId: post._id.toString(),
+        authorId: req.body.authorId,
+        decisionType: decisionType.type,
+        decision: moderationState.moderationStatus || "approved",
+        reason: (moderationState.moderationReasons || [])[0] || null,
+        reasoning: `Auto-flagged by moderation filter (score: ${moderationState.moderationScore})`,
+        score: moderationState.moderationScore,
+        decidedBy: "system",
+        contentSnapshot: req.body.content.trim().substring(0, 500),
+        tags: req.body.tags ?? [],
+      });
+    }
   } catch (logErr) {
     console.warn("[posts] Failed to record moderation decision:", logErr.message);
     // Don't fail the request if logging fails
@@ -228,11 +231,30 @@ router.post("/:postId/comments", async (req, res) => {
   const errors = validateComment(req.body);
   if (errors.length) return res.status(400).json({ error: errors.join("; ") });
 
+  const replyToCommentId = req.body.replyToCommentId || null;
+  let replyTarget = null;
+  if (replyToCommentId) {
+    replyTarget = await Comment.findOne({
+      _id: replyToCommentId,
+      postId: req.params.postId,
+    }).lean();
+    if (!replyTarget) {
+      return res.status(404).json({ error: "Reply target comment not found" });
+    }
+  }
+
   const comment = new Comment({
     postId: req.params.postId,
     authorId: req.body.authorId,
     authorType: req.body.authorType,
     content: req.body.content.trim(),
+    replyToCommentId,
+    replyTargetType: replyTarget ? "comment" : "post",
+    replyTargetId: replyTarget ? replyTarget._id.toString() : req.params.postId,
+    replyTargetAuthorId: replyTarget ? replyTarget.authorId : post.authorId,
+    replyTargetPreview: (replyTarget?.content || post.content || "").trim().slice(0, 180),
+    agentRound: req.body.agentRound,
+    agentTick: req.body.agentTick,
   });
 
   await comment.save();
