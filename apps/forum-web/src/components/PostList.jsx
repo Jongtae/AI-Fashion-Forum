@@ -12,6 +12,7 @@ export default function PostList({
   onTagClick = () => {},
   onRequireAuth = () => {},
   onAuthorClick = () => {},
+  onCreateFirstPost = () => {},
   isAuthenticated = false,
   activeTagFilter = "",
   onTagFilterChange = () => {},
@@ -99,9 +100,21 @@ export default function PostList({
       {isLoading && <p style={styles.msg}>글을 불러오는 중…</p>}
       {isError && <p style={styles.error}>{error?.message || "오류가 발생했습니다."}</p>}
       {!isLoading && posts.length === 0 && (
-        <p style={styles.msg}>
-          {isSavedView ? "아직 저장한 글이 없습니다. 마음에 드는 글을 저장해 보세요!" : "아직 글이 없습니다. 첫 번째 글을 써보세요!"}
-        </p>
+        <div style={styles.emptyState}>
+          <p style={styles.emptyStateTitle}>
+            {isSavedView ? "아직 저장한 글이 없습니다." : "아직 글이 없습니다."}
+          </p>
+          <p style={styles.emptyStateText}>
+            {isSavedView
+              ? "마음에 드는 글을 저장하면 이곳에 모입니다."
+              : "첫 번째 글을 써서 대화를 시작해 보세요."}
+          </p>
+          {!isSavedView && (
+            <button type="button" style={styles.emptyStateBtn} onClick={onCreateFirstPost}>
+              글쓰기 열기
+            </button>
+          )}
+        </div>
       )}
 
       <div style={styles.list} onScroll={handleScroll}>
@@ -155,6 +168,35 @@ const styles = {
   },
   msg: { textAlign: "center", color: "#9ca3af", fontSize: 14, padding: "24px 0" },
   error: { textAlign: "center", color: "#dc2626", fontSize: 14, padding: "16px 0" },
+  emptyState: {
+    padding: 20,
+    borderRadius: 12,
+    border: "1px dashed #cbd5e1",
+    background: "#f8fafc",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  emptyStateTitle: {
+    margin: 0,
+    fontSize: 16,
+    fontWeight: 700,
+    color: "#111827",
+  },
+  emptyStateText: {
+    margin: "8px 0 14px",
+    fontSize: 13,
+    color: "#6b7280",
+    lineHeight: 1.6,
+  },
+  emptyStateBtn: {
+    border: "none",
+    borderRadius: 999,
+    padding: "8px 14px",
+    background: "#111827",
+    color: "#fff",
+    cursor: "pointer",
+    fontSize: 13,
+  },
   end: { textAlign: "center", color: "#d1d5db", fontSize: 12, padding: "12px 0" },
   lockedCard: {
     padding: 20,

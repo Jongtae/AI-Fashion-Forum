@@ -726,6 +726,10 @@ export default function ForumApp() {
                         onRequireAuth={() => setShowAuth(true)}
                         isAuthenticated={Boolean(authUser)}
                         onAuthorClick={openProfile}
+                        onCreateFirstPost={() => {
+                          markForumActivity();
+                          setComposerOpen(true);
+                        }}
                       />
                     </section>
                   </>
