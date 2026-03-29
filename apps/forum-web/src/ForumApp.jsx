@@ -637,28 +637,6 @@ export default function ForumApp() {
               </div>
             </header>
 
-            <nav style={styles.nav}>
-              {SERVICE_TABS.map((tabItem) => {
-                const isActive = tab === tabItem.id;
-                const handleClick = tabItem.id === "saved" ? openSavedPosts : () => activateTab(tabItem.id);
-
-                return (
-                  <button
-                    key={tabItem.id}
-                    type="button"
-                    style={{ ...styles.tabBtn, ...(isActive ? styles.tabActive : {}) }}
-                    onClick={handleClick}
-                  >
-                    <span style={styles.tabLabel}>{tabItem.label}</span>
-                    <span style={{ ...styles.tabDescription, ...(isActive ? styles.tabDescriptionActive : {}) }}>
-                      {tabItem.description}
-                    </span>
-                  </button>
-                );
-              })}
-            </nav>
-
-            <ServiceQuickActions onActivateTab={activateTab} onOpenSavedPosts={openSavedPosts} />
             <ServiceContextSummary
               tab={tab}
               discoveryMode={discoveryMode}
@@ -685,6 +663,29 @@ export default function ForumApp() {
                 setDiscoveryQueryUrl("", { replace: false });
               }}
             />
+
+            <nav style={styles.nav}>
+              {SERVICE_TABS.map((tabItem) => {
+                const isActive = tab === tabItem.id;
+                const handleClick = tabItem.id === "saved" ? openSavedPosts : () => activateTab(tabItem.id);
+
+                return (
+                  <button
+                    key={tabItem.id}
+                    type="button"
+                    style={{ ...styles.tabBtn, ...(isActive ? styles.tabActive : {}) }}
+                    onClick={handleClick}
+                  >
+                    <span style={styles.tabLabel}>{tabItem.label}</span>
+                    <span style={{ ...styles.tabDescription, ...(isActive ? styles.tabDescriptionActive : {}) }}>
+                      {tabItem.description}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            <ServiceQuickActions onActivateTab={activateTab} onOpenSavedPosts={openSavedPosts} />
 
             <main style={styles.main}>
               {selectedProfile ? (
