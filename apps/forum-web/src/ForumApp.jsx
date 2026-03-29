@@ -190,6 +190,139 @@ function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
   );
 }
 
+function getTabIcon(tabId) {
+  switch (tabId) {
+    case "forum":
+      return "⌂";
+    case "discover":
+      return "⌕";
+    case "feed":
+      return "♡";
+    case "saved":
+      return "⌁";
+    default:
+      return "•";
+  }
+}
+
+function ServiceRail({
+  currentTab,
+  authUser,
+  hasForumActivity,
+  composerOpen,
+  onActivateTab,
+  onOpenSavedPosts,
+  onOpenComposer,
+}) {
+  return (
+    <aside style={styles.rail}>
+      <div style={styles.railBrand}>@</div>
+      <div style={styles.railNav}>
+        {SERVICE_TABS.map((tabItem) => {
+          const isActive = currentTab === tabItem.id;
+          const handleClick =
+            tabItem.id === "saved" ? onOpenSavedPosts : () => onActivateTab(tabItem.id);
+
+          return (
+            <button
+              key={tabItem.id}
+              type="button"
+              style={{
+                ...styles.railButton,
+                ...(isActive ? styles.railButtonActive : {}),
+              }}
+              title={tabItem.label}
+              onClick={handleClick}
+            >
+              <span style={styles.railIcon}>{getTabIcon(tabItem.id)}</span>
+              <span style={styles.railButtonLabel}>{tabItem.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <button
+        type="button"
+        style={{
+          ...styles.railComposerButton,
+          ...(!(hasForumActivity || authUser) ? styles.railComposerButtonDisabled : {}),
+        }}
+        onClick={onOpenComposer}
+        disabled={!(hasForumActivity || authUser)}
+      >
+        <span style={styles.railComposerPlus}>{composerOpen ? "–" : "+"}</span>
+      </button>
+      <div style={styles.railFooter}>
+        <span style={styles.railFooterLine}>{authUser ? "로그인됨" : "게스트"}</span>
+        <span style={styles.railFooterLine}>service</span>
+      </div>
+    </aside>
+  );
+}
+
+function ServiceSupportPanel({
+  authUser,
+  tab,
+  discoveryMode,
+  activeTagFilter,
+  discoverySearchText,
+  isAutoRunning,
+  timeSpeed,
+  onShowAuth,
+  onLogout,
+  onActivateTab,
+  onOpenSavedPosts,
+  onClearTab,
+  onClearMode,
+  onClearTag,
+  onClearSearch,
+}) {
+  return (
+    <aside style={styles.supportPanel}>
+      <div style={styles.supportCard}>
+        <div style={styles.supportTitle}>
+          {authUser ? `${authUser.displayName || authUser.username}님으로 참여 중` : "Threads형 포럼에 참여하기"}
+        </div>
+        <p style={styles.supportText}>
+          {authUser
+            ? "글을 읽고 저장하고, 에이전트 흐름과 함께 대화에 참여할 수 있습니다."
+            : "사람과 에이전트가 섞인 피드를 보고, 로그인 후 저장과 반응 흐름을 이어갈 수 있습니다."}
+        </p>
+        <button
+          type="button"
+          style={styles.supportPrimaryButton}
+          onClick={authUser ? onLogout : onShowAuth}
+        >
+          {authUser ? "로그아웃" : "로그인 또는 가입하기"}
+        </button>
+      </div>
+
+      <div style={styles.supportCard}>
+        <div style={styles.supportMetaRow}>
+          <span style={styles.supportMetaLabel}>시뮬레이션</span>
+          <span style={styles.supportMetaValue}>{isAutoRunning ? "자동 진행 중" : "일시정지"}</span>
+        </div>
+        <div style={styles.supportMetaRow}>
+          <span style={styles.supportMetaLabel}>속도</span>
+          <span style={styles.supportMetaValue}>{timeSpeed}x</span>
+        </div>
+      </div>
+
+      <ServiceContextSummary
+        tab={tab}
+        discoveryMode={discoveryMode}
+        activeTagFilter={activeTagFilter}
+        discoverySearchText={discoverySearchText}
+        onClearTab={onClearTab}
+        onClearMode={onClearMode}
+        onClearTag={onClearTag}
+        onClearSearch={onClearSearch}
+      />
+
+      <ServiceQuickActions onActivateTab={onActivateTab} onOpenSavedPosts={onOpenSavedPosts} />
+    </aside>
+  );
+}
+
 const SERVICE_TABS = [
   { id: "forum", label: "포럼", description: "글을 읽고 댓글을 남깁니다." },
   { id: "discover", label: "탐색", description: "태그, 검색, 인기글을 찾습니다." },
@@ -333,9 +466,20 @@ export default function ForumApp() {
   const [timeSpeed, setTimeSpeed] = useState(1);
   const [isAutoRunning, setIsAutoRunning] = useState(true);
   const [pendingTab, setPendingTab] = useState(null);
+  const [viewportWidth, setViewportWidth] = useState(
+    typeof window === "undefined" ? 1280 : window.innerWidth
+  );
   const autoTickInFlightRef = useRef(false);
   const prevSelectedPostIdRef = useRef(null);
   const previousServiceTabRef = useRef("forum");
+  const isCompact = viewportWidth < 1024;
+  const isMobile = viewportWidth < 768;
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const handleClearContext = () => {
@@ -510,6 +654,30 @@ export default function ForumApp() {
     setDiscoveryModeUrl(value, { replace: false });
   }
 
+  function clearTabContext() {
+    setSelectedPostId(null);
+    setPostUrl(null);
+    setSelectedProfile(null);
+    setProfileUrl(null);
+    setTab("forum");
+    setViewUrl("forum", { replace: false });
+  }
+
+  function clearModeContext() {
+    setDiscoveryMode("recent");
+    setDiscoveryModeUrl("recent", { replace: false });
+  }
+
+  function clearTagContext() {
+    setActiveTagFilter("");
+    setTagUrl("", { replace: false });
+  }
+
+  function clearSearchContext() {
+    setDiscoverySearchText("");
+    setDiscoveryQueryUrl("", { replace: false });
+  }
+
   function renderAdminShell() {
     return (
       <>
@@ -598,8 +766,11 @@ export default function ForumApp() {
           renderAdminShell()
         ) : (
           <>
-            <header style={styles.header}>
-              <span style={styles.logo}>✦ AI Fashion Forum</span>
+            <div style={styles.serviceTopBar}>
+              <div style={styles.serviceTopBrandWrap}>
+                <div style={styles.serviceTopBrand}>@</div>
+                <div style={styles.serviceTopBrandTitle}>threads-style forum</div>
+              </div>
               <div style={styles.userRow}>
                 <label style={styles.speedControl}>
                   <span style={styles.speedLabel}>속도</span>
@@ -623,71 +794,68 @@ export default function ForumApp() {
                 >
                   {isAutoRunning ? "자동 진행 중" : "자동 일시정지"}
                 </button>
-                {authUser ? (
+              </div>
+            </div>
+
+            <div style={{ ...styles.serviceShell, ...(isCompact ? styles.serviceShellCompact : {}) }}>
+              {!isCompact && (
+                <ServiceRail
+                  currentTab={tab}
+                  authUser={authUser}
+                  hasForumActivity={hasForumActivity}
+                  composerOpen={composerOpen}
+                  onActivateTab={activateTab}
+                  onOpenSavedPosts={openSavedPosts}
+                  onOpenComposer={toggleComposerOpen}
+                />
+              )}
+
+              <div style={styles.centerColumn}>
+                {isCompact && (
                   <>
-                    <span style={styles.userId}>👤 {authUser.displayName || authUser.username}</span>
-                    <button style={styles.editBtn} onClick={handleLogout}>로그아웃</button>
-                  </>
-                ) : (
-                  <>
-                    <span style={styles.userId}>🔒 게스트</span>
-                    <button style={styles.editBtn} onClick={() => setShowAuth(true)}>로그인</button>
+                    <ServiceContextSummary
+                      tab={tab}
+                      discoveryMode={discoveryMode}
+                      activeTagFilter={activeTagFilter}
+                      discoverySearchText={discoverySearchText}
+                      onClearTab={clearTabContext}
+                      onClearMode={clearModeContext}
+                      onClearTag={clearTagContext}
+                      onClearSearch={clearSearchContext}
+                    />
+
+                    <nav style={{ ...styles.nav, ...(isMobile ? styles.navMobile : {}) }}>
+                      {SERVICE_TABS.map((tabItem) => {
+                        const isActive = tab === tabItem.id;
+                        const handleClick =
+                          tabItem.id === "saved" ? openSavedPosts : () => activateTab(tabItem.id);
+
+                        return (
+                          <button
+                            key={tabItem.id}
+                            type="button"
+                            style={{ ...styles.tabBtn, ...(isActive ? styles.tabActive : {}) }}
+                            onClick={handleClick}
+                          >
+                            <span style={styles.tabLabel}>{tabItem.label}</span>
+                            {!isMobile && (
+                              <span
+                                style={{
+                                  ...styles.tabDescription,
+                                  ...(isActive ? styles.tabDescriptionActive : {}),
+                                }}
+                              >
+                                {tabItem.description}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </nav>
                   </>
                 )}
-              </div>
-            </header>
 
-            <ServiceContextSummary
-              tab={tab}
-              discoveryMode={discoveryMode}
-              activeTagFilter={activeTagFilter}
-              discoverySearchText={discoverySearchText}
-              onClearTab={() => {
-                setSelectedPostId(null);
-                setPostUrl(null);
-                setSelectedProfile(null);
-                setProfileUrl(null);
-                setTab("forum");
-                setViewUrl("forum", { replace: false });
-              }}
-              onClearMode={() => {
-                setDiscoveryMode("recent");
-                setDiscoveryModeUrl("recent", { replace: false });
-              }}
-              onClearTag={() => {
-                setActiveTagFilter("");
-                setTagUrl("", { replace: false });
-              }}
-              onClearSearch={() => {
-                setDiscoverySearchText("");
-                setDiscoveryQueryUrl("", { replace: false });
-              }}
-            />
-
-            <nav style={styles.nav}>
-              {SERVICE_TABS.map((tabItem) => {
-                const isActive = tab === tabItem.id;
-                const handleClick = tabItem.id === "saved" ? openSavedPosts : () => activateTab(tabItem.id);
-
-                return (
-                  <button
-                    key={tabItem.id}
-                    type="button"
-                    style={{ ...styles.tabBtn, ...(isActive ? styles.tabActive : {}) }}
-                    onClick={handleClick}
-                  >
-                    <span style={styles.tabLabel}>{tabItem.label}</span>
-                    <span style={{ ...styles.tabDescription, ...(isActive ? styles.tabDescriptionActive : {}) }}>
-                      {tabItem.description}
-                    </span>
-                  </button>
-                );
-              })}
-            </nav>
-
-            <ServiceQuickActions onActivateTab={activateTab} onOpenSavedPosts={openSavedPosts} />
-
-            <main style={styles.main}>
+                <main style={styles.main}>
               {selectedProfile ? (
                 <section>
                   <ProfilePanel
@@ -843,7 +1011,29 @@ export default function ForumApp() {
                   </p>
                 </section>
               )}
-            </main>
+                </main>
+              </div>
+
+              {!isCompact && (
+                <ServiceSupportPanel
+                  authUser={authUser}
+                  tab={tab}
+                  discoveryMode={discoveryMode}
+                  activeTagFilter={activeTagFilter}
+                  discoverySearchText={discoverySearchText}
+                  isAutoRunning={isAutoRunning}
+                  timeSpeed={timeSpeed}
+                  onShowAuth={() => setShowAuth(true)}
+                  onLogout={handleLogout}
+                  onActivateTab={activateTab}
+                  onOpenSavedPosts={openSavedPosts}
+                  onClearTab={clearTabContext}
+                  onClearMode={clearModeContext}
+                  onClearTag={clearTagContext}
+                  onClearSearch={clearSearchContext}
+                />
+              )}
+            </div>
           </>
         )}
       </div>
@@ -852,17 +1042,156 @@ export default function ForumApp() {
 }
 
 const styles = {
-  root: { minHeight: "100vh", background: "#f9fafb", fontFamily: "system-ui, sans-serif" },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "12px 24px",
-    background: "#111827",
-    color: "#fff",
+  root: {
+    minHeight: "100vh",
+    background:
+      "radial-gradient(circle at top left, rgba(255,255,255,0.98) 0%, rgba(246,246,246,0.96) 42%, #f1f1f1 100%)",
+    fontFamily: "\"SF Pro Display\", \"Helvetica Neue\", Arial, sans-serif",
+    color: "#111111",
+  },
+  serviceTopBar: {
     position: "sticky",
     top: 0,
-    zIndex: 10,
+    zIndex: 12,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+    padding: "18px 28px 14px",
+    backdropFilter: "blur(18px)",
+    background: "rgba(250,250,250,0.88)",
+    borderBottom: "1px solid rgba(17,17,17,0.08)",
+  },
+  serviceTopBrandWrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+  },
+  serviceTopBrand: {
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "2px solid #111",
+    fontSize: 20,
+    fontWeight: 900,
+  },
+  serviceTopBrandTitle: {
+    fontSize: 15,
+    fontWeight: 700,
+    letterSpacing: "-0.02em",
+    textTransform: "lowercase",
+  },
+  serviceShell: {
+    maxWidth: 1480,
+    margin: "0 auto",
+    padding: "18px 20px 32px",
+    display: "grid",
+    gridTemplateColumns: "120px minmax(0, 680px) 360px",
+    justifyContent: "center",
+    gap: 28,
+    alignItems: "start",
+  },
+  serviceShellCompact: {
+    gridTemplateColumns: "minmax(0, 1fr)",
+    padding: "14px 12px 28px",
+  },
+  rail: {
+    position: "sticky",
+    top: 96,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 22,
+    minHeight: "calc(100vh - 140px)",
+  },
+  railBrand: {
+    width: 52,
+    height: 52,
+    borderRadius: 999,
+    border: "2px solid #111",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 30,
+    fontWeight: 900,
+    background: "#fff",
+  },
+  railNav: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 14,
+  },
+  railButton: {
+    width: 70,
+    minHeight: 70,
+    padding: "10px 8px",
+    borderRadius: 22,
+    border: "1px solid transparent",
+    background: "transparent",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    cursor: "pointer",
+    color: "#6b7280",
+  },
+  railButtonActive: {
+    background: "#fff",
+    color: "#111111",
+    borderColor: "rgba(17,17,17,0.08)",
+    boxShadow: "0 12px 30px rgba(17,17,17,0.08)",
+  },
+  railIcon: {
+    fontSize: 28,
+    lineHeight: 1,
+  },
+  railButtonLabel: {
+    fontSize: 11,
+    fontWeight: 700,
+  },
+  railComposerButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+    border: "none",
+    background: "#efefef",
+    color: "#111",
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)",
+  },
+  railComposerButtonDisabled: {
+    opacity: 0.45,
+    cursor: "not-allowed",
+  },
+  railComposerPlus: {
+    fontSize: 36,
+    lineHeight: 1,
+  },
+  railFooter: {
+    marginTop: "auto",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 3,
+    color: "#9ca3af",
+  },
+  railFooterLine: {
+    fontSize: 11,
+    textTransform: "lowercase",
+  },
+  centerColumn: {
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 16,
   },
   adminHeader: {
     display: "flex",
@@ -929,49 +1258,53 @@ const styles = {
     fontSize: 13,
     cursor: "pointer",
   },
-  logo: { fontSize: 18, fontWeight: 700, letterSpacing: -0.5 },
-  userRow: { display: "flex", alignItems: "center", gap: 8 },
+  userRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+    justifyContent: "flex-end",
+  },
   speedControl: {
     display: "flex",
     alignItems: "center",
     gap: 6,
-    color: "#d1d5db",
+    color: "#6b7280",
     fontSize: 12,
-    marginRight: 8,
   },
   speedLabel: { opacity: 0.85 },
   speedSelect: {
-    background: "#1f2937",
-    color: "#fff",
-    border: "1px solid #4b5563",
-    borderRadius: 4,
-    padding: "3px 8px",
+    background: "#fff",
+    color: "#111",
+    border: "1px solid #d1d5db",
+    borderRadius: 999,
+    padding: "5px 10px",
     fontSize: 12,
   },
   autoBtn: {
     border: "1px solid transparent",
     borderRadius: 999,
-    padding: "4px 10px",
+    padding: "6px 10px",
     fontSize: 12,
     cursor: "pointer",
   },
   autoBtnOn: {
-    background: "#10b981",
-    color: "#06281f",
+    background: "#111",
+    color: "#fff",
   },
   autoBtnOff: {
-    background: "#374151",
-    color: "#e5e7eb",
-    borderColor: "#6b7280",
+    background: "#fff",
+    color: "#111",
+    borderColor: "#d1d5db",
   },
-  userId: { fontSize: 13, color: "#d1d5db" },
+  userId: { fontSize: 13, color: "#4b5563" },
   editBtn: {
     fontSize: 12,
-    background: "transparent",
-    border: "1px solid #6b7280",
-    color: "#d1d5db",
-    borderRadius: 4,
-    padding: "2px 8px",
+    background: "#fff",
+    border: "1px solid #d1d5db",
+    color: "#111",
+    borderRadius: 999,
+    padding: "6px 10px",
     cursor: "pointer",
   },
   userInput: {
@@ -992,9 +1325,9 @@ const styles = {
     cursor: "pointer",
   },
   main: {
-    maxWidth: 680,
-    margin: "0 auto",
-    padding: "24px 16px",
+    width: "100%",
+    margin: 0,
+    padding: 0,
     display: "flex",
     flexDirection: "column",
     gap: 20,
@@ -1005,9 +1338,8 @@ const styles = {
     padding: "24px 16px",
   },
   quickActions: {
-    maxWidth: 680,
-    margin: "0 auto",
-    padding: "0 16px 4px",
+    margin: 0,
+    padding: 0,
     display: "flex",
     flexDirection: "column",
     gap: 14,
@@ -1038,20 +1370,21 @@ const styles = {
   },
   quickActionsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gridTemplateColumns: "1fr",
     gap: 10,
   },
   quickActionCard: {
     textAlign: "left",
     padding: 14,
-    borderRadius: 16,
-    border: "1px solid #dbe3f1",
+    borderRadius: 18,
+    border: "1px solid rgba(17,17,17,0.08)",
     background: "#fff",
     cursor: "pointer",
     display: "flex",
     flexDirection: "column",
     gap: 8,
-    minHeight: 132,
+    minHeight: 104,
+    boxShadow: "0 10px 24px rgba(17,17,17,0.05)",
   },
   quickActionTitle: { fontSize: 16, fontWeight: 800, color: "#111827" },
   quickActionDescription: { fontSize: 13, lineHeight: 1.5, color: "#6b7280" },
@@ -1060,8 +1393,8 @@ const styles = {
     marginTop: "auto",
     fontSize: 12,
     fontWeight: 800,
-    color: "#2563eb",
-    background: "#eff6ff",
+    color: "#111",
+    background: "#f3f4f6",
     borderRadius: 999,
     padding: "6px 10px",
   },
@@ -1075,10 +1408,11 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "flex-start",
     gap: 12,
-    padding: 16,
+    padding: 18,
     background: "#fff",
-    border: "1px solid #e5e7eb",
-    borderRadius: 8,
+    border: "1px solid rgba(17,17,17,0.08)",
+    borderRadius: 24,
+    boxShadow: "0 18px 40px rgba(17,17,17,0.05)",
   },
   composerTitle: {
     margin: 0,
@@ -1101,7 +1435,7 @@ const styles = {
     whiteSpace: "nowrap",
   },
   composerBtnActive: {
-    background: "#111827",
+    background: "#111",
     color: "#fff",
   },
   composerBtnDisabled: {
@@ -1120,10 +1454,10 @@ const styles = {
   },
   savedHero: {
     padding: 18,
-    borderRadius: 16,
-    border: "1px solid #e5e7eb",
+    borderRadius: 24,
+    border: "1px solid rgba(17,17,17,0.08)",
     background: "#fff",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+    boxShadow: "0 18px 40px rgba(17,17,17,0.05)",
   },
   savedKicker: {
     margin: 0,
@@ -1145,21 +1479,28 @@ const styles = {
     color: "#6b7280",
   },
   nav: {
-    background: "#1f2937",
-    padding: "0 24px",
+    background: "#fff",
+    padding: 8,
     display: "flex",
-    gap: 4,
+    gap: 6,
     alignItems: "stretch",
+    borderRadius: 24,
+    border: "1px solid rgba(17,17,17,0.08)",
+    boxShadow: "0 12px 26px rgba(17,17,17,0.05)",
+  },
+  navMobile: {
+    overflowX: "auto",
   },
   contextSummary: {
-    margin: "10px 24px 0",
+    margin: 0,
     padding: "12px 14px",
-    borderRadius: 14,
-    border: "1px solid #e5e7eb",
-    background: "#fff",
+    borderRadius: 22,
+    border: "1px solid rgba(17,17,17,0.08)",
+    background: "rgba(255,255,255,0.9)",
     display: "flex",
     flexDirection: "column",
     gap: 8,
+    boxShadow: "0 10px 24px rgba(17,17,17,0.04)",
   },
   contextSummaryHeader: {
     display: "flex",
@@ -1212,10 +1553,10 @@ const styles = {
   placeholderCard: {
     marginTop: 8,
     padding: "18px 20px",
-    borderRadius: 12,
-    border: "1px solid #e5e7eb",
+    borderRadius: 24,
+    border: "1px solid rgba(17,17,17,0.08)",
     background: "#fff",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+    boxShadow: "0 18px 40px rgba(17,17,17,0.05)",
   },
   placeholderTitle: {
     margin: 0,
@@ -1230,22 +1571,23 @@ const styles = {
     lineHeight: 1.6,
   },
   tabBtn: {
-    padding: "10px 16px 12px",
+    padding: "12px 14px",
     background: "transparent",
     border: "none",
-    color: "#9ca3af",
+    color: "#6b7280",
     fontSize: 14,
     cursor: "pointer",
-    borderBottom: "2px solid transparent",
+    borderRadius: 18,
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
     gap: 3,
-    minWidth: 132,
+    minWidth: 120,
+    flex: 1,
   },
   tabActive: {
     color: "#fff",
-    borderBottomColor: "#3b82f6",
+    background: "#111",
   },
   tabLabel: {
     fontSize: 14,
@@ -1255,10 +1597,64 @@ const styles = {
   tabDescription: {
     fontSize: 11,
     lineHeight: 1.35,
-    color: "#9ca3af",
+    color: "#6b7280",
     textAlign: "left",
   },
   tabDescriptionActive: {
-    color: "#d1d5db",
+    color: "rgba(255,255,255,0.78)",
+  },
+  supportPanel: {
+    position: "sticky",
+    top: 96,
+    display: "flex",
+    flexDirection: "column",
+    gap: 16,
+  },
+  supportCard: {
+    background: "rgba(255,255,255,0.92)",
+    border: "1px solid rgba(17,17,17,0.08)",
+    borderRadius: 28,
+    padding: 24,
+    boxShadow: "0 18px 40px rgba(17,17,17,0.06)",
+  },
+  supportTitle: {
+    fontSize: 19,
+    fontWeight: 800,
+    lineHeight: 1.3,
+    color: "#111",
+    marginBottom: 10,
+  },
+  supportText: {
+    margin: 0,
+    color: "#6b7280",
+    fontSize: 14,
+    lineHeight: 1.65,
+  },
+  supportPrimaryButton: {
+    marginTop: 20,
+    width: "100%",
+    border: "none",
+    borderRadius: 20,
+    padding: "16px 18px",
+    background: "#fff",
+    boxShadow: "inset 0 0 0 1px rgba(17,17,17,0.08)",
+    color: "#111",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  supportMetaRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  supportMetaLabel: {
+    fontSize: 13,
+    color: "#6b7280",
+  },
+  supportMetaValue: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: "#111",
   },
 };
