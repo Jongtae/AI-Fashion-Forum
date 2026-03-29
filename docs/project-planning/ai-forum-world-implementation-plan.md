@@ -231,6 +231,29 @@ This change makes the forum UI read as identity accumulated from exposure, selec
 - This is a UI/productization change only
 - No Data Engineering review is required
 
+## Branch change log
+
+### Planning and governance
+
+- `c63cc66` updated the repo rules so issue-first branch planning is explicit
+- `82098ec` linked the identity-loop UI direction from the docs index
+- `b59beff`, `bd82837`, and `51aba95` turned the implementation plan into a copyable issue body with non-goals and review gates
+- `04d6b3f` and `41958dc` added PR text that matches the final UI direction
+
+### Identity-loop UI surfaces
+
+- `b79b6b9` added the shared identity-loop summary UI and introduced consumption-first framing to the feed, profile, and replay surfaces
+- `979e17d` aligned discovery and detail views with the same selection and reaction language
+- `e23f180` added identity-loop context to comments and post lists
+- `8c81535` surfaced a reaction ledger in post cards
+- `eca2d87` reframed operator and admin views around identity accumulation
+- `9b3818d` aligned post creation and Sprint 1 replay with the same loop
+
+### Verification
+
+- `npm run build` completed successfully after each UI slice was added
+- The working tree stayed scoped to the identity-loop branch throughout the work
+
 ## 요약
 
 이 프로젝트가 만들려는 것은 단순 멀티에이전트 채팅이 아닙니다.
