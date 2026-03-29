@@ -97,7 +97,7 @@ export function applyPostActionDelta({
       memory_channel: "action_post",
       action_type: "post",
       target_content_id: targetContentId,
-      summary: `Posted with engagement boost (${engagementDelta.toFixed(3)})`,
+      summary: `참여 강도를 ${engagementDelta.toFixed(3)}만큼 높이며 글을 남겼다.`,
       state_delta: {
         engagement_delta: clampUnit(nextAgent.engagement_level - previousEngagement),
         belief_strength_delta: clampUnit(nextAgent.belief_strength - previousBeliefStrength),
@@ -205,7 +205,7 @@ export function applyCommentActionDelta({
       action_type: "comment",
       target_content_id: targetContentId,
       target_author_id: targetAuthorId,
-      summary: `Commented on ${targetAuthorId ? targetAuthorId : "content"} (disagreement: ${disagreement.toFixed(2)})`,
+      summary: `${targetAuthorId ? `${targetAuthorId}에` : "콘텐츠에"} 의견을 남겼다 (불일치: ${disagreement.toFixed(2)}).`,
       state_delta: {
         engagement_delta: clampUnit(nextAgent.engagement_level - previousEngagement),
         belief_strength_delta: clampUnit(nextAgent.belief_strength - previousBeliefStrength),
@@ -302,7 +302,7 @@ export function applyReactActionDelta({
       action_type: "react",
       target_content_id: targetContentId,
       target_author_id: targetAuthorId,
-      summary: `반응 ${reactionType}로 참여를 남겼다 (engagement +${engagementDelta.toFixed(3)})`,
+      summary: `반응 ${reactionType}로 참여를 남겼다. 참여 강도는 ${engagementDelta.toFixed(3)}만큼 늘었다.`,
       state_delta: {
         engagement_delta: clampUnit(nextAgent.engagement_level - previousEngagement),
         action_bias_react: nextAgent.action_bias_react,

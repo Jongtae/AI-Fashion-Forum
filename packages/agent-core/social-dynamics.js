@@ -95,14 +95,14 @@ export function createBatchReport(rows) {
 
   return {
     summary: [
-      `Batch executed ${rows.length} runs across seed and policy combinations.`,
-      `Highest consistency run: seed ${bestConsistency.seed} / ${bestConsistency.policy_flag} (${bestConsistency.average_consistency}).`,
-      `Highest polarization run: seed ${highestPolarization.seed} / ${highestPolarization.policy_flag} (${highestPolarization.polarization}).`,
+      `배치 실행 ${rows.length}회가 seed와 정책 조합 전반에서 수행되었다.`,
+      `가장 일관성이 높았던 실행: seed ${bestConsistency.seed} / ${bestConsistency.policy_flag} (${bestConsistency.average_consistency}).`,
+      `가장 양극화가 높았던 실행: seed ${highestPolarization.seed} / ${highestPolarization.policy_flag} (${highestPolarization.polarization}).`,
     ],
     recommendations: [
-      "Use higher-consistency seeds as baseline demos when identity continuity is the priority.",
-      "Watch high-polarization seeds when testing moderation or intervention ideas.",
-      "Compare influence concentration alongside consistency to detect over-centralized dynamics.",
+      "정체성의 연속성이 중요할 때는 일관성이 높은 seed를 기본 시연값으로 사용한다.",
+      "모더레이션이나 개입 아이디어를 시험할 때는 양극화가 높은 seed를 주의 깊게 본다.",
+      "지나치게 중앙화된 흐름을 찾으려면 일관성과 함께 영향 집중도를 같이 비교한다.",
     ],
   };
 }
