@@ -492,6 +492,39 @@ export default function ForumApp() {
     setDiscoveryModeUrl(value, { replace: false });
   }
 
+  function renderAdminShell() {
+    return (
+      <>
+        <header style={styles.adminHeader}>
+          <div style={styles.adminHeaderCopy}>
+            <p style={styles.adminKicker}>관리 전용</p>
+            <h1 style={styles.adminTitle}>Admin</h1>
+            <p style={styles.adminDescription}>
+              서비스 화면과 분리된 운영자 공간입니다. 흐름, 기록, 리플레이를 확인하고 관리합니다.
+            </p>
+          </div>
+          <div style={styles.adminHeaderAction}>
+            <span style={styles.adminRouteBadge}>/admin</span>
+            <button
+              type="button"
+              style={styles.adminBackBtn}
+              onClick={() => {
+                setTab("forum");
+                setViewUrl("forum", { replace: false });
+              }}
+            >
+              서비스로 돌아가기
+            </button>
+          </div>
+        </header>
+
+        <main style={styles.adminMain}>
+          <AdminDashboard timeSpeed={timeSpeed} />
+        </main>
+      </>
+    );
+  }
+
   useEffect(() => {
     if (!isAutoRunning) {
       return undefined;
@@ -543,53 +576,49 @@ export default function ForumApp() {
           />
         )}
 
-        <header style={styles.header}>
-          <span style={styles.logo}>✦ AI Fashion Forum</span>
-          <div style={styles.userRow}>
-            <label style={styles.speedControl}>
-              <span style={styles.speedLabel}>속도</span>
-              <select
-                style={styles.speedSelect}
-                value={timeSpeed}
-                onChange={(e) => setTimeSpeed(Number(e.target.value))}
-              >
-                <option value={1}>1x</option>
-                <option value={2}>2x</option>
-                <option value={5}>5x</option>
-                <option value={10}>10x</option>
-              </select>
-            </label>
-            <button
-              style={{
-                ...styles.autoBtn,
-                ...(isAutoRunning ? styles.autoBtnOn : styles.autoBtnOff),
-              }}
-              onClick={() => setIsAutoRunning((prev) => !prev)}
-            >
-              {isAutoRunning ? "자동 진행 중" : "자동 일시정지"}
-            </button>
-            {authUser ? (
-              <>
-                <span style={styles.userId}>👤 {authUser.displayName || authUser.username}</span>
-                <button style={styles.editBtn} onClick={handleLogout}>로그아웃</button>
-              </>
-            ) : (
-              <>
-                <span style={styles.userId}>🔒 게스트</span>
-                <button style={styles.editBtn} onClick={() => setShowAuth(true)}>로그인</button>
-              </>
-            )}
-          </div>
-        </header>
-
         {tab === "admin" ? (
-          <main style={styles.main}>
-            <section>
-              <AdminDashboard timeSpeed={timeSpeed} />
-            </section>
-          </main>
+          renderAdminShell()
         ) : (
           <>
+            <header style={styles.header}>
+              <span style={styles.logo}>✦ AI Fashion Forum</span>
+              <div style={styles.userRow}>
+                <label style={styles.speedControl}>
+                  <span style={styles.speedLabel}>속도</span>
+                  <select
+                    style={styles.speedSelect}
+                    value={timeSpeed}
+                    onChange={(e) => setTimeSpeed(Number(e.target.value))}
+                  >
+                    <option value={1}>1x</option>
+                    <option value={2}>2x</option>
+                    <option value={5}>5x</option>
+                    <option value={10}>10x</option>
+                  </select>
+                </label>
+                <button
+                  style={{
+                    ...styles.autoBtn,
+                    ...(isAutoRunning ? styles.autoBtnOn : styles.autoBtnOff),
+                  }}
+                  onClick={() => setIsAutoRunning((prev) => !prev)}
+                >
+                  {isAutoRunning ? "자동 진행 중" : "자동 일시정지"}
+                </button>
+                {authUser ? (
+                  <>
+                    <span style={styles.userId}>👤 {authUser.displayName || authUser.username}</span>
+                    <button style={styles.editBtn} onClick={handleLogout}>로그아웃</button>
+                  </>
+                ) : (
+                  <>
+                    <span style={styles.userId}>🔒 게스트</span>
+                    <button style={styles.editBtn} onClick={() => setShowAuth(true)}>로그인</button>
+                  </>
+                )}
+              </div>
+            </header>
+
             <nav style={styles.nav}>
               {SERVICE_TABS.map((tabItem) => {
                 const isActive = tab === tabItem.id;
@@ -788,6 +817,71 @@ const styles = {
     top: 0,
     zIndex: 10,
   },
+  adminHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 16,
+    padding: "18px 24px",
+    background: "linear-gradient(180deg, #0f172a 0%, #111827 100%)",
+    color: "#fff",
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
+  },
+  adminHeaderCopy: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  },
+  adminKicker: {
+    margin: 0,
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "#93c5fd",
+  },
+  adminTitle: {
+    margin: 0,
+    fontSize: 24,
+    fontWeight: 800,
+    color: "#fff",
+  },
+  adminDescription: {
+    margin: 0,
+    maxWidth: 640,
+    fontSize: 13,
+    lineHeight: 1.6,
+    color: "#cbd5e1",
+  },
+  adminHeaderAction: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+    justifyContent: "flex-end",
+  },
+  adminRouteBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "6px 10px",
+    borderRadius: 999,
+    background: "rgba(59,130,246,0.16)",
+    color: "#bfdbfe",
+    fontSize: 12,
+    fontWeight: 800,
+  },
+  adminBackBtn: {
+    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.08)",
+    color: "#fff",
+    borderRadius: 999,
+    padding: "8px 12px",
+    fontSize: 13,
+    cursor: "pointer",
+  },
   logo: { fontSize: 18, fontWeight: 700, letterSpacing: -0.5 },
   userRow: { display: "flex", alignItems: "center", gap: 8 },
   speedControl: {
@@ -857,6 +951,11 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: 20,
+  },
+  adminMain: {
+    maxWidth: 1120,
+    margin: "0 auto",
+    padding: "24px 16px",
   },
   quickActions: {
     maxWidth: 680,
