@@ -790,6 +790,10 @@ export default function ForumApp() {
                       queryParams={{ saved: "true" }}
                       requiresAuth
                       onAuthorClick={openProfile}
+                      onEmptyStateAction={() => {
+                        activateTab("forum");
+                      }}
+                      emptyStateActionLabel="포럼으로 돌아가기"
                   />
                 </section>
               ) : (

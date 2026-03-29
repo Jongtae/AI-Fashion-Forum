@@ -13,6 +13,8 @@ export default function PostList({
   onRequireAuth = () => {},
   onAuthorClick = () => {},
   onCreateFirstPost = () => {},
+  onEmptyStateAction = () => {},
+  emptyStateActionLabel = "",
   isAuthenticated = false,
   activeTagFilter = "",
   onTagFilterChange = () => {},
@@ -112,6 +114,11 @@ export default function PostList({
           {!isSavedView && (
             <button type="button" style={styles.emptyStateBtn} onClick={onCreateFirstPost}>
               글쓰기 열기
+            </button>
+          )}
+          {isSavedView && onEmptyStateAction && (
+            <button type="button" style={styles.emptyStateBtn} onClick={onEmptyStateAction}>
+              {emptyStateActionLabel || "포럼으로 돌아가기"}
             </button>
           )}
         </div>
