@@ -64,6 +64,8 @@ describe("action-state-transitions", () => {
 
       expect(result.agent.self_narrative.length).toBeGreaterThan(0);
       expect(result.agent.self_narrative[0].type).toBe("action_post");
+      expect(result.writebackRecord.summary).toMatch(/[가-힣]/);
+      expect(result.writebackRecord.summary).not.toMatch(/Posted with/i);
     });
 
     it("should cap values at 1.0", () => {
@@ -177,6 +179,8 @@ describe("action-state-transitions", () => {
       expect(result.agent.self_narrative.length).toBeGreaterThan(0);
       expect(result.agent.self_narrative[0].type).toBe("action_comment");
       expect(result.agent.self_narrative[0].disagreement).toBe(-0.3);
+      expect(result.writebackRecord.summary).toMatch(/[가-힣]/);
+      expect(result.writebackRecord.summary).not.toMatch(/Commented on/i);
     });
   });
 
@@ -277,6 +281,8 @@ describe("action-state-transitions", () => {
       expect(result.agent.self_narrative.length).toBeGreaterThan(0);
       expect(result.agent.self_narrative[0].type).toBe("action_react");
       expect(result.agent.self_narrative[0].reaction_type).toBe("support");
+      expect(result.writebackRecord.summary).toMatch(/[가-힣]/);
+      expect(result.writebackRecord.summary).not.toMatch(/engagement \+/i);
     });
   });
 
