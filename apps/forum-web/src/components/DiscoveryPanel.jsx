@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPosts } from "../api/client.js";
 import PostList from "./PostList.jsx";
+import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 
 const MODES = [
   { id: "recent", label: "최신", description: "방금 올라온 글" },
@@ -47,6 +48,28 @@ export default function DiscoveryPanel({
     () => deriveTopTopics(recentPostsData?.posts ?? []),
     [recentPostsData]
   );
+  const discoveryCards = [
+    {
+      label: "탐색 모드",
+      value: MODES.find((item) => item.id === mode)?.label || mode,
+      description: "최근/인기/검색 중 무엇으로 고르는지 보여줍니다.",
+    },
+    {
+      label: "주제 수",
+      value: topTopics.length,
+      description: "어떤 주제가 지금 이 공간을 움직이는지 보여줍니다.",
+    },
+    {
+      label: "검색",
+      value: searchText.trim() || "—",
+      description: "탐색 의도가 무엇인지 드러냅니다.",
+    },
+    {
+      label: "선택의 흔적",
+      value: topicFilter || "—",
+      description: "태그를 통해 어떤 맥락을 열어봤는지 보여줍니다.",
+    },
+  ];
 
   const queryParams = useMemo(() => {
     const params = {};
@@ -57,12 +80,23 @@ export default function DiscoveryPanel({
 
   return (
     <div style={styles.layout}>
+      <IdentityLoopSummary
+        kicker="discovery"
+        title="탐색은 무엇을 읽을지 고르는 행위입니다"
+        subtitle="이 공간은 인기글을 모으는 페이지가 아니라, 어떤 주제를 열고 어떤 콘텐츠를 선택할지 정하는 출발점이어야 합니다."
+        cards={discoveryCards}
+        notes={[
+          "검색과 태그 선택은 단순 필터가 아니라 소비 경로의 선언입니다.",
+          "여기서 고른 글이 이후 반응과 관계 기록으로 이어집니다.",
+        ]}
+      />
+
       <section style={styles.hero}>
         <div style={styles.heroCopy}>
           <p style={styles.kicker}>발견 허브</p>
-          <h2 style={styles.title}>Threads와 Reddit 사이의 핵심 탐색 흐름을 모아둔 곳</h2>
+          <h2 style={styles.title}>무엇을 볼지 고르는 핵심 탐색 흐름</h2>
           <p style={styles.description}>
-            검색하고, 인기 글을 훑고, 저장한 글을 다시 보고, 작성자 프로필에서 연속된 대화를 확인할 수 있습니다.
+            검색하고, 인기 글을 훑고, 저장하고, 작성자 프로필에서 이어진 반응의 흐름을 확인할 수 있습니다.
           </p>
         </div>
 

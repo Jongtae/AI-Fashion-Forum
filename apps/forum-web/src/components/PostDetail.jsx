@@ -2,6 +2,7 @@ import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchPost, toggleLike, deletePost, savePost, unsavePost } from "../api/client.js";
 import CommentSection from "./CommentSection.jsx";
+import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 import { localizeLabel } from "../lib/localized-labels.js";
 import { sharePostLink } from "../lib/post-sharing.js";
 
@@ -155,9 +156,42 @@ export default function PostDetail({
   const isLiked = post.likedBy?.includes(currentUser.id);
   const canDelete = post.authorId === currentUser.id;
   const isSaved = Boolean(post.savedByCurrentUser);
+  const summaryCards = [
+    {
+      label: "선택한 글",
+      value: post._id?.split(":").slice(-1)[0] || postId,
+      description: "이 화면은 사용자가 직접 열어본 콘텐츠의 착지점입니다.",
+    },
+    {
+      label: "좋아요",
+      value: post.likes ?? 0,
+      description: "좋아요와 저장은 다음 노출과 관계를 바꿉니다.",
+    },
+    {
+      label: "댓글",
+      value: post.commentCount || 0,
+      description: "댓글은 반응이 다시 사회적 맥락으로 돌아오는 지점입니다.",
+    },
+    {
+      label: "작성자",
+      value: post.authorId,
+      description: post.authorType === "agent" ? "agent가 만든 선택 결과입니다." : "사람이 만든 선택 결과입니다.",
+    },
+  ];
 
   return (
     <div style={styles.container}>
+      <IdentityLoopSummary
+        kicker="detail view"
+        title="선택한 글은 반응과 관계 변화의 출발점입니다"
+        subtitle="콘텐츠 상세는 단순 읽기 화면이 아니라, 내가 무엇을 선택했고 어떤 반응을 남겼는지 기록으로 남는 곳이어야 합니다."
+        cards={summaryCards}
+        notes={[
+          "좋아요, 저장, 공유, 댓글은 모두 다음 추천과 관계 상태에 영향을 줍니다.",
+          "댓글에 달리는 반응은 다시 캐릭터의 톤과 자기서사에 누적됩니다.",
+        ]}
+      />
+
       <div style={styles.header}>
         <button
           onClick={() => {
