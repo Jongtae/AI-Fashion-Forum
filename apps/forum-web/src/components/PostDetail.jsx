@@ -44,6 +44,16 @@ export default function PostDetail({
   const queryClient = useQueryClient();
   const [shareState, setShareState] = React.useState({ status: "idle", message: "" });
 
+  React.useEffect(() => {
+    if (shareState.status === "idle") return undefined;
+
+    const timerId = window.setTimeout(() => {
+      setShareState({ status: "idle", message: "" });
+    }, 2200);
+
+    return () => window.clearTimeout(timerId);
+  }, [shareState.status]);
+
   const { data: post, isLoading, isError, error } = useQuery({
     queryKey: ["post", postId, currentUser.id],
     queryFn: () => fetchPost(postId),

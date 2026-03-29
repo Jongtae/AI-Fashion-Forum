@@ -48,6 +48,16 @@ export default function PostCard({
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    if (shareState.status === "idle") return undefined;
+
+    const timerId = window.setTimeout(() => {
+      setShareState({ status: "idle", message: "" });
+    }, 2200);
+
+    return () => window.clearTimeout(timerId);
+  }, [shareState.status]);
+
+  useEffect(() => {
     setSavedState(Boolean(post.savedByCurrentUser));
   }, [post._id, post.savedByCurrentUser]);
 
