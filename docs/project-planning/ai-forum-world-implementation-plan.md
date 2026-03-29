@@ -46,6 +46,20 @@ Not required.
 - Confirm the updated UI copy on feed, detail, profile, comments, replay, and operator surfaces
 - Confirm no layout or import errors are introduced
 
+### Non-goals
+
+- Do not turn the UI into a generic social feed with a new label layer
+- Do not make posting volume the primary measure of identity growth
+- Do not hide the difference between passive exposure and deliberate selection
+- Do not collapse comments, reactions, and consumption into a single event type
+
+### Review gates
+
+- Can a reviewer trace a character change from exposure to selection to reaction to writeback?
+- Can a reviewer tell whether the UI is consumption-first rather than write-first?
+- Can a reviewer see the same framing across feed, detail, profile, comments, replay, and operator surfaces?
+- Can the build run cleanly after these changes?
+
 ## Proposed pull request draft
 
 ### Title
