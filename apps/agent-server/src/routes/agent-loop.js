@@ -225,7 +225,7 @@ router.post("/tick", async (req, res) => {
 
       if (!writeForumArtifacts) {
         artifactResults.set(entry.action_id, {
-          executionStatus: "skipped",
+          executionStatus: "blocked",
           blockReason: "forum_writeback_disabled",
           artifactType: "post",
           generationContext: artifactResults.get(entry.action_id)?.generationContext ?? null,
@@ -314,7 +314,7 @@ router.post("/tick", async (req, res) => {
 
           if (!writeForumArtifacts) {
             artifactResults.set(entry.action_id, {
-              executionStatus: "skipped",
+              executionStatus: "blocked",
               blockReason: "forum_writeback_disabled",
               artifactType: "comment",
             });
