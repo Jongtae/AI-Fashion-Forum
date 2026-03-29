@@ -13,6 +13,17 @@ function normalizeText(value) {
   return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
 }
 
+function attachObjectParticle(value) {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return "";
+  }
+
+  const lastCharCode = normalized.charCodeAt(normalized.length - 1) - 0xac00;
+  const hasFinalConsonant = lastCharCode >= 0 && lastCharCode <= 11171 && lastCharCode % 28 !== 0;
+  return `${normalized}${hasFinalConsonant ? "을" : "를"}`;
+}
+
 function summarizeContentRecord(contentRecord = {}) {
   const title = normalizeText(contentRecord.title) || "스레드";
   const topics = Array.isArray(contentRecord.topics) && contentRecord.topics.length
@@ -200,6 +211,7 @@ function buildOpenAIPrompt({
     '형식은 {"contexts":[{"context_id":"...","context_label":"...","angle":"...","content":"...","tone":"..."}]} 이다.',
     "contexts는 정확히 4개를 권장하며, 각 항목은 서로 다른 맥락과 다른 문장 흐름을 가져야 한다.",
     "content는 한글 자연문으로, 커뮤니티 글처럼 읽혀야 하며 너무 과장된 템플릿 문구를 반복하지 말아라.",
+    "댓글인 경우에는 실제 커뮤니티 댓글처럼 간결하고 구어체로 쓰고, '이 에이전트가' 같은 메타 설명은 쓰지 마라.",
     "같은 제목 구조나 같은 문장 시작을 반복하지 말고, 생활 리듬, 가격/손익, 신호 읽기, 관계/정체성 같은 서로 다른 관점으로 분기해라.",
     `작성자: ${agentHandle || "agent"}`,
     `대상 글 제목: ${sourceTitle || "스레드"} / 본문에서는 "${promptTitle}"처럼 한국어로 재해석해라.`,
@@ -238,7 +250,9 @@ function buildFallbackContexts({
     : "일반 포럼 신호";
   const baseSignal = localizeSourceLabel(sourceSignal, "이 신호");
   const actorLabel = "이 에이전트";
-  const sourceCommentText = localizeSourceLabel(sourceCommentPreview, "이 답글 대상");
+  const sourceCommentLabel = isKoreanDominant(sourceCommentPreview)
+    ? normalizeText(sourceCommentPreview)
+    : "앞선 댓글";
   const localizedContentRecord = {
     ...(contentRecord || {}),
     title: displayTitle,
@@ -251,34 +265,34 @@ function buildFallbackContexts({
   };
 
   if (mode === "comment") {
-    const replyTarget = replyTargetType === "comment" ? "다른 댓글" : "게시글 본문";
+    const replyTargetLabel = replyTargetType === "comment" ? "다른 댓글" : "게시글 본문";
     return [
       {
         contextId: "reply-continue",
         contextLabel: "답장 이어가기",
         angle: "상대의 말을 받아서 대화를 이어가는 반응",
-        content: `${actorLabel}가 ${replyTarget}에 대한 반응을 이어가며 ${displayTitle}을/를 한국어 댓글로 정리한다. ${sourceCommentText}를 기준으로 대화의 흐름을 자연스럽게 잇는다.`,
+        content: `맞아요, ${replyTargetLabel} 흐름이 꽤 중요해 보여요. ${displayTitle}에서 읽힌 ${topics} 신호를 같이 보면 대화가 자연스럽게 이어집니다. ${attachObjectParticle(sourceCommentLabel)} 다시 보면서 한 번 더 정리해봤어요.`,
         tone: "대화형",
       },
       {
         contextId: "reply-question",
         contextLabel: "질문 던지기",
         angle: "상대의 판단 기준을 더 묻는 반응",
-        content: `${actorLabel}가 ${replyTarget}을/를 읽고 한 번 더 질문을 던진다. ${baseSignal}를 바탕으로 ${topics}를 더 확인하는 한국어 댓글을 남긴다.`,
+        content: `저는 지금 흐름을 읽고 나서 오히려 한 번 더 묻고 싶어졌어요. ${baseSignal}를 바탕으로 ${topics}를 조금 더 확인해 보면 좋겠습니다.`,
         tone: "호기심 있는",
       },
       {
         contextId: "reply-nuance",
         contextLabel: "보완 의견",
         angle: "부드럽게 다른 관점을 보태는 반응",
-        content: `${actorLabel}가 ${replyTarget}에 대해 조심스럽게 다른 시각을 더한다. ${displayTitle}에서 보인 ${topics} 신호를 다시 읽으며 균형 있게 의견을 붙인다.`,
+        content: `다르게 보면 ${displayTitle}에서 보인 ${topics} 신호가 더 핵심일 수 있어요. ${replyTargetLabel}만 봤을 때보다 전체 흐름을 같이 보면 해석이 달라집니다.`,
         tone: "조심스러운",
       },
       {
         contextId: "reply-thread",
         contextLabel: "스레드 연결",
         angle: "댓글과 게시글을 다시 이어 붙이는 반응",
-        content: `${actorLabel}가 ${replyTarget}와 ${displayTitle}을 함께 읽으며 스레드의 맥락을 더 넓힌다. ${baseSignal}을 중심으로 커뮤니티 대화를 다시 묶는다.`,
+        content: `이 얘기는 댓글과 글을 함께 보면 더 또렷해져요. ${baseSignal}을 중심으로 보면 커뮤니티 대화가 자연스럽게 이어집니다.`,
         tone: "관찰적인",
       },
     ];
@@ -480,6 +494,8 @@ async function resolvePostDraft({
         sourceTopics,
         sourceSnippet,
         sourceSignal,
+        sourceCommentPreview,
+        replyTargetType,
         model: null,
         contextCount: fallbackPool.length,
         mode,

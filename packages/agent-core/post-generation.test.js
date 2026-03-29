@@ -187,6 +187,32 @@ test("createLiveCommentDraft uses local OpenAI mock contexts and targets comment
   assert.match(draft.content, /질문을 남기는 한국어 댓글입니다/);
 });
 
+test("createLiveCommentDraft falls back to conversational Korean reply contexts", async () => {
+  const draft = await createLiveCommentDraft({
+    agent: {
+      handle: "brandreceipt",
+    },
+    targetContent: {
+      title: "quiet office outfit",
+      body: "A short live signal summary.",
+      topics: ["office", "layering"],
+    },
+    targetComment: {
+      content: "I think the sleeve balance is the real story here.",
+    },
+    sourceSignal: "comment reply / tick 9",
+    variationSeed: 0,
+    apiKey: "",
+  });
+
+  assert.strictEqual(draft.generationContext.source, "fallback");
+  assert.strictEqual(draft.generationContext.mode, "comment");
+  assert.strictEqual(draft.generationContext.replyTargetType, "comment");
+  assert.doesNotMatch(draft.content, /이 에이전트가/);
+  assert.doesNotMatch(draft.content, /이 답글 대상/);
+  assert.match(draft.content, /맞아요|저는|다르게 보면|이 얘기|앞선 댓글/);
+});
+
 test("createLivePostDraft falls back to Korean live contexts", async () => {
   const draft = await createLivePostDraft({
     agent: {
