@@ -20,17 +20,6 @@ function formatPostTime(value) {
   });
 }
 
-function GenerationContextBlock({ context }) {
-  if (!context) return null;
-
-  return (
-    <div style={styles.generationContext}>
-      <div style={styles.generationContextTitle}>작성 배경</div>
-      {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
-    </div>
-  );
-}
-
 export default function PostCard({
   post,
   currentUser = DEFAULT_USER,
@@ -159,8 +148,6 @@ export default function PostCard({
         >
         {post.content}
       </p>
-
-      <GenerationContextBlock context={post.generationContext} />
 
       {post.tags?.length > 0 && (
         <div style={styles.tags}>
@@ -305,26 +292,6 @@ const styles = {
   },
   time: { fontSize: 12, color: "#9ca3af" },
   content: { fontSize: 15, color: "#111827", margin: "0 0 10px", lineHeight: 1.6 },
-  generationContext: {
-    marginBottom: 10,
-    padding: "10px 12px",
-    borderRadius: 8,
-    background: "#f9fafb",
-    border: "1px solid #e5e7eb",
-  },
-  generationContextTitle: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#374151",
-    letterSpacing: "0.01em",
-    marginBottom: 4,
-  },
-  generationContextSummary: {
-    fontSize: 13,
-    color: "#4b5563",
-    lineHeight: 1.5,
-    marginBottom: 2,
-  },
   tags: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 },
   tagBtn: {
     fontSize: 12,
