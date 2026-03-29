@@ -18,7 +18,15 @@ import {
   SAMPLE_STATE_SNAPSHOT,
   createStateSnapshot,
 } from "@ai-fashion-forum/shared-types";
+import {
+  createSpawnedAgentState,
+} from "../lib/agent-state.js";
 import { SimEvent } from "../models/SimEvent.js";
+import {
+  buildPopulationGrowthPlan,
+  DEFAULT_INITIAL_AGENT_COUNT,
+} from "../lib/population-growth.js";
+import { buildAgentEvolutionTimeline } from "../lib/agent-evolution.js";
 
 const router = Router();
 
@@ -162,11 +170,41 @@ router.post("/", async (req, res) => {
     tickCount: ticks,
     initialState: JSON.parse(JSON.stringify(SAMPLE_STATE_SNAPSHOT)),
     worldRules: createBaselineWorldRules(),
+    spawnAgent: ({ world, tick: currentTick }) => {
+      const growthPlan = buildPopulationGrowthPlan({
+        currentCount: world.state.agents.length,
+        elapsedTicks: currentTick,
+        initialCount: DEFAULT_INITIAL_AGENT_COUNT,
+      });
+
+      if (!growthPlan.shouldSpawn) {
+        return null;
+      }
+
+      return {
+        ...createSpawnedAgentState({
+          existingAgents: world.state.agents,
+          seed,
+          round: 1,
+          tick: currentTick,
+          spawnIndex: world.state.agents.length - DEFAULT_INITIAL_AGENT_COUNT,
+        }),
+      };
+    },
   });
 
   // ── Step 5: Evaluation metrics ────────────────────────────────────────────
   const tickMetrics = computeTickLevelMetrics(tickResult);
-  const agentConsistency = runtime.state.agents.map((agent) => ({
+  const finalAgents = tickResult.finalState?.agents || runtime.state.agents;
+  const growthPlan = buildPopulationGrowthPlan({
+    currentCount: finalAgents.length,
+    elapsedTicks: ticks,
+    initialCount: DEFAULT_INITIAL_AGENT_COUNT,
+  });
+  const agentEvolution = buildAgentEvolutionTimeline({
+    snapshots: tickResult.snapshots,
+  });
+  const agentConsistency = finalAgents.map((agent) => ({
     agent_id: agent.agent_id,
     handle: agent.handle,
     consistency_score: computeAgentConsistencyScore(agent, tickResult.entries),
@@ -200,6 +238,16 @@ router.post("/", async (req, res) => {
     tickMetrics,
     agentConsistency,
     sprint1Verdicts,
+    agentGrowth: {
+      initialCount: DEFAULT_INITIAL_AGENT_COUNT,
+      currentCount: finalAgents.length,
+      desiredCount: growthPlan.desiredCount,
+      growthInterval: growthPlan.growthInterval,
+      maxCount: growthPlan.maxCount,
+      growthStage: growthPlan.growthStage,
+      ticksUntilNextSpawn: growthPlan.ticksUntilNextSpawn,
+    },
+    agentEvolution,
   });
 
   // ── Step 7: Replay export ─────────────────────────────────────────────────
@@ -208,13 +256,15 @@ router.post("/", async (req, res) => {
     seed,
     ticks,
     created_at: createdAt,
-    agents: runtime.state.agents.map((a) => ({
+    agents: finalAgents.map((a) => ({
       agent_id: a.agent_id,
       handle: a.handle,
       archetype: a.archetype,
       mutable_state: a.mutable_state ?? null,
       self_narrative: a.self_narrative ?? [],
     })),
+    agent_growth: report.agent_growth,
+    agent_evolution: agentEvolution,
     exposures: Object.fromEntries(
       Object.entries(exposureByAgent).map(([id, s]) => [
         id,
@@ -262,6 +312,8 @@ router.post("/", async (req, res) => {
     report_file: reportFile,
     report: report.metrics,
     sprint1_verdicts: sprint1Verdicts,
+    agent_growth: report.agent_growth,
+    agent_evolution: agentEvolution,
   });
 });
 

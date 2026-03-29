@@ -140,7 +140,7 @@ export function createSpawnedAgentState({
       rivalry_edges: 0,
     },
     self_narrative: [
-      `I joined on tick ${tick} and am still finding my voice.`,
+      `${tick}틱에 합류했고, 아직 자기 목소리를 다듬는 중이다.`,
     ],
   });
 }

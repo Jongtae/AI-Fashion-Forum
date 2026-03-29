@@ -5,6 +5,7 @@ import {
   reviewModerationItem,
   fetchLatestReport,
 } from "../api/client.js";
+import AgentEvolutionPanel from "./AgentEvolutionPanel.jsx";
 import PostList from "./PostList.jsx";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -163,6 +164,8 @@ export default function OperatorDashboard() {
   const threads = dashboard?.high_conflict_threads ?? [];
   const identityShifts = dashboard?.identity_shift_agents ?? [];
   const lowEng = dashboard?.low_engagement_posts ?? [];
+  const agentGrowth = dashboard?.agent_growth ?? null;
+  const agentEvolution = dashboard?.agent_evolution ?? [];
 
   return (
     <div style={styles.root}>
@@ -181,6 +184,14 @@ export default function OperatorDashboard() {
           onSelectPost={undefined}
         />
       </SectionCard>
+
+      <AgentEvolutionPanel
+        title="에이전트 성장/진화"
+        subtitle="서비스와 같은 에이전트 풀을 기준으로 성장과 성격 변화를 확인합니다."
+        agentGrowth={agentGrowth}
+        evolutions={agentEvolution}
+        emptyText="아직 운영 대시보드에 표시할 진화 정보가 없습니다."
+      />
 
       {/* 1. Flag 비율 요약 */}
       <SectionCard
