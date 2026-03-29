@@ -149,8 +149,52 @@ function EvaluationPanel({ evaluation }) {
   );
 }
 
+function ContinuityCard({ evaluation, onOpenReplay }) {
+  const verdicts = evaluation?.verdicts;
+  const detail = verdicts?.detail || {};
+
+  return (
+    <div style={styles.continuityCard}>
+      <div style={styles.continuityHeader}>
+        <div>
+          <div style={styles.continuityKicker}>연결 보기</div>
+          <div style={styles.continuityTitle}>같은 자극의 replay로 이어보기</div>
+        </div>
+        {onOpenReplay && (
+          <button style={styles.continuityButton} onClick={onOpenReplay}>
+            Replay Viewer 열기
+          </button>
+        )}
+      </div>
+      <div style={styles.continuityText}>
+        이 요약에서 본 의미 프레임과 스탠스 신호를 실제 replay와 나란히 볼 수 있습니다.
+      </div>
+      {detail.postCount != null && (
+        <div style={styles.continuityMeta}>
+          <span>포스트 수: {detail.postCount}</span>
+          <span>의미 프레임: {detail.meaningFrames?.length || 0}개</span>
+          <span>스탠스 신호: {detail.stanceSignals?.length || 0}개</span>
+        </div>
+      )}
+      {verdicts && (
+        <div style={styles.continuityChips}>
+          <span style={styles.continuityChip}>
+            발산 가독성 {verdicts.divergence_legible ? "충족" : "미충족"}
+          </span>
+          <span style={styles.continuityChip}>
+            추적 완전성 {verdicts.traceability_complete ? "충족" : "미충족"}
+          </span>
+          <span style={styles.continuityChip}>
+            자극 일관성 {verdicts.shared_stimulus_consistent ? "충족" : "미충족"}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main panel ────────────────────────────────────────────────────────────────
-export default function Sprint1ReplayPanel() {
+export default function Sprint1ReplayPanel({ onOpenReplay }) {
   const { data: postData, isLoading: postsLoading, error: postsError } = useQuery({
     queryKey: ["sprint1-forum-posts"],
     queryFn: fetchSprint1ForumPosts,
@@ -186,6 +230,8 @@ export default function Sprint1ReplayPanel() {
   return (
     <div style={styles.root}>
       <div style={styles.panelTitle}>Sprint 1 — Identity Drift Replay</div>
+
+      <ContinuityCard evaluation={evalData} onOpenReplay={onOpenReplay} />
 
       <EvaluationPanel evaluation={evalData} />
 
@@ -259,6 +305,71 @@ const styles = {
     gap: 12,
     fontSize: 11,
     color: "#64748b",
+  },
+
+  continuityCard: {
+    background: "linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%)",
+    border: "1px solid #bfdbfe",
+    borderRadius: 10,
+    padding: 14,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  continuityHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "start",
+    gap: 12,
+  },
+  continuityKicker: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#2563eb",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+  },
+  continuityTitle: {
+    fontSize: 15,
+    fontWeight: 700,
+    color: "#1e3a8a",
+    marginTop: 2,
+  },
+  continuityButton: {
+    border: "none",
+    borderRadius: 999,
+    background: "#1d4ed8",
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: 700,
+    padding: "8px 12px",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  continuityText: {
+    fontSize: 13,
+    color: "#334155",
+    lineHeight: 1.6,
+  },
+  continuityMeta: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 12,
+    fontSize: 11,
+    color: "#64748b",
+  },
+  continuityChips: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  continuityChip: {
+    fontSize: 11,
+    borderRadius: 999,
+    padding: "4px 10px",
+    background: "#dbeafe",
+    color: "#1d4ed8",
+    fontWeight: 600,
   },
 
   // Agent post card

@@ -26,7 +26,6 @@ const SECTIONS = [
 
 export default function AdminDashboard({ timeSpeed = 1 }) {
   const [activeSection, setActiveSection] = useState("home");
-  const activeSectionMeta = SECTIONS.find((section) => section.id === activeSection) || null;
 
   function renderHome() {
     return (
@@ -106,8 +105,15 @@ export default function AdminDashboard({ timeSpeed = 1 }) {
       <div style={styles.panel}>
         {activeSection === "home" && renderHome()}
         {activeSection === "operator" && <OperatorDashboard />}
-        {activeSection === "replay" && <RunReplayViewer timeSpeed={timeSpeed} />}
-        {activeSection === "sprint1" && <Sprint1ReplayPanel />}
+        {activeSection === "replay" && (
+          <RunReplayViewer
+            timeSpeed={timeSpeed}
+            onOpenSprint1={() => setActiveSection("sprint1")}
+          />
+        )}
+        {activeSection === "sprint1" && (
+          <Sprint1ReplayPanel onOpenReplay={() => setActiveSection("replay")} />
+        )}
       </div>
     </div>
   );
