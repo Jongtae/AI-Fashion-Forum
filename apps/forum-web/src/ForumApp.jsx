@@ -39,6 +39,7 @@ export default function ForumApp() {
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [activeTagFilter, setActiveTagFilter] = useState("");
   const [composerOpen, setComposerOpen] = useState(false);
+  const [hasForumActivity, setHasForumActivity] = useState(false);
   const [timeSpeed, setTimeSpeed] = useState(1);
   const [isAutoRunning, setIsAutoRunning] = useState(true);
   const autoTickInFlightRef = useRef(false);
@@ -50,6 +51,7 @@ export default function ForumApp() {
 
   function handleAuthSuccess(user) {
     setAuthUser(user);
+    setHasForumActivity(true);
     setShowAuth(false);
   }
 
@@ -70,8 +72,13 @@ export default function ForumApp() {
     setComposerOpen((prev) => !prev);
   }
 
+  function markForumActivity() {
+    setHasForumActivity(true);
+  }
+
   function openTagFilter(tag) {
     if (!tag) return;
+    markForumActivity();
     setTab("forum");
     setSelectedPostId(null);
     setActiveTagFilter(tag);
@@ -191,6 +198,7 @@ export default function ForumApp() {
                     postId={selectedPostId}
                     currentUser={currentUser}
                     onBack={() => setSelectedPostId(null)}
+                    onUserActivity={markForumActivity}
                     onTagClick={openTagFilter}
                   />
                 ) : (
@@ -200,15 +208,18 @@ export default function ForumApp() {
                         <div>
                           <p style={styles.composerTitle}>글쓰기</p>
                           <p style={styles.composerHint}>
-                            포럼 상단을 덜 차지하는 compact 진입점입니다.
+                            {hasForumActivity || authUser
+                              ? "포럼 상호작용 이후 열리는 compact 진입점입니다."
+                              : "댓글·반응·로그인 이후에 활성화됩니다."}
                           </p>
                         </div>
                         <button
                           style={{
                             ...styles.composerBtn,
-                            ...styles.composerBtnActive,
+                            ...(hasForumActivity || authUser ? styles.composerBtnActive : styles.composerBtnDisabled),
                           }}
                           onClick={toggleComposerOpen}
+                          disabled={!(hasForumActivity || authUser)}
                         >
                           {composerOpen ? "글쓰기 닫기" : "글쓰기 열기"}
                         </button>
@@ -220,27 +231,33 @@ export default function ForumApp() {
                       )}
                     </section>
                     <section style={styles.feedSection}>
-                      <PostList
-                        currentUser={currentUser}
-                        activeTagFilter={activeTagFilter}
-                        onTagFilterChange={setActiveTagFilter}
-                        onSelectPost={(postId) => {
-                          setSelectedPostId(postId);
-                        }}
-                        onTagClick={openTagFilter}
-                      />
+                        <PostList
+                          currentUser={currentUser}
+                          onUserActivity={markForumActivity}
+                          activeTagFilter={activeTagFilter}
+                          onTagFilterChange={setActiveTagFilter}
+                          onSelectPost={(postId) => {
+                            setSelectedPostId(postId);
+                            markForumActivity();
+                          }}
+                          onTagClick={openTagFilter}
+                        />
                     </section>
                   </>
                 )
               ) : tab === "feed" ? (
                 <section>
-                  <PersonalisedFeed currentUser={currentUser} timeSpeed={timeSpeed} />
+                  <PersonalisedFeed
+                    currentUser={currentUser}
+                    timeSpeed={timeSpeed}
+                    onUserActivity={markForumActivity}
+                  />
                 </section>
               ) : (
                 <section style={styles.placeholderCard}>
-                  <p style={styles.placeholderTitle}>운영 도구는 `/admin` 경로로 분리했습니다.</p>
+                  <p style={styles.placeholderTitle}>관리 화면은 `/admin` 경로에서 볼 수 있어요.</p>
                   <p style={styles.placeholderText}>
-                    서비스 화면에서는 포럼과 맞춤 피드만 제공합니다.
+                    서비스 화면에서는 포럼과 맞춤 피드만 보여드려요.
                   </p>
                 </section>
               )}
@@ -373,6 +390,11 @@ const styles = {
   composerBtnActive: {
     background: "#111827",
     color: "#fff",
+  },
+  composerBtnDisabled: {
+    background: "#e5e7eb",
+    color: "#9ca3af",
+    cursor: "not-allowed",
   },
   composerPanel: {
     marginTop: 2,
