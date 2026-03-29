@@ -72,6 +72,75 @@ function requireUserAuth(req, res, expectedUsername = null) {
   return authedUsername;
 }
 
+async function loadSavedBookmarkMap(actorId, targetIds = []) {
+  const query = {
+    actorId,
+    actorType: "user",
+    targetType: "post",
+    eventType: "bookmark",
+  };
+
+  if (Array.isArray(targetIds) && targetIds.length > 0) {
+    query.targetId = { $in: targetIds.map((id) => String(id)) };
+  }
+
+  const bookmarks = await Interaction.find(query).sort({ createdAt: -1 }).lean();
+  const bookmarkMap = new Map();
+
+  for (const bookmark of bookmarks) {
+    const key = String(bookmark.targetId);
+    if (!bookmarkMap.has(key)) {
+      bookmarkMap.set(key, bookmark);
+    }
+  }
+
+  return bookmarkMap;
+}
+
+function attachSavedState(post, savedBookmarkMap = new Map()) {
+  const postId = String(post._id);
+  const savedBookmark = savedBookmarkMap.get(postId) || null;
+
+  return {
+    ...post,
+    savedByCurrentUser: Boolean(savedBookmark),
+    savedAt: savedBookmark?.createdAt || null,
+  };
+}
+
+async function fetchSavedPostsPage(actorId, page, limit) {
+  const bookmarkMap = await loadSavedBookmarkMap(actorId);
+  const orderedIds = [];
+  const seen = new Set();
+
+  for (const bookmark of bookmarkMap.values()) {
+    const targetId = String(bookmark.targetId);
+    if (seen.has(targetId)) continue;
+    seen.add(targetId);
+    orderedIds.push(targetId);
+  }
+
+  const total = orderedIds.length;
+  const skip = (page - 1) * limit;
+  const pageIds = orderedIds.slice(skip, skip + limit);
+
+  if (!pageIds.length) {
+    return { posts: [], total };
+  }
+
+  const posts = await Post.find({ _id: { $in: pageIds } }).lean();
+  const postMap = new Map(posts.map((post) => [String(post._id), post]));
+  const pageBookmarks = new Map(pageIds.map((id) => [id, bookmarkMap.get(id)]));
+
+  return {
+    posts: pageIds
+      .map((id) => postMap.get(id))
+      .filter(Boolean)
+      .map((post) => attachSavedState(post, pageBookmarks)),
+    total,
+  };
+}
+
 // ── POST /api/posts ───────────────────────────────────────────────────────────
 
 router.post("/", async (req, res) => {
@@ -178,6 +247,26 @@ router.get("/", async (req, res) => {
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
   const tag = req.query.tag;
   const search = typeof req.query.q === "string" ? req.query.q.trim() : "";
+  const savedOnly = String(req.query.saved || "").toLowerCase() === "true";
+  const viewerId = getAuthedUsername(req);
+
+  if (savedOnly) {
+    if (!viewerId) {
+      return res.status(401).json({ error: "missing_or_invalid_token" });
+    }
+
+    const { posts, total } = await fetchSavedPostsPage(viewerId, page, limit);
+
+    return res.json({
+      posts,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  }
 
   const filter = tag ? { tags: tag } : {};
   if (search) {
@@ -191,7 +280,28 @@ router.get("/", async (req, res) => {
 
   const posts = await Post.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean();
   const total = await Post.countDocuments(filter);
-  const skip = (page - 1) * limit;
+  const savedBookmarkMap = viewerId ? await loadSavedBookmarkMap(viewerId, posts.map((post) => post._id)) : new Map();
+
+  res.json({
+    posts: posts.map((post) => attachSavedState(post, savedBookmarkMap)),
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit),
+    },
+  });
+});
+
+// ── GET /api/posts/:postId ────────────────────────────────────────────────────
+
+router.get("/saved", async (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+  const authedUsername = requireUserAuth(req, res);
+  if (!authedUsername) return;
+
+  const { posts, total } = await fetchSavedPostsPage(authedUsername, page, limit);
 
   res.json({
     posts,
@@ -204,12 +314,17 @@ router.get("/", async (req, res) => {
   });
 });
 
-// ── GET /api/posts/:postId ────────────────────────────────────────────────────
-
 router.get("/:postId", async (req, res) => {
   const post = await Post.findById(req.params.postId).lean();
   if (!post) return res.status(404).json({ error: "Post not found" });
-  res.json(post);
+
+  const viewerId = getAuthedUsername(req);
+  if (!viewerId) {
+    return res.json(post);
+  }
+
+  const savedBookmarkMap = await loadSavedBookmarkMap(viewerId, [post._id]);
+  res.json(attachSavedState(post, savedBookmarkMap));
 });
 
 // ── PUT /api/posts/:postId ────────────────────────────────────────────────────
@@ -295,6 +410,65 @@ router.post("/:postId/like", async (req, res) => {
   }
 
   res.json({ liked: !alreadyLiked, likes: post.likes });
+});
+
+// ── POST /api/posts/:postId/save ─────────────────────────────────────────────
+
+router.post("/:postId/save", async (req, res) => {
+  const authedUsername = requireUserAuth(req, res);
+  if (!authedUsername) return;
+
+  const post = await Post.findById(req.params.postId);
+  if (!post) return res.status(404).json({ error: "Post not found" });
+
+  const existingBookmark = await Interaction.findOne({
+    actorId: authedUsername,
+    actorType: "user",
+    targetId: req.params.postId,
+    targetType: "post",
+    eventType: "bookmark",
+  });
+
+  if (!existingBookmark) {
+    const bookmark = await new Interaction(
+      normalizeInteractionPayload({
+        actorId: authedUsername,
+        actorType: "user",
+        targetId: req.params.postId,
+        targetType: "post",
+        eventType: "bookmark",
+        agentId: post.authorType === "agent" ? post.authorId : undefined,
+        source: "post_save",
+      }),
+    ).save();
+
+    return res.status(201).json({
+      saved: true,
+      savedAt: bookmark.createdAt || new Date().toISOString(),
+    });
+  }
+
+  return res.json({
+    saved: true,
+    savedAt: existingBookmark.createdAt || null,
+  });
+});
+
+// ── DELETE /api/posts/:postId/save ──────────────────────────────────────────
+
+router.delete("/:postId/save", async (req, res) => {
+  const authedUsername = requireUserAuth(req, res);
+  if (!authedUsername) return;
+
+  await Interaction.deleteMany({
+    actorId: authedUsername,
+    actorType: "user",
+    targetId: req.params.postId,
+    targetType: "post",
+    eventType: "bookmark",
+  });
+
+  res.json({ saved: false, postId: req.params.postId });
 });
 
 // ── POST /api/posts/:postId/comments ─────────────────────────────────────────

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deletePost, toggleLike } from "../api/client.js";
+import { deletePost, savePost, toggleLike, unsavePost } from "../api/client.js";
 import CommentSection from "./CommentSection.jsx";
 import { localizeLabel } from "../lib/localized-labels.js";
 
@@ -36,16 +36,32 @@ export default function PostCard({
   onSelectPost,
   onUserActivity = () => {},
   onTagClick = () => {},
+  onRequireAuth = () => {},
+  isAuthenticated = false,
   readOnly = false,
 }) {
   const [showComments, setShowComments] = useState(false);
+  const [savedState, setSavedState] = useState(Boolean(post.savedByCurrentUser));
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setSavedState(Boolean(post.savedByCurrentUser));
+  }, [post._id, post.savedByCurrentUser]);
 
   const likeMutation = useMutation({
     mutationFn: () => toggleLike(post._id, currentUser.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       queryClient.invalidateQueries({ queryKey: ["operator-dashboard"] });
+    },
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: () => (savedState ? unsavePost(post._id) : savePost(post._id)),
+    onSuccess: (result) => {
+      setSavedState(Boolean(result?.saved));
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["post", post._id] });
     },
   });
 
@@ -122,6 +138,23 @@ export default function PostCard({
               disabled={likeMutation.isPending}
             >
               {isLiked ? "♥" : "♡"} {post.likes}
+            </button>
+            <button
+              onClick={() => {
+                onUserActivity();
+                if (!isAuthenticated) {
+                  onRequireAuth();
+                  return;
+                }
+                saveMutation.mutate();
+              }}
+              style={{
+                ...styles.actionBtn,
+                color: savedState ? "#0f766e" : "#6b7280",
+              }}
+              disabled={saveMutation.isPending}
+            >
+              {savedState ? "🔖 저장됨" : "📌 저장"}
             </button>
             <button
               onClick={() => {

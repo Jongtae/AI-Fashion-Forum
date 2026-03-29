@@ -43,6 +43,7 @@ export default function ForumApp() {
   const [hasForumActivity, setHasForumActivity] = useState(false);
   const [timeSpeed, setTimeSpeed] = useState(1);
   const [isAutoRunning, setIsAutoRunning] = useState(true);
+  const [pendingTab, setPendingTab] = useState(null);
   const autoTickInFlightRef = useRef(false);
 
   // currentUser: 로그인 시 JWT 사용자, 미로그인 시 guest
@@ -54,12 +55,18 @@ export default function ForumApp() {
     setAuthUser(user);
     setHasForumActivity(true);
     setShowAuth(false);
+    if (pendingTab) {
+      setTab(pendingTab);
+      setPendingTab(null);
+    }
   }
 
   function handleLogout() {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
     setAuthUser(null);
+    setPendingTab(null);
+    setTab("forum");
     queryClient.clear();
   }
 
@@ -88,6 +95,17 @@ export default function ForumApp() {
   function openPost(postId) {
     setSelectedPostId(postId);
     setTab("forum");
+  }
+
+  function openSavedPosts() {
+    setSelectedPostId(null);
+    if (!authUser) {
+      setPendingTab("saved");
+      setShowAuth(true);
+      return;
+    }
+    setTab("saved");
+    setSelectedPostId(null);
   }
 
   useEffect(() => {
@@ -132,7 +150,13 @@ export default function ForumApp() {
     <QueryClientProvider client={queryClient}>
       <div style={styles.root}>
         {showAuth && (
-          <AuthModal onSuccess={handleAuthSuccess} onClose={() => setShowAuth(false)} />
+          <AuthModal
+            onSuccess={handleAuthSuccess}
+            onClose={() => {
+              setPendingTab(null);
+              setShowAuth(false);
+            }}
+          />
         )}
 
         <header style={styles.header}>
@@ -201,6 +225,12 @@ export default function ForumApp() {
               >
                 맞춤 피드
               </button>
+              <button
+                style={{ ...styles.tabBtn, ...(tab === "saved" ? styles.tabActive : {}) }}
+                onClick={openSavedPosts}
+              >
+                저장글
+              </button>
             </nav>
 
             <main style={styles.main}>
@@ -212,6 +242,8 @@ export default function ForumApp() {
                     onBack={() => setSelectedPostId(null)}
                     onUserActivity={markForumActivity}
                     onTagClick={openTagFilter}
+                    onRequireAuth={() => setShowAuth(true)}
+                    isAuthenticated={Boolean(authUser)}
                   />
                 ) : (
                   <>
@@ -243,7 +275,7 @@ export default function ForumApp() {
                       )}
                     </section>
                     <section style={styles.feedSection}>
-                          <PostList
+                      <PostList
                           currentUser={currentUser}
                           onUserActivity={markForumActivity}
                           activeTagFilter={activeTagFilter}
@@ -253,6 +285,8 @@ export default function ForumApp() {
                             openPost(postId);
                           }}
                           onTagClick={openTagFilter}
+                          onRequireAuth={() => setShowAuth(true)}
+                          isAuthenticated={Boolean(authUser)}
                         />
                     </section>
                   </>
@@ -266,6 +300,8 @@ export default function ForumApp() {
                     onTagClick={(tag) => {
                       if (tag) setActiveTagFilter(tag);
                     }}
+                    onRequireAuth={() => setShowAuth(true)}
+                    isAuthenticated={Boolean(authUser)}
                   />
                 </section>
               ) : tab === "feed" ? (
@@ -274,6 +310,33 @@ export default function ForumApp() {
                     currentUser={currentUser}
                     timeSpeed={timeSpeed}
                     onUserActivity={markForumActivity}
+                    onRequireAuth={() => setShowAuth(true)}
+                    isAuthenticated={Boolean(authUser)}
+                  />
+                </section>
+              ) : tab === "saved" ? (
+                <section style={styles.savedSection}>
+                  <div style={styles.savedHero}>
+                    <p style={styles.savedKicker}>저장한 글</p>
+                    <h2 style={styles.savedTitle}>나중에 다시 볼 글을 모아두는 공간</h2>
+                    <p style={styles.savedText}>
+                      마음에 든 글을 저장해 두고, 다시 돌아와서 이어 읽을 수 있습니다.
+                    </p>
+                  </div>
+                  <PostList
+                    currentUser={currentUser}
+                    onUserActivity={markForumActivity}
+                    onSelectPost={(postId) => {
+                      markForumActivity();
+                      openPost(postId);
+                    }}
+                    onTagClick={openTagFilter}
+                    onRequireAuth={() => setShowAuth(true)}
+                    isAuthenticated={Boolean(authUser)}
+                    activeTagFilter={activeTagFilter}
+                    onTagFilterChange={setActiveTagFilter}
+                    queryParams={{ saved: "true" }}
+                    requiresAuth
                   />
                 </section>
               ) : (
@@ -423,6 +486,37 @@ const styles = {
     marginTop: 2,
   },
   feedSection: {},
+  savedSection: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+  },
+  savedHero: {
+    padding: 18,
+    borderRadius: 16,
+    border: "1px solid #e5e7eb",
+    background: "#fff",
+    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+  },
+  savedKicker: {
+    margin: 0,
+    fontSize: 12,
+    fontWeight: 800,
+    color: "#2563eb",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+  },
+  savedTitle: {
+    margin: "8px 0 8px",
+    fontSize: 20,
+    color: "#111827",
+  },
+  savedText: {
+    margin: 0,
+    fontSize: 14,
+    lineHeight: 1.7,
+    color: "#6b7280",
+  },
   nav: {
     background: "#1f2937",
     padding: "0 24px",

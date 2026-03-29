@@ -9,6 +9,8 @@ export default function PersonalisedFeed({
   currentUser,
   timeSpeed = 1,
   onUserActivity = () => {},
+  onRequireAuth = () => {},
+  isAuthenticated = false,
 }) {
   const [flag, setFlag] = useState("baseline");
   const queryClient = useQueryClient();
@@ -110,6 +112,8 @@ export default function PersonalisedFeed({
               post={post}
               currentUser={currentUser}
               onUserActivity={onUserActivity}
+              onRequireAuth={onRequireAuth}
+              isAuthenticated={isAuthenticated}
             />
           </div>
         ))}
