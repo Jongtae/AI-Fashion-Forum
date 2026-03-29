@@ -6,8 +6,6 @@ import {
   fetchLatestReport,
 } from "../api/client.js";
 import PostList from "./PostList.jsx";
-import RunReplayViewer from "./RunReplayViewer.jsx";
-import Sprint1ReplayPanel from "./Sprint1ReplayPanel.jsx";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function pct(value) {
@@ -182,14 +180,6 @@ export default function OperatorDashboard() {
           readOnly
           onSelectPost={undefined}
         />
-      </SectionCard>
-
-      <SectionCard title="Replay Viewer" badge="운영">
-        <RunReplayViewer />
-      </SectionCard>
-
-      <SectionCard title="Sprint 1 Replay" badge="운영">
-        <Sprint1ReplayPanel />
       </SectionCard>
 
       {/* 1. Flag 비율 요약 */}

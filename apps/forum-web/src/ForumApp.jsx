@@ -6,7 +6,7 @@ import PostList from "./components/PostList.jsx";
 import PostDetail from "./components/PostDetail.jsx";
 import PersonalisedFeed from "./components/PersonalisedFeed.jsx";
 import AuthModal from "./components/AuthModal.jsx";
-import OperatorDashboard from "./components/OperatorDashboard.jsx";
+import AdminDashboard from "./components/AdminDashboard.jsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,12 +23,19 @@ function loadStoredUser() {
   return null;
 }
 
+function getInitialTab() {
+  const path = window.location.pathname;
+  if (path.startsWith("/admin") || path.startsWith("/operator")) {
+    return "admin";
+  }
+
+  return "forum";
+}
+
 export default function ForumApp() {
   const [authUser, setAuthUser] = useState(loadStoredUser);
   const [showAuth, setShowAuth] = useState(false);
-  const [tab, setTab] = useState(() =>
-    window.location.pathname.startsWith("/operator") ? "operator" : "forum"
-  );
+  const [tab, setTab] = useState(getInitialTab);
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [activeTagFilter, setActiveTagFilter] = useState("");
   const [composerOpen, setComposerOpen] = useState(false);
@@ -52,6 +59,12 @@ export default function ForumApp() {
     setAuthUser(null);
     queryClient.clear();
   }
+
+  useEffect(() => {
+    if (window.location.pathname.startsWith("/operator")) {
+      window.history.replaceState({}, "", "/admin");
+    }
+  }, []);
 
   function toggleComposerOpen() {
     setComposerOpen((prev) => !prev);
@@ -148,10 +161,10 @@ export default function ForumApp() {
           </div>
         </header>
 
-        {tab === "operator" ? (
+        {tab === "admin" ? (
           <main style={styles.main}>
             <section>
-              <OperatorDashboard />
+              <AdminDashboard timeSpeed={timeSpeed} />
             </section>
           </main>
         ) : (
@@ -225,7 +238,7 @@ export default function ForumApp() {
                 </section>
               ) : (
                 <section style={styles.placeholderCard}>
-                  <p style={styles.placeholderTitle}>운영 도구는 `/operator` 경로로 분리했습니다.</p>
+                  <p style={styles.placeholderTitle}>운영 도구는 `/admin` 경로로 분리했습니다.</p>
                   <p style={styles.placeholderText}>
                     서비스 화면에서는 포럼과 맞춤 피드만 제공합니다.
                   </p>
