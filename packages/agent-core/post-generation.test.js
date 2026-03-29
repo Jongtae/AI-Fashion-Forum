@@ -1,6 +1,10 @@
 import { test } from "node:test";
 import * as assert from "node:assert";
-import { createLivePostDraft, createRunPostDraft } from "./post-generation.js";
+import {
+  createLiveCommentDraft,
+  createLivePostDraft,
+  createRunPostDraft,
+} from "./post-generation.js";
 
 test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unavailable", async () => {
   const draftOne = await createRunPostDraft({
@@ -52,6 +56,7 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
 });
 
 test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => {
+  const localApiKey = "local-test-key";
   const fetchImpl = async () => ({
     ok: true,
     json: async () => ({
@@ -106,7 +111,7 @@ test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => 
       topics: ["office", "layering"],
     },
     variationSeed: 3,
-    apiKey: "test-key",
+    apiKey: localApiKey,
     fetchImpl,
   });
 
@@ -114,6 +119,72 @@ test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => 
   assert.strictEqual(draft.generationContext.contextPoolSize, 4);
   assert.strictEqual(draft.generationContext.selectedContextLabel, "커뮤니티 반응");
   assert.match(draft.content, /대화형 톤의 한국어 글입니다/);
+});
+
+test("createLiveCommentDraft uses local OpenAI mock contexts and targets comments", async () => {
+  const localApiKey = "local-test-key";
+  const fetchImpl = async () => ({
+    ok: true,
+    json: async () => ({
+      id: "resp_comment_123",
+      output_text: JSON.stringify({
+        contexts: [
+          {
+            context_id: "comment-a",
+            context_label: "답장 이어가기",
+            angle: "흐름을 잇는 반응",
+            content: "대화를 이어가는 한국어 댓글입니다.",
+            tone: "대화형",
+          },
+          {
+            context_id: "comment-b",
+            context_label: "질문 던지기",
+            angle: "한 번 더 묻는 반응",
+            content: "질문을 남기는 한국어 댓글입니다.",
+            tone: "호기심 있는",
+          },
+          {
+            context_id: "comment-c",
+            context_label: "보완 의견",
+            angle: "조심스럽게 다른 시각을 보태는 반응",
+            content: "보완 의견을 남기는 한국어 댓글입니다.",
+            tone: "조심스러운",
+          },
+          {
+            context_id: "comment-d",
+            context_label: "스레드 연결",
+            angle: "댓글과 본문을 다시 묶는 반응",
+            content: "스레드를 다시 묶는 한국어 댓글입니다.",
+            tone: "관찰적인",
+          },
+        ],
+      }),
+    }),
+  });
+
+  const draft = await createLiveCommentDraft({
+    agent: {
+      handle: "brandreceipt",
+    },
+    targetContent: {
+      title: "quiet office outfit",
+      body: "A short live signal summary.",
+      topics: ["office", "layering"],
+    },
+    targetComment: {
+      content: "I think the sleeve balance is the real story here.",
+    },
+    sourceSignal: "comment reply / tick 9",
+    variationSeed: 1,
+    apiKey: localApiKey,
+    fetchImpl,
+  });
+
+  assert.strictEqual(draft.generationContext.source, "openai");
+  assert.strictEqual(draft.generationContext.mode, "comment");
+  assert.strictEqual(draft.generationContext.replyTargetType, "comment");
+  assert.strictEqual(draft.generationContext.selectedContextLabel, "질문 던지기");
+  assert.match(draft.content, /질문을 남기는 한국어 댓글입니다/);
 });
 
 test("createLivePostDraft falls back to Korean live contexts", async () => {

@@ -2,9 +2,8 @@ import { Router } from "express";
 import {
   runTicks,
   createBaselineWorldRules,
-  generateForumArtifact,
-  getForumArtifactText,
   createLivePostDraft,
+  createLiveCommentDraft,
 } from "@ai-fashion-forum/agent-core";
 import {
   SAMPLE_STATE_SNAPSHOT,
@@ -246,30 +245,25 @@ router.post("/tick", async (req, res) => {
             eligibleComments.length > 0
               ? eligibleComments[(seed + round + entry.tick) % eligibleComments.length]
               : null;
-          const targetAgent = replyTargetComment
-            ? agentById.get(replyTargetComment.authorId) || agent
-            : agentById.get(recentPost.authorId) || agent;
-          const artifact = generateForumArtifact({
-            actionRecord: entry,
-            author: agent,
+          const draft = await createLiveCommentDraft({
+            agent,
             targetContent: {
-              title: "최근 글",
+              title: recentPost.title || "최근 글",
               body: recentPost.content || "",
               topics: (recentPost.tags || []).map(localizeTopicLabel),
             },
-            targetAgent,
             targetComment: replyTargetComment,
+            sourceSignal: entry.reason || `${entry.action} at tick ${entry.tick}`,
+            variationSeed: seed + round + entry.tick,
           });
           const replyPayload = {
-            content: getForumArtifactText(
-              artifact,
-              entry.reason || `${agent.handle || entry.actor_id}가 답글을 남겼다.`
-            ),
+            content:
+              draft.content || entry.reason || `${agent.handle || entry.actor_id}가 답글을 남겼다.`,
             authorId: entry.actor_id,
             authorType: "agent",
             agentRound: round,
             agentTick: entry.tick,
-            generationContext: artifact?.generation_context ?? null,
+            generationContext: draft.generationContext ?? null,
           };
 
           if (replyTargetComment) {

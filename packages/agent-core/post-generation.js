@@ -175,6 +175,8 @@ function buildOpenAIPrompt({
   sourceSignal,
   sourceSnippet,
   sourceBody,
+  sourceCommentPreview,
+  replyTargetType,
 } = {}) {
   const promptTitle = localizeSourceLabel(sourceTitle, "이 글");
   const sourceTopicText = Array.isArray(sourceTopics) && sourceTopics.length
@@ -205,8 +207,12 @@ function buildOpenAIPrompt({
     `상황 단서: ${promptSignal || "맥락 없음"}`,
     promptSnippet ? `대상 본문 단서: ${promptSnippet}` : null,
     promptBody ? `대상 본문 전체: ${promptBody}` : null,
+    sourceCommentPreview ? `대상 댓글 단서: ${normalizeText(sourceCommentPreview)}` : null,
+    replyTargetType ? `답글 대상: ${replyTargetType === "comment" ? "댓글" : "게시글"}` : null,
     mode === "live"
       ? "실시간 글인 경우 현재 읽은 글이나 상황 단서를 바탕으로 반응의 방향을 넓게 분기해라."
+      : mode === "comment"
+        ? "댓글 글인 경우 게시글 또는 다른 댓글에 대한 반응이 자연스럽게 드러나야 하며, 지나치게 긴 설명은 피하고 한국어 커뮤니티 말투를 유지해라."
       : "배치 글인 경우 에이전트의 읽기 기준과 반응 차이를 맥락별로 넓게 드러내라.",
   ].filter(Boolean).join("\n");
 }
@@ -219,6 +225,8 @@ function buildFallbackContexts({
   sourceSignal,
   sourceSnippet,
   sourceBody,
+  sourceCommentPreview,
+  replyTargetType,
   variationSeed = 0,
   reactionRecord = null,
   contentRecord = null,
@@ -230,6 +238,7 @@ function buildFallbackContexts({
     : "일반 포럼 신호";
   const baseSignal = localizeSourceLabel(sourceSignal, "이 신호");
   const actorLabel = "이 에이전트";
+  const sourceCommentText = localizeSourceLabel(sourceCommentPreview, "이 답글 대상");
   const localizedContentRecord = {
     ...(contentRecord || {}),
     title: displayTitle,
@@ -240,6 +249,40 @@ function buildFallbackContexts({
       ? sourceTopics.map(localizeTopicLabel)
       : ["일반"],
   };
+
+  if (mode === "comment") {
+    const replyTarget = replyTargetType === "comment" ? "다른 댓글" : "게시글 본문";
+    return [
+      {
+        contextId: "reply-continue",
+        contextLabel: "답장 이어가기",
+        angle: "상대의 말을 받아서 대화를 이어가는 반응",
+        content: `${actorLabel}가 ${replyTarget}에 대한 반응을 이어가며 ${displayTitle}을/를 한국어 댓글로 정리한다. ${sourceCommentText}를 기준으로 대화의 흐름을 자연스럽게 잇는다.`,
+        tone: "대화형",
+      },
+      {
+        contextId: "reply-question",
+        contextLabel: "질문 던지기",
+        angle: "상대의 판단 기준을 더 묻는 반응",
+        content: `${actorLabel}가 ${replyTarget}을/를 읽고 한 번 더 질문을 던진다. ${baseSignal}를 바탕으로 ${topics}를 더 확인하는 한국어 댓글을 남긴다.`,
+        tone: "호기심 있는",
+      },
+      {
+        contextId: "reply-nuance",
+        contextLabel: "보완 의견",
+        angle: "부드럽게 다른 관점을 보태는 반응",
+        content: `${actorLabel}가 ${replyTarget}에 대해 조심스럽게 다른 시각을 더한다. ${displayTitle}에서 보인 ${topics} 신호를 다시 읽으며 균형 있게 의견을 붙인다.`,
+        tone: "조심스러운",
+      },
+      {
+        contextId: "reply-thread",
+        contextLabel: "스레드 연결",
+        angle: "댓글과 게시글을 다시 이어 붙이는 반응",
+        content: `${actorLabel}가 ${replyTarget}와 ${displayTitle}을 함께 읽으며 스레드의 맥락을 더 넓힌다. ${baseSignal}을 중심으로 커뮤니티 대화를 다시 묶는다.`,
+        tone: "관찰적인",
+      },
+    ];
+  }
 
   if (mode === "run") {
     const variants = [
@@ -324,6 +367,8 @@ function buildGenerationContext({
   sourceTopics,
   sourceSnippet,
   sourceSignal,
+  sourceCommentPreview,
+  replyTargetType,
   model,
   contextCount,
   mode,
@@ -336,6 +381,8 @@ function buildGenerationContext({
     sourceContentTopics: sourceTopics,
     sourceContentSnippet: sourceSnippet || "",
     sourceSignal: sourceSignal || "",
+    sourceCommentPreview: sourceCommentPreview || "",
+    replyTargetType: replyTargetType || null,
     contextPoolSize: contextCount,
     selectedContextId: selectedContext?.contextId || null,
     selectedContextLabel: selectedContext?.contextLabel || null,
@@ -402,6 +449,8 @@ async function resolvePostDraft({
   sourceSignal,
   sourceSnippet,
   sourceBody,
+  sourceCommentPreview,
+  replyTargetType,
   reactionRecord = null,
   contentRecord = null,
 } = {}) {
@@ -413,6 +462,8 @@ async function resolvePostDraft({
     sourceSignal,
     sourceSnippet,
     sourceBody,
+    sourceCommentPreview,
+    replyTargetType,
     variationSeed,
     reactionRecord,
     contentRecord,
@@ -446,6 +497,8 @@ async function resolvePostDraft({
       sourceSignal,
       sourceSnippet,
       sourceBody,
+      sourceCommentPreview,
+      replyTargetType,
     });
     const result = await requestOpenAIContexts({
       apiKey,
@@ -467,6 +520,8 @@ async function resolvePostDraft({
           sourceTopics,
           sourceSnippet,
           sourceSignal,
+          sourceCommentPreview,
+          replyTargetType,
           model,
           contextCount: contexts.length,
           mode,
@@ -488,6 +543,8 @@ async function resolvePostDraft({
       sourceTopics,
       sourceSnippet,
       sourceSignal,
+      sourceCommentPreview,
+      replyTargetType,
       model: null,
       contextCount: fallbackPool.length,
       mode,
@@ -559,5 +616,38 @@ export async function createLivePostDraft({
     sourceSignal: normalizeText(sourceSignal),
     sourceSnippet,
     sourceBody: sourceSnippet,
+  });
+}
+
+export async function createLiveCommentDraft({
+  agent,
+  targetContent,
+  targetComment = null,
+  sourceSignal,
+  variationSeed = 0,
+  apiKey,
+  model,
+  fetchImpl,
+} = {}) {
+  const sourceTitle = normalizeText(targetContent?.title) || "최근 글";
+  const sourceTopics = Array.isArray(targetContent?.topics) ? targetContent.topics : [];
+  const sourceSnippet = normalizeText(targetContent?.body) || normalizeText(targetContent?.content);
+  const sourceCommentPreview = normalizeText(targetComment?.content);
+
+  return resolvePostDraft({
+    mode: "comment",
+    variationSeed,
+    apiKey,
+    model,
+    fetchImpl,
+    agentHandle: agent?.handle || agent?.agent_id || "agent",
+    sourceTitle,
+    sourceTopics,
+    sourceSignal: normalizeText(sourceSignal),
+    sourceSnippet,
+    sourceBody: sourceSnippet,
+    targetComment,
+    sourceCommentPreview,
+    replyTargetType: targetComment ? "comment" : "post",
   });
 }
