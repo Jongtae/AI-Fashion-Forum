@@ -5,6 +5,7 @@ import PostList from "./PostList.jsx";
 
 const MODES = [
   { id: "recent", label: "최신", description: "방금 올라온 글" },
+  { id: "popular", label: "인기", description: "반응이 많은 글" },
   { id: "search", label: "검색", description: "글, 태그, 작성자" },
 ];
 
@@ -32,6 +33,7 @@ export default function DiscoveryPanel({
 }) {
   const [searchText, setSearchText] = useState("");
   const [topicFilter, setTopicFilter] = useState("");
+  const [mode, setMode] = useState("recent");
 
   const { data: recentPostsData } = useQuery({
     queryKey: ["discovery-topics"],
@@ -46,8 +48,9 @@ export default function DiscoveryPanel({
   const queryParams = useMemo(() => {
     const params = {};
     if (searchText.trim()) params.q = searchText.trim();
+    if (mode === "popular") params.sort = "popular";
     return params;
-  }, [searchText]);
+  }, [searchText, mode]);
 
   return (
     <div style={styles.layout}>
@@ -65,12 +68,13 @@ export default function DiscoveryPanel({
             <button
               key={modeItem.id}
               type="button"
-              style={{ ...styles.modeCard, ...(modeItem.id === "search" && searchText ? styles.modeCardActive : {}) }}
+              style={{
+                ...styles.modeCard,
+                ...(mode === modeItem.id ? styles.modeCardActive : {}),
+              }}
               onClick={() => {
                 onUserActivity();
-                if (modeItem.id === "search") {
-                  setSearchText((prev) => prev || "");
-                }
+                setMode(modeItem.id);
               }}
             >
               <div style={styles.modeLabel}>{modeItem.label}</div>
@@ -100,6 +104,9 @@ export default function DiscoveryPanel({
 
       <section style={styles.topicBar}>
         <div style={styles.sectionLabel}>주제 커뮤니티</div>
+        <div style={styles.topicHint}>
+          태그를 눌러 같은 주제의 글만 모아 볼 수 있습니다.
+        </div>
         <div style={styles.topicChips}>
           {topTopics.map((topic) => (
             <button
@@ -220,6 +227,7 @@ const styles = {
     padding: 16,
   },
   sectionLabel: { fontSize: 13, fontWeight: 800, color: "#6b7280" },
+  topicHint: { fontSize: 13, color: "#4b5563", lineHeight: 1.5 },
   topicChips: { display: "flex", flexWrap: "wrap", gap: 8 },
   topicChip: {
     display: "inline-flex",

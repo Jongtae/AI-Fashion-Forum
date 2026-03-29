@@ -108,6 +108,17 @@ function attachSavedState(post, savedBookmarkMap = new Map()) {
   };
 }
 
+function computePopularScore(post) {
+  const likes = Number(post.likes || 0);
+  const comments = Number(post.commentCount || 0);
+  const reports = Number(post.reportCount || 0);
+  const createdAt = post.createdAt ? new Date(post.createdAt).getTime() : Date.now();
+  const ageHours = Math.max(0, (Date.now() - createdAt) / 3_600_000);
+  const recencyBoost = Math.max(0, 1 - ageHours / 72);
+
+  return (likes * 3) + (comments * 2) - (reports * 4) + recencyBoost;
+}
+
 async function fetchSavedPostsPage(actorId, page, limit) {
   const bookmarkMap = await loadSavedBookmarkMap(actorId);
   const orderedIds = [];
@@ -247,6 +258,7 @@ router.get("/", async (req, res) => {
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
   const tag = req.query.tag;
   const search = typeof req.query.q === "string" ? req.query.q.trim() : "";
+  const sort = typeof req.query.sort === "string" ? req.query.sort.trim().toLowerCase() : "";
   const savedOnly = String(req.query.saved || "").toLowerCase() === "true";
   const viewerId = getAuthedUsername(req);
 
@@ -278,8 +290,24 @@ router.get("/", async (req, res) => {
     ];
   }
 
-  const posts = await Post.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean();
-  const total = await Post.countDocuments(filter);
+  let posts;
+  let total;
+
+  if (sort === "popular") {
+    const popularPosts = await Post.find(filter).lean();
+    popularPosts.sort((a, b) => {
+      const scoreDiff = computePopularScore(b) - computePopularScore(a);
+      if (scoreDiff !== 0) return scoreDiff;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    total = popularPosts.length;
+    posts = popularPosts.slice((page - 1) * limit, page * limit);
+  } else {
+    posts = await Post.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean();
+    total = await Post.countDocuments(filter);
+  }
+
   const savedBookmarkMap = viewerId ? await loadSavedBookmarkMap(viewerId, posts.map((post) => post._id)) : new Map();
 
   res.json({
@@ -290,6 +318,7 @@ router.get("/", async (req, res) => {
       total,
       pages: Math.ceil(total / limit),
     },
+    sort: sort || "recent",
   });
 });
 

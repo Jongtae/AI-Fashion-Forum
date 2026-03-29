@@ -738,6 +738,11 @@ test("discovery search popular saved and profile routes surface Threads/Reddit-s
   const otherPost = await otherPostRes.json();
   assert.equal(otherPostRes.status, 201);
 
+  store.posts.find((post) => post._id === officePost._id).likes = 8;
+  store.posts.find((post) => post._id === officePost._id).commentCount = 3;
+  store.posts.find((post) => post._id === otherPost._id).likes = 1;
+  store.posts.find((post) => post._id === otherPost._id).commentCount = 0;
+
   const searchRes = await fetch(`${baseUrl}/api/posts?q=office`);
   const searchBody = await searchRes.json();
   assert.equal(searchRes.status, 200);
@@ -752,6 +757,12 @@ test("discovery search popular saved and profile routes surface Threads/Reddit-s
   const authorBody = await authorRes.json();
   assert.equal(authorRes.status, 200);
   assert.equal(authorBody.posts.some((post) => post._id === otherPost._id), true);
+
+  const popularRes = await fetch(`${baseUrl}/api/posts?sort=popular&limit=10`);
+  const popularBody = await popularRes.json();
+  assert.equal(popularRes.status, 200);
+  assert.equal(popularBody.sort, "popular");
+  assert.equal(popularBody.posts[0]._id, officePost._id);
 });
 
 test("agent writes are rate-limited to about three per hour across posts and comments", async (t) => {
