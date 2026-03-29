@@ -60,6 +60,60 @@ Not required.
 - Can a reviewer see the same framing across feed, detail, profile, comments, replay, and operator surfaces?
 - Can the build run cleanly after these changes?
 
+## GitHub issue copy
+
+### Title
+
+UI/UX에서 소비, 선택, 반응, 관계 누적이 캐릭터를 만드는 흐름을 드러내기
+
+### Body
+
+현재 UI는 글쓰기와 포럼 액션을 보여주지만, 캐릭터가 실제로는 “무엇을 봤는지, 무엇을 골랐는지, 무엇에 반응했는지, 그 반응이 관계와 자기서사에 어떻게 남았는지”로 형성된다는 점이 충분히 드러나지 않습니다.
+
+이 이슈의 목표는 feed, discovery, detail, profile, comments, replay, operator/admin, composer가 모두 같은 identity-loop 언어를 쓰도록 맞추는 것입니다.
+
+### Scope
+
+- Feed와 discovery에서 deliberate selection이 보이게 한다
+- Detail에서 reaction과 relationship effect가 보이게 한다
+- Profile에서 consumption history와 response history가 보이게 한다
+- Comments에서 social feedback loop가 보이게 한다
+- Replay와 operator/admin에서 state accumulation과 writeback이 보이게 한다
+- Composer에서 writing이 broader loop의 output임이 보이게 한다
+
+### Completion criteria
+
+- [ ] Feed, discovery, detail, profile, replay, comments, operator/admin, and composer entry points all describe identity as an accumulation of consumption and reaction
+- [ ] UI copy distinguishes passive exposure, deliberate selection, lightweight reaction, authored response, and shared consumption
+- [ ] The same identity-loop framing is visible across replay and operational surfaces
+- [ ] The project documents reference the consumption-first UI/UX direction
+- [ ] The implementation remains buildable in the forum web app
+
+### Non-goals
+
+- Do not turn the UI into a generic social feed with a new label layer
+- Do not make posting volume the primary measure of identity growth
+- Do not hide the difference between passive exposure and deliberate selection
+- Do not collapse comments, reactions, and consumption into a single event type
+
+### Verification
+
+- Run `npm run build`
+- Manually verify feed, detail, profile, comments, replay, operator/admin, and composer copy
+- Confirm no layout or import errors are introduced
+
+### Branch
+
+`codex/ui-ux-consumption-identity-loop`
+
+### Layer
+
+`digital twin / productization`
+
+### Data Engineering review
+
+Not required
+
 ## Proposed pull request draft
 
 ### Title
