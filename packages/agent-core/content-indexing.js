@@ -250,7 +250,7 @@ export function selectBiasedExposure({
     exposureLog: selected.map((record, order) => ({
       rank: order + 1,
       content_id: record.content_id,
-      reason: `${agentState.handle}에게 ${record.content_id}를 선택했다. affinity=${record.score_breakdown.affinity}, novelty=${record.score_breakdown.novelty}, social_proof=${record.score_breakdown.social_proof}, controversy=${record.score_breakdown.controversy}.`,
+      reason: `${agentState.handle}에게 ${record.content_id}를 선택했다. 관심도=${record.score_breakdown.affinity}, 새로움=${record.score_breakdown.novelty}, 사회적 신호=${record.score_breakdown.social_proof}, 논쟁성=${record.score_breakdown.controversy}.`,
       score_breakdown: record.score_breakdown,
     })),
   };
@@ -488,7 +488,7 @@ export function createSprint1ReactionRecord({
               ? "새로움이 사람들 사이의 차이를 더 또렷하게 만든다는 감각을 강화했다."
               : "같은 세계를 다시 실용적으로 읽게 하는 또 하나의 계기였다.",
     },
-    explanation: `rank=${rank} because total=${sprintScore.total}, feeling=${dominantFeeling}, frame=${meaningFrame}, stance=${stanceSignal}.`,
+    explanation: `순위 ${rank}로 선택했다. 총점=${sprintScore.total}, 감정=${dominantFeeling}, 해석틀=${meaningFrame}, 스탠스=${stanceSignal}.`,
     score_breakdown: sprintScore,
   };
 }
@@ -564,7 +564,7 @@ export async function createSprint1ExposureSample({
       exposureLog: selected.map((record, order) => ({
         rank: order + 1,
         content_id: record.content_id,
-        reason: `Sprint 1 노출 후보로 선택했다. total=${record.score_breakdown.total}, interest_pull=${record.score_breakdown.tag_alignment.interest_pull}, value_pull=${record.score_breakdown.tag_alignment.value_pull}, audience_pull=${record.score_breakdown.tag_alignment.audience_pull}.`,
+        reason: `Sprint 1 노출 후보로 선택했다. 총점=${record.score_breakdown.total}, 관심 끌림=${record.score_breakdown.tag_alignment.interest_pull}, 가치 끌림=${record.score_breakdown.tag_alignment.value_pull}, 청중 끌림=${record.score_breakdown.tag_alignment.audience_pull}.`,
         score_breakdown: record.score_breakdown,
       })),
     },

@@ -121,7 +121,7 @@ export function applyModerationPolicies({
             event_id: externalEvent.event_id,
             title: externalEvent.title,
             topics: externalEvent.topics,
-            note: "External event injected into the ranking input set.",
+            note: "외부 이벤트를 랭킹 입력 집합에 주입했다.",
           },
         ]
       : [],
@@ -129,7 +129,7 @@ export function applyModerationPolicies({
       content_id: item.content_id,
       title: item.title,
       aggression: item.moderation.aggression,
-      note: "Hidden by aggression policy.",
+      note: "공격성 정책 때문에 숨겼다.",
     })),
     feed: moderated.slice(0, 5),
   };
@@ -138,8 +138,8 @@ export function applyModerationPolicies({
 export function createMetaPolicySample() {
   const externalEvent = {
     event_id: "street-snap-spike",
-    title: "Street snap spike around commuter trench styling",
-    summary: "An external style event increases visibility around commuter trench and office layering.",
+    title: "출퇴근 트렌치 스타일이 주목받는 흐름",
+    summary: "외부 스타일 이벤트가 출퇴근 트렌치와 오피스 레이어링의 노출을 높인다.",
     topics: ["office_style", "outerwear", "street_snap"],
     emotions: ["curiosity"],
   };
