@@ -159,10 +159,10 @@ function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
   return (
     <section style={styles.quickActions}>
       <div style={styles.quickActionsHeader}>
-        <p style={styles.quickActionsKicker}>바로 시작</p>
-        <h2 style={styles.quickActionsTitle}>이곳에서 할 수 있는 것</h2>
+        <p style={styles.quickActionsKicker}>처음 보셨다면</p>
+        <h2 style={styles.quickActionsTitle}>이렇게 이용해 보세요</h2>
         <p style={styles.quickActionsText}>
-          글을 읽고, 주제를 찾고, 반응을 남기고, 다시 볼 글을 저장할 수 있습니다.
+          읽기, 찾기, 반응, 저장을 바로 시작할 수 있습니다.
         </p>
       </div>
       <div style={styles.quickActionsGrid}>

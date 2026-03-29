@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fetchPosts } from "../api/client.js";
 import PostCard from "./PostCard.jsx";
@@ -25,6 +25,7 @@ export default function PostList({
   readOnly = false,
 }) {
   const [internalTagFilter, setInternalTagFilter] = useState("");
+  const loadMoreRef = useRef(null);
   const tagFilter = typeof activeTagFilter === "string" ? activeTagFilter : internalTagFilter;
   const setTagFilter =
     typeof onTagFilterChange === "function" ? onTagFilterChange : setInternalTagFilter;
@@ -73,15 +74,48 @@ export default function PostList({
       : queryParams?.q
       ? "검색어를 지우거나 다른 주제를 찾아보세요."
       : "첫 번째 글을 써서 대화를 시작해 보세요.");
-  const handleScroll = useCallback(
-    (e) => {
-      const el = e.currentTarget;
-      if (el.scrollHeight - el.scrollTop - el.clientHeight < 100 && hasNextPage && !isFetchingNextPage) {
+  useEffect(() => {
+    if (!hasNextPage || isFetchingNextPage || queryLocked) return undefined;
+
+    const target = loadMoreRef.current;
+    if (!target) return undefined;
+
+    const triggerLoadMore = () => {
+      const rect = target.getBoundingClientRect();
+      if (rect.top <= window.innerHeight + 240) {
         fetchNextPage();
       }
-    },
-    [fetchNextPage, hasNextPage, isFetchingNextPage]
-  );
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      window.addEventListener("scroll", triggerLoadMore, { passive: true });
+      window.addEventListener("resize", triggerLoadMore);
+      triggerLoadMore();
+      return () => {
+        window.removeEventListener("scroll", triggerLoadMore);
+        window.removeEventListener("resize", triggerLoadMore);
+      };
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            fetchNextPage();
+          }
+        }
+      },
+      {
+        root: null,
+        rootMargin: "240px",
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(target);
+
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, queryLocked, posts.length]);
 
   if (queryLocked) {
     return (
@@ -139,7 +173,7 @@ export default function PostList({
         </div>
       )}
 
-      <div style={styles.list} onScroll={handleScroll}>
+      <div style={styles.list}>
         {posts.map((post) => (
           <PostCard
             key={post._id}
@@ -158,6 +192,7 @@ export default function PostList({
         {!hasNextPage && posts.length > 0 && (
           <p style={styles.end}>모든 글을 불러왔습니다.</p>
         )}
+        <div ref={loadMoreRef} style={styles.loadMoreSentinel} aria-hidden="true" />
       </div>
     </div>
   );
@@ -185,8 +220,9 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: 12,
-    maxHeight: "70vh",
-    overflowY: "auto",
+  },
+  loadMoreSentinel: {
+    height: 1,
   },
   msg: { textAlign: "center", color: "#9ca3af", fontSize: 14, padding: "24px 0" },
   error: { textAlign: "center", color: "#dc2626", fontSize: 14, padding: "16px 0" },

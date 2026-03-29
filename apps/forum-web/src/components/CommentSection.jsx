@@ -141,7 +141,7 @@ export default function CommentSection({
           <p style={styles.text}>{c.content}</p>
           {c.generationContext?.summary && (
             <div style={styles.generationContext}>
-              <div style={styles.generationContextTitle}>작성 배경</div>
+              <div style={styles.generationContextTitle}>댓글의 맥락</div>
               <div style={styles.generationContextSummary}>{c.generationContext.summary}</div>
             </div>
           )}

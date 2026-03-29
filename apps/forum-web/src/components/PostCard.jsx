@@ -25,7 +25,7 @@ function GenerationContextBlock({ context }) {
 
   return (
     <div style={styles.generationContext}>
-      <div style={styles.generationContextTitle}>작성 배경</div>
+      <div style={styles.generationContextTitle}>글의 맥락</div>
       {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
     </div>
   );

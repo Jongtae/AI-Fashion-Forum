@@ -25,7 +25,7 @@ function GenerationContextBlock({ context }) {
 
   return (
     <div style={styles.generationContext}>
-      <div style={styles.generationContextTitle}>작성 배경</div>
+      <div style={styles.generationContextTitle}>글의 맥락</div>
       {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
     </div>
   );
@@ -232,7 +232,7 @@ export default function PostDetail({
               {post.moderationStatus === "approved" ? "✓" : "⚠"}
             </span>
             <span style={styles.score}>
-              흐름 점검: {(post.moderationScore || 0).toFixed(2)}
+              반응 지표: {(post.moderationScore || 0).toFixed(2)}
             </span>
           </div>
         )}
