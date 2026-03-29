@@ -59,6 +59,7 @@ test("generateForumArtifact returns readable body text", () => {
 
   assert.strictEqual(artifact.type, "comment");
   assert.match(artifact.body, /게시글을 따라 officemirror가 차분한 톤으로 답글을 남기며/i);
+  assert.doesNotMatch(artifact.body, /fit-before-brand|fashion topic/i);
   assert.ok(!artifact.body.includes("artifact_id"));
   assert.ok(!artifact.body.includes("relationship_context"));
 });
@@ -91,8 +92,8 @@ test("generateForumArtifact writes a comment reply to the post body", () => {
     },
   });
 
-  assert.match(artifact.body, /weekday mirror check|jacket|shirt/i);
   assert.match(artifact.body, /게시글을 따라|응답하고|스레드에 차분한 톤으로 끼어들며/i);
+  assert.doesNotMatch(artifact.body, /weekday mirror check|jacket|shirt/i);
 });
 
 test("generateForumArtifact writes a comment reply to another comment", () => {
@@ -127,7 +128,8 @@ test("generateForumArtifact writes a comment reply to another comment", () => {
     },
   });
 
-  assert.match(artifact.body, /A02|sleeve balance/i);
+  assert.match(artifact.body, /A02|그 댓글/i);
+  assert.doesNotMatch(artifact.body, /sleeve balance/i);
   assert.match(artifact.body, /@A02의 댓글을 따라|@A02의 말을 받아|덧답을 남기고/i);
 });
 
@@ -156,8 +158,8 @@ test("sprint 1 post copy varies by seed", () => {
 
   assert.notStrictEqual(titleSeedOne, titleSeedTwo);
   assert.notStrictEqual(bodySeedOne, bodySeedTwo);
-  assert.match(bodySeedOne, /quiet office outfit|생활 리듬/);
-  assert.match(bodySeedTwo, /weekday layering|commute comfort/);
+  assert.match(bodySeedOne, /오피스|레이어링|생활 리듬/);
+  assert.match(bodySeedTwo, /오피스|레이어링|출퇴근/);
 });
 
 test("buildSprint1GenerationContext summarizes the Korean generation situation", () => {

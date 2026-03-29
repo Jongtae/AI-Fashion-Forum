@@ -68,15 +68,76 @@ function getArtifactTypeLabel(type) {
   }[type] || "글";
 }
 
+const TOPIC_LABELS = {
+  style: "스타일",
+  fashion: "패션",
+  fit: "핏",
+  brand: "브랜드",
+  color: "색감",
+  outerwear: "아우터",
+  layering: "레이어링",
+  office: "오피스",
+  commute: "출퇴근",
+  pricing: "가격",
+  trend_fatigue: "트렌드 피로",
+  forum_drama: "포럼 이슈",
+  status_signal: "상태 신호",
+  designer_labels: "디자이너 라벨",
+};
+
+const BELIEF_LABELS = {
+  "price-over-hype": "가격 우선",
+  "fit-before-brand": "핏 우선",
+  "novelty-has-value": "새로움의 가치",
+  "brand-signal-matters": "브랜드 신호",
+  "gentle-feedback-works": "부드러운 피드백",
+  "repeat-context-matters": "맥락 반복",
+  "daily-utility": "일상 활용",
+  "consistency-over-experiment": "일관성 우선",
+  "brand-memory-matters": "브랜드 기억",
+  "most-hype-is-overpriced": "과장보다 가격",
+  "debate-reveals-truth": "토론이 드러내는 진실",
+  "texture-matters": "질감 우선",
+};
+
+function isKoreanDominant(text) {
+  const normalized = typeof text === "string" ? text.trim() : "";
+  if (!normalized) {
+    return false;
+  }
+
+  const hangulChars = (normalized.match(/[가-힣]/g) || []).length;
+  const latinChars = (normalized.match(/[A-Za-z]/g) || []).length;
+  return hangulChars >= latinChars;
+}
+
+function localizeTopicLabel(value) {
+  if (!value) {
+    return "일반";
+  }
+
+  return TOPIC_LABELS[value] || (isKoreanDominant(value) ? value : "일상");
+}
+
+function localizeBeliefLabel(value) {
+  if (!value) {
+    return "정체성";
+  }
+
+  return BELIEF_LABELS[value] || (isKoreanDominant(value) ? value : "정체성");
+}
+
 function summarizeContentRecord(contentRecord = {}) {
   const title = contentRecord.title || "스레드";
   const topics = Array.isArray(contentRecord.topics) && contentRecord.topics.length
-    ? contentRecord.topics.join(", ")
+    ? contentRecord.topics.map(localizeTopicLabel).join(", ")
     : "일반 포럼 신호";
   const body = typeof contentRecord.body === "string" ? contentRecord.body.trim() : "";
   const content = typeof contentRecord.content === "string" ? contentRecord.content.trim() : "";
   const text = body || content;
-  const bodySnippet = body ? body.split(/(?<=[.!?])\s+/)[0].slice(0, 160) : "";
+  const bodySnippet = body && isKoreanDominant(body)
+    ? body.split(/(?<=[.!?])\s+/)[0].slice(0, 160)
+    : "";
 
   return {
     title,
@@ -89,7 +150,9 @@ function summarizeContentRecord(contentRecord = {}) {
 function summarizeCommentRecord(commentRecord = {}) {
   const authorId = commentRecord?.authorId || "someone";
   const text = typeof commentRecord?.content === "string" ? commentRecord.content.trim() : "";
-  const snippet = text ? text.split(/(?<=[.!?])\s+/)[0].slice(0, 160) : "그 포인트";
+  const snippet = text && isKoreanDominant(text)
+    ? text.split(/(?<=[.!?])\s+/)[0].slice(0, 160)
+    : "그 댓글";
 
   return {
     authorId,
@@ -231,7 +294,8 @@ export function generateForumArtifact({
 } = {}) {
   const relationshipState = deriveRelationshipState(author, targetAgent);
   const tone = getTone(relationshipState);
-  const identityAnchor = Object.keys(author.belief_vector)[0] || "style-choice";
+  const identityAnchor = localizeBeliefLabel(Object.keys(author.belief_vector)[0] || "style-choice");
+  const identityAnchorFocus = `${identityAnchor} 기준`;
   const targetSummary = summarizeContentRecord(targetContent);
   const commentSummary = summarizeCommentRecord(targetComment);
   const generationContext = buildForumGenerationContext({
@@ -243,18 +307,18 @@ export function generateForumArtifact({
 
   const replyVariants = targetComment
     ? [
-        `${author.handle}가 @${commentSummary.authorId}의 말을 받아 ${getToneLabel(tone)} 톤으로 답글을 남기며 ${identityAnchor}를 다시 중심에 둔다.`,
+        `${author.handle}가 @${commentSummary.authorId}의 말을 받아 ${getToneLabel(tone)} 톤으로 답글을 남기며 ${identityAnchorFocus}을 다시 중심에 둔다.`,
         `@${commentSummary.authorId}의 요점을 이어받아 ${author.handle}가 ${getToneLabel(tone)} 톤으로 응답하고, 대화를 ${identityAnchor} 쪽으로 다시 묶는다.`,
         `${author.handle}가 @${commentSummary.authorId}의 댓글을 따라 ${getToneLabel(tone)} 톤으로 덧답을 남기고, "${commentSummary.snippet}"를 다시 꺼낸다.`,
       ]
     : [
-        `게시글을 따라 ${author.handle}가 ${getToneLabel(tone)} 톤으로 답글을 남기며 ${identityAnchor}를 중심에 둔다.`,
-        `이 글의 ${targetSummary.topics} 흐름을 따라 ${author.handle}가 ${getToneLabel(tone)} 톤으로 응답하고 ${identityAnchor}에 무게를 둔다.`,
+        `게시글을 따라 ${author.handle}가 ${getToneLabel(tone)} 톤으로 답글을 남기며 ${identityAnchorFocus}을 중심에 둔다.`,
+        `이 글의 ${targetSummary.topics} 흐름을 따라 ${author.handle}가 ${getToneLabel(tone)} 톤으로 응답하고 ${identityAnchorFocus}에 무게를 둔다.`,
         `${author.handle}가 스레드에 ${getToneLabel(tone)} 톤으로 끼어들며 "${targetSummary.bodySnippet || targetSummary.title}"를 다시 읽어낸다.`,
       ];
 
   const postTemplates = {
-    quote: `${author.handle}가 스레드를 인용해 ${getToneLabel(tone)}하게 다시 쓰며 ${identityAnchor}로 재해석한다.`,
+    quote: `${author.handle}가 스레드를 인용해 ${getToneLabel(tone)}하게 다시 쓰며 ${identityAnchorFocus}으로 재해석한다.`,
     post: `${author.handle}가 ${targetSummary.topics}를 보고 ${getToneLabel(tone)} 톤의 새 글을 연다.`,
   };
 
