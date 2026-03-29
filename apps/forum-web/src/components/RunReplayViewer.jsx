@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchLatestReplay, submitFeedback, triggerRun } from "../api/client.js";
+import { fetchLatestReplay, submitFeedback, submitUserAction, triggerRun } from "../api/client.js";
 import AgentEvolutionPanel from "./AgentEvolutionPanel.jsx";
 
 const REPLAY_REFRESH_MS = 5_000;
@@ -406,6 +406,25 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
     },
   });
 
+  const restoreLogMutation = useMutation({
+    mutationFn: () =>
+      submitUserAction({
+        actorId: "replay-viewer",
+        actorType: "user",
+        targetId: replay?.run_id || "replay_viewer",
+        targetType: "system",
+        eventType: "view",
+        metadata: {
+          surface: "replay_viewer",
+          restoreStatus,
+          anchor: restoredAnchor || activeAnchor,
+          replayRunId: replay?.run_id || null,
+          replaySeed: replay?.seed ?? null,
+        },
+        source: "replay_restore",
+      }),
+  });
+
   useEffect(() => {
     writeStorage(STORAGE_KEYS.runForm, { seed, ticks });
   }, [seed, ticks]);
@@ -434,10 +453,13 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
     restoreAnchorRef.current = true;
     setRestoredAnchor(target);
     setRestoreStatus("마지막 위치 복원됨");
+    if (replay?.run_id) {
+      restoreLogMutation.mutate();
+    }
     window.requestAnimationFrame(() => {
       node.scrollIntoView({ block: "start", behavior: "smooth" });
     });
-  }, [replay, activeAnchor]);
+  }, [replay, activeAnchor, restoreLogMutation]);
 
   useEffect(() => {
     if (!replay) return undefined;
