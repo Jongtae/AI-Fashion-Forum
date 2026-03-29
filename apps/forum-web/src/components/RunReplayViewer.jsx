@@ -140,9 +140,9 @@ function ContinuityCard({ replay, onOpenSprint1 }) {
         같은 자극에서 어떤 반응 흐름이 나왔는지 보고, 같은 맥락의 Sprint 1 요약과 비교해 볼 수 있습니다.
       </div>
       <div style={styles.continuityMeta}>
-        <span>run: {replay?.run_id || "—"}</span>
-        <span>seed: {replay?.seed ?? "—"}</span>
-        <span>posts: {replay?.posts?.length ?? 0}</span>
+        <span>기록: {replay?.run_id || "—"}</span>
+        <span>씨드: {replay?.seed ?? "—"}</span>
+        <span>글 수: {replay?.posts?.length ?? 0}</span>
       </div>
       {frameEntries.length > 0 && (
         <div style={styles.continuityChips}>
@@ -318,7 +318,7 @@ function RunTriggerPanel({
           onClick={() => mutation.mutate()}
           disabled={mutation.isPending}
         >
-          {mutation.isPending ? "기록 만드는 중..." : `▶ 실행 (${timeSpeed}x)`}
+          {mutation.isPending ? "기록 만드는 중..." : `▶ 기록 만들기 (${timeSpeed}x)`}
         </button>
       </div>
       {mutation.isError && (
@@ -328,7 +328,7 @@ function RunTriggerPanel({
       )}
       {mutation.isSuccess && (
         <div style={styles.runSuccess}>
-          완료 — posts: {mutation.data?.posts_created}, 기록: {mutation.data?.replay_file}
+          완료 — 글: {mutation.data?.posts_created}, 기록: {mutation.data?.replay_file}
         </div>
       )}
     </div>
@@ -466,8 +466,8 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
 
           <div style={styles.runMeta} data-replay-anchor="run-meta">
             <span style={styles.runMetaItem}>기록: <code>{replay.run_id}</code></span>
-            <span style={styles.runMetaItem}>seed: {replay.seed}</span>
-            <span style={styles.runMetaItem}>ticks: {replay.ticks}</span>
+            <span style={styles.runMetaItem}>씨드: {replay.seed}</span>
+            <span style={styles.runMetaItem}>진행 틱: {replay.ticks}</span>
             <span style={styles.runMetaItem}>{replay.created_at?.slice(0, 19).replace("T", " ")}</span>
           </div>
 
@@ -495,7 +495,7 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
           </div>
 
           <div style={styles.sectionHeader} data-replay-anchor="posts">
-            에이전트 글 ({replay.posts?.length ?? 0}개)
+            글 흐름 ({replay.posts?.length ?? 0}개)
           </div>
           <div style={styles.postList}>
             {(replay.posts ?? []).map((post) => (
