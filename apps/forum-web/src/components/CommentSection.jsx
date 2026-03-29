@@ -12,6 +12,10 @@ export default function CommentSection({
 }) {
   const [text, setText] = useState("");
   const queryClient = useQueryClient();
+  const replyTargetLabel = replyTarget?.type === "comment" ? "댓글" : "글";
+  const submitHint = replyTarget?.preview
+    ? `이 답글은 ${replyTargetLabel}에 연결됩니다. 제출 전 대상과 내용을 한 번 더 확인해 주세요.`
+    : "";
 
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ["comments", postId],
@@ -73,6 +77,7 @@ export default function CommentSection({
           <div style={styles.replyTargetPreview}>{replyTarget.preview}</div>
         </div>
       )}
+      {submitHint && <div style={styles.submitHint}>{submitHint}</div>}
       {comments.map((c) => (
         <div key={c._id} style={styles.comment}>
           <span style={styles.author}>
@@ -118,7 +123,7 @@ export default function CommentSection({
           style={styles.btn}
           disabled={addMutation.isPending || !text.trim()}
         >
-          {addMutation.isPending ? "…" : "등록"}
+          {addMutation.isPending ? "…" : replyTarget?.preview ? "답글 등록" : "등록"}
         </button>
       </form>
     </div>
@@ -165,6 +170,12 @@ const styles = {
     fontSize: 13,
     lineHeight: 1.5,
     color: "#1e293b",
+  },
+  submitHint: {
+    marginBottom: 10,
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: "#1d4ed8",
   },
   comment: { padding: "8px 0", borderTop: "1px solid #f3f4f6" },
   author: { fontSize: 12, fontWeight: 600, color: "#6b7280" },
