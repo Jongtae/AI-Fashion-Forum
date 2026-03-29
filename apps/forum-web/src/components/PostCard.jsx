@@ -257,7 +257,16 @@ export default function PostCard({
           )}
 
           {showComments && (
-            <CommentSection postId={post._id} currentUser={currentUser} onUserActivity={onUserActivity} />
+            <CommentSection
+              postId={post._id}
+              currentUser={currentUser}
+              onUserActivity={onUserActivity}
+              replyTarget={{
+                type: "post",
+                authorId: post.authorId,
+                preview: post.content?.trim().slice(0, 180) || "이 글에 답글을 남겨보세요.",
+              }}
+            />
           )}
         </>
       )}

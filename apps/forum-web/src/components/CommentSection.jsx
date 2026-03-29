@@ -4,7 +4,12 @@ import { fetchComments, createComment, deleteComment } from "../api/client.js";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
-export default function CommentSection({ postId, currentUser = DEFAULT_USER, onUserActivity = () => {} }) {
+export default function CommentSection({
+  postId,
+  currentUser = DEFAULT_USER,
+  onUserActivity = () => {},
+  replyTarget = null,
+}) {
   const [text, setText] = useState("");
   const queryClient = useQueryClient();
 
@@ -52,6 +57,22 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
   return (
     <div style={styles.container}>
       {isLoading && <p style={styles.loading}>댓글을 불러오는 중…</p>}
+      {replyTarget?.preview && (
+        <div style={styles.replyTargetCard}>
+          <div style={styles.replyTargetHeader}>
+            <span style={styles.replyTargetLabel}>답글 대상</span>
+            <span style={styles.replyTargetType}>
+              {replyTarget.type === "comment" ? "댓글" : "글"}
+            </span>
+          </div>
+          <div style={styles.replyTargetAuthor}>
+            {replyTarget.type === "comment"
+              ? `@${replyTarget.authorId || "comment"}`
+              : `@${replyTarget.authorId || "post"}`}
+          </div>
+          <div style={styles.replyTargetPreview}>{replyTarget.preview}</div>
+        </div>
+      )}
       {comments.map((c) => (
         <div key={c._id} style={styles.comment}>
           <span style={styles.author}>
@@ -85,7 +106,7 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
         </div>
       ))}
       <form onSubmit={handleSubmit} style={styles.form}>
-          <input
+        <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="댓글을 남겨보세요…"
@@ -107,6 +128,44 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
 const styles = {
   container: { paddingTop: 12 },
   loading: { fontSize: 13, color: "#9ca3af" },
+  replyTargetCard: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 8,
+    border: "1px solid #dbeafe",
+    background: "#eff6ff",
+  },
+  replyTargetHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 6,
+  },
+  replyTargetLabel: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#1d4ed8",
+  },
+  replyTargetType: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#1e40af",
+    background: "#dbeafe",
+    borderRadius: 999,
+    padding: "2px 8px",
+  },
+  replyTargetAuthor: {
+    fontSize: 12,
+    fontWeight: 600,
+    color: "#1e3a8a",
+    marginBottom: 4,
+  },
+  replyTargetPreview: {
+    fontSize: 13,
+    lineHeight: 1.5,
+    color: "#1e293b",
+  },
   comment: { padding: "8px 0", borderTop: "1px solid #f3f4f6" },
   author: { fontSize: 12, fontWeight: 600, color: "#6b7280" },
   replyMeta: { marginTop: 4, fontSize: 11, color: "#9ca3af" },

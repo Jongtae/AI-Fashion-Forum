@@ -290,7 +290,16 @@ export default function PostDetail({
 
       <section style={styles.commentsSection}>
         <h3 style={styles.commentsTitle}>대화 ({post.commentCount || 0})</h3>
-        <CommentSection postId={postId} currentUser={currentUser} onUserActivity={onUserActivity} />
+        <CommentSection
+          postId={postId}
+          currentUser={currentUser}
+          onUserActivity={onUserActivity}
+          replyTarget={{
+            type: "post",
+            authorId: post.authorId,
+            preview: post.content?.trim().slice(0, 180) || "이 글에 답글을 남겨보세요.",
+          }}
+        />
       </section>
     </div>
   );
