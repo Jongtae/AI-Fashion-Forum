@@ -67,6 +67,9 @@ function getInitialDiscoveryMode() {
 }
 
 function ServiceContextSummary({ tab, discoveryMode, activeTagFilter, discoverySearchText }) {
+  const handleClearContext = () => {
+    window.dispatchEvent(new CustomEvent("forum:clear-context"));
+  };
   const chips = [];
 
   if (tab && tab !== "forum") {
@@ -89,7 +92,12 @@ function ServiceContextSummary({ tab, discoveryMode, activeTagFilter, discoveryS
 
   return (
     <div style={styles.contextSummary}>
-      <div style={styles.contextSummaryLabel}>현재 보기</div>
+      <div style={styles.contextSummaryHeader}>
+        <div style={styles.contextSummaryLabel}>현재 보기</div>
+        <button type="button" style={styles.contextClearBtn} onClick={handleClearContext}>
+          초기화
+        </button>
+      </div>
       <div style={styles.contextChipRow}>
         {chips.map((chip) => (
           <span key={`${chip.label}-${chip.value}`} style={styles.contextChip}>
@@ -241,6 +249,27 @@ export default function ForumApp() {
   const autoTickInFlightRef = useRef(false);
   const prevSelectedPostIdRef = useRef(null);
   const previousServiceTabRef = useRef("forum");
+
+  useEffect(() => {
+    const handleClearContext = () => {
+      setTab("forum");
+      setViewUrl("forum", { replace: false });
+      setSelectedPostId(null);
+      setPostUrl(null);
+      setSelectedProfile(null);
+      setProfileUrl(null);
+      setActiveTagFilter("");
+      setDiscoverySearchText("");
+      setDiscoveryMode("recent");
+      setTagUrl("", { replace: true });
+      setDiscoveryQueryUrl("", { replace: true });
+      setDiscoveryModeUrl("recent", { replace: true });
+      restoreFeedScrollPosition();
+    };
+
+    window.addEventListener("forum:clear-context", handleClearContext);
+    return () => window.removeEventListener("forum:clear-context", handleClearContext);
+  }, []);
 
   // currentUser: 로그인 시 JWT 사용자, 미로그인 시 guest
   const currentUser = authUser
@@ -860,11 +889,26 @@ const styles = {
     flexDirection: "column",
     gap: 8,
   },
+  contextSummaryHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+  },
   contextSummaryLabel: {
     fontSize: 12,
     fontWeight: 800,
     color: "#6b7280",
     letterSpacing: "0.06em",
+  },
+  contextClearBtn: {
+    border: "1px solid #d1d5db",
+    background: "#f9fafb",
+    color: "#374151",
+    borderRadius: 999,
+    padding: "4px 10px",
+    fontSize: 12,
+    cursor: "pointer",
   },
   contextChipRow: {
     display: "flex",
