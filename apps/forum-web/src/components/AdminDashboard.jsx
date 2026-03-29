@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAgentLoopStatus, fetchLatestReport } from "../api/client.js";
 import OperatorDashboard from "./OperatorDashboard.jsx";
 import RunReplayViewer from "./RunReplayViewer.jsx";
 import Sprint1ReplayPanel from "./Sprint1ReplayPanel.jsx";
@@ -24,38 +26,134 @@ const SECTIONS = [
   },
 ];
 
+const ACTIONS = [
+  {
+    id: "operator",
+    label: "글 흐름 확인",
+    description: "현재 글 흐름과 운영 지표를 먼저 확인합니다.",
+  },
+  {
+    id: "replay",
+    label: "기록 열기",
+    description: "최근 실행 기록과 에이전트 반응 흐름을 봅니다.",
+  },
+  {
+    id: "sprint1",
+    label: "흐름 기록 보기",
+    description: "캐릭터 변화와 Sprint 1 분석을 비교합니다.",
+  },
+];
+
+function formatLoopSummary(loopStatus, isLoading, error) {
+  if (isLoading) return "시뮬레이션 상태를 불러오는 중...";
+  if (error) return "시뮬레이션 연결 실패";
+  if (!loopStatus) return "시뮬레이션이 아직 시작되지 않았습니다.";
+
+  return `라운드 ${loopStatus.currentRound ?? 0} · 에이전트 ${loopStatus.agentCount ?? 0}명`;
+}
+
+function formatLoopDetail(loopStatus, timeSpeed) {
+  if (!loopStatus) return `실행 속도 ${timeSpeed}x`;
+  const nextSpawn = loopStatus.growth?.ticksUntilNextSpawn;
+  if (nextSpawn != null) {
+    return `다음 합류까지 ${nextSpawn}틱 · 실행 속도 ${timeSpeed}x`;
+  }
+  return `실행 속도 ${timeSpeed}x`;
+}
+
+function formatReportSummary(report, isLoading, error) {
+  if (isLoading) return "최신 리포트를 불러오는 중...";
+  if (error) return "최신 리포트를 아직 찾지 못했습니다.";
+  if (!report) return "최근 실행 기록이 없습니다.";
+
+  return `기록 ${report.run_id || "—"} · 씨드 ${report.seed ?? "—"}`;
+}
+
+function formatReportDetail(report) {
+  if (!report?.computed_at) return "아직 생성 시각이 없습니다.";
+  return `마지막 생성 ${report.computed_at.slice(11, 19)} 기준`;
+}
+
+function StatusCard({ label, title, summary, detail, tone = "neutral" }) {
+  return (
+    <div style={{ ...styles.statusCard, ...(tone === "warn" ? styles.statusCardWarn : {}) }}>
+      <span style={styles.statusLabel}>{label}</span>
+      <div style={styles.statusTitle}>{title}</div>
+      <div style={styles.statusSummary}>{summary}</div>
+      {detail && <div style={styles.statusDetail}>{detail}</div>}
+    </div>
+  );
+}
+
 export default function AdminDashboard({ timeSpeed = 1 }) {
   const [activeSection, setActiveSection] = useState("home");
+  const { data: loopStatus, isLoading: loopLoading, error: loopError } = useQuery({
+    queryKey: ["admin-loop-status"],
+    queryFn: fetchAgentLoopStatus,
+    refetchInterval: 15_000,
+    retry: 1,
+  });
+
+  const { data: latestReport, isLoading: reportLoading, error: reportError } = useQuery({
+    queryKey: ["admin-latest-report"],
+    queryFn: async () => {
+      try {
+        return await fetchLatestReport();
+      } catch (error) {
+        if (error?.status === 404) {
+          return null;
+        }
+        throw error;
+      }
+    },
+    refetchInterval: 30_000,
+    retry: 1,
+  });
 
   function renderHome() {
     return (
       <div style={styles.homeGrid}>
         <div style={styles.homeHero}>
-          <p style={styles.homeKicker}>첫 화면</p>
-          <h2 style={styles.homeTitle}>포럼 흐름 허브</h2>
+          <p style={styles.homeKicker}>운영 허브</p>
+          <h2 style={styles.homeTitle}>지금 무엇을 보면 되는지 알려주는 화면</h2>
           <p style={styles.homeText}>
-            서비스와 분리된 흐름과 기록을 한곳에 모아두고, 현재 위치와 카테고리를 같은 방식으로 보여줍니다.
+            서비스와 분리된 운영 화면입니다. 여기서는 시뮬레이션이 살아 있는지 확인하고, 흐름과 기록으로 바로 이동합니다.
           </p>
-          <div style={styles.locationLine}>
-            <span style={styles.locationBadge}>허브</span>
-            <span style={styles.locationSep}>/</span>
-            <span style={styles.locationBadgeActive}>홈</span>
+          <div style={styles.homeChecklist}>
+            <span style={styles.checkItem}>• 시뮬레이션 연결 상태를 확인합니다.</span>
+            <span style={styles.checkItem}>• 최근 실행 기록과 리포트를 봅니다.</span>
+            <span style={styles.checkItem}>• 글 흐름, 기록, Sprint 1으로 이동합니다.</span>
+          </div>
+          <div style={styles.quickActions}>
+            {ACTIONS.map((action) => (
+              <button key={action.id} type="button" style={styles.quickAction} onClick={() => setActiveSection(action.id)}>
+                <span style={styles.quickActionLabel}>{action.label}</span>
+                <span style={styles.quickActionDesc}>{action.description}</span>
+              </button>
+            ))}
           </div>
         </div>
 
-        <div style={styles.homeCards}>
-          {SECTIONS.map((section) => (
-            <button
-              key={section.id}
-              type="button"
-              style={styles.homeCard}
-              onClick={() => setActiveSection(section.id)}
-            >
-              <span style={styles.homeCardCategory}>{section.category}</span>
-              <span style={styles.homeCardTitle}>{section.label}</span>
-              <span style={styles.homeCardDesc}>{section.description}</span>
-            </button>
-          ))}
+        <div style={styles.statusRail}>
+          <StatusCard
+            label="연결 상태"
+            title={formatLoopSummary(loopStatus, loopLoading, loopError)}
+            summary={formatLoopDetail(loopStatus, timeSpeed)}
+            detail="자동 진행 중이면 이 값이 계속 갱신됩니다."
+            tone={loopError ? "warn" : "neutral"}
+          />
+          <StatusCard
+            label="최신 리포트"
+            title={formatReportSummary(latestReport, reportLoading, reportError)}
+            summary={formatReportDetail(latestReport)}
+            detail={latestReport ? `평가 지표와 글 흐름이 담긴 최신 결과입니다.` : "기록이 없으면 아직 실행되지 않은 상태입니다."}
+            tone={reportError ? "warn" : "neutral"}
+          />
+          <StatusCard
+            label="다음 할 일"
+            title={activeSection === "home" ? "흐름 카드에서 한 곳을 선택하세요" : "선택한 화면을 아래에서 확인하세요"}
+            summary="왼쪽 카드로 목적을 읽고, 오른쪽 바로가기로 바로 이동합니다."
+          />
         </div>
       </div>
     );
@@ -68,7 +166,7 @@ export default function AdminDashboard({ timeSpeed = 1 }) {
           <p style={styles.kicker}>허브</p>
           <h1 style={styles.title}>포럼 흐름 허브</h1>
           <p style={styles.description}>
-            서비스 화면과 분리된 흐름과 기록을 이곳에 모았습니다.
+            서비스 화면과 분리된 운영 전용 공간입니다. 무엇을 보고 무엇을 해야 하는지 바로 보이도록 정리했습니다.
           </p>
         </div>
         <div style={styles.menuGrid}>
@@ -203,7 +301,7 @@ const styles = {
   },
   homeGrid: {
     display: "grid",
-    gridTemplateColumns: "1.2fr 1fr",
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
     gap: 16,
   },
   homeHero: {
@@ -235,6 +333,89 @@ const styles = {
     fontSize: 14,
     lineHeight: 1.7,
     color: "#475569",
+  },
+  homeChecklist: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    marginTop: 4,
+  },
+  checkItem: {
+    fontSize: 13,
+    color: "#334155",
+    paddingLeft: 18,
+    position: "relative",
+    lineHeight: 1.5,
+  },
+  quickActions: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: 10,
+    marginTop: 10,
+  },
+  quickAction: {
+    textAlign: "left",
+    padding: 14,
+    borderRadius: 14,
+    border: "1px solid #dbe4f0",
+    background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
+    boxShadow: "0 4px 16px rgba(15, 23, 42, 0.03)",
+    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  },
+  quickActionLabel: {
+    fontSize: 14,
+    fontWeight: 800,
+    color: "#111827",
+  },
+  quickActionDesc: {
+    fontSize: 12,
+    color: "#64748b",
+    lineHeight: 1.45,
+  },
+  statusRail: {
+    display: "grid",
+    gap: 12,
+    alignContent: "start",
+  },
+  statusCard: {
+    borderRadius: 16,
+    border: "1px solid #e5e7eb",
+    padding: 18,
+    background: "#fff",
+    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  statusCardWarn: {
+    borderColor: "#fecaca",
+    background: "linear-gradient(180deg, #fff 0%, #fff7f7 100%)",
+  },
+  statusLabel: {
+    fontSize: 11,
+    fontWeight: 800,
+    color: "#0369a1",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+  },
+  statusTitle: {
+    fontSize: 16,
+    fontWeight: 800,
+    color: "#111827",
+    lineHeight: 1.35,
+  },
+  statusSummary: {
+    fontSize: 13,
+    color: "#475569",
+    lineHeight: 1.6,
+  },
+  statusDetail: {
+    fontSize: 12,
+    color: "#64748b",
+    lineHeight: 1.5,
   },
   locationLine: {
     display: "flex",
