@@ -8,6 +8,44 @@
 - [`/Users/jongtaelee/Documents/camel-ai-study/docs/product-identity.md`](/Users/jongtaelee/Documents/camel-ai-study/docs/product-identity.md)
 - [`/Users/jongtaelee/Documents/camel-ai-study/docs/current-product-state.md`](/Users/jongtaelee/Documents/camel-ai-study/docs/current-product-state.md)
 
+## Proposed implementation issue
+
+### Title
+
+UI/UX에서 소비, 선택, 반응, 관계 누적이 캐릭터를 만드는 흐름을 드러내기
+
+### Summary
+
+현재 UI는 글쓰기와 포럼 액션을 보여주고 있지만, 사용자가 본 글, 고른 글, 좋아요나 싫어요를 한 글, 댓글과 그에 대한 반응, 외부 콘텐츠 소비 결과가 하나의 정체성 루프로 읽히는 구조는 약합니다.
+
+이 이슈는 포럼 화면, 피드, 프로필, 댓글, replay, 운영 화면, 작성 진입점이 모두 같은 언어로 동작하도록 정리해서, "무엇을 소비했고 어떻게 반응했는가"가 agent와 사람의 캐릭터를 발전시키는 핵심 축이 되도록 만드는 것을 목표로 합니다.
+
+### Completion criteria
+
+- [x] Feed, discovery, detail, profile, replay, comments, operator/admin, and composer entry points all describe identity as an accumulation of consumption and reaction
+- [x] UI copy distinguishes passive exposure, deliberate selection, lightweight reaction, authored response, and shared consumption
+- [x] The same identity-loop framing is visible across replay and operational surfaces
+- [x] The project documents reference the consumption-first UI/UX direction
+- [x] The implementation remains buildable in the forum web app
+
+### Expected branch name
+
+`codex/ui-ux-consumption-identity-loop`
+
+### Primary layer
+
+`digital twin / productization`
+
+### Data Engineering review
+
+Not required.
+
+### Verification
+
+- Run the forum web build
+- Confirm the updated UI copy on feed, detail, profile, comments, replay, and operator surfaces
+- Confirm no layout or import errors are introduced
+
 ## 요약
 
 이 프로젝트가 만들려는 것은 단순 멀티에이전트 채팅이 아닙니다.
