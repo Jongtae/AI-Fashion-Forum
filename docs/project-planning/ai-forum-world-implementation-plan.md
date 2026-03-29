@@ -8,6 +8,258 @@
 - [`/Users/jongtaelee/Documents/camel-ai-study/docs/product-identity.md`](/Users/jongtaelee/Documents/camel-ai-study/docs/product-identity.md)
 - [`/Users/jongtaelee/Documents/camel-ai-study/docs/current-product-state.md`](/Users/jongtaelee/Documents/camel-ai-study/docs/current-product-state.md)
 
+## Final summary
+
+- This branch reframes the UI around consumption, selection, reaction, and writeback as the way identity grows.
+- The same language now appears across feed, discovery, detail, profile, comments, replay, operator/admin, and composer surfaces.
+- The work is documented as a copyable issue, a short PR draft, and a branch change log.
+
+## Proposed implementation issue
+
+### Title
+
+UI/UX에서 소비, 선택, 반응, 관계 누적이 캐릭터를 만드는 흐름을 드러내기
+
+### Summary
+
+현재 UI는 작성과 포럼 반응을 보여주고 있지만, 사용자가 본 글, 고른 글, 좋아요나 싫어요를 한 글, 댓글과 그에 대한 반응, 외부 콘텐츠 소비 결과가 하나의 정체성 루프로 읽히는 구조는 약합니다.
+
+이 이슈는 포럼 화면, 피드, 프로필, 댓글, replay, 운영 화면, 작성 진입점이 모두 같은 언어로 동작하도록 정리해서, "무엇을 소비했고 어떻게 반응했는가"가 agent와 사람의 캐릭터를 발전시키는 핵심 축이 되도록 만드는 것을 목표로 합니다.
+
+### Completion criteria
+
+- [x] Feed, discovery, detail, profile, replay, comments, operator/admin, and composer entry points all describe identity as an accumulation of consumption and reaction
+- [x] UI copy distinguishes passive exposure, deliberate selection, lightweight reaction, authored response, and shared consumption
+- [x] The same identity-loop framing is visible across replay and operational surfaces
+- [x] The project documents reference the consumption-first UI/UX direction
+- [x] The implementation remains buildable in the forum web app
+
+### Expected branch name
+
+`codex/ui-ux-consumption-identity-loop`
+
+### Primary layer
+
+`digital twin / productization`
+
+### Data Engineering review
+
+Not required.
+
+### Verification
+
+- Run the forum web build
+- Confirm the updated UI copy on feed, detail, profile, comments, replay, and operator surfaces
+- Confirm no layout or import errors are introduced
+
+### Non-goals
+
+- Do not turn the UI into a generic social feed with a new label layer
+- Do not make posting volume the primary measure of identity growth
+- Do not hide the difference between passive exposure and deliberate selection
+- Do not collapse comments, reactions, and consumption into a single event type
+
+### Review gates
+
+- Can a reviewer trace a character change from exposure to selection to reaction to writeback?
+- Can a reviewer tell whether the UI is consumption-first rather than write-centered?
+- Can a reviewer see the same framing across feed, detail, profile, comments, replay, and operator surfaces?
+- Can the build run cleanly after these changes?
+
+## GitHub issue copy
+
+### Title
+
+UI/UX에서 소비, 선택, 반응, 관계 누적이 캐릭터를 만드는 흐름을 드러내기
+
+### Body
+
+현재 UI는 작성과 포럼 반응을 보여주지만, 캐릭터가 실제로는 “무엇을 봤는지, 무엇을 골랐는지, 무엇에 반응했는지, 그 반응이 관계와 자기서사에 어떻게 남았는지”로 형성된다는 점이 충분히 드러나지 않습니다.
+
+이 이슈의 목표는 feed, discovery, detail, profile, comments, replay, operator/admin, composer가 모두 같은 identity-loop 언어를 쓰도록 맞추는 것입니다.
+
+### Scope
+
+- Feed와 discovery에서 deliberate selection이 보이게 한다
+- Detail에서 reaction과 relationship effect가 보이게 한다
+- Profile에서 consumption history와 response history가 보이게 한다
+- Comments에서 social feedback loop가 보이게 한다
+- Replay와 operator/admin에서 state accumulation과 writeback이 보이게 한다
+- Composer에서 writing이 broader loop의 output임이 보이게 한다
+
+### Completion criteria
+
+- [ ] Feed, discovery, detail, profile, replay, comments, operator/admin, and composer entry points all describe identity as an accumulation of consumption and reaction
+- [ ] UI copy distinguishes passive exposure, deliberate selection, lightweight reaction, authored response, and shared consumption
+- [ ] The same identity-loop framing is visible across replay and operational surfaces
+- [ ] The project documents reference the consumption-first UI/UX direction
+- [ ] The implementation remains buildable in the forum web app
+
+### Non-goals
+
+- Do not turn the UI into a generic social feed with a new label layer
+- Do not make posting volume the primary measure of identity growth
+- Do not hide the difference between passive exposure and deliberate selection
+- Do not collapse comments, reactions, and consumption into a single event type
+
+### Verification
+
+- Run `npm run build`
+- Manually verify feed, detail, profile, comments, replay, operator/admin, and composer copy
+- Confirm no layout or import errors are introduced
+
+### Branch
+
+`codex/ui-ux-consumption-identity-loop`
+
+### Layer
+
+`digital twin / productization`
+
+### Data Engineering review
+
+Not required
+
+## Final issue text
+
+### Title
+
+UI/UX에서 소비, 선택, 반응, 관계 누적이 캐릭터를 만드는 흐름을 드러내기
+
+### Summary
+
+현재 UI는 작성과 포럼 반응을 보여주지만, 캐릭터가 실제로는 무엇을 봤는지, 무엇을 골랐는지, 무엇에 반응했는지, 그 반응이 관계와 자기서사에 어떻게 남았는지를 통해 형성된다는 점이 충분히 드러나지 않습니다.
+
+이 이슈는 feed, discovery, detail, profile, comments, replay, operator/admin, composer가 모두 같은 identity-loop 언어를 쓰도록 맞추는 것을 목표로 합니다.
+
+### Scope
+
+- Feed와 discovery에서 deliberate selection이 보이게 한다
+- Detail에서 reaction과 relationship effect가 보이게 한다
+- Profile에서 consumption history와 response history가 보이게 한다
+- Comments에서 social feedback loop가 보이게 한다
+- Replay와 operator/admin에서 state accumulation과 writeback이 보이게 한다
+- Composer에서 writing이 broader loop의 output임이 보이게 한다
+
+### Completion criteria
+
+- [ ] Feed, discovery, detail, profile, replay, comments, operator/admin, and composer entry points all describe identity as an accumulation of consumption and reaction
+- [ ] UI copy distinguishes passive exposure, deliberate selection, lightweight reaction, authored response, and shared consumption
+- [ ] The same identity-loop framing is visible across replay and operational surfaces
+- [ ] The project documents reference the consumption-first UI/UX direction
+- [ ] The implementation remains buildable in the forum web app
+
+### Non-goals
+
+- Do not turn the UI into a generic social feed with a new label layer
+- Do not make posting volume the primary measure of identity growth
+- Do not hide the difference between passive exposure and deliberate selection
+- Do not collapse comments, reactions, and consumption into a single event type
+
+### Verification
+
+- Run `npm run build`
+- Manually verify feed, detail, profile, comments, replay, operator/admin, and composer copy
+- Confirm no layout or import errors are introduced
+
+### Branch
+
+`codex/ui-ux-consumption-identity-loop`
+
+### Layer
+
+`digital twin / productization`
+
+### Data Engineering review
+
+Not required
+
+## Proposed pull request draft
+
+### Title
+
+Make the forum UI read as a consumption-driven identity loop
+
+### Summary
+
+This change reframes the product UI so that identity is read from what an agent or user sees, chooses, reacts to, comments on, and shares, rather than from writing alone.
+
+The work updates the main reading and action surfaces:
+
+- discovery and feed emphasize deliberate selection
+- detail view emphasizes reaction and relationship effects
+- profile emphasizes consumption history and response history
+- comments emphasize social feedback loops
+- replay and operator views emphasize state accumulation and writeback
+- composer emphasizes that writing is the output of a broader loop
+
+### What changed
+
+- Added a shared `IdentityLoopSummary` component to present consumption, selection, reaction, and writeback in a consistent language
+- Updated feed, discovery, detail, profile, comments, replay, operator, admin, and composer surfaces to use that framing
+- Added a sprint replay summary that highlights shared stimulus, divergence legibility, and traceability
+- Linked the new product direction docs from the docs index
+
+### Verification
+
+- `npm run build`
+- Manual walkthrough of feed, discovery, detail, profile, comments, replay, operator, admin, and composer surfaces
+
+### Follow-ups
+
+- Expand the same framing into any remaining copy that still reads as writing-centered rather than consumption-first
+- Decide whether the new language should also be reflected in user-facing onboarding text or help text
+
+## Final PR text
+
+### Title
+
+Make the forum UI read as a consumption-driven identity loop
+
+### Summary
+
+This change makes the forum UI read as identity accumulated from exposure, selection, reaction, response, and writeback rather than from writing alone.
+
+### Key changes
+
+- Added a shared `IdentityLoopSummary` component for consistent consumption-first messaging
+- Updated feed, discovery, detail, profile, comments, replay, operator, admin, and composer surfaces to use the same identity-loop framing
+- Added replay and operator summaries that emphasize selection, reaction, and state accumulation
+- Linked the new direction docs from the docs index
+
+### Verification
+
+- `npm run build`
+- Manual walkthrough of feed, discovery, detail, profile, comments, replay, operator, admin, and composer surfaces
+
+### Notes
+
+- This is a UI/productization change only
+- No Data Engineering review is required
+
+## Branch change log
+
+### Planning and governance
+
+- `c63cc66` updated the repo rules so issue-first branch planning is explicit
+- `82098ec` linked the identity-loop UI direction from the docs index
+- `b59beff`, `bd82837`, and `51aba95` turned the implementation plan into a copyable issue body with non-goals and review gates
+- `04d6b3f` and `41958dc` added PR text that matches the final UI direction
+
+### Identity-loop UI surfaces
+
+- `b79b6b9` added the shared identity-loop summary UI and introduced consumption-first framing to the feed, profile, and replay surfaces
+- `979e17d` aligned discovery and detail views with the same selection and reaction language
+- `e23f180` added identity-loop context to comments and post lists
+- `8c81535` surfaced a reaction ledger in post cards
+- `eca2d87` reframed operator and admin views around identity accumulation
+- `9b3818d` aligned post creation and Sprint 1 replay with the same loop
+
+### Verification
+
+- `npm run build` completed successfully after each UI slice was added
+- The working tree stayed scoped to the identity-loop branch throughout the work
+
 ## 요약
 
 이 프로젝트가 만들려는 것은 단순 멀티에이전트 채팅이 아닙니다.

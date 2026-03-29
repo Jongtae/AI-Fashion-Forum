@@ -2,6 +2,8 @@ import React, { useState, useCallback } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fetchPosts } from "../api/client.js";
 import PostCard from "./PostCard.jsx";
+import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
+import { chatTheme } from "../lib/chat-ui-theme.js";
 
 const PAGE_SIZE = 20;
 
@@ -58,21 +60,28 @@ export default function PostList({
   });
 
   const posts = data?.pages.flatMap((p) => p.posts) ?? [];
-  const isEmpty = !isLoading && posts.length === 0;
-  const resolvedEmptyTitle =
-    emptyStateTitle ||
-    (isSavedView
-      ? "아직 저장한 글이 없습니다."
-      : queryParams?.q
-      ? "검색 결과가 없습니다."
-      : "아직 글이 없습니다.");
-  const resolvedEmptyText =
-    emptyStateText ||
-    (isSavedView
-      ? "마음에 드는 글을 저장하면 이곳에 모입니다."
-      : queryParams?.q
-      ? "검색어를 지우거나 다른 주제를 찾아보세요."
-      : "첫 번째 글을 써서 대화를 시작해 보세요.");
+  const summaryCards = [
+    {
+      label: "보기 상태",
+      value: requiresAuth ? (isAuthenticated ? "auth" : "locked") : "open",
+      description: requiresAuth && !isAuthenticated ? "저장한 글과 저장 상태를 여는 중입니다." : "지금 이 목록은 바로 선택 가능한 상태입니다.",
+    },
+    {
+      label: "태그",
+      value: tagFilter || "—",
+      description: "무엇을 우선적으로 보게 되는지 나타냅니다.",
+    },
+    {
+      label: "목록 글",
+      value: posts.length,
+      description: "현재 조건에서 눈에 들어오는 콘텐츠 수입니다.",
+    },
+    {
+      label: "스크롤",
+      value: hasNextPage ? "더 있음" : "끝",
+      description: "더 깊은 선택이 가능한지 알려줍니다.",
+    },
+  ];
   const handleScroll = useCallback(
     (e) => {
       const el = e.currentTarget;
@@ -97,6 +106,18 @@ export default function PostList({
 
   return (
     <div>
+      <IdentityLoopSummary
+        kicker="selection layer"
+        title="목록은 읽기 목록이 아니라 선택의 경로입니다"
+        subtitle="이 영역은 사용자가 어떤 글을 볼지 정하는 곳이며, 그 선택이 이후의 반응과 관계를 바꿉니다."
+        cards={summaryCards}
+        notes={[
+          isSavedView
+            ? "저장글은 나중에 다시 돌아올 선택을 모아두는 상태입니다."
+            : "선택한 글이 댓글, 좋아요, 저장, 공유의 다음 행동으로 이어집니다.",
+        ]}
+      />
+
       <div style={styles.filterRow}>
         <input
           value={tagFilter}
@@ -168,18 +189,18 @@ const styles = {
   filterInput: {
     flex: 1,
     padding: "8px 12px",
-    border: "1px solid #d1d5db",
-    borderRadius: 6,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    borderRadius: chatTheme.radiusMD,
     fontSize: 13,
-    color: "#111827",
-    background: "#fff",
+    color: chatTheme.text,
+    background: "rgba(255,255,255,0.05)",
   },
   clearBtn: {
     background: "none",
     border: "none",
     fontSize: 16,
     cursor: "pointer",
-    color: "#6b7280",
+    color: chatTheme.textMuted,
   },
   list: {
     display: "flex",
@@ -188,52 +209,24 @@ const styles = {
     maxHeight: "70vh",
     overflowY: "auto",
   },
-  msg: { textAlign: "center", color: "#9ca3af", fontSize: 14, padding: "24px 0" },
-  error: { textAlign: "center", color: "#dc2626", fontSize: 14, padding: "16px 0" },
-  emptyState: {
-    padding: 20,
-    borderRadius: 12,
-    border: "1px dashed #cbd5e1",
-    background: "#f8fafc",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  emptyStateTitle: {
-    margin: 0,
-    fontSize: 16,
-    fontWeight: 700,
-    color: "#111827",
-  },
-  emptyStateText: {
-    margin: "8px 0 14px",
-    fontSize: 13,
-    color: "#6b7280",
-    lineHeight: 1.6,
-  },
-  emptyStateBtn: {
-    border: "none",
-    borderRadius: 999,
-    padding: "8px 14px",
-    background: "#111827",
-    color: "#fff",
-    cursor: "pointer",
-    fontSize: 13,
-  },
-  end: { textAlign: "center", color: "#d1d5db", fontSize: 12, padding: "12px 0" },
+  msg: { textAlign: "center", color: chatTheme.textMuted, fontSize: 14, padding: "24px 0" },
+  error: { textAlign: "center", color: "#fecaca", fontSize: 14, padding: "16px 0" },
+  end: { textAlign: "center", color: chatTheme.textMuted, fontSize: 12, padding: "12px 0" },
   lockedCard: {
     padding: 20,
-    borderRadius: 12,
-    border: "1px solid #e5e7eb",
-    background: "#fff",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
     textAlign: "center",
+    boxShadow: chatTheme.shadowSoft,
   },
-  lockedTitle: { margin: 0, fontSize: 16, fontWeight: 700, color: "#111827" },
-  lockedText: { margin: "8px 0 14px", fontSize: 13, color: "#6b7280", lineHeight: 1.6 },
+  lockedTitle: { margin: 0, fontSize: 16, fontWeight: 700, color: chatTheme.text },
+  lockedText: { margin: "8px 0 14px", fontSize: 13, color: chatTheme.textMuted, lineHeight: 1.6 },
   lockedBtn: {
     border: "none",
     borderRadius: 999,
     padding: "8px 14px",
-    background: "#111827",
+    background: "linear-gradient(135deg, #23a6f0 0%, #b54cff 100%)",
     color: "#fff",
     cursor: "pointer",
     fontSize: 13,

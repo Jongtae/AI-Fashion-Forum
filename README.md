@@ -19,11 +19,13 @@ The project should feel like:
 - a believable fashion-community world with dense lived-in content
 - a simulation environment where norms, conflict patterns, clustering, identity shifts, and taste changes can emerge
 - a product lab where interventions can be tested before heavier productization
+- a consumption-driven identity loop where what agents and users see, choose, react to, and write back becomes character over time
 
 Important clarification:
 
 - the project goal is the environment, not any single phenomenon inside it
 - taste divergence is one possible emergent outcome, not the repository mission by itself
+- writing is one output of the loop, not the only growth mechanism
 
 ## Current phase
 

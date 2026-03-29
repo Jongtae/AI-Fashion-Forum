@@ -108,6 +108,7 @@ GitHub Actions (`.github/workflows/deploy-pages.yml`) builds and deploys `dist/`
 ## GitHub issue workflow
 
 Full rules are defined in [`WORKFLOW.md`](./WORKFLOW.md) — the shared source of truth for issue tracking, execution rules, branch conventions, delivery sequence, and autonomous continuation behavior.
+Before any code change, define the GitHub issue and branch strategy first, then verify the latest `origin/main` and sync the workspace to it unless the user explicitly says to preserve the current state.
 Prefer the smallest reviewable issue possible, and split again whenever a request would require more than one user-visible behavior, API change, or verification story.
 When a user request is promoted into an issue, restate it as a task-oriented issue summary instead of copying the conversation verbatim; keep the issue wording execution-focused.
 When a task is completed, finish the workflow end-to-end: merge or land the branch, verify the `main` update, close the issue, clean up the branch, and return the workspace to `main` unless the user explicitly wants to keep iterating on the feature branch.

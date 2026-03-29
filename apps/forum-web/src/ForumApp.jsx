@@ -10,6 +10,7 @@ import AuthModal from "./components/AuthModal.jsx";
 import AdminDashboard from "./components/AdminDashboard.jsx";
 import ProfilePanel from "./components/ProfilePanel.jsx";
 import { MessageCircleMore } from "lucide-react";
+import { chatTheme } from "./lib/chat-ui-theme.js";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,35 +68,26 @@ function getInitialDiscoveryMode() {
   return ["recent", "popular", "search"].includes(params.get("mode")) ? params.get("mode") : "recent";
 }
 
-function ServiceContextSummary({
-  tab,
-  discoveryMode,
-  activeTagFilter,
-  discoverySearchText,
-  onClearTab,
-  onClearMode,
-  onClearTag,
-  onClearSearch,
-}) {
+function ServiceContextSummary({ tab, discoveryMode, activeTagFilter, discoverySearchText }) {
   const handleClearContext = () => {
     window.dispatchEvent(new CustomEvent("forum:clear-context"));
   };
   const chips = [];
 
   if (tab && tab !== "forum") {
-    chips.push({ label: "탭", value: tab, onClear: onClearTab });
+    chips.push({ label: "탭", value: tab });
   }
 
   if (tab === "discover" && discoveryMode && discoveryMode !== "recent") {
-    chips.push({ label: "모드", value: discoveryMode, onClear: onClearMode });
+    chips.push({ label: "모드", value: discoveryMode });
   }
 
   if (activeTagFilter) {
-    chips.push({ label: "태그", value: `#${activeTagFilter}`, onClear: onClearTag });
+    chips.push({ label: "태그", value: `#${activeTagFilter}` });
   }
 
   if (tab === "discover" && discoverySearchText) {
-    chips.push({ label: "검색", value: discoverySearchText, onClear: onClearSearch });
+    chips.push({ label: "검색", value: discoverySearchText });
   }
 
   if (chips.length === 0) return null;
@@ -113,15 +105,6 @@ function ServiceContextSummary({
           <span key={`${chip.label}-${chip.value}`} style={styles.contextChip}>
             <strong>{chip.label}</strong>
             <span>{chip.value}</span>
-            <button
-              type="button"
-              style={styles.contextChipRemoveBtn}
-              onClick={chip.onClear}
-              aria-label={`${chip.label} 지우기`}
-              title={`${chip.label} 지우기`}
-            >
-              ×
-            </button>
           </span>
         ))}
       </div>
@@ -129,105 +112,73 @@ function ServiceContextSummary({
   );
 }
 
-function getTabIcon(tabId) {
-  switch (tabId) {
-    case "forum":
-      return "⌂";
-    case "discover":
-      return "⌕";
-    case "feed":
-      return "♡";
-    case "saved":
-      return "⌁";
-    default:
-      return "•";
-  }
-}
+function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
+  const actions = [
+    {
+      id: "forum",
+      title: "포럼 읽기",
+      description: "최신 글을 보고, 선택하고, 반응하면서 캐릭터를 만듭니다.",
+      buttonLabel: "포럼으로",
+    },
+    {
+      id: "discover",
+      title: "탐색하기",
+      description: "인기 글, 검색, 태그로 무엇을 볼지 고릅니다.",
+      buttonLabel: "탐색 열기",
+    },
+    {
+      id: "feed",
+      title: "맞춤 피드",
+      description: "내가 본 것과 반응한 것이 다음 노출을 바꿉니다.",
+      buttonLabel: "피드 보기",
+    },
+    {
+      id: "saved",
+      title: "저장글",
+      description: "다시 보고 싶은 선택을 따로 모아둡니다.",
+      buttonLabel: "저장글 열기",
+    },
+  ];
 
-function ServiceRail({
-  currentTab,
-  authUser,
-  hasForumActivity,
-  composerOpen,
-  onActivateTab,
-  onOpenSavedPosts,
-  onOpenComposer,
-}) {
   return (
-    <aside style={styles.rail}>
-      <div style={styles.railBrand} aria-label="AI Fashion Forum">
-        <MessageCircleMore size={28} strokeWidth={2.25} />
+    <section style={styles.quickActions}>
+      <div style={styles.quickActionsHeader}>
+        <p style={styles.quickActionsKicker}>바로 시작</p>
+        <h2 style={styles.quickActionsTitle}>이곳에서 할 수 있는 것</h2>
+        <p style={styles.quickActionsText}>
+          무엇을 볼지 고르고, 반응을 남기고, 다시 돌아올 선택을 저장할 수 있습니다.
+        </p>
       </div>
-      <div style={styles.railNav}>
-        {SERVICE_TABS.map((tabItem) => {
-          const isActive = currentTab === tabItem.id;
-          const handleClick =
-            tabItem.id === "saved" ? onOpenSavedPosts : () => onActivateTab(tabItem.id);
+      <div style={styles.quickActionsGrid}>
+        {actions.map((action) => (
+          <button
+            key={action.id}
+            type="button"
+            style={styles.quickActionCard}
+            onClick={() => {
+              if (action.id === "saved") {
+                onOpenSavedPosts();
+                return;
+              }
 
-          return (
-            <button
-              key={tabItem.id}
-              type="button"
-              style={{
-                ...styles.railButton,
-                ...(isActive ? styles.railButtonActive : {}),
-              }}
-              title={tabItem.label}
-              onClick={handleClick}
-            >
-              <span style={styles.railIcon}>{getTabIcon(tabItem.id)}</span>
-              <span style={styles.railButtonLabel}>{tabItem.label}</span>
-            </button>
-          );
-        })}
+              onActivateTab(action.id);
+            }}
+          >
+            <div style={styles.quickActionTitle}>{action.title}</div>
+            <div style={styles.quickActionDescription}>{action.description}</div>
+            <span style={styles.quickActionButton}>{action.buttonLabel}</span>
+          </button>
+        ))}
       </div>
-      <button
-        type="button"
-        style={{
-          ...styles.railComposerButton,
-          ...(!(hasForumActivity || authUser) ? styles.railComposerButtonDisabled : {}),
-        }}
-        onClick={onOpenComposer}
-        disabled={!(hasForumActivity || authUser)}
-      >
-        <span style={styles.railComposerPlus}>{composerOpen ? "–" : "+"}</span>
-      </button>
-      <div style={styles.railFooter}>
-        <span style={styles.railFooterLine}>{authUser ? "로그인됨" : "게스트"}</span>
-        <span style={styles.railFooterLine}>service</span>
-      </div>
-    </aside>
-  );
-}
-
-function ServiceSupportPanel({
-  authUser,
-  onShowAuth,
-  onLogout,
-}) {
-  return (
-    <aside style={styles.supportPanel}>
-      <div style={styles.supportCard}>
-        <div style={styles.supportTitle}>
-          {authUser ? `${authUser.displayName || authUser.username}님으로 참여 중` : "포럼에 참여하기"}
-        </div>
-        <button
-          type="button"
-          style={styles.supportPrimaryButton}
-          onClick={authUser ? onLogout : onShowAuth}
-        >
-          {authUser ? "로그아웃" : "로그인 또는 가입하기"}
-        </button>
-      </div>
-    </aside>
+    </section>
   );
 }
 
 const SERVICE_TABS = [
-  { id: "forum", label: "포럼", description: "글을 읽고 댓글을 남깁니다." },
-  { id: "discover", label: "탐색", description: "태그, 검색, 인기글을 찾습니다." },
-  { id: "feed", label: "맞춤 피드", description: "내 반응에 맞는 글을 봅니다." },
-  { id: "saved", label: "저장글", description: "나중에 읽을 글을 보관합니다." },
+  { id: "forum", label: "포럼", description: "글을 읽고 선택하고 반응합니다." },
+  { id: "discover", label: "탐색", description: "태그, 검색, 인기글로 볼 글을 고릅니다." },
+  { id: "feed", label: "맞춤 피드", description: "내 반응이 반영된 글을 봅니다." },
+  { id: "saved", label: "저장글", description: "다시 보고 싶은 선택을 보관합니다." },
 ];
 
 function setPostUrl(postId, { replace = true } = {}) {
@@ -366,20 +317,9 @@ export default function ForumApp() {
   const [timeSpeed, setTimeSpeed] = useState(1);
   const [isAutoRunning, setIsAutoRunning] = useState(true);
   const [pendingTab, setPendingTab] = useState(null);
-  const [viewportWidth, setViewportWidth] = useState(
-    typeof window === "undefined" ? 1280 : window.innerWidth
-  );
   const autoTickInFlightRef = useRef(false);
   const prevSelectedPostIdRef = useRef(null);
   const previousServiceTabRef = useRef("forum");
-  const isCompact = viewportWidth < 1024;
-  const isMobile = viewportWidth < 768;
-
-  useEffect(() => {
-    const handleResize = () => setViewportWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   useEffect(() => {
     const handleClearContext = () => {
@@ -554,33 +494,9 @@ export default function ForumApp() {
     setDiscoveryModeUrl(value, { replace: false });
   }
 
-  function clearTabContext() {
-    setSelectedPostId(null);
-    setPostUrl(null);
-    setSelectedProfile(null);
-    setProfileUrl(null);
-    setTab("forum");
-    setViewUrl("forum", { replace: false });
-  }
-
-  function clearModeContext() {
-    setDiscoveryMode("recent");
-    setDiscoveryModeUrl("recent", { replace: false });
-  }
-
-  function clearTagContext() {
-    setActiveTagFilter("");
-    setTagUrl("", { replace: false });
-  }
-
-  function clearSearchContext() {
-    setDiscoverySearchText("");
-    setDiscoveryQueryUrl("", { replace: false });
-  }
-
   function renderAdminShell() {
     return (
-      <>
+      <div style={styles.shell}>
         <header style={styles.adminHeader}>
           <div style={styles.adminHeaderCopy}>
             <p style={styles.adminKicker}>관리 전용</p>
@@ -607,7 +523,7 @@ export default function ForumApp() {
         <main style={styles.adminMain}>
           <AdminDashboard timeSpeed={timeSpeed} />
         </main>
-      </>
+      </div>
     );
   }
 
@@ -665,75 +581,107 @@ export default function ForumApp() {
         {tab === "admin" ? (
           renderAdminShell()
         ) : (
-          <>
-            <div style={styles.serviceTopBar}>
-              <div style={styles.serviceTopBrandWrap}>
-                <div style={styles.serviceTopBrand} aria-label="AI Fashion Forum">
+          <div style={styles.shell}>
+            <header style={styles.header}>
+              <div style={styles.brandBlock}>
+                <div style={styles.brandAvatar} aria-label="AI Fashion Forum">
                   <MessageCircleMore size={24} strokeWidth={2.25} />
                 </div>
-                <div style={styles.serviceTopBrandTitle}>ai fashion forum</div>
+                <div style={styles.brandCopy}>
+                  <span style={styles.logo}>AI Fashion Forum</span>
+                  <span style={styles.headerHint}>소비 · 선택 · 반응 · writeback</span>
+                </div>
               </div>
-            </div>
 
-            <div style={{ ...styles.serviceShell, ...(isCompact ? styles.serviceShellCompact : {}) }}>
-              {!isCompact && (
-                <ServiceRail
-                  currentTab={tab}
-                  authUser={authUser}
-                  hasForumActivity={hasForumActivity}
-                  composerOpen={composerOpen}
-                  onActivateTab={activateTab}
-                  onOpenSavedPosts={openSavedPosts}
-                  onOpenComposer={toggleComposerOpen}
-                />
-              )}
+              <div style={styles.avatarStrip} aria-hidden="true">
+                {["A", "F", "C", "S"].map((item, index) => (
+                  <span
+                    key={`${item}-${index}`}
+                    style={{
+                      ...styles.avatarBubble,
+                      background:
+                        index === 0
+                          ? "linear-gradient(135deg, #23a6f0 0%, #4dd5ff 100%)"
+                          : index === 1
+                          ? "linear-gradient(135deg, #b54cff 0%, #ff7ac6 100%)"
+                          : index === 2
+                          ? "linear-gradient(135deg, #ff9800 0%, #ffd166 100%)"
+                          : "linear-gradient(135deg, #334155 0%, #475569 100%)",
+                    }}
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
 
-              <div style={styles.centerColumn}>
-                {isCompact && (
+              <div style={styles.userRow}>
+                <label style={styles.speedControl}>
+                  <span style={styles.speedLabel}>속도</span>
+                  <select
+                    style={styles.speedSelect}
+                    value={timeSpeed}
+                    onChange={(e) => setTimeSpeed(Number(e.target.value))}
+                  >
+                    <option value={1}>1x</option>
+                    <option value={2}>2x</option>
+                    <option value={5}>5x</option>
+                    <option value={10}>10x</option>
+                  </select>
+                </label>
+                <button
+                  style={{
+                    ...styles.autoBtn,
+                    ...(isAutoRunning ? styles.autoBtnOn : styles.autoBtnOff),
+                  }}
+                  onClick={() => setIsAutoRunning((prev) => !prev)}
+                >
+                  {isAutoRunning ? "자동 진행 중" : "자동 일시정지"}
+                </button>
+                {authUser ? (
                   <>
-                    <ServiceContextSummary
-                      tab={tab}
-                      discoveryMode={discoveryMode}
-                      activeTagFilter={activeTagFilter}
-                      discoverySearchText={discoverySearchText}
-                      onClearTab={clearTabContext}
-                      onClearMode={clearModeContext}
-                      onClearTag={clearTagContext}
-                      onClearSearch={clearSearchContext}
-                    />
-
-                    <nav style={{ ...styles.nav, ...(isMobile ? styles.navMobile : {}) }}>
-                      {SERVICE_TABS.map((tabItem) => {
-                        const isActive = tab === tabItem.id;
-                        const handleClick =
-                          tabItem.id === "saved" ? openSavedPosts : () => activateTab(tabItem.id);
-
-                        return (
-                          <button
-                            key={tabItem.id}
-                            type="button"
-                            style={{ ...styles.tabBtn, ...(isActive ? styles.tabActive : {}) }}
-                            onClick={handleClick}
-                          >
-                            <span style={styles.tabLabel}>{tabItem.label}</span>
-                            {!isMobile && (
-                              <span
-                                style={{
-                                  ...styles.tabDescription,
-                                  ...(isActive ? styles.tabDescriptionActive : {}),
-                                }}
-                              >
-                                {tabItem.description}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </nav>
+                    <span style={styles.userId}>👤 {authUser.displayName || authUser.username}</span>
+                    <button style={styles.editBtn} onClick={handleLogout}>로그아웃</button>
+                  </>
+                ) : (
+                  <>
+                    <span style={styles.userId}>🔒 게스트</span>
+                    <button style={styles.editBtn} onClick={() => setShowAuth(true)}>로그인</button>
                   </>
                 )}
+              </div>
+            </header>
 
-                <main style={styles.main}>
+            <nav style={styles.nav}>
+              {SERVICE_TABS.map((tabItem) => {
+                const isActive = tab === tabItem.id;
+                const handleClick = tabItem.id === "saved" ? openSavedPosts : () => activateTab(tabItem.id);
+
+                return (
+                  <button
+                    key={tabItem.id}
+                    type="button"
+                    style={{ ...styles.tabBtn, ...(isActive ? styles.tabActive : {}) }}
+                    onClick={handleClick}
+                  >
+                    <span style={styles.tabLabel}>{tabItem.label}</span>
+                    <span style={{ ...styles.tabDescription, ...(isActive ? styles.tabDescriptionActive : {}) }}>
+                      {tabItem.description}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div style={styles.pageStack}>
+              <ServiceQuickActions onActivateTab={activateTab} onOpenSavedPosts={openSavedPosts} />
+              <ServiceContextSummary
+                tab={tab}
+                discoveryMode={discoveryMode}
+                activeTagFilter={activeTagFilter}
+                discoverySearchText={discoverySearchText}
+              />
+
+              <main style={styles.main}>
               {selectedProfile ? (
                 <section>
                   <ProfilePanel
@@ -769,7 +717,14 @@ export default function ForumApp() {
                   <>
                     <section style={styles.formSection}>
                       <div style={styles.composerGate}>
-                        <p style={styles.composerTitle}>글쓰기</p>
+                        <div>
+                      <p style={styles.composerTitle}>선택을 글로 남기기</p>
+                      <p style={styles.composerHint}>
+                        {hasForumActivity || authUser
+                              ? "반응과 선택을 다시 밖으로 내보내는 compact 진입점입니다."
+                              : "댓글·반응·로그인 이후에 활성화됩니다."}
+                      </p>
+                    </div>
                         <button
                           style={{
                             ...styles.composerBtn,
@@ -778,7 +733,7 @@ export default function ForumApp() {
                           onClick={toggleComposerOpen}
                           disabled={!(hasForumActivity || authUser)}
                         >
-                          {composerOpen ? "글쓰기 닫기" : "글쓰기 열기"}
+                          {composerOpen ? "입력 닫기" : "입력 열기"}
                         </button>
                       </div>
                       {composerOpen && (
@@ -804,10 +759,6 @@ export default function ForumApp() {
                         onRequireAuth={() => setShowAuth(true)}
                         isAuthenticated={Boolean(authUser)}
                         onAuthorClick={openProfile}
-                        onCreateFirstPost={() => {
-                          markForumActivity();
-                          setComposerOpen(true);
-                        }}
                       />
                     </section>
                   </>
@@ -845,7 +796,10 @@ export default function ForumApp() {
                     <section style={styles.savedSection}>
                   <div style={styles.savedHero}>
                     <p style={styles.savedKicker}>저장한 글</p>
-                    <h2 style={styles.savedTitle}>저장한 글</h2>
+                    <h2 style={styles.savedTitle}>다시 돌아올 선택을 모아두는 공간</h2>
+                    <p style={styles.savedText}>
+                      마음에 든 글을 저장해 두고, 나중에 같은 선택 경로를 다시 열 수 있습니다.
+                    </p>
                   </div>
                     <PostList
                       currentUser={currentUser}
@@ -865,24 +819,19 @@ export default function ForumApp() {
                       queryParams={{ saved: "true" }}
                       requiresAuth
                       onAuthorClick={openProfile}
-                      onEmptyStateAction={() => {
-                        activateTab("forum");
-                      }}
-                      emptyStateActionLabel="포럼으로 돌아가기"
                   />
                 </section>
               ) : (
                 <section style={styles.placeholderCard}>
-                  <p style={styles.placeholderTitle}>페이지를 찾을 수 없습니다.</p>
-                  <p style={styles.placeholderText}>포럼으로 돌아가서 다시 살펴보세요.</p>
+                  <p style={styles.placeholderTitle}>관리 화면은 `/admin` 경로에서 볼 수 있어요.</p>
+                  <p style={styles.placeholderText}>
+                    서비스 화면에서는 포럼과 맞춤 피드만 보여드려요.
+                  </p>
                 </section>
               )}
-                </main>
-              </div>
-
-              {!isCompact && <ServiceSupportPanel authUser={authUser} onShowAuth={() => setShowAuth(true)} onLogout={handleLogout} />}
+              </main>
             </div>
-          </>
+          </div>
         )}
       </div>
     </QueryClientProvider>
@@ -892,168 +841,65 @@ export default function ForumApp() {
 const styles = {
   root: {
     minHeight: "100vh",
-    background:
-      "radial-gradient(circle at top left, rgba(255,255,255,0.98) 0%, rgba(246,246,246,0.96) 42%, #f1f1f1 100%)",
-    fontFamily: "\"SF Pro Display\", \"Helvetica Neue\", Arial, sans-serif",
-    color: "#111111",
+    background: chatTheme.pageBg,
+    color: chatTheme.text,
+    fontFamily: "system-ui, sans-serif",
   },
-  serviceTopBar: {
-    position: "sticky",
-    top: 0,
-    zIndex: 12,
+  shell: {
+    width: "min(100%, 920px)",
+    margin: "0 auto",
+    padding: "20px 16px 32px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+  },
+  header: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 16,
-    padding: "18px 28px 14px",
-    backdropFilter: "blur(18px)",
-    background: "rgba(250,250,250,0.88)",
-    borderBottom: "1px solid rgba(17,17,17,0.08)",
-  },
-  serviceTopBrandWrap: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-  },
-  serviceTopBrand: {
-    width: 34,
-    height: 34,
-    borderRadius: 999,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    border: "2px solid #111",
-    fontSize: 20,
-    fontWeight: 900,
-  },
-  serviceTopBrandTitle: {
-    fontSize: 15,
-    fontWeight: 700,
-    letterSpacing: "-0.02em",
-    textTransform: "lowercase",
-  },
-  serviceShell: {
-    maxWidth: 1480,
-    margin: "0 auto",
-    padding: "18px 20px 32px",
-    display: "grid",
-    gridTemplateColumns: "120px minmax(0, 680px) 360px",
-    justifyContent: "center",
-    gap: 28,
-    alignItems: "start",
-  },
-  serviceShellCompact: {
-    gridTemplateColumns: "minmax(0, 1fr)",
-    padding: "14px 12px 28px",
-  },
-  rail: {
+    padding: "14px 18px",
+    background: chatTheme.shellBg,
+    color: chatTheme.text,
     position: "sticky",
-    top: 96,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 22,
-    minHeight: "calc(100vh - 140px)",
-  },
-  railBrand: {
-    width: 52,
-    height: 52,
-    borderRadius: 999,
-    border: "2px solid #111",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 30,
-    fontWeight: 900,
-    background: "#fff",
-  },
-  railNav: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 14,
-  },
-  railButton: {
-    width: 70,
-    minHeight: 70,
-    padding: "10px 8px",
-    borderRadius: 22,
-    border: "1px solid transparent",
-    background: "transparent",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    cursor: "pointer",
-    color: "#6b7280",
-  },
-  railButtonActive: {
-    background: "#fff",
-    color: "#111111",
-    borderColor: "rgba(17,17,17,0.08)",
-    boxShadow: "0 12px 30px rgba(17,17,17,0.08)",
-  },
-  railIcon: {
-    fontSize: 28,
-    lineHeight: 1,
-  },
-  railButtonLabel: {
-    fontSize: 11,
-    fontWeight: 700,
-  },
-  railComposerButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    border: "none",
-    background: "#efefef",
-    color: "#111",
-    cursor: "pointer",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)",
-  },
-  railComposerButtonDisabled: {
-    opacity: 0.45,
-    cursor: "not-allowed",
-  },
-  railComposerPlus: {
-    fontSize: 36,
-    lineHeight: 1,
-  },
-  railFooter: {
-    marginTop: "auto",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 3,
-    color: "#9ca3af",
-  },
-  railFooterLine: {
-    fontSize: 11,
-    textTransform: "lowercase",
-  },
-  centerColumn: {
-    minWidth: 0,
-    display: "flex",
-    flexDirection: "column",
-    gap: 16,
+    top: 16,
+    zIndex: 10,
+    border: `1px solid ${chatTheme.shellBorder}`,
+    borderRadius: chatTheme.radiusXL,
+    boxShadow: chatTheme.shadow,
+    backdropFilter: "blur(18px)",
   },
   adminHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-start",
     gap: 16,
-    padding: "18px 24px",
-    background: "linear-gradient(180deg, #0f172a 0%, #111827 100%)",
-    color: "#fff",
+    padding: "18px 20px",
+    background: chatTheme.shellBg,
+    color: chatTheme.text,
     position: "sticky",
-    top: 0,
+    top: 16,
     zIndex: 10,
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    border: `1px solid ${chatTheme.shellBorder}`,
+    borderRadius: chatTheme.radiusXL,
+    boxShadow: chatTheme.shadow,
+    backdropFilter: "blur(18px)",
   },
+  brandBlock: { display: "flex", alignItems: "center", gap: 12, minWidth: 0 },
+  brandAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "linear-gradient(135deg, #23a6f0 0%, #b54cff 100%)",
+    color: "#fff",
+    fontWeight: 900,
+    boxShadow: "0 12px 24px rgba(35, 166, 240, 0.22)",
+    flex: "0 0 auto",
+  },
+  brandCopy: { display: "flex", flexDirection: "column", gap: 2, minWidth: 0 },
   adminHeaderCopy: {
     display: "flex",
     flexDirection: "column",
@@ -1065,20 +911,20 @@ const styles = {
     fontWeight: 800,
     letterSpacing: "0.12em",
     textTransform: "uppercase",
-    color: "#93c5fd",
+    color: chatTheme.accent,
   },
   adminTitle: {
     margin: 0,
     fontSize: 24,
     fontWeight: 800,
-    color: "#fff",
+    color: chatTheme.text,
   },
   adminDescription: {
     margin: 0,
     maxWidth: 640,
     fontSize: 13,
     lineHeight: 1.6,
-    color: "#cbd5e1",
+    color: chatTheme.textMuted,
   },
   adminHeaderAction: {
     display: "flex",
@@ -1092,65 +938,88 @@ const styles = {
     alignItems: "center",
     padding: "6px 10px",
     borderRadius: 999,
-    background: "rgba(59,130,246,0.16)",
-    color: "#bfdbfe",
+    background: "rgba(35, 166, 240, 0.16)",
+    color: "#a5dcff",
     fontSize: 12,
     fontWeight: 800,
   },
   adminBackBtn: {
-    border: "1px solid rgba(255,255,255,0.18)",
-    background: "rgba(255,255,255,0.08)",
-    color: "#fff",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: "rgba(255,255,255,0.05)",
+    color: chatTheme.text,
     borderRadius: 999,
     padding: "8px 12px",
     fontSize: 13,
     cursor: "pointer",
   },
-  userRow: {
+  logo: { fontSize: 18, fontWeight: 800, letterSpacing: -0.4, color: chatTheme.text },
+  headerHint: { fontSize: 12, color: chatTheme.textMuted, lineHeight: 1.3 },
+  avatarStrip: {
     display: "flex",
     alignItems: "center",
     gap: 8,
+    padding: "6px 10px",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.05)",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
     flexWrap: "wrap",
-    justifyContent: "flex-end",
   },
+  avatarBubble: {
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: 900,
+    boxShadow: chatTheme.shadowSoft,
+  },
+  userRow: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" },
   speedControl: {
     display: "flex",
     alignItems: "center",
     gap: 6,
-    color: "#6b7280",
+    color: chatTheme.textMuted,
     fontSize: 12,
+    marginRight: 8,
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: "rgba(255,255,255,0.04)",
   },
   speedLabel: { opacity: 0.85 },
   speedSelect: {
-    background: "#fff",
-    color: "#111",
-    border: "1px solid #d1d5db",
+    background: "rgba(255,255,255,0.06)",
+    color: chatTheme.text,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
     borderRadius: 999,
-    padding: "5px 10px",
+    padding: "3px 8px",
     fontSize: 12,
   },
   autoBtn: {
     border: "1px solid transparent",
     borderRadius: 999,
-    padding: "6px 10px",
+    padding: "4px 10px",
     fontSize: 12,
     cursor: "pointer",
   },
   autoBtnOn: {
-    background: "#111",
-    color: "#fff",
+    background: "linear-gradient(135deg, #22c55e 0%, #15b8a6 100%)",
+    color: "#06281f",
   },
   autoBtnOff: {
-    background: "#fff",
-    color: "#111",
-    borderColor: "#d1d5db",
+    background: "rgba(255,255,255,0.05)",
+    color: chatTheme.textMuted,
+    borderColor: chatTheme.surfaceBorder,
   },
-  userId: { fontSize: 13, color: "#4b5563" },
+  userId: { fontSize: 13, color: chatTheme.textSoft },
   editBtn: {
     fontSize: 12,
-    background: "#fff",
-    border: "1px solid #d1d5db",
-    color: "#111",
+    background: "rgba(255,255,255,0.05)",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    color: chatTheme.textSoft,
     borderRadius: 999,
     padding: "6px 10px",
     cursor: "pointer",
@@ -1173,9 +1042,9 @@ const styles = {
     cursor: "pointer",
   },
   main: {
-    width: "100%",
-    margin: 0,
-    padding: 0,
+    maxWidth: 680,
+    margin: "0 auto",
+    padding: "0 0 8px",
     display: "flex",
     flexDirection: "column",
     gap: 20,
@@ -1183,11 +1052,12 @@ const styles = {
   adminMain: {
     maxWidth: 1120,
     margin: "0 auto",
-    padding: "24px 16px",
+    padding: "0",
   },
   quickActions: {
-    margin: 0,
-    padding: 0,
+    maxWidth: 680,
+    margin: "0 auto",
+    padding: "0",
     display: "flex",
     flexDirection: "column",
     gap: 14,
@@ -1202,47 +1072,47 @@ const styles = {
     fontSize: 12,
     fontWeight: 800,
     letterSpacing: "0.08em",
-    color: "#2563eb",
+    color: chatTheme.accent,
   },
   quickActionsTitle: {
     margin: 0,
     fontSize: 20,
     lineHeight: 1.2,
-    color: "#111827",
+    color: chatTheme.text,
   },
   quickActionsText: {
     margin: 0,
     fontSize: 14,
     lineHeight: 1.6,
-    color: "#4b5563",
+    color: chatTheme.textMuted,
   },
   quickActionsGrid: {
     display: "grid",
-    gridTemplateColumns: "1fr",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
     gap: 10,
   },
   quickActionCard: {
     textAlign: "left",
     padding: 14,
-    borderRadius: 18,
-    border: "1px solid rgba(17,17,17,0.08)",
-    background: "#fff",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
     cursor: "pointer",
     display: "flex",
     flexDirection: "column",
     gap: 8,
-    minHeight: 104,
-    boxShadow: "0 10px 24px rgba(17,17,17,0.05)",
+    minHeight: 132,
+    boxShadow: chatTheme.shadowSoft,
   },
-  quickActionTitle: { fontSize: 16, fontWeight: 800, color: "#111827" },
-  quickActionDescription: { fontSize: 13, lineHeight: 1.5, color: "#6b7280" },
+  quickActionTitle: { fontSize: 16, fontWeight: 800, color: chatTheme.text },
+  quickActionDescription: { fontSize: 13, lineHeight: 1.5, color: chatTheme.textMuted },
   quickActionButton: {
     alignSelf: "flex-start",
     marginTop: "auto",
     fontSize: 12,
     fontWeight: 800,
-    color: "#111",
-    background: "#f3f4f6",
+    color: "#a5dcff",
+    background: "rgba(35, 166, 240, 0.14)",
     borderRadius: 999,
     padding: "6px 10px",
   },
@@ -1256,22 +1126,22 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "flex-start",
     gap: 12,
-    padding: 18,
-    background: "#fff",
-    border: "1px solid rgba(17,17,17,0.08)",
-    borderRadius: 24,
-    boxShadow: "0 18px 40px rgba(17,17,17,0.05)",
+    padding: 16,
+    background: chatTheme.panelBg,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    borderRadius: chatTheme.radiusLG,
+    boxShadow: chatTheme.shadowSoft,
   },
   composerTitle: {
     margin: 0,
     fontSize: 15,
     fontWeight: 700,
-    color: "#111827",
+    color: chatTheme.text,
   },
   composerHint: {
     margin: "4px 0 0",
     fontSize: 13,
-    color: "#6b7280",
+    color: chatTheme.textMuted,
     lineHeight: 1.5,
   },
   composerBtn: {
@@ -1283,12 +1153,12 @@ const styles = {
     whiteSpace: "nowrap",
   },
   composerBtnActive: {
-    background: "#111",
+    background: "linear-gradient(135deg, #23a6f0 0%, #b54cff 100%)",
     color: "#fff",
   },
   composerBtnDisabled: {
-    background: "#e5e7eb",
-    color: "#9ca3af",
+    background: "rgba(255,255,255,0.06)",
+    color: chatTheme.textMuted,
     cursor: "not-allowed",
   },
   composerPanel: {
@@ -1302,53 +1172,51 @@ const styles = {
   },
   savedHero: {
     padding: 18,
-    borderRadius: 24,
-    border: "1px solid rgba(17,17,17,0.08)",
-    background: "#fff",
-    boxShadow: "0 18px 40px rgba(17,17,17,0.05)",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
+    boxShadow: chatTheme.shadowSoft,
   },
   savedKicker: {
     margin: 0,
     fontSize: 12,
     fontWeight: 800,
-    color: "#2563eb",
+    color: chatTheme.accent,
     letterSpacing: "0.08em",
     textTransform: "uppercase",
   },
   savedTitle: {
     margin: "8px 0 8px",
     fontSize: 20,
-    color: "#111827",
+    color: chatTheme.text,
   },
   savedText: {
     margin: 0,
     fontSize: 14,
     lineHeight: 1.7,
-    color: "#6b7280",
+    color: chatTheme.textMuted,
   },
   nav: {
-    background: "#fff",
-    padding: 8,
+    background: chatTheme.shellBg,
+    padding: "0 14px",
     display: "flex",
-    gap: 6,
+    gap: 4,
     alignItems: "stretch",
-    borderRadius: 24,
-    border: "1px solid rgba(17,17,17,0.08)",
-    boxShadow: "0 12px 26px rgba(17,17,17,0.05)",
-  },
-  navMobile: {
+    border: `1px solid ${chatTheme.shellBorder}`,
+    borderRadius: chatTheme.radiusXL,
+    boxShadow: chatTheme.shadowSoft,
     overflowX: "auto",
   },
   contextSummary: {
     margin: 0,
     padding: "12px 14px",
-    borderRadius: 22,
-    border: "1px solid rgba(17,17,17,0.08)",
-    background: "rgba(255,255,255,0.9)",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
     display: "flex",
     flexDirection: "column",
     gap: 8,
-    boxShadow: "0 10px 24px rgba(17,17,17,0.04)",
+    boxShadow: chatTheme.shadowSoft,
   },
   contextSummaryHeader: {
     display: "flex",
@@ -1359,13 +1227,13 @@ const styles = {
   contextSummaryLabel: {
     fontSize: 12,
     fontWeight: 800,
-    color: "#6b7280",
+    color: chatTheme.textMuted,
     letterSpacing: "0.06em",
   },
   contextClearBtn: {
-    border: "1px solid #d1d5db",
-    background: "#f9fafb",
-    color: "#374151",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: "rgba(255,255,255,0.06)",
+    color: chatTheme.textSoft,
     borderRadius: 999,
     padding: "4px 10px",
     fontSize: 12,
@@ -1382,60 +1250,48 @@ const styles = {
     gap: 8,
     padding: "6px 10px",
     borderRadius: 999,
-    background: "#f8fafc",
-    border: "1px solid #e5e7eb",
-    color: "#111827",
+    background: "rgba(255,255,255,0.06)",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    color: chatTheme.text,
     fontSize: 12,
-  },
-  contextChipRemoveBtn: {
-    width: 20,
-    height: 20,
-    borderRadius: 999,
-    border: "none",
-    background: "#e5e7eb",
-    color: "#374151",
-    cursor: "pointer",
-    lineHeight: 1,
-    padding: 0,
   },
   placeholderCard: {
     marginTop: 8,
     padding: "18px 20px",
-    borderRadius: 24,
-    border: "1px solid rgba(17,17,17,0.08)",
-    background: "#fff",
-    boxShadow: "0 18px 40px rgba(17,17,17,0.05)",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
+    boxShadow: chatTheme.shadowSoft,
   },
   placeholderTitle: {
     margin: 0,
     fontSize: 16,
     fontWeight: 700,
-    color: "#111827",
+    color: chatTheme.text,
   },
   placeholderText: {
     margin: "6px 0 0",
     fontSize: 13,
-    color: "#6b7280",
+    color: chatTheme.textMuted,
     lineHeight: 1.6,
   },
   tabBtn: {
-    padding: "12px 14px",
+    padding: "10px 16px 12px",
     background: "transparent",
     border: "none",
-    color: "#6b7280",
+    color: chatTheme.textMuted,
     fontSize: 14,
     cursor: "pointer",
-    borderRadius: 18,
+    borderBottom: "2px solid transparent",
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
     gap: 3,
-    minWidth: 120,
-    flex: 1,
+    minWidth: 132,
   },
   tabActive: {
-    color: "#fff",
-    background: "#111",
+    color: chatTheme.text,
+    borderBottomColor: chatTheme.accent,
   },
   tabLabel: {
     fontSize: 14,
@@ -1445,64 +1301,15 @@ const styles = {
   tabDescription: {
     fontSize: 11,
     lineHeight: 1.35,
-    color: "#6b7280",
+    color: chatTheme.textMuted,
     textAlign: "left",
   },
   tabDescriptionActive: {
-    color: "rgba(255,255,255,0.78)",
+    color: chatTheme.textSoft,
   },
-  supportPanel: {
-    position: "sticky",
-    top: 96,
+  pageStack: {
     display: "flex",
     flexDirection: "column",
-    gap: 16,
-  },
-  supportCard: {
-    background: "rgba(255,255,255,0.92)",
-    border: "1px solid rgba(17,17,17,0.08)",
-    borderRadius: 28,
-    padding: 24,
-    boxShadow: "0 18px 40px rgba(17,17,17,0.06)",
-  },
-  supportTitle: {
-    fontSize: 19,
-    fontWeight: 800,
-    lineHeight: 1.3,
-    color: "#111",
-    marginBottom: 10,
-  },
-  supportText: {
-    margin: 0,
-    color: "#6b7280",
-    fontSize: 14,
-    lineHeight: 1.65,
-  },
-  supportPrimaryButton: {
-    marginTop: 20,
-    width: "100%",
-    border: "none",
-    borderRadius: 20,
-    padding: "16px 18px",
-    background: "#fff",
-    boxShadow: "inset 0 0 0 1px rgba(17,17,17,0.08)",
-    color: "#111",
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-  supportMetaRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  supportMetaLabel: {
-    fontSize: 13,
-    color: "#6b7280",
-  },
-  supportMetaValue: {
-    fontSize: 13,
-    fontWeight: 700,
-    color: "#111",
+    gap: 14,
   },
 };
