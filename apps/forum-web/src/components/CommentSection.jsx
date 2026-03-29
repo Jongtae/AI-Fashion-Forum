@@ -16,6 +16,9 @@ export default function CommentSection({
   const submitHint = replyTarget?.preview
     ? `이 답글은 ${replyTargetLabel}에 연결됩니다. 제출 전 대상과 내용을 한 번 더 확인해 주세요.`
     : "";
+  const draftPreview = replyTarget?.preview && text.trim()
+    ? text.trim()
+    : "";
 
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ["comments", postId],
@@ -78,6 +81,17 @@ export default function CommentSection({
         </div>
       )}
       {submitHint && <div style={styles.submitHint}>{submitHint}</div>}
+      {draftPreview && (
+        <div style={styles.draftPreview}>
+          <div style={styles.draftPreviewHeader}>작성 중 미리보기</div>
+          <div style={styles.draftPreviewBody}>
+            <div style={styles.draftPreviewTarget}>
+              {replyTargetLabel} · @{replyTarget.authorId || "post"}
+            </div>
+            <div style={styles.draftPreviewText}>{draftPreview}</div>
+          </div>
+        </div>
+      )}
       {comments.map((c) => (
         <div key={c._id} style={styles.comment}>
           <span style={styles.author}>
@@ -176,6 +190,34 @@ const styles = {
     fontSize: 12,
     lineHeight: 1.5,
     color: "#1d4ed8",
+  },
+  draftPreview: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 8,
+    border: "1px solid #e0e7ff",
+    background: "#fafaff",
+  },
+  draftPreviewHeader: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#4338ca",
+    marginBottom: 8,
+  },
+  draftPreviewBody: {
+    display: "grid",
+    gap: 6,
+  },
+  draftPreviewTarget: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#6366f1",
+  },
+  draftPreviewText: {
+    fontSize: 13,
+    lineHeight: 1.5,
+    color: "#111827",
+    whiteSpace: "pre-wrap",
   },
   comment: { padding: "8px 0", borderTop: "1px solid #f3f4f6" },
   author: { fontSize: 12, fontWeight: 600, color: "#6b7280" },
