@@ -95,6 +95,44 @@ function MetricsPanel({ report }) {
   );
 }
 
+function ContinuityCard({ replay, onOpenSprint1 }) {
+  const frames = replay?.report?.post_summary?.meaning_frame_distribution || {};
+  const frameEntries = Object.entries(frames);
+
+  return (
+    <div style={styles.continuityCard}>
+      <div style={styles.continuityHeader}>
+        <div>
+          <div style={styles.continuityKicker}>연결 보기</div>
+          <div style={styles.continuityTitle}>이번 replay에서 스프린트 요약으로 돌아가기</div>
+        </div>
+        {onOpenSprint1 && (
+          <button style={styles.continuityButton} onClick={onOpenSprint1}>
+            Sprint 요약 열기
+          </button>
+        )}
+      </div>
+      <div style={styles.continuityText}>
+        동일한 자극에서 어떤 프레임 분포가 나왔는지 보고, 같은 맥락의 Sprint 1 요약과 비교해 볼 수 있습니다.
+      </div>
+      <div style={styles.continuityMeta}>
+        <span>run: {replay?.run_id || "—"}</span>
+        <span>seed: {replay?.seed ?? "—"}</span>
+        <span>posts: {replay?.posts?.length ?? 0}</span>
+      </div>
+      {frameEntries.length > 0 && (
+        <div style={styles.continuityChips}>
+          {frameEntries.map(([frame, count]) => (
+            <span key={frame} style={styles.continuityChip}>
+              {FRAME_LABELS[frame] || frame} × {count}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Exposure trace for one agent ──────────────────────────────────────────────
 function AgentExposureRow({ agentId, exposure }) {
   if (!exposure) return null;
@@ -270,7 +308,7 @@ function RunTriggerPanel({ onRunComplete, timeSpeed = 1 }) {
 }
 
 // ── Main viewer ───────────────────────────────────────────────────────────────
-export default function RunReplayViewer({ timeSpeed = 1 }) {
+export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
   const {
     data: replay,
     isLoading,
@@ -313,6 +351,8 @@ export default function RunReplayViewer({ timeSpeed = 1 }) {
 
       {replay && (
         <>
+          <ContinuityCard replay={replay} onOpenSprint1={onOpenSprint1} />
+
           <div style={styles.runMeta}>
             <span style={styles.runMetaItem}>run: <code>{replay.run_id}</code></span>
             <span style={styles.runMetaItem}>seed: {replay.seed}</span>
@@ -460,6 +500,71 @@ const styles = {
   postSummaryRow: { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, fontSize: 11, color: "#64748b" },
   summaryLabel: { fontWeight: 600 },
   frameChip: { background: "#ede9fe", color: "#5b21b6", borderRadius: 4, padding: "2px 6px" },
+
+  continuityCard: {
+    background: "linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%)",
+    border: "1px solid #bfdbfe",
+    borderRadius: 10,
+    padding: 14,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  continuityHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "start",
+    gap: 12,
+  },
+  continuityKicker: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#2563eb",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+  },
+  continuityTitle: {
+    fontSize: 15,
+    fontWeight: 700,
+    color: "#1e3a8a",
+    marginTop: 2,
+  },
+  continuityButton: {
+    border: "none",
+    borderRadius: 999,
+    background: "#1d4ed8",
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: 700,
+    padding: "8px 12px",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  continuityText: {
+    fontSize: 13,
+    color: "#334155",
+    lineHeight: 1.6,
+  },
+  continuityMeta: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 12,
+    fontSize: 11,
+    color: "#64748b",
+  },
+  continuityChips: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  continuityChip: {
+    fontSize: 11,
+    borderRadius: 999,
+    padding: "4px 10px",
+    background: "#dbeafe",
+    color: "#1d4ed8",
+    fontWeight: 600,
+  },
 
   // Exposure list
   exposureList: { display: "flex", flexDirection: "column", gap: 4 },
