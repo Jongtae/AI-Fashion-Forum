@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createPost } from "../api/client.js";
 import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
+import { chatTheme } from "../lib/chat-ui-theme.js";
 
 const DEFAULT_AUTHOR = { id: "user-guest", type: "user" };
 
@@ -106,21 +107,22 @@ const styles = {
     flexDirection: "column",
     gap: 8,
     padding: 16,
-    background: "#fff",
-    borderRadius: 8,
-    border: "1px solid #e5e7eb",
+    background: "linear-gradient(180deg, rgba(49, 55, 75, 0.98) 0%, rgba(37, 43, 60, 0.98) 100%)",
+    borderRadius: chatTheme.radiusXL,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    boxShadow: chatTheme.shadowSoft,
   },
   textarea: {
     width: "100%",
     padding: "10px 12px",
-    border: "1px solid #d1d5db",
-    borderRadius: 6,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    borderRadius: chatTheme.radiusMD,
     fontSize: 14,
     resize: "vertical",
     fontFamily: "inherit",
     boxSizing: "border-box",
-    color: "#111827",
-    background: "#fff",
+    color: chatTheme.text,
+    background: "rgba(255,255,255,0.05)",
   },
   row: {
     display: "flex",
@@ -129,24 +131,24 @@ const styles = {
   tagInput: {
     flex: 1,
     padding: "8px 12px",
-    border: "1px solid #d1d5db",
-    borderRadius: 6,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    borderRadius: chatTheme.radiusMD,
     fontSize: 13,
-    color: "#111827",
-    background: "#fff",
+    color: chatTheme.text,
+    background: "rgba(255,255,255,0.05)",
   },
   submitBtn: {
     padding: "8px 20px",
-    background: "#111827",
+    background: "linear-gradient(135deg, #23a6f0 0%, #9b5cff 100%)",
     color: "#fff",
     border: "none",
-    borderRadius: 6,
+    borderRadius: 999,
     fontSize: 14,
     cursor: "pointer",
     whiteSpace: "nowrap",
   },
   error: {
-    color: "#dc2626",
+    color: "#fecaca",
     fontSize: 13,
     margin: 0,
   },

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchComments, createComment, deleteComment } from "../api/client.js";
 import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
+import { chatTheme } from "../lib/chat-ui-theme.js";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
@@ -144,33 +145,36 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
 
 const styles = {
   container: { paddingTop: 12 },
-  loading: { fontSize: 13, color: "#9ca3af" },
-  comment: { padding: "8px 0", borderTop: "1px solid #f3f4f6" },
-  author: { fontSize: 12, fontWeight: 600, color: "#6b7280" },
-  replyMeta: { marginTop: 4, fontSize: 11, color: "#9ca3af" },
-  text: { margin: "4px 0 0", fontSize: 14, color: "#374151" },
+  loading: { fontSize: 13, color: chatTheme.textMuted },
+  comment: {
+    padding: "10px 0",
+    borderTop: `1px solid ${chatTheme.surfaceBorder}`,
+  },
+  author: { fontSize: 12, fontWeight: 600, color: chatTheme.text },
+  replyMeta: { marginTop: 4, fontSize: 11, color: chatTheme.textMuted },
+  text: { margin: "4px 0 0", fontSize: 14, color: chatTheme.textSoft },
   generationContext: {
     marginTop: 8,
     padding: "8px 10px",
-    borderRadius: 6,
-    background: "#f9fafb",
-    border: "1px solid #e5e7eb",
+    borderRadius: chatTheme.radiusMD,
+    background: "rgba(255,255,255,0.04)",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
   },
   generationContextTitle: {
     fontSize: 11,
     fontWeight: 700,
-    color: "#374151",
+    color: chatTheme.textMuted,
     marginBottom: 3,
   },
   generationContextSummary: {
     fontSize: 12,
-    color: "#4b5563",
+    color: chatTheme.textSoft,
     lineHeight: 1.5,
     marginBottom: 2,
   },
   deleteBtn: {
     fontSize: 11,
-    color: "#ef4444",
+    color: chatTheme.accentWarm,
     background: "none",
     border: "none",
     cursor: "pointer",
@@ -180,18 +184,18 @@ const styles = {
   input: {
     flex: 1,
     padding: "7px 10px",
-    border: "1px solid #d1d5db",
-    borderRadius: 6,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    borderRadius: chatTheme.radiusMD,
     fontSize: 13,
-    color: "#111827",
-    background: "#fff",
+    color: chatTheme.text,
+    background: "rgba(255,255,255,0.05)",
   },
   btn: {
     padding: "7px 14px",
-    background: "#374151",
+    background: "linear-gradient(135deg, #23a6f0 0%, #9b5cff 100%)",
     color: "#fff",
     border: "none",
-    borderRadius: 6,
+    borderRadius: 999,
     fontSize: 13,
     cursor: "pointer",
   },

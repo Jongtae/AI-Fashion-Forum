@@ -9,6 +9,7 @@ import DiscoveryPanel from "./components/DiscoveryPanel.jsx";
 import AuthModal from "./components/AuthModal.jsx";
 import AdminDashboard from "./components/AdminDashboard.jsx";
 import ProfilePanel from "./components/ProfilePanel.jsx";
+import { chatTheme } from "./lib/chat-ui-theme.js";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -494,7 +495,7 @@ export default function ForumApp() {
 
   function renderAdminShell() {
     return (
-      <>
+      <div style={styles.shell}>
         <header style={styles.adminHeader}>
           <div style={styles.adminHeaderCopy}>
             <p style={styles.adminKicker}>관리 전용</p>
@@ -521,7 +522,7 @@ export default function ForumApp() {
         <main style={styles.adminMain}>
           <AdminDashboard timeSpeed={timeSpeed} />
         </main>
-      </>
+      </div>
     );
   }
 
@@ -579,9 +580,37 @@ export default function ForumApp() {
         {tab === "admin" ? (
           renderAdminShell()
         ) : (
-          <>
+          <div style={styles.shell}>
             <header style={styles.header}>
-              <span style={styles.logo}>✦ AI Fashion Forum</span>
+              <div style={styles.brandBlock}>
+                <div style={styles.brandAvatar}>✦</div>
+                <div style={styles.brandCopy}>
+                  <span style={styles.logo}>AI Fashion Forum</span>
+                  <span style={styles.headerHint}>소비 · 선택 · 반응 · writeback</span>
+                </div>
+              </div>
+
+              <div style={styles.avatarStrip} aria-hidden="true">
+                {["A", "F", "C", "S"].map((item, index) => (
+                  <span
+                    key={`${item}-${index}`}
+                    style={{
+                      ...styles.avatarBubble,
+                      background:
+                        index === 0
+                          ? "linear-gradient(135deg, #23a6f0 0%, #4dd5ff 100%)"
+                          : index === 1
+                          ? "linear-gradient(135deg, #b54cff 0%, #ff7ac6 100%)"
+                          : index === 2
+                          ? "linear-gradient(135deg, #ff9800 0%, #ffd166 100%)"
+                          : "linear-gradient(135deg, #334155 0%, #475569 100%)",
+                    }}
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+
               <div style={styles.userRow}>
                 <label style={styles.speedControl}>
                   <span style={styles.speedLabel}>속도</span>
@@ -640,15 +669,16 @@ export default function ForumApp() {
               })}
             </nav>
 
-            <ServiceQuickActions onActivateTab={activateTab} onOpenSavedPosts={openSavedPosts} />
-            <ServiceContextSummary
-              tab={tab}
-              discoveryMode={discoveryMode}
-              activeTagFilter={activeTagFilter}
-              discoverySearchText={discoverySearchText}
-            />
+            <div style={styles.pageStack}>
+              <ServiceQuickActions onActivateTab={activateTab} onOpenSavedPosts={openSavedPosts} />
+              <ServiceContextSummary
+                tab={tab}
+                discoveryMode={discoveryMode}
+                activeTagFilter={activeTagFilter}
+                discoverySearchText={discoverySearchText}
+              />
 
-            <main style={styles.main}>
+              <main style={styles.main}>
               {selectedProfile ? (
                 <section>
                   <ProfilePanel
@@ -796,8 +826,9 @@ export default function ForumApp() {
                   </p>
                 </section>
               )}
-            </main>
-          </>
+              </main>
+            </div>
+          </div>
         )}
       </div>
     </QueryClientProvider>
@@ -805,31 +836,67 @@ export default function ForumApp() {
 }
 
 const styles = {
-  root: { minHeight: "100vh", background: "#f9fafb", fontFamily: "system-ui, sans-serif" },
+  root: {
+    minHeight: "100vh",
+    background: chatTheme.pageBg,
+    color: chatTheme.text,
+    fontFamily: "system-ui, sans-serif",
+  },
+  shell: {
+    width: "min(100%, 920px)",
+    margin: "0 auto",
+    padding: "20px 16px 32px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+  },
   header: {
     display: "flex",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: "12px 24px",
-    background: "#111827",
-    color: "#fff",
+    justifyContent: "space-between",
+    gap: 16,
+    padding: "14px 18px",
+    background: chatTheme.shellBg,
+    color: chatTheme.text,
     position: "sticky",
-    top: 0,
+    top: 16,
     zIndex: 10,
+    border: `1px solid ${chatTheme.shellBorder}`,
+    borderRadius: chatTheme.radiusXL,
+    boxShadow: chatTheme.shadow,
+    backdropFilter: "blur(18px)",
   },
   adminHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-start",
     gap: 16,
-    padding: "18px 24px",
-    background: "linear-gradient(180deg, #0f172a 0%, #111827 100%)",
-    color: "#fff",
+    padding: "18px 20px",
+    background: chatTheme.shellBg,
+    color: chatTheme.text,
     position: "sticky",
-    top: 0,
+    top: 16,
     zIndex: 10,
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    border: `1px solid ${chatTheme.shellBorder}`,
+    borderRadius: chatTheme.radiusXL,
+    boxShadow: chatTheme.shadow,
+    backdropFilter: "blur(18px)",
   },
+  brandBlock: { display: "flex", alignItems: "center", gap: 12, minWidth: 0 },
+  brandAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "linear-gradient(135deg, #23a6f0 0%, #b54cff 100%)",
+    color: "#fff",
+    fontWeight: 900,
+    boxShadow: "0 12px 24px rgba(35, 166, 240, 0.22)",
+    flex: "0 0 auto",
+  },
+  brandCopy: { display: "flex", flexDirection: "column", gap: 2, minWidth: 0 },
   adminHeaderCopy: {
     display: "flex",
     flexDirection: "column",
@@ -841,20 +908,20 @@ const styles = {
     fontWeight: 800,
     letterSpacing: "0.12em",
     textTransform: "uppercase",
-    color: "#93c5fd",
+    color: chatTheme.accent,
   },
   adminTitle: {
     margin: 0,
     fontSize: 24,
     fontWeight: 800,
-    color: "#fff",
+    color: chatTheme.text,
   },
   adminDescription: {
     margin: 0,
     maxWidth: 640,
     fontSize: 13,
     lineHeight: 1.6,
-    color: "#cbd5e1",
+    color: chatTheme.textMuted,
   },
   adminHeaderAction: {
     display: "flex",
@@ -868,36 +935,63 @@ const styles = {
     alignItems: "center",
     padding: "6px 10px",
     borderRadius: 999,
-    background: "rgba(59,130,246,0.16)",
-    color: "#bfdbfe",
+    background: "rgba(35, 166, 240, 0.16)",
+    color: "#a5dcff",
     fontSize: 12,
     fontWeight: 800,
   },
   adminBackBtn: {
-    border: "1px solid rgba(255,255,255,0.18)",
-    background: "rgba(255,255,255,0.08)",
-    color: "#fff",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: "rgba(255,255,255,0.05)",
+    color: chatTheme.text,
     borderRadius: 999,
     padding: "8px 12px",
     fontSize: 13,
     cursor: "pointer",
   },
-  logo: { fontSize: 18, fontWeight: 700, letterSpacing: -0.5 },
-  userRow: { display: "flex", alignItems: "center", gap: 8 },
+  logo: { fontSize: 18, fontWeight: 800, letterSpacing: -0.4, color: chatTheme.text },
+  headerHint: { fontSize: 12, color: chatTheme.textMuted, lineHeight: 1.3 },
+  avatarStrip: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "6px 10px",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.05)",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    flexWrap: "wrap",
+  },
+  avatarBubble: {
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: 900,
+    boxShadow: chatTheme.shadowSoft,
+  },
+  userRow: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" },
   speedControl: {
     display: "flex",
     alignItems: "center",
     gap: 6,
-    color: "#d1d5db",
+    color: chatTheme.textMuted,
     fontSize: 12,
     marginRight: 8,
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: "rgba(255,255,255,0.04)",
   },
   speedLabel: { opacity: 0.85 },
   speedSelect: {
-    background: "#1f2937",
-    color: "#fff",
-    border: "1px solid #4b5563",
-    borderRadius: 4,
+    background: "rgba(255,255,255,0.06)",
+    color: chatTheme.text,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    borderRadius: 999,
     padding: "3px 8px",
     fontSize: 12,
   },
@@ -909,22 +1003,22 @@ const styles = {
     cursor: "pointer",
   },
   autoBtnOn: {
-    background: "#10b981",
+    background: "linear-gradient(135deg, #22c55e 0%, #15b8a6 100%)",
     color: "#06281f",
   },
   autoBtnOff: {
-    background: "#374151",
-    color: "#e5e7eb",
-    borderColor: "#6b7280",
+    background: "rgba(255,255,255,0.05)",
+    color: chatTheme.textMuted,
+    borderColor: chatTheme.surfaceBorder,
   },
-  userId: { fontSize: 13, color: "#d1d5db" },
+  userId: { fontSize: 13, color: chatTheme.textSoft },
   editBtn: {
     fontSize: 12,
-    background: "transparent",
-    border: "1px solid #6b7280",
-    color: "#d1d5db",
-    borderRadius: 4,
-    padding: "2px 8px",
+    background: "rgba(255,255,255,0.05)",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    color: chatTheme.textSoft,
+    borderRadius: 999,
+    padding: "6px 10px",
     cursor: "pointer",
   },
   userInput: {
@@ -947,7 +1041,7 @@ const styles = {
   main: {
     maxWidth: 680,
     margin: "0 auto",
-    padding: "24px 16px",
+    padding: "0 0 8px",
     display: "flex",
     flexDirection: "column",
     gap: 20,
@@ -955,12 +1049,12 @@ const styles = {
   adminMain: {
     maxWidth: 1120,
     margin: "0 auto",
-    padding: "24px 16px",
+    padding: "0",
   },
   quickActions: {
     maxWidth: 680,
     margin: "0 auto",
-    padding: "0 16px 4px",
+    padding: "0",
     display: "flex",
     flexDirection: "column",
     gap: 14,
@@ -975,19 +1069,19 @@ const styles = {
     fontSize: 12,
     fontWeight: 800,
     letterSpacing: "0.08em",
-    color: "#2563eb",
+    color: chatTheme.accent,
   },
   quickActionsTitle: {
     margin: 0,
     fontSize: 20,
     lineHeight: 1.2,
-    color: "#111827",
+    color: chatTheme.text,
   },
   quickActionsText: {
     margin: 0,
     fontSize: 14,
     lineHeight: 1.6,
-    color: "#4b5563",
+    color: chatTheme.textMuted,
   },
   quickActionsGrid: {
     display: "grid",
@@ -997,24 +1091,25 @@ const styles = {
   quickActionCard: {
     textAlign: "left",
     padding: 14,
-    borderRadius: 16,
-    border: "1px solid #dbe3f1",
-    background: "#fff",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
     cursor: "pointer",
     display: "flex",
     flexDirection: "column",
     gap: 8,
     minHeight: 132,
+    boxShadow: chatTheme.shadowSoft,
   },
-  quickActionTitle: { fontSize: 16, fontWeight: 800, color: "#111827" },
-  quickActionDescription: { fontSize: 13, lineHeight: 1.5, color: "#6b7280" },
+  quickActionTitle: { fontSize: 16, fontWeight: 800, color: chatTheme.text },
+  quickActionDescription: { fontSize: 13, lineHeight: 1.5, color: chatTheme.textMuted },
   quickActionButton: {
     alignSelf: "flex-start",
     marginTop: "auto",
     fontSize: 12,
     fontWeight: 800,
-    color: "#2563eb",
-    background: "#eff6ff",
+    color: "#a5dcff",
+    background: "rgba(35, 166, 240, 0.14)",
     borderRadius: 999,
     padding: "6px 10px",
   },
@@ -1029,20 +1124,21 @@ const styles = {
     alignItems: "flex-start",
     gap: 12,
     padding: 16,
-    background: "#fff",
-    border: "1px solid #e5e7eb",
-    borderRadius: 8,
+    background: chatTheme.panelBg,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    borderRadius: chatTheme.radiusLG,
+    boxShadow: chatTheme.shadowSoft,
   },
   composerTitle: {
     margin: 0,
     fontSize: 15,
     fontWeight: 700,
-    color: "#111827",
+    color: chatTheme.text,
   },
   composerHint: {
     margin: "4px 0 0",
     fontSize: 13,
-    color: "#6b7280",
+    color: chatTheme.textMuted,
     lineHeight: 1.5,
   },
   composerBtn: {
@@ -1054,12 +1150,12 @@ const styles = {
     whiteSpace: "nowrap",
   },
   composerBtnActive: {
-    background: "#111827",
+    background: "linear-gradient(135deg, #23a6f0 0%, #b54cff 100%)",
     color: "#fff",
   },
   composerBtnDisabled: {
-    background: "#e5e7eb",
-    color: "#9ca3af",
+    background: "rgba(255,255,255,0.06)",
+    color: chatTheme.textMuted,
     cursor: "not-allowed",
   },
   composerPanel: {
@@ -1073,46 +1169,51 @@ const styles = {
   },
   savedHero: {
     padding: 18,
-    borderRadius: 16,
-    border: "1px solid #e5e7eb",
-    background: "#fff",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
+    boxShadow: chatTheme.shadowSoft,
   },
   savedKicker: {
     margin: 0,
     fontSize: 12,
     fontWeight: 800,
-    color: "#2563eb",
+    color: chatTheme.accent,
     letterSpacing: "0.08em",
     textTransform: "uppercase",
   },
   savedTitle: {
     margin: "8px 0 8px",
     fontSize: 20,
-    color: "#111827",
+    color: chatTheme.text,
   },
   savedText: {
     margin: 0,
     fontSize: 14,
     lineHeight: 1.7,
-    color: "#6b7280",
+    color: chatTheme.textMuted,
   },
   nav: {
-    background: "#1f2937",
-    padding: "0 24px",
+    background: chatTheme.shellBg,
+    padding: "0 14px",
     display: "flex",
     gap: 4,
     alignItems: "stretch",
+    border: `1px solid ${chatTheme.shellBorder}`,
+    borderRadius: chatTheme.radiusXL,
+    boxShadow: chatTheme.shadowSoft,
+    overflowX: "auto",
   },
   contextSummary: {
-    margin: "10px 24px 0",
+    margin: 0,
     padding: "12px 14px",
-    borderRadius: 14,
-    border: "1px solid #e5e7eb",
-    background: "#fff",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
     display: "flex",
     flexDirection: "column",
     gap: 8,
+    boxShadow: chatTheme.shadowSoft,
   },
   contextSummaryHeader: {
     display: "flex",
@@ -1123,13 +1224,13 @@ const styles = {
   contextSummaryLabel: {
     fontSize: 12,
     fontWeight: 800,
-    color: "#6b7280",
+    color: chatTheme.textMuted,
     letterSpacing: "0.06em",
   },
   contextClearBtn: {
-    border: "1px solid #d1d5db",
-    background: "#f9fafb",
-    color: "#374151",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: "rgba(255,255,255,0.06)",
+    color: chatTheme.textSoft,
     borderRadius: 999,
     padding: "4px 10px",
     fontSize: 12,
@@ -1146,36 +1247,36 @@ const styles = {
     gap: 8,
     padding: "6px 10px",
     borderRadius: 999,
-    background: "#f8fafc",
-    border: "1px solid #e5e7eb",
-    color: "#111827",
+    background: "rgba(255,255,255,0.06)",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    color: chatTheme.text,
     fontSize: 12,
   },
   placeholderCard: {
     marginTop: 8,
     padding: "18px 20px",
-    borderRadius: 12,
-    border: "1px solid #e5e7eb",
-    background: "#fff",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
+    boxShadow: chatTheme.shadowSoft,
   },
   placeholderTitle: {
     margin: 0,
     fontSize: 16,
     fontWeight: 700,
-    color: "#111827",
+    color: chatTheme.text,
   },
   placeholderText: {
     margin: "6px 0 0",
     fontSize: 13,
-    color: "#6b7280",
+    color: chatTheme.textMuted,
     lineHeight: 1.6,
   },
   tabBtn: {
     padding: "10px 16px 12px",
     background: "transparent",
     border: "none",
-    color: "#9ca3af",
+    color: chatTheme.textMuted,
     fontSize: 14,
     cursor: "pointer",
     borderBottom: "2px solid transparent",
@@ -1186,8 +1287,8 @@ const styles = {
     minWidth: 132,
   },
   tabActive: {
-    color: "#fff",
-    borderBottomColor: "#3b82f6",
+    color: chatTheme.text,
+    borderBottomColor: chatTheme.accent,
   },
   tabLabel: {
     fontSize: 14,
@@ -1197,10 +1298,15 @@ const styles = {
   tabDescription: {
     fontSize: 11,
     lineHeight: 1.35,
-    color: "#9ca3af",
+    color: chatTheme.textMuted,
     textAlign: "left",
   },
   tabDescriptionActive: {
-    color: "#d1d5db",
+    color: chatTheme.textSoft,
+  },
+  pageStack: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
   },
 };

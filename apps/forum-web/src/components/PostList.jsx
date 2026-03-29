@@ -3,6 +3,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { fetchPosts } from "../api/client.js";
 import PostCard from "./PostCard.jsx";
 import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
+import { chatTheme } from "../lib/chat-ui-theme.js";
 
 const PAGE_SIZE = 20;
 
@@ -168,18 +169,18 @@ const styles = {
   filterInput: {
     flex: 1,
     padding: "8px 12px",
-    border: "1px solid #d1d5db",
-    borderRadius: 6,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    borderRadius: chatTheme.radiusMD,
     fontSize: 13,
-    color: "#111827",
-    background: "#fff",
+    color: chatTheme.text,
+    background: "rgba(255,255,255,0.05)",
   },
   clearBtn: {
     background: "none",
     border: "none",
     fontSize: 16,
     cursor: "pointer",
-    color: "#6b7280",
+    color: chatTheme.textMuted,
   },
   list: {
     display: "flex",
@@ -188,23 +189,24 @@ const styles = {
     maxHeight: "70vh",
     overflowY: "auto",
   },
-  msg: { textAlign: "center", color: "#9ca3af", fontSize: 14, padding: "24px 0" },
-  error: { textAlign: "center", color: "#dc2626", fontSize: 14, padding: "16px 0" },
-  end: { textAlign: "center", color: "#d1d5db", fontSize: 12, padding: "12px 0" },
+  msg: { textAlign: "center", color: chatTheme.textMuted, fontSize: 14, padding: "24px 0" },
+  error: { textAlign: "center", color: "#fecaca", fontSize: 14, padding: "16px 0" },
+  end: { textAlign: "center", color: chatTheme.textMuted, fontSize: 12, padding: "12px 0" },
   lockedCard: {
     padding: 20,
-    borderRadius: 12,
-    border: "1px solid #e5e7eb",
-    background: "#fff",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
     textAlign: "center",
+    boxShadow: chatTheme.shadowSoft,
   },
-  lockedTitle: { margin: 0, fontSize: 16, fontWeight: 700, color: "#111827" },
-  lockedText: { margin: "8px 0 14px", fontSize: 13, color: "#6b7280", lineHeight: 1.6 },
+  lockedTitle: { margin: 0, fontSize: 16, fontWeight: 700, color: chatTheme.text },
+  lockedText: { margin: "8px 0 14px", fontSize: 13, color: chatTheme.textMuted, lineHeight: 1.6 },
   lockedBtn: {
     border: "none",
     borderRadius: 999,
     padding: "8px 14px",
-    background: "#111827",
+    background: "linear-gradient(135deg, #23a6f0 0%, #b54cff 100%)",
     color: "#fff",
     cursor: "pointer",
     fontSize: 13,

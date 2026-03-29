@@ -1,4 +1,5 @@
 import React from "react";
+import { chatTheme } from "../lib/chat-ui-theme.js";
 
 function ValueCard({ label, value, description }) {
   return (
@@ -54,10 +55,10 @@ export default function IdentityLoopSummary({
 const styles = {
   root: {
     padding: 18,
-    borderRadius: 18,
-    border: "1px solid #dbeafe",
-    background: "linear-gradient(180deg, #eff6ff 0%, #ffffff 100%)",
-    boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
+    borderRadius: chatTheme.radiusXL,
+    border: `1px solid ${chatTheme.shellBorder}`,
+    background: `linear-gradient(180deg, rgba(48, 54, 74, 0.96) 0%, rgba(38, 43, 60, 0.98) 100%)`,
+    boxShadow: chatTheme.shadow,
     display: "flex",
     flexDirection: "column",
     gap: 14,
@@ -73,19 +74,19 @@ const styles = {
     fontWeight: 900,
     letterSpacing: "0.12em",
     textTransform: "uppercase",
-    color: "#2563eb",
+    color: chatTheme.accent,
   },
   title: {
     margin: 0,
     fontSize: 20,
     fontWeight: 800,
-    color: "#0f172a",
+    color: chatTheme.text,
   },
   subtitle: {
     margin: 0,
     fontSize: 14,
     lineHeight: 1.65,
-    color: "#475569",
+    color: chatTheme.textMuted,
   },
   grid: {
     display: "grid",
@@ -93,9 +94,9 @@ const styles = {
     gap: 10,
   },
   card: {
-    borderRadius: 14,
-    border: "1px solid #bfdbfe",
-    background: "#ffffffcc",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelSoft,
     padding: 12,
     display: "flex",
     flexDirection: "column",
@@ -106,18 +107,18 @@ const styles = {
     fontWeight: 800,
     letterSpacing: "0.08em",
     textTransform: "uppercase",
-    color: "#2563eb",
+    color: chatTheme.textMuted,
   },
   cardValue: {
     fontSize: 18,
     fontWeight: 800,
-    color: "#111827",
+    color: chatTheme.text,
     lineHeight: 1.2,
   },
   cardDescription: {
     fontSize: 12,
     lineHeight: 1.6,
-    color: "#475569",
+    color: chatTheme.textMuted,
   },
   notes: {
     display: "flex",
@@ -127,10 +128,10 @@ const styles = {
   note: {
     fontSize: 13,
     lineHeight: 1.7,
-    color: "#334155",
-    background: "#ffffffb8",
-    border: "1px solid #e2e8f0",
-    borderRadius: 12,
+    color: chatTheme.textSoft,
+    background: "rgba(255,255,255,0.04)",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    borderRadius: chatTheme.radiusMD,
     padding: 12,
   },
 };
