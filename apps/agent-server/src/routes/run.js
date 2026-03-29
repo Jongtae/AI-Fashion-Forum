@@ -27,6 +27,7 @@ import {
   DEFAULT_INITIAL_AGENT_COUNT,
 } from "../lib/population-growth.js";
 import { buildAgentEvolutionTimeline } from "../lib/agent-evolution.js";
+import { getForumWritebackMode, shouldWriteForumArtifacts } from "../lib/forum-writeback.js";
 
 const router = Router();
 
@@ -142,7 +143,19 @@ router.post("/", async (req, res) => {
 
   // ── Step 3: Post to forum-server ──────────────────────────────────────────
   const createdPosts = [];
+  const writebackMode = getForumWritebackMode();
+  const writeForumArtifacts = shouldWriteForumArtifacts();
   for (const post of generatedPosts) {
+    if (!writeForumArtifacts) {
+      createdPosts.push({
+        ...post,
+        forumPostId: null,
+        writeSkipped: true,
+        writeSkipReason: "forum_writeback_disabled",
+      });
+      continue;
+    }
+
     try {
       const result = await postToForum("/api/posts", {
         content: post.body,
@@ -314,6 +327,8 @@ router.post("/", async (req, res) => {
     sprint1_verdicts: sprint1Verdicts,
     agent_growth: report.agent_growth,
     agent_evolution: agentEvolution,
+    writeback_mode: writebackMode,
+    writeback_disabled: !writeForumArtifacts,
   });
 });
 

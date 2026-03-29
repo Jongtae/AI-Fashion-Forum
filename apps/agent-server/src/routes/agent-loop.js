@@ -23,6 +23,7 @@ import {
   buildPopulationGrowthPlan,
   DEFAULT_INITIAL_AGENT_COUNT,
 } from "../lib/population-growth.js";
+import { getForumWritebackMode, shouldWriteForumArtifacts } from "../lib/forum-writeback.js";
 import { AgentState } from "../models/AgentState.js";
 import { ActionTrace } from "../models/ActionTrace.js";
 import { SimEvent } from "../models/SimEvent.js";
@@ -175,6 +176,8 @@ router.post("/tick", async (req, res) => {
   const createdComments = [];
   const artifactResults = new Map();
   const ingestionByActionId = new Map();
+  const writebackMode = getForumWritebackMode();
+  const writeForumArtifacts = shouldWriteForumArtifacts();
 
   for (const entry of result.entries) {
     const ingestionEnvelope = createIngestionEnvelope({
@@ -218,6 +221,16 @@ router.post("/tick", async (req, res) => {
         });
       } catch {
         content = entry.reason || `${agent.handle || agent.agent_id}가 새 글을 올렸다.`;
+      }
+
+      if (!writeForumArtifacts) {
+        artifactResults.set(entry.action_id, {
+          executionStatus: "skipped",
+          blockReason: "forum_writeback_disabled",
+          artifactType: "post",
+          generationContext: artifactResults.get(entry.action_id)?.generationContext ?? null,
+        });
+        continue;
       }
 
       try {
@@ -297,6 +310,15 @@ router.post("/tick", async (req, res) => {
             replyPayload.replyTargetId = recentPost._id.toString();
             replyPayload.replyTargetAuthorId = recentPost.authorId;
             replyPayload.replyTargetPreview = recentPost.content?.slice(0, 180) || "";
+          }
+
+          if (!writeForumArtifacts) {
+            artifactResults.set(entry.action_id, {
+              executionStatus: "skipped",
+              blockReason: "forum_writeback_disabled",
+              artifactType: "comment",
+            });
+            continue;
           }
 
           const comment = await forumPost(`/api/posts/${recentPost._id}/comments`, replyPayload);
@@ -511,6 +533,8 @@ router.post("/tick", async (req, res) => {
     commentsCreated: createdComments.length,
     characterOverridesApplied: appliedOverrides,
     agentGrowth: growthPlan,
+    writebackMode,
+    writebackDisabled: !writeForumArtifacts,
     entries: result.entries.map((e) => ({ tick: e.tick, actor: e.actor_id, action: e.action })),
   });
 });

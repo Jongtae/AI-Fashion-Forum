@@ -69,6 +69,13 @@ curl -X POST http://localhost:4001/api/run \
 # Returns: posts_created, replay_file, 8-metric report
 ```
 
+Testing note:
+
+```bash
+# Keep agent forum writeback off during test runs
+AGENT_FORUM_WRITEBACK=off node --test
+```
+
 Workspace structure:
 
 | Package | Path | Role |
@@ -88,7 +95,7 @@ npm run preview
 
 ## Deployment
 
-GitHub Actions (`.github/workflows/deploy-pages.yml`) builds and deploys `dist/` to GitHub Pages on every push to `main`.
+GitHub Actions (`.github/workflows/deploy-pages.yml`) currently runs in manual mode only.
 
 - GitHub Pages is used as a static replay viewer host, not as a live simulation server
 - simulation runs happen locally or on a server-capable environment
