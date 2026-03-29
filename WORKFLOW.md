@@ -9,7 +9,11 @@ When rules change, update only this file.
 - Start substantial development from GitHub Issues that reflect project or product meeting decisions whenever such issues exist.
 - If a request reflects decided work but no matching GitHub Issue exists yet, create or propose that issue before implementation.
 - Before starting implementation, first define the work as an issue with a clear title, summary, and completion criteria.
-- If the request is too large, split it into smaller issues before coding.
+- Prefer the smallest reviewable issue that can be validated end-to-end in one branch and one PR.
+- If the request is too large or spans multiple user outcomes, split it into smaller issues before coding.
+- When splitting, keep each issue scoped to one user-visible behavior, one API contract change, or one UI surface.
+- Do not bundle unrelated improvements into the same issue just because they share a component or file.
+- If an issue would require more than one distinct verification story, treat it as a parent tracker and create child issues for the actual implementation.
 - Unless the user explicitly asks to skip it, do not start substantial code changes before proposing the issue unit.
 - When a user request becomes an issue, translate it into task-oriented issue language instead of copying the conversation verbatim; preserve intent, scope, and constraints.
 - Keep the issue wording aligned with the work item the team will execute, not the exact phrasing of the chat message.
@@ -55,6 +59,7 @@ When rules change, update only this file.
   - explicit scope, including what is out of scope when that boundary matters
   - completion criteria written as verifiable checklist items
   - a verification plan covering tests, manual checks, or deployment/runtime confirmation as applicable
+- If an issue is still broad after this pass, split it again until the implementation step is obvious and narrowly testable.
 - If any required issue section is missing or too vague, first update or propose updates to the issue before coding.
 - Treat incomplete issues as draft work items, not executable work items.
 - Write completion criteria as outcome-based truths to verify, not as vague activity notes such as "update code" or "do testing."
