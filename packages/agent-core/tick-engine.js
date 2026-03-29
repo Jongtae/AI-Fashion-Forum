@@ -96,27 +96,27 @@ function generateTickAction(world, actor) {
   if (roll < 0.2) {
     return {
       type: "lurk",
-      reason: `${actor.handle} stayed in observation mode this tick.`,
+      reason: `${actor.handle}는 이번 틱에 관찰 모드에 머물렀다.`,
     };
   }
 
   if (roll < 0.5) {
     return {
       type: "react",
-      reason: `${actor.handle} gave lightweight feedback to keep social presence without writing a full post.`,
+      reason: `${actor.handle}는 본문을 쓰지 않고 가벼운 반응으로 존재감을 남겼다.`,
     };
   }
 
   if (roll < 0.8) {
     return {
       type: "comment",
-      reason: `${actor.handle} responded because the current topic mix crossed their participation threshold.`,
+      reason: `${actor.handle}는 현재 주제 흐름이 참여 기준을 넘어서 답글을 남겼다.`,
     };
   }
 
   return {
     type: "post",
-    reason: `${actor.handle} created a new action because their activity and novelty signals aligned.`,
+    reason: `${actor.handle}는 활동성과 새로움 신호가 맞아떨어져 새 글을 올렸다.`,
   };
 }
 

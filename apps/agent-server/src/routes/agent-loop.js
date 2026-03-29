@@ -161,10 +161,10 @@ router.post("/tick", async (req, res) => {
         });
         content = getForumArtifactText(
           artifact,
-          entry.reason || `${agent.handle || agent.agent_id} shared a new post.`
+          entry.reason || `${agent.handle || agent.agent_id}가 새 글을 올렸다.`
         );
       } catch {
-        content = entry.reason || `${agent.handle || agent.agent_id} shared a new post.`;
+        content = entry.reason || `${agent.handle || agent.agent_id}가 새 글을 올렸다.`;
       }
 
       try {
@@ -216,7 +216,7 @@ router.post("/tick", async (req, res) => {
           const replyPayload = {
             content: getForumArtifactText(
               artifact,
-              entry.reason || `${agent.handle || entry.actor_id} commented.`
+              entry.reason || `${agent.handle || entry.actor_id}가 답글을 남겼다.`
             ),
             authorId: entry.actor_id,
             authorType: "agent",

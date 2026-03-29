@@ -57,7 +57,7 @@ test("generateForumArtifact returns readable body text", () => {
   });
 
   assert.strictEqual(artifact.type, "comment");
-  assert.match(artifact.body, /officemirror replies to the post in a steady tone/i);
+  assert.match(artifact.body, /게시글을 따라 officemirror가 차분한 톤으로 답글을 남기며/i);
   assert.ok(!artifact.body.includes("artifact_id"));
   assert.ok(!artifact.body.includes("relationship_context"));
 });
@@ -91,7 +91,7 @@ test("generateForumArtifact writes a comment reply to the post body", () => {
   });
 
   assert.match(artifact.body, /weekday mirror check|jacket|shirt/i);
-  assert.match(artifact.body, /answers in a steady tone|focus on practicality|On the post about/i);
+  assert.match(artifact.body, /게시글을 따라|응답하고|스레드에 차분한 톤으로 끼어들며/i);
 });
 
 test("generateForumArtifact writes a comment reply to another comment", () => {
@@ -127,7 +127,7 @@ test("generateForumArtifact writes a comment reply to another comment", () => {
   });
 
   assert.match(artifact.body, /A02|sleeve balance/i);
-  assert.match(artifact.body, /replies to @A02|following up on @A02|follows up on @A02/i);
+  assert.match(artifact.body, /@A02의 댓글을 따라|@A02의 말을 받아|덧답을 남기고/i);
 });
 
 test("sprint 1 post copy varies by seed", () => {

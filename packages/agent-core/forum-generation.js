@@ -51,11 +51,28 @@ function pickVariant(variants = [], seed = 0) {
   return variants[index];
 }
 
+function getToneLabel(tone) {
+  return {
+    sharp: "날카로운",
+    warm: "따뜻한",
+    steady: "차분한",
+    guarded: "조심스러운",
+  }[tone] || "차분한";
+}
+
+function getArtifactTypeLabel(type) {
+  return {
+    comment: "댓글",
+    quote: "인용",
+    post: "새 글",
+  }[type] || "글";
+}
+
 function summarizeContentRecord(contentRecord = {}) {
-  const title = contentRecord.title || "the thread";
+  const title = contentRecord.title || "스레드";
   const topics = Array.isArray(contentRecord.topics) && contentRecord.topics.length
     ? contentRecord.topics.join(", ")
-    : "general forum signals";
+    : "일반 포럼 신호";
   const body = typeof contentRecord.body === "string" ? contentRecord.body.trim() : "";
   const content = typeof contentRecord.content === "string" ? contentRecord.content.trim() : "";
   const text = body || content;
@@ -72,7 +89,7 @@ function summarizeContentRecord(contentRecord = {}) {
 function summarizeCommentRecord(commentRecord = {}) {
   const authorId = commentRecord?.authorId || "someone";
   const text = typeof commentRecord?.content === "string" ? commentRecord.content.trim() : "";
-  const snippet = text ? text.split(/(?<=[.!?])\s+/)[0].slice(0, 160) : "that point";
+  const snippet = text ? text.split(/(?<=[.!?])\s+/)[0].slice(0, 160) : "그 포인트";
 
   return {
     authorId,
@@ -109,38 +126,39 @@ export function generateForumArtifact({
 
   const replyVariants = targetComment
     ? [
-        `${author.handle} replies to @${commentSummary.authorId} in a ${tone} tone, grounding the response in ${identityAnchor} while referring back to "${commentSummary.snippet}".`,
-        `Picking up @${commentSummary.authorId}'s point, ${author.handle} answers in a ${tone} tone and keeps the thread on ${identityAnchor}.`,
-        `${author.handle} follows up on @${commentSummary.authorId}'s comment with a ${tone} tone, pulling the thread back to "${commentSummary.snippet}".`,
+        `${author.handle}가 @${commentSummary.authorId}의 말을 받아 ${getToneLabel(tone)} 톤으로 답글을 남기며 ${identityAnchor}를 다시 중심에 둔다.`,
+        `@${commentSummary.authorId}의 요점을 이어받아 ${author.handle}가 ${getToneLabel(tone)} 톤으로 응답하고, 대화를 ${identityAnchor} 쪽으로 다시 묶는다.`,
+        `${author.handle}가 @${commentSummary.authorId}의 댓글을 따라 ${getToneLabel(tone)} 톤으로 덧답을 남기고, "${commentSummary.snippet}"를 다시 꺼낸다.`,
       ]
     : [
-        `${author.handle} replies to the post in a ${tone} tone, grounding the response in ${identityAnchor} while referring back to "${targetSummary.bodySnippet || targetSummary.title}".`,
-        `On the post about ${targetSummary.topics}, ${author.handle} answers in a ${tone} tone and keeps the focus on ${identityAnchor}.`,
-        `${author.handle} jumps in on the thread with a ${tone} tone, using the post itself to revisit "${targetSummary.bodySnippet || targetSummary.title}".`,
+        `게시글을 따라 ${author.handle}가 ${getToneLabel(tone)} 톤으로 답글을 남기며 ${identityAnchor}를 중심에 둔다.`,
+        `이 글의 ${targetSummary.topics} 흐름을 따라 ${author.handle}가 ${getToneLabel(tone)} 톤으로 응답하고 ${identityAnchor}에 무게를 둔다.`,
+        `${author.handle}가 스레드에 ${getToneLabel(tone)} 톤으로 끼어들며 "${targetSummary.bodySnippet || targetSummary.title}"를 다시 읽어낸다.`,
       ];
 
   const postTemplates = {
-    quote: `${author.handle} quote-posts the thread in a ${tone} tone, reframing it through ${identityAnchor}.`,
-    post: `${author.handle} starts a fresh thread in a ${tone} tone after recent exposure around ${targetSummary.topics}.`,
+    quote: `${author.handle}가 스레드를 인용해 ${getToneLabel(tone)}하게 다시 쓰며 ${identityAnchor}로 재해석한다.`,
+    post: `${author.handle}가 ${targetSummary.topics}를 보고 ${getToneLabel(tone)} 톤의 새 글을 연다.`,
   };
 
   const artifactType = ["comment", "quote", "post"].includes(actionRecord.type)
     ? actionRecord.type
     : "comment";
+  const artifactTypeLabel = getArtifactTypeLabel(artifactType);
 
   return {
     artifact_id: `GEN:${author.agent_id}:${actionRecord.tick}:${artifactType}`,
     source_action_id: actionRecord.action_id,
     type: artifactType,
     tone,
-    title: `${targetSummary.title} / ${artifactType}`,
+    title: `${targetSummary.title} / ${artifactTypeLabel}`,
     body:
-      artifactType === "comment"
+        artifactType === "comment"
         ? pickVariant(replyVariants, actionRecord.tick + author.agent_id.length)
         : postTemplates[artifactType],
     relationship_context: relationshipState,
     ui: {
-      label: `${artifactType} in ${tone} tone`,
+      label: `${artifactTypeLabel} · ${getToneLabel(tone)} 톤`,
       secondaryText: targetSummary.title,
     },
   };

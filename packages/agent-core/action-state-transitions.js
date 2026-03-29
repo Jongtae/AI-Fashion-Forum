@@ -302,7 +302,7 @@ export function applyReactActionDelta({
       action_type: "react",
       target_content_id: targetContentId,
       target_author_id: targetAuthorId,
-      summary: `Reacted with ${reactionType} (engagement +${engagementDelta.toFixed(3)})`,
+      summary: `반응 ${reactionType}로 참여를 남겼다 (engagement +${engagementDelta.toFixed(3)})`,
       state_delta: {
         engagement_delta: clampUnit(nextAgent.engagement_level - previousEngagement),
         action_bias_react: nextAgent.action_bias_react,
