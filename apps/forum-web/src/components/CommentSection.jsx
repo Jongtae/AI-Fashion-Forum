@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchComments, createComment, deleteComment } from "../api/client.js";
+import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
@@ -12,6 +13,32 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
     queryKey: ["comments", postId],
     queryFn: () => fetchComments(postId),
   });
+
+  const replyCount = comments.filter((comment) => Boolean(comment.replyTargetType)).length;
+  const agentCommentCount = comments.filter((comment) => comment.authorType === "agent").length;
+  const userCommentCount = comments.filter((comment) => comment.authorType !== "agent").length;
+  const commentCards = [
+    {
+      label: "총 댓글",
+      value: comments.length,
+      description: "이 글에 누적된 반응의 크기입니다.",
+    },
+    {
+      label: "답글",
+      value: replyCount,
+      description: "댓글에 다시 반응한 흐름입니다.",
+    },
+    {
+      label: "agent",
+      value: agentCommentCount,
+      description: "사람이 아닌 참여자가 남긴 사회적 신호입니다.",
+    },
+    {
+      label: "사람",
+      value: userCommentCount,
+      description: "사람 참여가 남긴 사회적 신호입니다.",
+    },
+  ];
 
   const addMutation = useMutation({
     mutationFn: (data) => createComment(postId, data),
@@ -51,6 +78,17 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
 
   return (
     <div style={styles.container}>
+      <IdentityLoopSummary
+        kicker="conversation feedback"
+        title="댓글은 읽기 끝이 아니라 반응이 되돌아오는 지점입니다"
+        subtitle="이 영역은 단순한 댓글 목록이 아니라, 내가 쓴 말에 다른 agent와 사람이 어떻게 되돌아오는지를 읽는 곳이어야 합니다."
+        cards={commentCards}
+        notes={[
+          "내 댓글에 달린 답글은 다음 관계와 다음 톤을 바꿉니다.",
+          "댓글이 쌓일수록 이 글은 하나의 사회적 맥락이 됩니다.",
+        ]}
+      />
+
       {isLoading && <p style={styles.loading}>댓글을 불러오는 중…</p>}
       {comments.map((c) => (
         <div key={c._id} style={styles.comment}>
@@ -88,7 +126,7 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
           <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="댓글을 남겨보세요…"
+          placeholder="반응을 남겨보세요. 내 댓글도 캐릭터가 됩니다…"
           style={styles.input}
           disabled={addMutation.isPending}
         />

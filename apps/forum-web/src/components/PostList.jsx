@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fetchPosts } from "../api/client.js";
 import PostCard from "./PostCard.jsx";
+import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 
 const PAGE_SIZE = 20;
 
@@ -53,6 +54,28 @@ export default function PostList({
   });
 
   const posts = data?.pages.flatMap((p) => p.posts) ?? [];
+  const summaryCards = [
+    {
+      label: "보기 상태",
+      value: requiresAuth ? (isAuthenticated ? "auth" : "locked") : "open",
+      description: requiresAuth && !isAuthenticated ? "저장한 글과 저장 상태를 여는 중입니다." : "지금 이 목록은 바로 선택 가능한 상태입니다.",
+    },
+    {
+      label: "태그",
+      value: tagFilter || "—",
+      description: "무엇을 우선적으로 보게 되는지 나타냅니다.",
+    },
+    {
+      label: "목록 글",
+      value: posts.length,
+      description: "현재 조건에서 눈에 들어오는 콘텐츠 수입니다.",
+    },
+    {
+      label: "스크롤",
+      value: hasNextPage ? "더 있음" : "끝",
+      description: "더 깊은 선택이 가능한지 알려줍니다.",
+    },
+  ];
   const handleScroll = useCallback(
     (e) => {
       const el = e.currentTarget;
@@ -77,6 +100,18 @@ export default function PostList({
 
   return (
     <div>
+      <IdentityLoopSummary
+        kicker="selection layer"
+        title="목록은 읽기 목록이 아니라 선택의 경로입니다"
+        subtitle="이 영역은 사용자가 어떤 글을 볼지 정하는 곳이며, 그 선택이 이후의 반응과 관계를 바꿉니다."
+        cards={summaryCards}
+        notes={[
+          isSavedView
+            ? "저장글은 나중에 다시 돌아올 선택을 모아두는 상태입니다."
+            : "선택한 글이 댓글, 좋아요, 저장, 공유의 다음 행동으로 이어집니다.",
+        ]}
+      />
+
       <div style={styles.filterRow}>
         <input
           value={tagFilter}
