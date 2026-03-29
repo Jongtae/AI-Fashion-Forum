@@ -51,6 +51,11 @@ function getInitialSelectedProfile() {
   };
 }
 
+function getInitialActiveTagFilter() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("tag") || "";
+}
+
 function setPostUrl(postId, { replace = true } = {}) {
   const params = new URLSearchParams(window.location.search);
   if (postId) {
@@ -76,6 +81,23 @@ function setProfileUrl(profile, { replace = true } = {}) {
   } else {
     params.delete("profileId");
     params.delete("profileType");
+  }
+
+  const search = params.toString();
+  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+  if (replace) {
+    window.history.replaceState({}, "", nextUrl);
+  } else {
+    window.history.pushState({}, "", nextUrl);
+  }
+}
+
+function setTagUrl(tag, { replace = true } = {}) {
+  const params = new URLSearchParams(window.location.search);
+  if (tag) {
+    params.set("tag", tag);
+  } else {
+    params.delete("tag");
   }
 
   const search = params.toString();
@@ -128,7 +150,7 @@ export default function ForumApp() {
   const [tab, setTab] = useState(getInitialTab);
   const [selectedPostId, setSelectedPostId] = useState(getInitialSelectedPostId);
   const [selectedProfile, setSelectedProfile] = useState(getInitialSelectedProfile);
-  const [activeTagFilter, setActiveTagFilter] = useState("");
+  const [activeTagFilter, setActiveTagFilter] = useState(getInitialActiveTagFilter);
   const [composerOpen, setComposerOpen] = useState(false);
   const [hasForumActivity, setHasForumActivity] = useState(false);
   const [timeSpeed, setTimeSpeed] = useState(1);
@@ -182,6 +204,7 @@ export default function ForumApp() {
           ? { id: profileId, type: params.get("profileType") || "user" }
           : null
       );
+      setActiveTagFilter(params.get("tag") || "");
     };
 
     window.addEventListener("popstate", syncSelectedPostFromLocation);
@@ -218,6 +241,7 @@ export default function ForumApp() {
     setPostUrl(null);
     setTab("forum");
     setViewUrl("forum", { replace: false });
+    setTagUrl(tag, { replace: false });
     setActiveTagFilter(tag);
   }
 
@@ -467,7 +491,10 @@ export default function ForumApp() {
                         currentUser={currentUser}
                         onUserActivity={markForumActivity}
                         activeTagFilter={activeTagFilter}
-                        onTagFilterChange={setActiveTagFilter}
+                        onTagFilterChange={(value) => {
+                          setActiveTagFilter(value);
+                          setTagUrl(value, { replace: false });
+                        }}
                         onSelectPost={(postId) => {
                           markForumActivity();
                           openPost(postId);
@@ -506,7 +533,7 @@ export default function ForumApp() {
                   />
                 </section>
               ) : tab === "saved" ? (
-                <section style={styles.savedSection}>
+                    <section style={styles.savedSection}>
                   <div style={styles.savedHero}>
                     <p style={styles.savedKicker}>저장한 글</p>
                     <h2 style={styles.savedTitle}>나중에 다시 볼 글을 모아두는 공간</h2>
@@ -514,21 +541,24 @@ export default function ForumApp() {
                       마음에 든 글을 저장해 두고, 다시 돌아와서 이어 읽을 수 있습니다.
                     </p>
                   </div>
-                  <PostList
-                    currentUser={currentUser}
-                    onUserActivity={markForumActivity}
-                    onSelectPost={(postId) => {
-                      markForumActivity();
-                      openPost(postId);
-                    }}
-                    onTagClick={openTagFilter}
-                    onRequireAuth={() => setShowAuth(true)}
-                    isAuthenticated={Boolean(authUser)}
-                    activeTagFilter={activeTagFilter}
-                    onTagFilterChange={setActiveTagFilter}
-                    queryParams={{ saved: "true" }}
-                    requiresAuth
-                    onAuthorClick={openProfile}
+                    <PostList
+                      currentUser={currentUser}
+                      onUserActivity={markForumActivity}
+                      onSelectPost={(postId) => {
+                        markForumActivity();
+                        openPost(postId);
+                      }}
+                      onTagClick={openTagFilter}
+                      onRequireAuth={() => setShowAuth(true)}
+                      isAuthenticated={Boolean(authUser)}
+                      activeTagFilter={activeTagFilter}
+                      onTagFilterChange={(value) => {
+                        setActiveTagFilter(value);
+                        setTagUrl(value, { replace: false });
+                      }}
+                      queryParams={{ saved: "true" }}
+                      requiresAuth
+                      onAuthorClick={openProfile}
                   />
                 </section>
               ) : (
