@@ -36,7 +36,9 @@ When rules change, update only this file.
   6. land the change to `main`
   7. verify deployment success after the `main` update
   8. update the GitHub issue checklist/state, leave final work-log notes, and close the issue
+  9. delete or archive the no-longer-needed feature branch and return the working branch to `main`
 - Do not consider an issue complete just because code exists locally or has been merged; the issue is only done after deployment is verified and the GitHub issue is closed.
+- Do not consider a task finished until the issue is closed, the branch is cleaned up, and the local workspace is back on `main` unless the user explicitly wants to keep working on the feature branch.
 - Do not consider an issue complete if code cleanup is still pending, even if the feature works.
 - If PR automation is blocked by permissions or tooling limits, leave a note on the issue explaining the blocker, keep the branch pushed, and then proceed with the safest available landing path while still verifying deployment and closing the issue explicitly afterward.
 - If the issue changes data models, asset pipelines, manifests, crawling workflows, or other repository-local data operations, involve the Data Engineering team for review before closing the issue.
