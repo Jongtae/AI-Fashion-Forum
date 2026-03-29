@@ -66,26 +66,35 @@ function getInitialDiscoveryMode() {
   return ["recent", "popular", "search"].includes(params.get("mode")) ? params.get("mode") : "recent";
 }
 
-function ServiceContextSummary({ tab, discoveryMode, activeTagFilter, discoverySearchText }) {
+function ServiceContextSummary({
+  tab,
+  discoveryMode,
+  activeTagFilter,
+  discoverySearchText,
+  onClearTab,
+  onClearMode,
+  onClearTag,
+  onClearSearch,
+}) {
   const handleClearContext = () => {
     window.dispatchEvent(new CustomEvent("forum:clear-context"));
   };
   const chips = [];
 
   if (tab && tab !== "forum") {
-    chips.push({ label: "탭", value: tab });
+    chips.push({ label: "탭", value: tab, onClear: onClearTab });
   }
 
   if (tab === "discover" && discoveryMode && discoveryMode !== "recent") {
-    chips.push({ label: "모드", value: discoveryMode });
+    chips.push({ label: "모드", value: discoveryMode, onClear: onClearMode });
   }
 
   if (activeTagFilter) {
-    chips.push({ label: "태그", value: `#${activeTagFilter}` });
+    chips.push({ label: "태그", value: `#${activeTagFilter}`, onClear: onClearTag });
   }
 
   if (tab === "discover" && discoverySearchText) {
-    chips.push({ label: "검색", value: discoverySearchText });
+    chips.push({ label: "검색", value: discoverySearchText, onClear: onClearSearch });
   }
 
   if (chips.length === 0) return null;
@@ -103,6 +112,15 @@ function ServiceContextSummary({ tab, discoveryMode, activeTagFilter, discoveryS
           <span key={`${chip.label}-${chip.value}`} style={styles.contextChip}>
             <strong>{chip.label}</strong>
             <span>{chip.value}</span>
+            <button
+              type="button"
+              style={styles.contextChipRemoveBtn}
+              onClick={chip.onClear}
+              aria-label={`${chip.label} 지우기`}
+              title={`${chip.label} 지우기`}
+            >
+              ×
+            </button>
           </span>
         ))}
       </div>
@@ -646,6 +664,26 @@ export default function ForumApp() {
               discoveryMode={discoveryMode}
               activeTagFilter={activeTagFilter}
               discoverySearchText={discoverySearchText}
+              onClearTab={() => {
+                setSelectedPostId(null);
+                setPostUrl(null);
+                setSelectedProfile(null);
+                setProfileUrl(null);
+                setTab("forum");
+                setViewUrl("forum", { replace: false });
+              }}
+              onClearMode={() => {
+                setDiscoveryMode("recent");
+                setDiscoveryModeUrl("recent", { replace: false });
+              }}
+              onClearTag={() => {
+                setActiveTagFilter("");
+                setTagUrl("", { replace: false });
+              }}
+              onClearSearch={() => {
+                setDiscoverySearchText("");
+                setDiscoveryQueryUrl("", { replace: false });
+              }}
             />
 
             <main style={styles.main}>
@@ -1158,6 +1196,17 @@ const styles = {
     border: "1px solid #e5e7eb",
     color: "#111827",
     fontSize: 12,
+  },
+  contextChipRemoveBtn: {
+    width: 20,
+    height: 20,
+    borderRadius: 999,
+    border: "none",
+    background: "#e5e7eb",
+    color: "#374151",
+    cursor: "pointer",
+    lineHeight: 1,
+    padding: 0,
   },
   placeholderCard: {
     marginTop: 8,
