@@ -15,6 +15,8 @@ export default function PostList({
   onCreateFirstPost = () => {},
   onEmptyStateAction = () => {},
   emptyStateActionLabel = "",
+  emptyStateTitle = "",
+  emptyStateText = "",
   isAuthenticated = false,
   activeTagFilter = "",
   onTagFilterChange = () => {},
@@ -56,6 +58,21 @@ export default function PostList({
   });
 
   const posts = data?.pages.flatMap((p) => p.posts) ?? [];
+  const isEmpty = !isLoading && posts.length === 0;
+  const resolvedEmptyTitle =
+    emptyStateTitle ||
+    (isSavedView
+      ? "아직 저장한 글이 없습니다."
+      : queryParams?.q
+      ? "검색 결과가 없습니다."
+      : "아직 글이 없습니다.");
+  const resolvedEmptyText =
+    emptyStateText ||
+    (isSavedView
+      ? "마음에 드는 글을 저장하면 이곳에 모입니다."
+      : queryParams?.q
+      ? "검색어를 지우거나 다른 주제를 찾아보세요."
+      : "첫 번째 글을 써서 대화를 시작해 보세요.");
   const handleScroll = useCallback(
     (e) => {
       const el = e.currentTarget;
@@ -101,19 +118,17 @@ export default function PostList({
 
       {isLoading && <p style={styles.msg}>글을 불러오는 중…</p>}
       {isError && <p style={styles.error}>{error?.message || "오류가 발생했습니다."}</p>}
-      {!isLoading && posts.length === 0 && (
+      {isEmpty && (
         <div style={styles.emptyState}>
-          <p style={styles.emptyStateTitle}>
-            {isSavedView ? "아직 저장한 글이 없습니다." : "아직 글이 없습니다."}
-          </p>
-          <p style={styles.emptyStateText}>
-            {isSavedView
-              ? "마음에 드는 글을 저장하면 이곳에 모입니다."
-              : "첫 번째 글을 써서 대화를 시작해 보세요."}
-          </p>
+          <p style={styles.emptyStateTitle}>{resolvedEmptyTitle}</p>
+          <p style={styles.emptyStateText}>{resolvedEmptyText}</p>
           {!isSavedView && (
-            <button type="button" style={styles.emptyStateBtn} onClick={onCreateFirstPost}>
-              글쓰기 열기
+            <button
+              type="button"
+              style={styles.emptyStateBtn}
+              onClick={queryParams?.q && onEmptyStateAction ? onEmptyStateAction : onCreateFirstPost}
+            >
+              {queryParams?.q ? (emptyStateActionLabel || "검색 지우기") : "글쓰기 열기"}
             </button>
           )}
           {isSavedView && onEmptyStateAction && (

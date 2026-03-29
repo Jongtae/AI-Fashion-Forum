@@ -156,6 +156,10 @@ export default function DiscoveryPanel({
         activeTagFilter={topicFilter}
         onTagFilterChange={(value) => setTopicFilter(value)}
         queryParams={queryParams}
+        emptyStateActionLabel="검색 지우기"
+        onEmptyStateAction={() => onSearchTextChange("")}
+        emptyStateTitle={searchText.trim() ? "검색 결과가 없습니다." : ""}
+        emptyStateText={searchText.trim() ? "검색어를 지우거나 다른 주제를 찾아보세요." : ""}
       />
     </div>
   );
