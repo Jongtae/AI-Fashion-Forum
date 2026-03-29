@@ -66,6 +66,42 @@ function getInitialDiscoveryMode() {
   return ["recent", "popular", "search"].includes(params.get("mode")) ? params.get("mode") : "recent";
 }
 
+function ServiceContextSummary({ tab, discoveryMode, activeTagFilter, discoverySearchText }) {
+  const chips = [];
+
+  if (tab && tab !== "forum") {
+    chips.push({ label: "탭", value: tab });
+  }
+
+  if (tab === "discover" && discoveryMode && discoveryMode !== "recent") {
+    chips.push({ label: "모드", value: discoveryMode });
+  }
+
+  if (activeTagFilter) {
+    chips.push({ label: "태그", value: `#${activeTagFilter}` });
+  }
+
+  if (tab === "discover" && discoverySearchText) {
+    chips.push({ label: "검색", value: discoverySearchText });
+  }
+
+  if (chips.length === 0) return null;
+
+  return (
+    <div style={styles.contextSummary}>
+      <div style={styles.contextSummaryLabel}>현재 보기</div>
+      <div style={styles.contextChipRow}>
+        {chips.map((chip) => (
+          <span key={`${chip.label}-${chip.value}`} style={styles.contextChip}>
+            <strong>{chip.label}</strong>
+            <span>{chip.value}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function setPostUrl(postId, { replace = true } = {}) {
   const params = new URLSearchParams(window.location.search);
   if (postId) {
@@ -483,6 +519,13 @@ export default function ForumApp() {
               </button>
             </nav>
 
+            <ServiceContextSummary
+              tab={tab}
+              discoveryMode={discoveryMode}
+              activeTagFilter={activeTagFilter}
+              discoverySearchText={discoverySearchText}
+            />
+
             <main style={styles.main}>
               {selectedProfile ? (
                 <section>
@@ -806,6 +849,38 @@ const styles = {
     padding: "0 24px",
     display: "flex",
     gap: 4,
+  },
+  contextSummary: {
+    margin: "10px 24px 0",
+    padding: "12px 14px",
+    borderRadius: 14,
+    border: "1px solid #e5e7eb",
+    background: "#fff",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  contextSummaryLabel: {
+    fontSize: 12,
+    fontWeight: 800,
+    color: "#6b7280",
+    letterSpacing: "0.06em",
+  },
+  contextChipRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  contextChip: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "6px 10px",
+    borderRadius: 999,
+    background: "#f8fafc",
+    border: "1px solid #e5e7eb",
+    color: "#111827",
+    fontSize: 12,
   },
   placeholderCard: {
     marginTop: 8,
