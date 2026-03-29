@@ -8,6 +8,12 @@
 - [`/Users/jongtaelee/Documents/camel-ai-study/docs/product-identity.md`](/Users/jongtaelee/Documents/camel-ai-study/docs/product-identity.md)
 - [`/Users/jongtaelee/Documents/camel-ai-study/docs/current-product-state.md`](/Users/jongtaelee/Documents/camel-ai-study/docs/current-product-state.md)
 
+## Final summary
+
+- This branch reframes the UI around consumption, selection, reaction, and writeback as the way identity grows.
+- The same language now appears across feed, discovery, detail, profile, comments, replay, operator/admin, and composer surfaces.
+- The work is documented as a copyable issue, a short PR draft, and a branch change log.
+
 ## Proposed implementation issue
 
 ### Title
