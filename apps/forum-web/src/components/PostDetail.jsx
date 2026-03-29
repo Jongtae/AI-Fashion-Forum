@@ -37,6 +37,7 @@ export default function PostDetail({
   onUserActivity = () => {},
   onTagClick = () => {},
   onRequireAuth = () => {},
+  onAuthorClick = () => {},
   isAuthenticated = false,
 }) {
   const queryClient = useQueryClient();
@@ -126,10 +127,19 @@ export default function PostDetail({
       <article style={styles.article}>
         <div style={styles.postHeader}>
           <div>
-            <span style={styles.author}>
-              {post.authorType === "agent" ? "🤖 " : "👤 "}
-              {post.authorId}
-            </span>
+            <button
+              type="button"
+              style={styles.authorBtn}
+              onClick={() => {
+                onUserActivity();
+                onAuthorClick({ id: post.authorId, type: post.authorType });
+              }}
+            >
+              <span style={styles.author}>
+                {post.authorType === "agent" ? "🤖 " : "👤 "}
+                {post.authorId}
+              </span>
+            </button>
             <span style={styles.time}>{formatPostTime(post.createdAt)}</span>
           </div>
           {canDelete && (
@@ -259,6 +269,13 @@ const styles = {
     fontWeight: 700,
     color: "#111827",
     marginRight: 12,
+  },
+  authorBtn: {
+    background: "none",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+    textAlign: "left",
   },
   time: {
     fontSize: 13,

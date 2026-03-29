@@ -8,6 +8,7 @@ import PersonalisedFeed from "./components/PersonalisedFeed.jsx";
 import DiscoveryPanel from "./components/DiscoveryPanel.jsx";
 import AuthModal from "./components/AuthModal.jsx";
 import AdminDashboard from "./components/AdminDashboard.jsx";
+import ProfilePanel from "./components/ProfilePanel.jsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +39,7 @@ export default function ForumApp() {
   const [showAuth, setShowAuth] = useState(false);
   const [tab, setTab] = useState(getInitialTab);
   const [selectedPostId, setSelectedPostId] = useState(null);
+  const [selectedProfile, setSelectedProfile] = useState(null);
   const [activeTagFilter, setActiveTagFilter] = useState("");
   const [composerOpen, setComposerOpen] = useState(false);
   const [hasForumActivity, setHasForumActivity] = useState(false);
@@ -87,18 +89,27 @@ export default function ForumApp() {
   function openTagFilter(tag) {
     if (!tag) return;
     markForumActivity();
+    setSelectedProfile(null);
     setTab("forum");
     setSelectedPostId(null);
     setActiveTagFilter(tag);
   }
 
   function openPost(postId) {
+    setSelectedProfile(null);
     setSelectedPostId(postId);
     setTab("forum");
   }
 
+  function openProfile(profile) {
+    if (!profile?.id) return;
+    setSelectedPostId(null);
+    setSelectedProfile(profile);
+  }
+
   function openSavedPosts() {
     setSelectedPostId(null);
+    setSelectedProfile(null);
     if (!authUser) {
       setPendingTab("saved");
       setShowAuth(true);
@@ -234,7 +245,22 @@ export default function ForumApp() {
             </nav>
 
             <main style={styles.main}>
-              {tab === "forum" ? (
+              {selectedProfile ? (
+                <section>
+                  <ProfilePanel
+                    profile={selectedProfile}
+                    currentUser={currentUser}
+                    onBack={() => setSelectedProfile(null)}
+                    onSelectPost={(postId) => {
+                      markForumActivity();
+                      openPost(postId);
+                    }}
+                    onUserActivity={markForumActivity}
+                    onTagClick={openTagFilter}
+                    onAuthorClick={openProfile}
+                  />
+                </section>
+              ) : tab === "forum" ? (
                 selectedPostId ? (
                   <PostDetail
                     postId={selectedPostId}
@@ -242,6 +268,7 @@ export default function ForumApp() {
                     onBack={() => setSelectedPostId(null)}
                     onUserActivity={markForumActivity}
                     onTagClick={openTagFilter}
+                    onAuthorClick={openProfile}
                     onRequireAuth={() => setShowAuth(true)}
                     isAuthenticated={Boolean(authUser)}
                   />
@@ -276,18 +303,19 @@ export default function ForumApp() {
                     </section>
                     <section style={styles.feedSection}>
                       <PostList
-                          currentUser={currentUser}
-                          onUserActivity={markForumActivity}
-                          activeTagFilter={activeTagFilter}
-                          onTagFilterChange={setActiveTagFilter}
-                          onSelectPost={(postId) => {
-                            markForumActivity();
-                            openPost(postId);
-                          }}
-                          onTagClick={openTagFilter}
-                          onRequireAuth={() => setShowAuth(true)}
-                          isAuthenticated={Boolean(authUser)}
-                        />
+                        currentUser={currentUser}
+                        onUserActivity={markForumActivity}
+                        activeTagFilter={activeTagFilter}
+                        onTagFilterChange={setActiveTagFilter}
+                        onSelectPost={(postId) => {
+                          markForumActivity();
+                          openPost(postId);
+                        }}
+                        onTagClick={openTagFilter}
+                        onRequireAuth={() => setShowAuth(true)}
+                        isAuthenticated={Boolean(authUser)}
+                        onAuthorClick={openProfile}
+                      />
                     </section>
                   </>
                 )
@@ -302,6 +330,7 @@ export default function ForumApp() {
                     }}
                     onRequireAuth={() => setShowAuth(true)}
                     isAuthenticated={Boolean(authUser)}
+                    onAuthorClick={openProfile}
                   />
                 </section>
               ) : tab === "feed" ? (
@@ -312,6 +341,7 @@ export default function ForumApp() {
                     onUserActivity={markForumActivity}
                     onRequireAuth={() => setShowAuth(true)}
                     isAuthenticated={Boolean(authUser)}
+                    onAuthorClick={openProfile}
                   />
                 </section>
               ) : tab === "saved" ? (
@@ -337,6 +367,7 @@ export default function ForumApp() {
                     onTagFilterChange={setActiveTagFilter}
                     queryParams={{ saved: "true" }}
                     requiresAuth
+                    onAuthorClick={openProfile}
                   />
                 </section>
               ) : (
