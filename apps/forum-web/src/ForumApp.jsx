@@ -172,6 +172,13 @@ function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
   );
 }
 
+const SERVICE_TABS = [
+  { id: "forum", label: "포럼", description: "글을 읽고 댓글을 남깁니다." },
+  { id: "discover", label: "탐색", description: "태그, 검색, 인기글을 찾습니다." },
+  { id: "feed", label: "맞춤 피드", description: "내 반응에 맞는 글을 봅니다." },
+  { id: "saved", label: "저장글", description: "나중에 읽을 글을 보관합니다." },
+];
+
 function setPostUrl(postId, { replace = true } = {}) {
   const params = new URLSearchParams(window.location.search);
   if (postId) {
@@ -584,30 +591,24 @@ export default function ForumApp() {
         ) : (
           <>
             <nav style={styles.nav}>
-              <button
-                style={{ ...styles.tabBtn, ...(tab === "forum" ? styles.tabActive : {}) }}
-                onClick={() => activateTab("forum")}
-              >
-                포럼
-              </button>
-              <button
-                style={{ ...styles.tabBtn, ...(tab === "discover" ? styles.tabActive : {}) }}
-                onClick={() => activateTab("discover")}
-              >
-                탐색
-              </button>
-              <button
-                style={{ ...styles.tabBtn, ...(tab === "feed" ? styles.tabActive : {}) }}
-                onClick={() => activateTab("feed")}
-              >
-                맞춤 피드
-              </button>
-              <button
-                style={{ ...styles.tabBtn, ...(tab === "saved" ? styles.tabActive : {}) }}
-                onClick={openSavedPosts}
-              >
-                저장글
-              </button>
+              {SERVICE_TABS.map((tabItem) => {
+                const isActive = tab === tabItem.id;
+                const handleClick = tabItem.id === "saved" ? openSavedPosts : () => activateTab(tabItem.id);
+
+                return (
+                  <button
+                    key={tabItem.id}
+                    type="button"
+                    style={{ ...styles.tabBtn, ...(isActive ? styles.tabActive : {}) }}
+                    onClick={handleClick}
+                  >
+                    <span style={styles.tabLabel}>{tabItem.label}</span>
+                    <span style={{ ...styles.tabDescription, ...(isActive ? styles.tabDescriptionActive : {}) }}>
+                      {tabItem.description}
+                    </span>
+                  </button>
+                );
+              })}
             </nav>
 
             <ServiceQuickActions onActivateTab={activateTab} onOpenSavedPosts={openSavedPosts} />
@@ -1002,6 +1003,7 @@ const styles = {
     padding: "0 24px",
     display: "flex",
     gap: 4,
+    alignItems: "stretch",
   },
   contextSummary: {
     margin: "10px 24px 0",
@@ -1071,16 +1073,35 @@ const styles = {
     lineHeight: 1.6,
   },
   tabBtn: {
-    padding: "10px 16px",
+    padding: "10px 16px 12px",
     background: "transparent",
     border: "none",
     color: "#9ca3af",
     fontSize: 14,
     cursor: "pointer",
     borderBottom: "2px solid transparent",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 3,
+    minWidth: 132,
   },
   tabActive: {
     color: "#fff",
     borderBottomColor: "#3b82f6",
+  },
+  tabLabel: {
+    fontSize: 14,
+    fontWeight: 700,
+    lineHeight: 1.2,
+  },
+  tabDescription: {
+    fontSize: 11,
+    lineHeight: 1.35,
+    color: "#9ca3af",
+    textAlign: "left",
+  },
+  tabDescriptionActive: {
+    color: "#d1d5db",
   },
 };
