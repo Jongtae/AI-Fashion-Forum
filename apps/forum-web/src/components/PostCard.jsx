@@ -47,6 +47,10 @@ export default function PostCard({
   const [shareState, setShareState] = useState({ status: "idle", message: "" });
   const [shareButtonLabel, setShareButtonLabel] = useState("↗ 공유");
   const queryClient = useQueryClient();
+  const commentCount = Number(post.commentCount || 0);
+  const commentButtonText = commentCount > 0
+    ? `💬 댓글 ${commentCount}개 ${showComments ? "닫기" : "보기"}`
+    : `💬 댓글 ${showComments ? "닫기" : "보기"}`;
 
   useEffect(() => {
     if (shareState.status === "idle") return undefined;
@@ -222,7 +226,7 @@ export default function PostCard({
               }}
               style={styles.actionBtn}
             >
-              💬 댓글 보기
+              {commentButtonText}
             </button>
             {canDelete && (
               <button
