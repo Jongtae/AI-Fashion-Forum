@@ -8,6 +8,7 @@ import { Feedback } from "../models/Feedback.js";
 import { ModerationDecision } from "../models/ModerationDecision.js";
 import { buildFeedbackFilter, buildInteractionFilter } from "../lib/engagement.js";
 import { buildModerationState } from "../lib/moderation.js";
+import { SAMPLE_STATE_SNAPSHOT } from "@ai-fashion-forum/shared-types";
 import {
   getPendingNotifications,
   acknowledgeNotification,
@@ -313,10 +314,49 @@ router.get("/dashboard", async (req, res) => {
     }
   }
 
+  const agentEvolution = agentStates.slice(0, 5).map(({ _id, states }) => {
+    const latest = states[0];
+    const previous = states[1] || null;
+    const latestSnapshot = latest?.rawSnapshot || {};
+    const previousSnapshot = previous?.rawSnapshot || {};
+
+    return {
+      agentId: _id,
+      handle: latest?.handle || latestSnapshot.handle || _id,
+      displayName: latest?.display_name || latestSnapshot.display_name || null,
+      archetype: latest?.archetype || latestSnapshot.archetype || null,
+      latestRound: latest?.round ?? null,
+      previousRound: previous?.round ?? null,
+      currentArc: latestSnapshot?.mutable_state?.recent_arc || latestSnapshot?.mutable_state?.recentArc || "stable",
+      previousArc:
+        previousSnapshot?.mutable_state?.recent_arc || previousSnapshot?.mutable_state?.recentArc || null,
+      narrativeCount: Array.isArray(latest?.selfNarratives) ? latest.selfNarratives.length : 0,
+      driftTail: Array.isArray(latestSnapshot?.mutable_state?.drift_log)
+        ? latestSnapshot.mutable_state.drift_log.slice(-2)
+        : [],
+      shiftMagnitude:
+        identityShiftAgents.find((item) => item.agentId === _id)?.shift_magnitude ?? null,
+    };
+  });
+
   // shift magnitude 내림차순 정렬, Top 5
   identityShiftAgents.sort((a, b) => b.shift_magnitude - a.shift_magnitude);
 
   const flagRate = totalPosts > 0 ? Number((flaggedCount / totalPosts).toFixed(4)) : 0;
+  const initialAgentCount = SAMPLE_STATE_SNAPSHOT.agents.length;
+  const growthInterval = 4;
+  const maxAgentCount = 10;
+  const latestRound = agentStates
+    .map((entry) => entry.states?.[0]?.round || 0)
+    .reduce((max, value) => Math.max(max, value), 0);
+  const desiredAgentCount = Math.min(
+    maxAgentCount,
+    initialAgentCount + Math.floor(latestRound / growthInterval)
+  );
+  const ticksUntilNextSpawn =
+    desiredAgentCount >= maxAgentCount
+      ? null
+      : Math.max(0, (Math.floor(latestRound / growthInterval) + 1) * growthInterval - latestRound);
 
   res.json({
     computed_at: new Date().toISOString(),
@@ -324,6 +364,23 @@ router.get("/dashboard", async (req, res) => {
       total_posts: totalPosts,
       flagged_posts: flaggedCount,
       flag_rate: flagRate,
+    },
+    agent_growth: {
+      initial_count: initialAgentCount,
+      current_count: agentStates.length,
+      desired_count: desiredAgentCount,
+      growth_interval: growthInterval,
+      max_count: maxAgentCount,
+      growth_stage:
+        agentStates.length >= maxAgentCount
+          ? "saturated"
+          : latestRound < growthInterval
+            ? "seed"
+            : agentStates.length < desiredAgentCount
+              ? "catching_up"
+              : "expanding",
+      latest_round: latestRound,
+      ticks_until_next_spawn: ticksUntilNextSpawn,
     },
     high_conflict_threads: highConflictPosts.map((p) => ({
       id: p._id,
@@ -335,6 +392,7 @@ router.get("/dashboard", async (req, res) => {
       created_at: p.createdAt,
     })),
     identity_shift_agents: identityShiftAgents.slice(0, 5),
+    agent_evolution: agentEvolution,
     moderation_queue: moderationQueue.map((p) => ({
       id: p._id,
       content_preview: p.content?.slice(0, 120),

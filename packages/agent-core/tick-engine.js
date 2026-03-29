@@ -96,27 +96,27 @@ function generateTickAction(world, actor) {
   if (roll < 0.2) {
     return {
       type: "lurk",
-      reason: `${actor.handle}는 이번 틱에 관찰 모드에 머물렀다.`,
+      reason: `${actor.handle}는 이번 틱에 조용히 관찰만 이어갔다.`,
     };
   }
 
   if (roll < 0.5) {
     return {
       type: "react",
-      reason: `${actor.handle}는 본문을 쓰지 않고 가벼운 반응으로 존재감을 남겼다.`,
+      reason: `${actor.handle}는 본문 대신 짧은 반응으로 존재감을 남겼다.`,
     };
   }
 
   if (roll < 0.8) {
     return {
       type: "comment",
-      reason: `${actor.handle}는 현재 주제 흐름이 참여 기준을 넘어서 답글을 남겼다.`,
+      reason: `${actor.handle}는 현재 주제 흐름에 맞춰 답글을 남겼다.`,
     };
   }
 
   return {
     type: "post",
-    reason: `${actor.handle}는 활동성과 새로움 신호가 맞아떨어져 새 글을 올렸다.`,
+    reason: `${actor.handle}는 활동성과 새로움 신호가 맞아 새 글을 올렸다.`,
   };
 }
 
@@ -128,7 +128,7 @@ function applyTickOutcome(world, actor, action) {
   if (action.type === "post") {
     agent.self_narrative = [
       ...agent.self_narrative,
-      `Tick ${world.tick}: authored a visible contribution.`,
+      `${world.tick}틱: 눈에 보이는 글을 남겼다.`,
     ].slice(-5);
   }
 
@@ -215,7 +215,7 @@ export function createBaselineWorldRules() {
       return {
         rule_id: "baseline-topic-pulse",
         tick,
-        note: tick % 3 === 0 ? "office_style pulse rose before the tick." : "no major topic intervention",
+        note: tick % 3 === 0 ? "틱 전 사무실 스타일 신호가 잠시 올라왔다." : "주요 주제 개입은 없었다.",
       };
     },
   ];

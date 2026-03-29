@@ -26,6 +26,8 @@ export default function PersonalisedFeed({ currentUser, timeSpeed = 1 }) {
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       queryClient.invalidateQueries({ queryKey: ["agent-loop-status"] });
+      queryClient.invalidateQueries({ queryKey: ["operator-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["latest-report"] });
     },
   });
 
@@ -38,7 +40,13 @@ export default function PersonalisedFeed({ currentUser, timeSpeed = 1 }) {
         <div style={styles.banner}>
           <span style={styles.bannerText}>
             🤖 에이전트 라운드 {agentStatus.currentRound} &nbsp;|&nbsp;
-            에이전트 포스트 {agentStatus.db?.agentPostCount ?? 0}개
+            에이전트 {agentStatus.agentCount ?? 0}명 &nbsp;|&nbsp;
+            포스트 {agentStatus.db?.agentPostCount ?? 0}개
+            {agentStatus.growth?.ticksUntilNextSpawn != null && (
+              <>
+                &nbsp;|&nbsp;다음 합류까지 {agentStatus.growth.ticksUntilNextSpawn}틱
+              </>
+            )}
           </span>
           <button
             style={styles.tickBtn}

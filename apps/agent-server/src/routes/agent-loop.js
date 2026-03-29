@@ -19,6 +19,10 @@ import {
   agentToSeedAxes,
   createSpawnedAgentState,
 } from "../lib/agent-state.js";
+import {
+  buildPopulationGrowthPlan,
+  DEFAULT_INITIAL_AGENT_COUNT,
+} from "../lib/population-growth.js";
 import { AgentState } from "../models/AgentState.js";
 import { ActionTrace } from "../models/ActionTrace.js";
 import { SimEvent } from "../models/SimEvent.js";
@@ -97,7 +101,10 @@ let currentWorld = null;
 let currentRound = 0;
 
 function buildInitialState() {
-  return ensureStateCharacterContracts(JSON.parse(JSON.stringify(SAMPLE_STATE_SNAPSHOT)));
+  return {
+    ...ensureStateCharacterContracts(JSON.parse(JSON.stringify(SAMPLE_STATE_SNAPSHOT))),
+    simulationTick: 0,
+  };
 }
 
 // ── POST /api/agent-loop/tick ─────────────────────────────────────────────────
@@ -115,6 +122,7 @@ router.post("/tick", async (req, res) => {
   }
 
   const round = currentRound + 1;
+  const simulationTickBase = currentWorld?.simulationTick || 0;
   const seededWorld = ensureStateCharacterContracts(JSON.parse(JSON.stringify(currentWorld)));
   const { state: worldWithCharacters, appliedOverrides } = applyCharacterOverridesToState(
     seededWorld,
@@ -127,12 +135,13 @@ router.post("/tick", async (req, res) => {
     initialState: worldWithCharacters,
     worldRules: createBaselineWorldRules(),
     spawnAgent: ({ world, tick: currentTick }) => {
-      const targetCount = Math.min(
-        10,
-        SAMPLE_STATE_SNAPSHOT.agents.length + Math.floor(currentTick / 4)
-      );
+      const growthPlan = buildPopulationGrowthPlan({
+        currentCount: world.state.agents.length,
+        elapsedTicks: simulationTickBase + currentTick,
+        initialCount: DEFAULT_INITIAL_AGENT_COUNT,
+      });
 
-      if (world.state.agents.length >= targetCount) {
+      if (!growthPlan.shouldSpawn) {
         return null;
       }
 
@@ -140,8 +149,8 @@ router.post("/tick", async (req, res) => {
         existingAgents: world.state.agents,
         seed,
         round,
-        tick: currentTick,
-        spawnIndex: world.state.agents.length - SAMPLE_STATE_SNAPSHOT.agents.length,
+        tick: simulationTickBase + currentTick,
+        spawnIndex: world.state.agents.length - DEFAULT_INITIAL_AGENT_COUNT,
       });
     },
   });
@@ -482,7 +491,16 @@ router.post("/tick", async (req, res) => {
     }
   }
 
-  currentWorld = finalSnapshot;
+  currentWorld = {
+    ...(finalSnapshot || {}),
+    simulationTick: simulationTickBase + result.tickCount,
+  };
+
+  const growthPlan = buildPopulationGrowthPlan({
+    currentCount: currentWorld?.agents?.length ?? 0,
+    elapsedTicks: currentWorld?.simulationTick ?? 0,
+    initialCount: DEFAULT_INITIAL_AGENT_COUNT,
+  });
 
   res.json({
     round,
@@ -492,6 +510,7 @@ router.post("/tick", async (req, res) => {
     postsCreated: createdPosts.length,
     commentsCreated: createdComments.length,
     characterOverridesApplied: appliedOverrides,
+    agentGrowth: growthPlan,
     entries: result.entries.map((e) => ({ tick: e.tick, actor: e.actor_id, action: e.action })),
   });
 });
@@ -508,6 +527,11 @@ router.get("/status", async (req, res) => {
     currentRound,
     worldInitialized: !!currentWorld,
     agentCount: currentWorld?.agents?.length ?? 0,
+    growth: buildPopulationGrowthPlan({
+      currentCount: currentWorld?.agents?.length ?? 0,
+      elapsedTicks: currentWorld?.simulationTick ?? 0,
+      initialCount: DEFAULT_INITIAL_AGENT_COUNT,
+    }),
     db: {
       agentStateSnapshots: totalAgentStates,
       latestRound: latestState?.round ?? 0,

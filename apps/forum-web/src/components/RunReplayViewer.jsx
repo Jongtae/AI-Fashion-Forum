@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchLatestReplay, triggerRun } from "../api/client.js";
+import AgentEvolutionPanel from "./AgentEvolutionPanel.jsx";
 
 const REPLAY_REFRESH_MS = 5_000;
 
@@ -361,6 +362,14 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
           </div>
 
           <MetricsPanel report={replay.report} />
+
+          <AgentEvolutionPanel
+            title="에이전트 성장/진화"
+            subtitle="리플레이에 기록된 에이전트 수 증가와 각자의 최근 변화 흐름을 봅니다."
+            agentGrowth={replay.agent_growth}
+            evolutions={replay.agent_evolution ?? []}
+            emptyText="아직 진화 정보가 없습니다."
+          />
 
           <div style={styles.sectionHeader}>
             Exposure 추적 ({Object.keys(replay.exposures ?? {}).length}명)
