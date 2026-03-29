@@ -9,6 +9,7 @@ import { buildModerationState, classifyDecisionType } from "../lib/moderation.js
 import { recordModerationDecision } from "../lib/moderation-decision.js";
 import { publishForumPostCreated, publishForumCommentCreated } from "../lib/redis.js";
 import { checkAgentWriteRateLimit } from "../lib/write-rate-limit.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -42,11 +43,45 @@ function validateComment(body) {
   return errors;
 }
 
+function getAuthedUsername(req) {
+  const header = req.headers.authorization;
+  if (!header?.startsWith("Bearer ")) {
+    return null;
+  }
+
+  try {
+    const decoded = verifyToken(header.slice(7));
+    return decoded?.username || null;
+  } catch {
+    return null;
+  }
+}
+
+function requireUserAuth(req, res, expectedUsername = null) {
+  const authedUsername = getAuthedUsername(req);
+  if (!authedUsername) {
+    res.status(401).json({ error: "missing_or_invalid_token" });
+    return null;
+  }
+
+  if (expectedUsername && authedUsername !== expectedUsername) {
+    res.status(403).json({ error: "forbidden" });
+    return null;
+  }
+
+  return authedUsername;
+}
+
 // ── POST /api/posts ───────────────────────────────────────────────────────────
 
 router.post("/", async (req, res) => {
   const errors = validatePost(req.body);
   if (errors.length) return res.status(400).json({ error: errors.join("; ") });
+
+  if (req.body.authorType === "user") {
+    const authedUsername = requireUserAuth(req, res, req.body.authorId);
+    if (!authedUsername) return;
+  }
 
   const rateLimit = await checkAgentWriteRateLimit({
     authorId: req.body.authorId,
@@ -176,6 +211,11 @@ router.put("/:postId", async (req, res) => {
   const post = await Post.findById(req.params.postId);
   if (!post) return res.status(404).json({ error: "Post not found" });
 
+  if (post.authorType === "user") {
+    const authedUsername = requireUserAuth(req, res, post.authorId);
+    if (!authedUsername) return;
+  }
+
   const { content, tags, imageUrls, format } = req.body;
   if (content !== undefined) post.content = content.trim();
   if (tags !== undefined) post.tags = tags;
@@ -197,8 +237,15 @@ router.put("/:postId", async (req, res) => {
 // ── DELETE /api/posts/:postId ─────────────────────────────────────────────────
 
 router.delete("/:postId", async (req, res) => {
-  const post = await Post.findByIdAndDelete(req.params.postId);
+  const post = await Post.findById(req.params.postId);
   if (!post) return res.status(404).json({ error: "Post not found" });
+
+  if (post.authorType === "user") {
+    const authedUsername = requireUserAuth(req, res, post.authorId);
+    if (!authedUsername) return;
+  }
+
+  await Post.findByIdAndDelete(req.params.postId);
 
   // Cascade delete comments
   await Comment.deleteMany({ postId: req.params.postId });
@@ -209,8 +256,9 @@ router.delete("/:postId", async (req, res) => {
 // ── POST /api/posts/:postId/like ──────────────────────────────────────────────
 
 router.post("/:postId/like", async (req, res) => {
-  const { userId } = req.body;
-  if (!userId) return res.status(400).json({ error: "userId is required" });
+  const authedUsername = requireUserAuth(req, res);
+  if (!authedUsername) return;
+  const userId = authedUsername;
 
   const post = await Post.findById(req.params.postId);
   if (!post) return res.status(404).json({ error: "Post not found" });
@@ -250,6 +298,11 @@ router.post("/:postId/comments", async (req, res) => {
 
   const errors = validateComment(req.body);
   if (errors.length) return res.status(400).json({ error: errors.join("; ") });
+
+  if (req.body.authorType === "user") {
+    const authedUsername = requireUserAuth(req, res, req.body.authorId);
+    if (!authedUsername) return;
+  }
 
   const rateLimit = await checkAgentWriteRateLimit({
     authorId: req.body.authorId,
@@ -386,6 +439,8 @@ router.post("/:postId/report", async (req, res) => {
   const { reporterId, reason, detail } = req.body;
 
   if (!reporterId) return res.status(400).json({ error: "reporterId is required" });
+  const authedUsername = requireUserAuth(req, res, reporterId);
+  if (!authedUsername) return;
 
   const VALID_REASONS = ["spam", "inappropriate", "harassment", "misinformation", "other"];
   if (!VALID_REASONS.includes(reason)) {
