@@ -60,9 +60,9 @@ export default function DiscoveryPanel({
       <section style={styles.hero}>
         <div style={styles.heroCopy}>
           <p style={styles.kicker}>발견 허브</p>
-          <h2 style={styles.title}>Threads와 Reddit 사이의 핵심 탐색 흐름을 모아둔 곳</h2>
+          <h2 style={styles.title}>글, 태그, 작성자를 찾아보세요</h2>
           <p style={styles.description}>
-            검색하고, 인기 글을 훑고, 저장한 글을 다시 보고, 작성자 프로필에서 연속된 대화를 확인할 수 있습니다.
+            검색하거나 인기 글을 보고, 주제를 눌러 같은 흐름의 글을 이어서 볼 수 있습니다.
           </p>
         </div>
 

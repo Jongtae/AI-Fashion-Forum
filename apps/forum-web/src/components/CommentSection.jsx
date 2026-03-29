@@ -139,12 +139,6 @@ export default function CommentSection({
             </button>
           )}
           <p style={styles.text}>{c.content}</p>
-          {c.generationContext?.summary && (
-            <div style={styles.generationContext}>
-              <div style={styles.generationContextTitle}>작성 배경</div>
-              <div style={styles.generationContextSummary}>{c.generationContext.summary}</div>
-            </div>
-          )}
           {c.authorId === currentUser.id && (
           <button
               onClick={() => {
@@ -296,25 +290,6 @@ const styles = {
   author: { fontSize: 12, fontWeight: 600, color: "#6b7280" },
   replyMeta: { marginTop: 4, fontSize: 11, color: "#9ca3af" },
   text: { margin: "4px 0 0", fontSize: 14, color: "#374151" },
-  generationContext: {
-    marginTop: 8,
-    padding: "8px 10px",
-    borderRadius: 6,
-    background: "#f9fafb",
-    border: "1px solid #e5e7eb",
-  },
-  generationContextTitle: {
-    fontSize: 11,
-    fontWeight: 700,
-    color: "#374151",
-    marginBottom: 3,
-  },
-  generationContextSummary: {
-    fontSize: 12,
-    color: "#4b5563",
-    lineHeight: 1.5,
-    marginBottom: 2,
-  },
   deleteBtn: {
     fontSize: 11,
     color: "#ef4444",

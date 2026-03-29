@@ -128,68 +128,6 @@ function ServiceContextSummary({
   );
 }
 
-function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
-  const actions = [
-    {
-      id: "forum",
-      title: "포럼 읽기",
-      description: "최신 글을 보고, 글쓰기와 댓글 흐름을 이어갑니다.",
-      buttonLabel: "포럼으로",
-    },
-    {
-      id: "discover",
-      title: "탐색하기",
-      description: "인기 글, 검색, 태그로 주제를 빠르게 찾습니다.",
-      buttonLabel: "탐색 열기",
-    },
-    {
-      id: "feed",
-      title: "맞춤 피드",
-      description: "내 반응에 맞춰 정렬된 글을 한 번에 봅니다.",
-      buttonLabel: "피드 보기",
-    },
-    {
-      id: "saved",
-      title: "저장글",
-      description: "나중에 다시 읽을 글을 모아둡니다.",
-      buttonLabel: "저장글 열기",
-    },
-  ];
-
-  return (
-    <section style={styles.quickActions}>
-      <div style={styles.quickActionsHeader}>
-        <p style={styles.quickActionsKicker}>바로 시작</p>
-        <h2 style={styles.quickActionsTitle}>이곳에서 할 수 있는 것</h2>
-        <p style={styles.quickActionsText}>
-          글을 읽고, 주제를 찾고, 반응을 남기고, 다시 볼 글을 저장할 수 있습니다.
-        </p>
-      </div>
-      <div style={styles.quickActionsGrid}>
-        {actions.map((action) => (
-          <button
-            key={action.id}
-            type="button"
-            style={styles.quickActionCard}
-            onClick={() => {
-              if (action.id === "saved") {
-                onOpenSavedPosts();
-                return;
-              }
-
-              onActivateTab(action.id);
-            }}
-          >
-            <div style={styles.quickActionTitle}>{action.title}</div>
-            <div style={styles.quickActionDescription}>{action.description}</div>
-            <span style={styles.quickActionButton}>{action.buttonLabel}</span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function getTabIcon(tabId) {
   switch (tabId) {
     case "forum":
@@ -261,32 +199,15 @@ function ServiceRail({
 
 function ServiceSupportPanel({
   authUser,
-  tab,
-  discoveryMode,
-  activeTagFilter,
-  discoverySearchText,
-  isAutoRunning,
-  timeSpeed,
   onShowAuth,
   onLogout,
-  onActivateTab,
-  onOpenSavedPosts,
-  onClearTab,
-  onClearMode,
-  onClearTag,
-  onClearSearch,
 }) {
   return (
     <aside style={styles.supportPanel}>
       <div style={styles.supportCard}>
         <div style={styles.supportTitle}>
-          {authUser ? `${authUser.displayName || authUser.username}님으로 참여 중` : "Threads형 포럼에 참여하기"}
+          {authUser ? `${authUser.displayName || authUser.username}님으로 참여 중` : "포럼에 참여하기"}
         </div>
-        <p style={styles.supportText}>
-          {authUser
-            ? "글을 읽고 저장하고, 에이전트 흐름과 함께 대화에 참여할 수 있습니다."
-            : "사람과 에이전트가 섞인 피드를 보고, 로그인 후 저장과 반응 흐름을 이어갈 수 있습니다."}
-        </p>
         <button
           type="button"
           style={styles.supportPrimaryButton}
@@ -295,30 +216,6 @@ function ServiceSupportPanel({
           {authUser ? "로그아웃" : "로그인 또는 가입하기"}
         </button>
       </div>
-
-      <div style={styles.supportCard}>
-        <div style={styles.supportMetaRow}>
-          <span style={styles.supportMetaLabel}>시뮬레이션</span>
-          <span style={styles.supportMetaValue}>{isAutoRunning ? "자동 진행 중" : "일시정지"}</span>
-        </div>
-        <div style={styles.supportMetaRow}>
-          <span style={styles.supportMetaLabel}>속도</span>
-          <span style={styles.supportMetaValue}>{timeSpeed}x</span>
-        </div>
-      </div>
-
-      <ServiceContextSummary
-        tab={tab}
-        discoveryMode={discoveryMode}
-        activeTagFilter={activeTagFilter}
-        discoverySearchText={discoverySearchText}
-        onClearTab={onClearTab}
-        onClearMode={onClearMode}
-        onClearTag={onClearTag}
-        onClearSearch={onClearSearch}
-      />
-
-      <ServiceQuickActions onActivateTab={onActivateTab} onOpenSavedPosts={onOpenSavedPosts} />
     </aside>
   );
 }
@@ -769,31 +666,7 @@ export default function ForumApp() {
             <div style={styles.serviceTopBar}>
               <div style={styles.serviceTopBrandWrap}>
                 <div style={styles.serviceTopBrand}>@</div>
-                <div style={styles.serviceTopBrandTitle}>threads-style forum</div>
-              </div>
-              <div style={styles.userRow}>
-                <label style={styles.speedControl}>
-                  <span style={styles.speedLabel}>속도</span>
-                  <select
-                    style={styles.speedSelect}
-                    value={timeSpeed}
-                    onChange={(e) => setTimeSpeed(Number(e.target.value))}
-                  >
-                    <option value={1}>1x</option>
-                    <option value={2}>2x</option>
-                    <option value={5}>5x</option>
-                    <option value={10}>10x</option>
-                  </select>
-                </label>
-                <button
-                  style={{
-                    ...styles.autoBtn,
-                    ...(isAutoRunning ? styles.autoBtnOn : styles.autoBtnOff),
-                  }}
-                  onClick={() => setIsAutoRunning((prev) => !prev)}
-                >
-                  {isAutoRunning ? "자동 진행 중" : "자동 일시정지"}
-                </button>
+                <div style={styles.serviceTopBrandTitle}>ai fashion forum</div>
               </div>
             </div>
 
@@ -891,14 +764,7 @@ export default function ForumApp() {
                   <>
                     <section style={styles.formSection}>
                       <div style={styles.composerGate}>
-                        <div>
-                          <p style={styles.composerTitle}>글쓰기</p>
-                          <p style={styles.composerHint}>
-                            {hasForumActivity || authUser
-                              ? "포럼 상호작용 이후 열리는 compact 진입점입니다."
-                              : "댓글·반응·로그인 이후에 활성화됩니다."}
-                          </p>
-                        </div>
+                        <p style={styles.composerTitle}>글쓰기</p>
                         <button
                           style={{
                             ...styles.composerBtn,
@@ -974,10 +840,7 @@ export default function ForumApp() {
                     <section style={styles.savedSection}>
                   <div style={styles.savedHero}>
                     <p style={styles.savedKicker}>저장한 글</p>
-                    <h2 style={styles.savedTitle}>나중에 다시 볼 글을 모아두는 공간</h2>
-                    <p style={styles.savedText}>
-                      마음에 든 글을 저장해 두고, 다시 돌아와서 이어 읽을 수 있습니다.
-                    </p>
+                    <h2 style={styles.savedTitle}>저장한 글</h2>
                   </div>
                     <PostList
                       currentUser={currentUser}
@@ -1005,34 +868,14 @@ export default function ForumApp() {
                 </section>
               ) : (
                 <section style={styles.placeholderCard}>
-                  <p style={styles.placeholderTitle}>관리 화면은 `/admin` 경로에서 볼 수 있어요.</p>
-                  <p style={styles.placeholderText}>
-                    서비스 화면에서는 포럼과 맞춤 피드만 보여드려요.
-                  </p>
+                  <p style={styles.placeholderTitle}>페이지를 찾을 수 없습니다.</p>
+                  <p style={styles.placeholderText}>포럼으로 돌아가서 다시 살펴보세요.</p>
                 </section>
               )}
                 </main>
               </div>
 
-              {!isCompact && (
-                <ServiceSupportPanel
-                  authUser={authUser}
-                  tab={tab}
-                  discoveryMode={discoveryMode}
-                  activeTagFilter={activeTagFilter}
-                  discoverySearchText={discoverySearchText}
-                  isAutoRunning={isAutoRunning}
-                  timeSpeed={timeSpeed}
-                  onShowAuth={() => setShowAuth(true)}
-                  onLogout={handleLogout}
-                  onActivateTab={activateTab}
-                  onOpenSavedPosts={openSavedPosts}
-                  onClearTab={clearTabContext}
-                  onClearMode={clearModeContext}
-                  onClearTag={clearTagContext}
-                  onClearSearch={clearSearchContext}
-                />
-              )}
+              {!isCompact && <ServiceSupportPanel authUser={authUser} onShowAuth={() => setShowAuth(true)} onLogout={handleLogout} />}
             </div>
           </>
         )}
