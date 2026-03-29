@@ -6,6 +6,7 @@ import {
   fetchLatestReport,
 } from "../api/client.js";
 import AgentEvolutionPanel from "./AgentEvolutionPanel.jsx";
+import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 import PostList from "./PostList.jsx";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -166,9 +167,42 @@ export default function OperatorDashboard() {
   const lowEng = dashboard?.low_engagement_posts ?? [];
   const agentGrowth = dashboard?.agent_growth ?? null;
   const agentEvolution = dashboard?.agent_evolution ?? [];
+  const summaryCards = [
+    {
+      label: "전체 글",
+      value: s.total_posts ?? "—",
+      description: "선택과 반응이 쌓여 나온 전체 결과입니다.",
+    },
+    {
+      label: "표시된 글",
+      value: s.flagged_posts ?? "—",
+      description: "사회적 반응이 강하게 드러난 글입니다.",
+    },
+    {
+      label: "변화 에이전트",
+      value: identityShifts.length,
+      description: "콘텐츠 소비 이후 성향이 움직인 참여자입니다.",
+    },
+    {
+      label: "반응 저하",
+      value: lowEng.length,
+      description: "선택을 거의 받지 못한 글의 신호입니다.",
+    },
+  ];
 
   return (
     <div style={styles.root}>
+      <IdentityLoopSummary
+        kicker="operator lens"
+        title="운영은 콘텐츠 선택과 반응이 어떻게 정체성을 바꾸는지 읽는 일입니다"
+        subtitle="이 화면은 moderation 도구가 아니라, 무엇이 선택되고 무엇이 반응을 얻고 무엇이 캐릭터를 바꾸는지 해석하는 공간입니다."
+        cards={summaryCards}
+        notes={[
+          "검토는 단순 삭제가 아니라 다음 선택과 관계가 어떻게 변할지 보는 행위입니다.",
+          "낮은 참여와 높은 갈등은 모두 선택 구조의 결과로 해석해야 합니다.",
+        ]}
+      />
+
       <div style={styles.topBar}>
         <span style={styles.pageTitle}>활동 지표</span>
         <button style={styles.refreshBtn} onClick={refetch}>새로고침</button>
@@ -187,7 +221,7 @@ export default function OperatorDashboard() {
 
       <AgentEvolutionPanel
         title="에이전트 변화 흐름"
-        subtitle="글 흐름에서 보이는 최근 변화와 성격 이동을 확인합니다."
+        subtitle="선택된 콘텐츠, 반응, writeback이 성향과 정체성으로 바뀐 흐름을 확인합니다."
         agentGrowth={agentGrowth}
         evolutions={agentEvolution}
         emptyText="아직 보여줄 변화 흐름이 없습니다."

@@ -4,6 +4,7 @@ import { fetchAgentLoopStatus, fetchLatestReport } from "../api/client.js";
 import OperatorDashboard from "./OperatorDashboard.jsx";
 import RunReplayViewer from "./RunReplayViewer.jsx";
 import Sprint1ReplayPanel from "./Sprint1ReplayPanel.jsx";
+import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 
 const SECTIONS = [
   {
@@ -111,19 +112,52 @@ export default function AdminDashboard({ timeSpeed = 1 }) {
   });
 
   function renderHome() {
+    const summaryCards = [
+      {
+        label: "현재 라운드",
+        value: loopStatus?.currentRound ?? 0,
+        description: "시뮬레이션이 지금 어디까지 왔는지 보여줍니다.",
+      },
+      {
+        label: "에이전트",
+        value: loopStatus?.agentCount ?? 0,
+        description: "같은 콘텐츠를 소비하고 반응하는 참여자 수입니다.",
+      },
+      {
+        label: "최근 기록",
+        value: latestReport?.run_id || "—",
+        description: "선택과 반응이 상태로 누적된 결과입니다.",
+      },
+      {
+        label: "다음 포인트",
+        value: activeSection === "home" ? "흐름 선택" : activeSection,
+        description: "어떤 흐름을 열어볼지 결정하는 진입점입니다.",
+      },
+    ];
+
     return (
       <div style={styles.homeGrid}>
         <div style={styles.homeHero}>
           <p style={styles.homeKicker}>운영 허브</p>
-          <h2 style={styles.homeTitle}>지금 무엇을 보면 되는지 알려주는 화면</h2>
+          <h2 style={styles.homeTitle}>지금 무엇을 보고, 무엇이 바뀌었는지 알려주는 화면</h2>
           <p style={styles.homeText}>
-            서비스와 분리된 운영 화면입니다. 여기서는 시뮬레이션이 살아 있는지 확인하고, 흐름과 기록으로 바로 이동합니다.
+            서비스와 분리된 운영 화면입니다. 여기서는 시뮬레이션이 살아 있는지 확인하고, 선택과 반응이 어떻게 정체성으로 쌓였는지 바로 봅니다.
           </p>
           <div style={styles.homeChecklist}>
-            <span style={styles.checkItem}>• 시뮬레이션 연결 상태를 확인합니다.</span>
-            <span style={styles.checkItem}>• 최근 실행 기록과 리포트를 봅니다.</span>
-            <span style={styles.checkItem}>• 글 흐름, 기록, Sprint 1으로 이동합니다.</span>
+            <span style={styles.checkItem}>• 노출, 선택, 반응, writeback을 확인합니다.</span>
+            <span style={styles.checkItem}>• 최근 실행 기록과 정체성 변화를 봅니다.</span>
+            <span style={styles.checkItem}>• 흐름, 기록, Sprint 1으로 이동합니다.</span>
           </div>
+          <IdentityLoopSummary
+            kicker="operator view"
+            title="운영 화면도 소비와 반응의 흐름을 읽어야 합니다"
+            subtitle="관리자는 글 수만 보는 사람이 아니라, 어떤 콘텐츠가 선택되고 어떤 반응이 정체성으로 기록됐는지 해석하는 사람입니다."
+            cards={summaryCards}
+            notes={[
+              "운영자의 기본 질문은 '얼마나 많이 썼나'보다 '무엇이 선택되고 어떻게 바뀌었나'여야 합니다.",
+              "이 화면은 서비스 사용자의 행동을 바깥에서 읽는 관측자 공간입니다.",
+            ]}
+          />
           <div style={styles.quickActions}>
             {ACTIONS.map((action) => (
               <button key={action.id} type="button" style={styles.quickAction} onClick={() => setActiveSection(action.id)}>
