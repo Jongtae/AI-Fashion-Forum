@@ -11,6 +11,8 @@ When rules change, update only this file.
 - Before starting implementation, first define the work as an issue with a clear title, summary, and completion criteria.
 - If the request is too large, split it into smaller issues before coding.
 - Unless the user explicitly asks to skip it, do not start substantial code changes before proposing the issue unit.
+- When a user request becomes an issue, translate it into task-oriented issue language instead of copying the conversation verbatim; preserve intent, scope, and constraints.
+- Keep the issue wording aligned with the work item the team will execute, not the exact phrasing of the chat message.
 
 ## Execution Rules
 

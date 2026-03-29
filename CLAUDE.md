@@ -108,6 +108,7 @@ GitHub Actions (`.github/workflows/deploy-pages.yml`) builds and deploys `dist/`
 ## GitHub issue workflow
 
 Full rules are defined in [`WORKFLOW.md`](./WORKFLOW.md) — the shared source of truth for issue tracking, execution rules, branch conventions, delivery sequence, and autonomous continuation behavior.
+When a user request is promoted into an issue, restate it as a task-oriented issue summary instead of copying the conversation verbatim; keep the issue wording execution-focused.
 
 ## Key docs
 

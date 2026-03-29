@@ -98,6 +98,117 @@ function summarizeCommentRecord(commentRecord = {}) {
   };
 }
 
+const ENGLISH_NARRATIVE_MAP = [
+  [
+    /I trust quiet details more than trend spikes\./i,
+    "나는 조용한 디테일을 트렌드의 큰 파도보다 더 믿는다.",
+  ],
+  [
+    /People come to me when they want practical weekday feedback\./i,
+    "사람들은 평일 코디를 실용적으로 점검하고 싶을 때 나를 찾는다.",
+  ],
+  [
+    /If a look feels too safe, I want to push it\./i,
+    "룩이 너무 안전하게만 보이면 한 번 더 밀어보고 싶어진다.",
+  ],
+  [
+    /I want the forum to feel survivable even when people disagree\./i,
+    "사람들이 서로 다르게 말해도 이 포럼이 버틸 만한 곳이었으면 한다.",
+  ],
+  [
+    /If a label repeatedly works for me, that becomes part of my identity\./i,
+    "같은 라벨이 반복해서 잘 맞으면 그게 곧 내 정체성의 일부가 된다.",
+  ],
+  [
+    /I would rather be annoying than let the forum drift into empty hype\./i,
+    "포럼이 빈 hype로 흘러가는 것보다는 내가 좀 귀찮은 사람이 되는 편이 낫다.",
+  ],
+];
+
+function normalizeKoreanNarrativeText(value, fallback = "") {
+  const text = typeof value === "string" ? value.trim() : "";
+  if (!text) {
+    return fallback;
+  }
+
+  const matched = ENGLISH_NARRATIVE_MAP.find(([pattern]) => pattern.test(text));
+  if (matched) {
+    return matched[1];
+  }
+
+  const englishChars = (text.match(/[A-Za-z]/g) || []).length;
+  const hangulChars = (text.match(/[가-힣]/g) || []).length;
+  if (englishChars > hangulChars && englishChars > 8) {
+    return fallback || "한국어로 정리된 자기 서사";
+  }
+
+  return text;
+}
+
+export function buildForumGenerationContext({
+  actionRecord,
+  targetContent = {},
+  targetComment = null,
+  tone = null,
+} = {}) {
+  const isComment = actionRecord?.type === "comment";
+  const isPost = actionRecord?.type === "post";
+  const targetTitle = targetContent?.title || "스레드";
+  const situation = isComment
+    ? targetComment
+      ? "다른 댓글에 반응한 상황"
+      : "게시글 본문에 답글을 남긴 상황"
+    : isPost
+      ? "새 글을 여는 상황"
+      : "기타 생성 상황";
+
+  const trigger = targetComment
+    ? `댓글 ${targetComment.authorId}를 따라 대화가 이어졌다.`
+    : `글 ${targetTitle}을/를 읽고 반응이 이어졌다.`;
+
+  return {
+    language: "ko",
+    situation,
+    trigger,
+    targetType: targetComment ? "comment" : "post",
+    targetTitle,
+    tone,
+    toneLabel: tone ? getToneLabel(tone) : null,
+    actionType: actionRecord?.type || null,
+    actionId: actionRecord?.action_id || null,
+    tick: actionRecord?.tick ?? null,
+    targetContentId: targetContent?.content_id || targetContent?._id || null,
+    targetCommentId: targetComment?._id || null,
+    targetCommentAuthorId: targetComment?.authorId || null,
+    summary: `${situation}: ${trigger}`,
+  };
+}
+
+export function buildSprint1GenerationContext({
+  updatedAgent,
+  reactionRecord,
+  contentRecord,
+  variationSeed = 0,
+} = {}) {
+  const contentSummary = summarizeContentRecord(contentRecord);
+  const handle = updatedAgent?.handle || "agent";
+
+  return {
+    language: "ko",
+    scenario: "sprint1_post_generation",
+    agentId: updatedAgent?.agent_id || null,
+    agentHandle: handle,
+    meaningFrame: reactionRecord?.meaning_frame || null,
+    stanceSignal: reactionRecord?.stance_signal || null,
+    sourceContentId: contentRecord?.content_id || null,
+    sourceContentTitle: contentSummary.title,
+    sourceContentTopics: contentSummary.topics,
+    sourceContentSnippet: contentSummary.bodySnippet || contentSummary.text || "",
+    variationSeed,
+    summary: `${handle}가 ${contentSummary.title}를 읽고 ${reactionRecord?.meaning_frame || "context_filter"} 맥락의 한국어 글을 생성했다.`,
+  };
+}
+
 export function getForumArtifactText(artifact, fallback = "") {
   if (artifact && typeof artifact === "object") {
     const candidates = [artifact.body, artifact.content, artifact.text];
@@ -123,6 +234,12 @@ export function generateForumArtifact({
   const identityAnchor = Object.keys(author.belief_vector)[0] || "style-choice";
   const targetSummary = summarizeContentRecord(targetContent);
   const commentSummary = summarizeCommentRecord(targetComment);
+  const generationContext = buildForumGenerationContext({
+    actionRecord,
+    targetContent,
+    targetComment,
+    tone,
+  });
 
   const replyVariants = targetComment
     ? [
@@ -157,6 +274,7 @@ export function generateForumArtifact({
         ? pickVariant(replyVariants, actionRecord.tick + author.agent_id.length)
         : postTemplates[artifactType],
     relationship_context: relationshipState,
+    generation_context: generationContext,
     ui: {
       label: `${artifactTypeLabel} · ${getToneLabel(tone)} 톤`,
       secondaryText: targetSummary.title,
@@ -253,6 +371,10 @@ export function buildSprint1PostBody(updatedAgent, reactionRecord, contentRecord
     updatedAgent.self_narrative?.slice(-1)[0] ||
     "";
   const contentSummary = summarizeContentRecord(contentRecord);
+  const normalizedNarrative = normalizeKoreanNarrativeText(
+    narrative,
+    `나는 ${reactionRecord.meaning_frame || "context_filter"} 관점으로 이 글을 다시 읽었다.`,
+  );
 
   const bodyOpeners = {
     care_context: [
@@ -288,7 +410,7 @@ export function buildSprint1PostBody(updatedAgent, reactionRecord, contentRecord
   const opener = pickVariant(bodyOpeners[reactionRecord.meaning_frame] || bodyOpeners.context_filter, variationSeed);
   const closer = pickVariant(closers, variationSeed + 2);
 
-  return `${opener} ${narrative} ${closer}`;
+  return `${opener} ${normalizedNarrative} ${closer}`;
 }
 
 export async function createSprint1ForumPostSample() {
@@ -319,6 +441,12 @@ export async function createSprint1ForumPostSample() {
       stance_signal: reactionRecord.stance_signal,
       title: buildSprint1PostTitle(updatedAgent, reactionRecord),
       body: buildSprint1PostBody(updatedAgent, reactionRecord, sharedSample.content),
+      generation_context: buildSprint1GenerationContext({
+        updatedAgent,
+        reactionRecord,
+        contentRecord: sharedSample.content,
+        variationSeed: index + 1,
+      }),
       trace: {
         dominant_feeling: reactionRecord.dominant_feeling,
         self_narrative_summary: updatedAgent.mutable_state?.self_narrative_summary || "",

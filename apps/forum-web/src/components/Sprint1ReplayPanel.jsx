@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchSprint1ForumPosts, fetchSprint1Evaluation } from "../api/client.js";
+import { localizeLabel } from "../lib/localized-labels.js";
 
 // ── Meaning frame display labels ──────────────────────────────────────────────
 const FRAME_LABELS = {
@@ -38,14 +39,14 @@ function StimulusCard({ content }) {
       {content.topics?.length > 0 && (
         <div style={styles.tagRow}>
           {content.topics.map((t) => (
-            <span key={t} style={styles.tag}>{t}</span>
+            <span key={t} style={styles.tag}>{localizeLabel(t)}</span>
           ))}
         </div>
       )}
       {content.emotions?.length > 0 && (
         <div style={styles.tagRow}>
           {content.emotions.map((e) => (
-            <span key={e} style={{ ...styles.tag, ...styles.emotionTag }}>{e}</span>
+            <span key={e} style={{ ...styles.tag, ...styles.emotionTag }}>{localizeLabel(e)}</span>
           ))}
         </div>
       )}
@@ -58,6 +59,7 @@ function AgentPostCard({ post }) {
   const [expanded, setExpanded] = useState(false);
   const frameLabel = FRAME_LABELS[post.meaning_frame] || post.meaning_frame;
   const stanceLabel = STANCE_LABELS[post.stance_signal] || post.stance_signal;
+  const generationContext = post.generationContext || post.generation_context || null;
 
   return (
     <div style={styles.agentCard}>
@@ -71,6 +73,23 @@ function AgentPostCard({ post }) {
       </div>
       <div style={styles.postTitle}>{post.title}</div>
       <div style={styles.postBody}>{post.body}</div>
+      {generationContext?.summary && (
+        <div style={styles.generationContext}>
+      <div style={styles.generationContextTitle}>생성 맥락</div>
+      <div style={styles.generationContextSummary}>{generationContext.summary}</div>
+      <div style={styles.generationContextMeta}>
+        {generationContext.source && (
+          <span>출처: {generationContext.source === "openai" ? "OpenAI" : "fallback"}</span>
+        )}
+        {generationContext.selectedContextLabel && (
+          <span>맥락: {generationContext.selectedContextLabel}</span>
+        )}
+        {generationContext.situation && <span>상황: {generationContext.situation}</span>}
+        {generationContext.toneLabel && <span>톤: {generationContext.toneLabel}</span>}
+        {generationContext.sourceContentTitle && <span>대상: {generationContext.sourceContentTitle}</span>}
+      </div>
+    </div>
+      )}
       {post.trace && (
         <button
           style={styles.traceToggle}
@@ -275,6 +294,32 @@ const styles = {
   },
   postTitle: { fontSize: 14, fontWeight: 600, color: "#1f2937" },
   postBody: { fontSize: 13, color: "#4b5563", lineHeight: 1.5 },
+  generationContext: {
+    marginTop: 8,
+    padding: "8px 10px",
+    borderRadius: 6,
+    background: "#f9fafb",
+    border: "1px solid #e5e7eb",
+  },
+  generationContextTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#4b5563",
+    marginBottom: 4,
+  },
+  generationContextSummary: {
+    fontSize: 12,
+    color: "#374151",
+    lineHeight: 1.5,
+    marginBottom: 4,
+  },
+  generationContextMeta: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    fontSize: 11,
+    color: "#6b7280",
+  },
   traceToggle: {
     fontSize: 11,
     background: "transparent",

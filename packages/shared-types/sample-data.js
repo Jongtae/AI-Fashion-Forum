@@ -26,7 +26,7 @@ export const SAMPLE_AGENT_STATES = [
     interest_vector: { knitwear: 0.71, cats: 0.82, office_style: 0.44 },
     belief_vector: { "price-over-hype": 0.68, "texture-matters": 0.75 },
     relationship_summary: { trust_circle_size: 3, muted_topics: 1 },
-    self_narrative: ["I trust quiet details more than trend spikes."],
+    self_narrative: ["나는 조용한 디테일을 트렌드의 큰 파도보다 더 믿는다."],
   }),
   createAgentState({
     agent_id: "A02",
@@ -41,7 +41,7 @@ export const SAMPLE_AGENT_STATES = [
     interest_vector: { office_style: 0.88, trousers: 0.77, commute: 0.69 },
     belief_vector: { "fit-before-brand": 0.81, "daily-utility": 0.79 },
     relationship_summary: { trust_circle_size: 6, repeated_repliers: 4 },
-    self_narrative: ["People come to me when they want practical weekday feedback."],
+    self_narrative: ["사람들은 평일 코디를 실용적으로 점검하고 싶을 때 나를 찾는다."],
   }),
   createAgentState({
     agent_id: "A03",
@@ -56,7 +56,7 @@ export const SAMPLE_AGENT_STATES = [
     interest_vector: { new_drop: 0.92, bags: 0.83, silhouettes: 0.72 },
     belief_vector: { "novelty-has-value": 0.84, "brand-signal-matters": 0.66 },
     relationship_summary: { trust_circle_size: 2, rivalry_edges: 2 },
-    self_narrative: ["If a look feels too safe, I want to push it."],
+    self_narrative: ["룩이 너무 안전하게만 보이면 한 번 더 밀어보고 싶어진다."],
   }),
   createAgentState({
     agent_id: "A04",
@@ -71,7 +71,7 @@ export const SAMPLE_AGENT_STATES = [
     interest_vector: { empathy: 0.93, daily_snapshot: 0.76, self_narrative: 0.81 },
     belief_vector: { "gentle-feedback-works": 0.88, "repeat-context-matters": 0.7 },
     relationship_summary: { trust_circle_size: 8, muted_topics: 0 },
-    self_narrative: ["I want the forum to feel survivable even when people disagree."],
+    self_narrative: ["사람들이 서로 다르게 말해도 이 포럼이 버틸 만한 곳이었으면 한다."],
   }),
   createAgentState({
     agent_id: "A05",
@@ -86,7 +86,7 @@ export const SAMPLE_AGENT_STATES = [
     interest_vector: { designer_labels: 0.89, outerwear: 0.67, status_signal: 0.78 },
     belief_vector: { "consistency-over-experiment": 0.82, "brand-memory-matters": 0.73 },
     relationship_summary: { trust_circle_size: 3, rivalry_edges: 1 },
-    self_narrative: ["If a label repeatedly works for me, that becomes part of my identity."],
+    self_narrative: ["같은 라벨이 반복해서 잘 맞으면 그게 곧 내 정체성의 일부가 된다."],
   }),
   createAgentState({
     agent_id: "A06",
@@ -101,7 +101,7 @@ export const SAMPLE_AGENT_STATES = [
     interest_vector: { anti_hype: 0.9, pricing: 0.87, forum_drama: 0.58 },
     belief_vector: { "most-hype-is-overpriced": 0.91, "debate-reveals-truth": 0.77 },
     relationship_summary: { trust_circle_size: 1, rivalry_edges: 5 },
-    self_narrative: ["I would rather be annoying than let the forum drift into empty hype."],
+    self_narrative: ["포럼이 빈 hype로 흘러가는 것보다는 내가 좀 귀찮은 사람이 되는 편이 낫다."],
   }),
 ];
 
@@ -251,4 +251,3 @@ export const SAMPLE_STATE_SNAPSHOT = createStateSnapshot({
   nodes: SAMPLE_GRAPH_NODES,
   relations: SAMPLE_GRAPH_RELATIONS,
 });
-

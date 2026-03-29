@@ -5,6 +5,7 @@ import {
   reviewModerationItem,
   fetchLatestReport,
 } from "../api/client.js";
+import PostList from "./PostList.jsx";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function pct(value) {
@@ -121,6 +122,7 @@ function EvalMiniPanel({ report }) {
 // ── Main dashboard ────────────────────────────────────────────────────────────
 export default function OperatorDashboard() {
   const queryClient = useQueryClient();
+  const operatorUser = { id: "operator-view", type: "user" };
 
   const { data: dashboard, isLoading, error, refetch } = useQuery({
     queryKey: ["operator-dashboard"],
@@ -171,6 +173,14 @@ export default function OperatorDashboard() {
           <span style={styles.computedAt}>{dashboard.computed_at.slice(11, 19)} 기준</span>
         )}
       </div>
+
+      <SectionCard title="공유 콘텐츠 스트림" badge="Forum">
+        <PostList
+          currentUser={operatorUser}
+          readOnly
+          onSelectPost={undefined}
+        />
+      </SectionCard>
 
       {/* 1. Flag 비율 요약 */}
       <SectionCard

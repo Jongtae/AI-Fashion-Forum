@@ -3,6 +3,7 @@ import * as assert from "node:assert";
 import {
   getForumArtifactText,
   generateForumArtifact,
+  buildSprint1GenerationContext,
   buildSprint1PostTitle,
   buildSprint1PostBody,
 } from "./forum-generation.js";
@@ -157,4 +158,31 @@ test("sprint 1 post copy varies by seed", () => {
   assert.notStrictEqual(bodySeedOne, bodySeedTwo);
   assert.match(bodySeedOne, /quiet office outfit|생활 리듬/);
   assert.match(bodySeedTwo, /weekday layering|commute comfort/);
+});
+
+test("buildSprint1GenerationContext summarizes the Korean generation situation", () => {
+  const context = buildSprint1GenerationContext({
+    updatedAgent: {
+      agent_id: "A02",
+      handle: "officemirror",
+    },
+    reactionRecord: {
+      meaning_frame: "care_context",
+      stance_signal: "empathetic",
+    },
+    contentRecord: {
+      content_id: "C001",
+      title: "quiet office outfit",
+      body: "A small look at weekday layering and commute comfort.",
+      topics: ["office", "layering"],
+    },
+    variationSeed: 7,
+  });
+
+  assert.strictEqual(context.language, "ko");
+  assert.strictEqual(context.scenario, "sprint1_post_generation");
+  assert.match(context.summary, /한국어 글을 생성했다/);
+  assert.strictEqual(context.sourceContentTitle, "quiet office outfit");
+  assert.strictEqual(context.meaningFrame, "care_context");
+  assert.strictEqual(context.stanceSignal, "empathetic");
 });

@@ -2,10 +2,49 @@ import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchPost, toggleLike, deletePost } from "../api/client.js";
 import CommentSection from "./CommentSection.jsx";
+import { localizeLabel } from "../lib/localized-labels.js";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
-export default function PostDetail({ postId, currentUser = DEFAULT_USER, onBack }) {
+function formatPostTime(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return date.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function GenerationContextBlock({ context }) {
+  if (!context) return null;
+
+  return (
+    <div style={styles.generationContext}>
+      <div style={styles.generationContextTitle}>생성 맥락</div>
+      {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
+      <div style={styles.generationContextMeta}>
+        {context.source && <span>출처: {context.source === "openai" ? "OpenAI" : "fallback"}</span>}
+        {context.selectedContextLabel && <span>맥락: {context.selectedContextLabel}</span>}
+        {context.situation && <span>상황: {context.situation}</span>}
+        {context.toneLabel && <span>톤: {context.toneLabel}</span>}
+        {context.sourceContentTitle && <span>대상: {context.sourceContentTitle}</span>}
+        {context.sourceContentSnippet && <span>단서: {context.sourceContentSnippet}</span>}
+      </div>
+    </div>
+  );
+}
+
+export default function PostDetail({
+  postId,
+  currentUser = DEFAULT_USER,
+  onBack,
+  onUserActivity = () => {},
+  onTagClick = () => {},
+}) {
   const queryClient = useQueryClient();
 
   const { data: post, isLoading, isError, error } = useQuery({
@@ -34,7 +73,15 @@ export default function PostDetail({ postId, currentUser = DEFAULT_USER, onBack 
     return (
       <div style={styles.container}>
         <p style={styles.error}>{error?.message || "오류가 발생했습니다."}</p>
-        <button onClick={onBack} style={styles.backBtn}>← 돌아가기</button>
+        <button
+          onClick={() => {
+            onUserActivity();
+            onBack();
+          }}
+          style={styles.backBtn}
+        >
+          ← 돌아가기
+        </button>
       </div>
     );
   }
@@ -43,7 +90,15 @@ export default function PostDetail({ postId, currentUser = DEFAULT_USER, onBack 
     return (
       <div style={styles.container}>
         <p style={styles.msg}>포스트를 찾을 수 없습니다.</p>
-        <button onClick={onBack} style={styles.backBtn}>← 돌아가기</button>
+        <button
+          onClick={() => {
+            onUserActivity();
+            onBack();
+          }}
+          style={styles.backBtn}
+        >
+          ← 돌아가기
+        </button>
       </div>
     );
   }
@@ -54,7 +109,15 @@ export default function PostDetail({ postId, currentUser = DEFAULT_USER, onBack 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <button onClick={onBack} style={styles.backBtn}>← 돌아가기</button>
+        <button
+          onClick={() => {
+            onUserActivity();
+            onBack();
+          }}
+          style={styles.backBtn}
+        >
+          ← 돌아가기
+        </button>
       </div>
 
       <article style={styles.article}>
@@ -64,16 +127,17 @@ export default function PostDetail({ postId, currentUser = DEFAULT_USER, onBack 
               {post.authorType === "agent" ? "🤖 " : "👤 "}
               {post.authorId}
             </span>
-            <span style={styles.time}>
-              {new Date(post.createdAt).toLocaleString("ko-KR")}
-            </span>
+            <span style={styles.time}>{formatPostTime(post.createdAt)}</span>
           </div>
           {canDelete && (
             <button
-              onClick={() => deleteMutation.mutate()}
-              style={{ ...styles.deleteBtn, color: "#dc2626" }}
-              disabled={deleteMutation.isPending}
-            >
+            onClick={() => {
+              onUserActivity();
+              deleteMutation.mutate();
+            }}
+            style={{ ...styles.deleteBtn, color: "#dc2626" }}
+            disabled={deleteMutation.isPending}
+          >
               {deleteMutation.isPending ? "삭제 중…" : "삭제"}
             </button>
           )}
@@ -83,12 +147,22 @@ export default function PostDetail({ postId, currentUser = DEFAULT_USER, onBack 
           {post.content}
         </div>
 
+        <GenerationContextBlock context={post.generationContext} />
+
         {post.tags?.length > 0 && (
           <div style={styles.tags}>
             {post.tags.map((t) => (
-              <span key={t} style={styles.tag}>
-                #{t}
-              </span>
+              <button
+                key={t}
+                type="button"
+                style={styles.tagBtn}
+                onClick={() => {
+                  onUserActivity();
+                  onTagClick(t);
+                }}
+              >
+                #{localizeLabel(t)}
+              </button>
             ))}
           </div>
         )}
@@ -106,7 +180,10 @@ export default function PostDetail({ postId, currentUser = DEFAULT_USER, onBack 
 
         <div style={styles.actions}>
           <button
-            onClick={() => likeMutation.mutate()}
+            onClick={() => {
+              onUserActivity();
+              likeMutation.mutate();
+            }}
             style={{
               ...styles.actionBtn,
               color: isLiked ? "#dc2626" : "#6b7280",
@@ -120,7 +197,7 @@ export default function PostDetail({ postId, currentUser = DEFAULT_USER, onBack 
 
       <section style={styles.commentsSection}>
         <h3 style={styles.commentsTitle}>댓글 ({post.commentCount || 0})</h3>
-        <CommentSection postId={postId} currentUser={currentUser} />
+        <CommentSection postId={postId} currentUser={currentUser} onUserActivity={onUserActivity} />
       </section>
     </div>
   );
@@ -184,18 +261,50 @@ const styles = {
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
   },
+  generationContext: {
+    marginBottom: 16,
+    padding: "12px 14px",
+    borderRadius: 8,
+    background: "#f9fafb",
+    border: "1px solid #e5e7eb",
+  },
+  generationContextTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#4b5563",
+    letterSpacing: "0.02em",
+    marginBottom: 4,
+  },
+  generationContextSummary: {
+    fontSize: 13,
+    color: "#374151",
+    lineHeight: 1.5,
+    marginBottom: 6,
+  },
+  generationContextMeta: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    fontSize: 11,
+    color: "#6b7280",
+  },
   tags: {
     display: "flex",
     gap: 8,
     flexWrap: "wrap",
     marginBottom: 16,
   },
-  tag: {
+  tagBtn: {
     fontSize: 13,
     color: "#6b7280",
     background: "#f3f4f6",
     padding: "4px 12px",
     borderRadius: 99,
+    border: "1px solid transparent",
+    cursor: "pointer",
+    appearance: "none",
+    fontFamily: "inherit",
+    lineHeight: 1.4,
   },
   moderation: {
     display: "flex",
