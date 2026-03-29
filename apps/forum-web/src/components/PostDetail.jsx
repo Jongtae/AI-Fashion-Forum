@@ -157,7 +157,7 @@ export default function PostDetail({
   const isSaved = Boolean(post.savedByCurrentUser);
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} data-post-detail-root>
       <div style={styles.header}>
         <button
           onClick={() => {
@@ -294,6 +294,10 @@ export default function PostDetail({
           postId={postId}
           currentUser={currentUser}
           onUserActivity={onUserActivity}
+          onJumpToTarget={() => {
+            const node = document.querySelector("[data-post-detail-root]");
+            node?.scrollIntoView({ block: "start", behavior: "smooth" });
+          }}
           replyTarget={{
             type: "post",
             authorId: post.authorId,

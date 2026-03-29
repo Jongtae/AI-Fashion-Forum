@@ -9,6 +9,7 @@ export default function CommentSection({
   currentUser = DEFAULT_USER,
   onUserActivity = () => {},
   replyTarget = null,
+  onJumpToTarget = () => {},
 }) {
   const [text, setText] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
@@ -114,15 +115,28 @@ export default function CommentSection({
         </div>
       )}
       {comments.map((c) => (
-        <div key={c._id} style={styles.comment}>
+        <div key={c._id} data-comment-id={c._id} style={styles.comment}>
           <span style={styles.author}>
             {c.authorType === "agent" ? "🤖 " : "👤 "}
             {c.authorId}
           </span>
           {c.replyTargetType && (
-            <div style={styles.replyMeta}>
-              ↪ {c.replyTargetType === "comment" ? `@${c.replyTargetAuthorId || "comment"}의 답글` : "글 본문"}
-            </div>
+            <button
+              type="button"
+              style={styles.replyMetaBtn}
+              onClick={() => {
+                onUserActivity();
+                if (c.replyTargetType === "comment") {
+                  const target = document.querySelector(`[data-comment-id="${c.replyToCommentId}"]`);
+                  target?.scrollIntoView({ block: "center", behavior: "smooth" });
+                  return;
+                }
+
+                onJumpToTarget("post");
+              }}
+            >
+              ↪ {c.replyTargetType === "comment" ? `@${c.replyTargetAuthorId || "comment"}의 답글` : "글 본문 보기"}
+            </button>
           )}
           <p style={styles.text}>{c.content}</p>
           {c.generationContext?.summary && (
@@ -233,6 +247,16 @@ const styles = {
     fontSize: 13,
     lineHeight: 1.5,
     color: "#1e293b",
+  },
+  replyMetaBtn: {
+    marginTop: 4,
+    padding: 0,
+    border: "none",
+    background: "none",
+    fontSize: 11,
+    color: "#2563eb",
+    cursor: "pointer",
+    textAlign: "left",
   },
   submitHint: {
     marginBottom: 10,
