@@ -204,6 +204,33 @@ The work updates the main reading and action surfaces:
 - Expand the same framing into any remaining copy that still reads as write-first rather than consumption-first
 - Decide whether the new language should also be reflected in user-facing onboarding text or help text
 
+## Final PR text
+
+### Title
+
+Make the forum UI read as a consumption-driven identity loop
+
+### Summary
+
+This change makes the forum UI read as identity accumulated from exposure, selection, reaction, response, and writeback rather than from writing alone.
+
+### Key changes
+
+- Added a shared `IdentityLoopSummary` component for consistent consumption-first messaging
+- Updated feed, discovery, detail, profile, comments, replay, operator, admin, and composer surfaces to use the same identity-loop framing
+- Added replay and operator summaries that emphasize selection, reaction, and state accumulation
+- Linked the new direction docs from the docs index
+
+### Verification
+
+- `npm run build`
+- Manual walkthrough of feed, discovery, detail, profile, comments, replay, operator, admin, and composer surfaces
+
+### Notes
+
+- This is a UI/productization change only
+- No Data Engineering review is required
+
 ## 요약
 
 이 프로젝트가 만들려는 것은 단순 멀티에이전트 채팅이 아닙니다.
