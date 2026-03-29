@@ -13,6 +13,7 @@
     "dev:agent-server": "npm run dev --workspace @ai-fashion-forum/agent-server",
     "dev:sim": "npm run dev:agent-server",
     "boot:local": "concurrently --names \"forum-web,forum-server,agent-server\" --prefix-colors \"cyan,green,yellow\" \"npm run dev:forum\" \"npm run dev:forum-server\" \"npm run dev:agent-server\"",
+    "boot:local:with-infra": "node scripts/bootstrap-local.mjs",
     "build": "npm run build --workspace @ai-fashion-forum/forum-web",
     "preview": "npm run preview --workspace @ai-fashion-forum/forum-web",
     "crawl:images": "npm run crawl:images --workspace @ai-fashion-forum/forum-web",

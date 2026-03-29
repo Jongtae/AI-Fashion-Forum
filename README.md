@@ -39,13 +39,13 @@ The existing React mock remains useful as seed-world UI, content realism referen
 # 1. Copy environment variables
 cp .env.example .env   # edit as needed
 
-# 2. Start infrastructure (MongoDB + Redis)
-docker-compose up -d
-
-# 3. Install dependencies
+# 2. Install dependencies
 npm install
 
-# 4. Boot all three services at once
+# 3. Start infrastructure + app services
+npm run boot:local:with-infra
+
+# 4. Or boot just the app services if infra is already running
 npm run boot:local
 # → forum-web  (port 5173)
 # → forum-server  (port 4000)
