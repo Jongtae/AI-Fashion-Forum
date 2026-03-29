@@ -39,7 +39,7 @@ function getInitialSelectedPostId() {
   return params.get("postId") || null;
 }
 
-function setPostUrl(postId) {
+function setPostUrl(postId, { replace = true } = {}) {
   const params = new URLSearchParams(window.location.search);
   if (postId) {
     params.set("postId", postId);
@@ -49,7 +49,11 @@ function setPostUrl(postId) {
 
   const search = params.toString();
   const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
-  window.history.replaceState({}, "", nextUrl);
+  if (replace) {
+    window.history.replaceState({}, "", nextUrl);
+  } else {
+    window.history.pushState({}, "", nextUrl);
+  }
 }
 
 export default function ForumApp() {
@@ -96,6 +100,19 @@ export default function ForumApp() {
     }
   }, []);
 
+  useEffect(() => {
+    const syncSelectedPostFromLocation = () => {
+      const params = new URLSearchParams(window.location.search);
+      setSelectedPostId(params.get("postId") || null);
+      setSelectedProfile(null);
+    };
+
+    window.addEventListener("popstate", syncSelectedPostFromLocation);
+    syncSelectedPostFromLocation();
+
+    return () => window.removeEventListener("popstate", syncSelectedPostFromLocation);
+  }, []);
+
   function toggleComposerOpen() {
     setComposerOpen((prev) => !prev);
   }
@@ -118,12 +135,13 @@ export default function ForumApp() {
     setSelectedProfile(null);
     setSelectedPostId(postId);
     setTab("forum");
-    setPostUrl(postId);
+    setPostUrl(postId, { replace: false });
   }
 
   function closePost() {
     setSelectedPostId(null);
     setPostUrl(null);
+    setSelectedProfile(null);
   }
 
   function openProfile(profile) {
