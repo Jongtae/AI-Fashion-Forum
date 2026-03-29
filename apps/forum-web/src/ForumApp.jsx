@@ -26,12 +26,14 @@ function loadStoredUser() {
 }
 
 function getInitialTab() {
+  const params = new URLSearchParams(window.location.search);
+  const view = params.get("view");
   const path = window.location.pathname;
   if (path.startsWith("/admin") || path.startsWith("/operator")) {
     return "admin";
   }
 
-  return "forum";
+  return ["forum", "discover", "feed", "saved"].includes(view) ? view : "forum";
 }
 
 function getInitialSelectedPostId() {
@@ -85,6 +87,23 @@ function setProfileUrl(profile, { replace = true } = {}) {
   }
 }
 
+function setViewUrl(view, { replace = true } = {}) {
+  const params = new URLSearchParams(window.location.search);
+  if (view) {
+    params.set("view", view);
+  } else {
+    params.delete("view");
+  }
+
+  const search = params.toString();
+  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+  if (replace) {
+    window.history.replaceState({}, "", nextUrl);
+  } else {
+    window.history.pushState({}, "", nextUrl);
+  }
+}
+
 const FEED_SCROLL_KEY = "forum:last-feed-scroll-y";
 
 function saveFeedScrollPosition() {
@@ -117,6 +136,7 @@ export default function ForumApp() {
   const [pendingTab, setPendingTab] = useState(null);
   const autoTickInFlightRef = useRef(false);
   const prevSelectedPostIdRef = useRef(null);
+  const previousServiceTabRef = useRef("forum");
 
   // currentUser: 로그인 시 JWT 사용자, 미로그인 시 guest
   const currentUser = authUser
@@ -129,6 +149,7 @@ export default function ForumApp() {
     setShowAuth(false);
     if (pendingTab) {
       setTab(pendingTab);
+      setViewUrl(pendingTab, { replace: true });
       setPendingTab(null);
     }
   }
@@ -139,6 +160,7 @@ export default function ForumApp() {
     setAuthUser(null);
     setPendingTab(null);
     setTab("forum");
+    setViewUrl("forum");
     queryClient.clear();
   }
 
@@ -151,6 +173,8 @@ export default function ForumApp() {
   useEffect(() => {
     const syncSelectedPostFromLocation = () => {
       const params = new URLSearchParams(window.location.search);
+      const view = params.get("view");
+      setTab(["forum", "discover", "feed", "saved"].includes(view) ? view : "forum");
       setSelectedPostId(params.get("postId") || null);
       const profileId = params.get("profileId");
       setSelectedProfile(
@@ -169,6 +193,9 @@ export default function ForumApp() {
   useEffect(() => {
     const prevSelectedPostId = prevSelectedPostIdRef.current;
     if (prevSelectedPostId && !selectedPostId) {
+      const restoredTab = previousServiceTabRef.current || "forum";
+      setTab(restoredTab);
+      setViewUrl(restoredTab, { replace: true });
       restoreFeedScrollPosition();
     }
     prevSelectedPostIdRef.current = selectedPostId;
@@ -190,23 +217,29 @@ export default function ForumApp() {
     setSelectedPostId(null);
     setPostUrl(null);
     setTab("forum");
+    setViewUrl("forum", { replace: false });
     setActiveTagFilter(tag);
   }
 
   function openPost(postId) {
     setSelectedProfile(null);
     setProfileUrl(null);
+    previousServiceTabRef.current = tab;
     saveFeedScrollPosition();
     setSelectedPostId(postId);
     setTab("forum");
+    setViewUrl("forum", { replace: false });
     setPostUrl(postId, { replace: false });
   }
 
   function closePost() {
+    const restoredTab = previousServiceTabRef.current || "forum";
     setSelectedPostId(null);
     setPostUrl(null);
     setSelectedProfile(null);
     setProfileUrl(null);
+    setTab(restoredTab);
+    setViewUrl(restoredTab, { replace: true });
     restoreFeedScrollPosition();
   }
 
@@ -216,6 +249,7 @@ export default function ForumApp() {
     setPostUrl(null);
     setSelectedProfile(profile);
     setProfileUrl(profile, { replace: false });
+    setViewUrl(tab, { replace: false });
   }
 
   function openSavedPosts() {
@@ -229,7 +263,17 @@ export default function ForumApp() {
       return;
     }
     setTab("saved");
+    setViewUrl("saved", { replace: false });
     setSelectedPostId(null);
+  }
+
+  function activateTab(nextTab) {
+    setTab(nextTab);
+    setViewUrl(nextTab, { replace: false });
+    setSelectedPostId(null);
+    setPostUrl(null);
+    setSelectedProfile(null);
+    setProfileUrl(null);
   }
 
   useEffect(() => {
@@ -333,19 +377,19 @@ export default function ForumApp() {
             <nav style={styles.nav}>
               <button
                 style={{ ...styles.tabBtn, ...(tab === "forum" ? styles.tabActive : {}) }}
-                onClick={() => setTab("forum")}
+                onClick={() => activateTab("forum")}
               >
                 포럼
               </button>
               <button
                 style={{ ...styles.tabBtn, ...(tab === "discover" ? styles.tabActive : {}) }}
-                onClick={() => setTab("discover")}
+                onClick={() => activateTab("discover")}
               >
                 탐색
               </button>
               <button
                 style={{ ...styles.tabBtn, ...(tab === "feed" ? styles.tabActive : {}) }}
-                onClick={() => setTab("feed")}
+                onClick={() => activateTab("feed")}
               >
                 맞춤 피드
               </button>
@@ -363,7 +407,11 @@ export default function ForumApp() {
                   <ProfilePanel
                     profile={selectedProfile}
                     currentUser={currentUser}
-                    onBack={() => setSelectedProfile(null)}
+                    onBack={() => {
+                      setSelectedProfile(null);
+                      setProfileUrl(null);
+                      setViewUrl(tab, { replace: true });
+                    }}
                     onSelectPost={(postId) => {
                       markForumActivity();
                       openPost(postId);
