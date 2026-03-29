@@ -2,6 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   # Temporarily disabled from automatic main-branch deploys to avoid noisy failures.
+  # Re-enable by restoring the `push` trigger on `main` below when Pages deployment is needed again.
   workflow_dispatch:
 
 permissions:
