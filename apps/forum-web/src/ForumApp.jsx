@@ -56,6 +56,11 @@ function getInitialActiveTagFilter() {
   return params.get("tag") || "";
 }
 
+function getInitialDiscoveryQuery() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("q") || "";
+}
+
 function setPostUrl(postId, { replace = true } = {}) {
   const params = new URLSearchParams(window.location.search);
   if (postId) {
@@ -109,6 +114,23 @@ function setTagUrl(tag, { replace = true } = {}) {
   }
 }
 
+function setDiscoveryQueryUrl(query, { replace = true } = {}) {
+  const params = new URLSearchParams(window.location.search);
+  if (query) {
+    params.set("q", query);
+  } else {
+    params.delete("q");
+  }
+
+  const search = params.toString();
+  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+  if (replace) {
+    window.history.replaceState({}, "", nextUrl);
+  } else {
+    window.history.pushState({}, "", nextUrl);
+  }
+}
+
 function setViewUrl(view, { replace = true } = {}) {
   const params = new URLSearchParams(window.location.search);
   if (view) {
@@ -151,6 +173,7 @@ export default function ForumApp() {
   const [selectedPostId, setSelectedPostId] = useState(getInitialSelectedPostId);
   const [selectedProfile, setSelectedProfile] = useState(getInitialSelectedProfile);
   const [activeTagFilter, setActiveTagFilter] = useState(getInitialActiveTagFilter);
+  const [discoverySearchText, setDiscoverySearchText] = useState(getInitialDiscoveryQuery);
   const [composerOpen, setComposerOpen] = useState(false);
   const [hasForumActivity, setHasForumActivity] = useState(false);
   const [timeSpeed, setTimeSpeed] = useState(1);
@@ -205,6 +228,7 @@ export default function ForumApp() {
           : null
       );
       setActiveTagFilter(params.get("tag") || "");
+      setDiscoverySearchText(params.get("q") || "");
     };
 
     window.addEventListener("popstate", syncSelectedPostFromLocation);
@@ -298,6 +322,11 @@ export default function ForumApp() {
     setPostUrl(null);
     setSelectedProfile(null);
     setProfileUrl(null);
+  }
+
+  function handleDiscoverySearchChange(value) {
+    setDiscoverySearchText(value);
+    setDiscoveryQueryUrl(value, { replace: false });
   }
 
   useEffect(() => {
@@ -513,6 +542,8 @@ export default function ForumApp() {
                     currentUser={currentUser}
                     onSelectPost={openPost}
                     onUserActivity={markForumActivity}
+                    searchText={discoverySearchText}
+                    onSearchTextChange={handleDiscoverySearchChange}
                     onTagClick={(tag) => {
                       if (tag) setActiveTagFilter(tag);
                     }}

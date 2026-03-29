@@ -27,12 +27,13 @@ export default function DiscoveryPanel({
   currentUser,
   onSelectPost = () => {},
   onUserActivity = () => {},
+  searchText = "",
+  onSearchTextChange = () => {},
   onTagClick = () => {},
   onRequireAuth = () => {},
   onAuthorClick = () => {},
   isAuthenticated = false,
 }) {
-  const [searchText, setSearchText] = useState("");
   const [topicFilter, setTopicFilter] = useState("");
   const [mode, setMode] = useState("recent");
 
@@ -88,7 +89,7 @@ export default function DiscoveryPanel({
       <section style={styles.controls}>
         <input
           value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+          onChange={(e) => onSearchTextChange(e.target.value)}
           placeholder="글, 태그, 작성자 이름으로 검색"
           style={styles.searchInput}
         />
@@ -96,7 +97,7 @@ export default function DiscoveryPanel({
           <button
             type="button"
             style={styles.clearBtn}
-            onClick={() => setSearchText("")}
+            onClick={() => onSearchTextChange("")}
           >
             ✕
           </button>
