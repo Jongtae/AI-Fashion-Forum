@@ -5,7 +5,11 @@ import PostCard from "./PostCard.jsx";
 
 const FLAGS = ["baseline", "noveltyBoost", "trustBoost", "controversyDampen"];
 
-export default function PersonalisedFeed({ currentUser, timeSpeed = 1, onUserActivity = () => {} }) {
+export default function PersonalisedFeed({
+  currentUser,
+  timeSpeed = 1,
+  onUserActivity = () => {},
+}) {
   const [flag, setFlag] = useState("baseline");
   const queryClient = useQueryClient();
 
@@ -102,7 +106,11 @@ export default function PersonalisedFeed({ currentUser, timeSpeed = 1, onUserAct
             {post._score !== undefined && (
               <div style={styles.score}>score: {post._score}</div>
             )}
-            <PostCard post={post} currentUser={currentUser} onUserActivity={onUserActivity} />
+            <PostCard
+              post={post}
+              currentUser={currentUser}
+              onUserActivity={onUserActivity}
+            />
           </div>
         ))}
       </div>

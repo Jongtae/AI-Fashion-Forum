@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toggleLike, deletePost } from "../api/client.js";
+import { deletePost, toggleLike } from "../api/client.js";
 import CommentSection from "./CommentSection.jsx";
 import { localizeLabel } from "../lib/localized-labels.js";
 
@@ -168,7 +168,11 @@ const styles = {
     alignItems: "center",
     marginBottom: 8,
   },
-  author: { fontSize: 13, fontWeight: 600, color: "#374151" },
+  author: {
+    fontSize: 13,
+    fontWeight: 600,
+    color: "#374151",
+  },
   time: { fontSize: 12, color: "#9ca3af" },
   content: { fontSize: 15, color: "#111827", margin: "0 0 10px", lineHeight: 1.6 },
   generationContext: {

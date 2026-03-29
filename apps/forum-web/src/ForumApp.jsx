@@ -5,6 +5,7 @@ import PostForm from "./components/PostForm.jsx";
 import PostList from "./components/PostList.jsx";
 import PostDetail from "./components/PostDetail.jsx";
 import PersonalisedFeed from "./components/PersonalisedFeed.jsx";
+import DiscoveryPanel from "./components/DiscoveryPanel.jsx";
 import AuthModal from "./components/AuthModal.jsx";
 import AdminDashboard from "./components/AdminDashboard.jsx";
 
@@ -82,6 +83,11 @@ export default function ForumApp() {
     setTab("forum");
     setSelectedPostId(null);
     setActiveTagFilter(tag);
+  }
+
+  function openPost(postId) {
+    setSelectedPostId(postId);
+    setTab("forum");
   }
 
   useEffect(() => {
@@ -184,6 +190,12 @@ export default function ForumApp() {
                 포럼
               </button>
               <button
+                style={{ ...styles.tabBtn, ...(tab === "discover" ? styles.tabActive : {}) }}
+                onClick={() => setTab("discover")}
+              >
+                탐색
+              </button>
+              <button
                 style={{ ...styles.tabBtn, ...(tab === "feed" ? styles.tabActive : {}) }}
                 onClick={() => setTab("feed")}
               >
@@ -231,20 +243,31 @@ export default function ForumApp() {
                       )}
                     </section>
                     <section style={styles.feedSection}>
-                        <PostList
+                          <PostList
                           currentUser={currentUser}
                           onUserActivity={markForumActivity}
                           activeTagFilter={activeTagFilter}
                           onTagFilterChange={setActiveTagFilter}
                           onSelectPost={(postId) => {
-                            setSelectedPostId(postId);
                             markForumActivity();
+                            openPost(postId);
                           }}
                           onTagClick={openTagFilter}
                         />
                     </section>
                   </>
                 )
+              ) : tab === "discover" ? (
+                <section>
+                  <DiscoveryPanel
+                    currentUser={currentUser}
+                    onSelectPost={openPost}
+                    onUserActivity={markForumActivity}
+                    onTagClick={(tag) => {
+                      if (tag) setActiveTagFilter(tag);
+                    }}
+                  />
+                </section>
               ) : tab === "feed" ? (
                 <section>
                   <PersonalisedFeed
