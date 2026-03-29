@@ -48,9 +48,15 @@ export default function PostCard({
   const [shareButtonLabel, setShareButtonLabel] = useState("↗ 공유");
   const queryClient = useQueryClient();
   const commentCount = Number(post.commentCount || 0);
+  const reactionSummary = [
+    { label: "좋아요", value: post.likes ?? 0 },
+    { label: "댓글", value: commentCount },
+    { label: "저장", value: savedState ? "됨" : "안됨" },
+    { label: "공유", value: "가능" },
+  ];
   const commentButtonText = commentCount > 0
-    ? `💬 댓글 ${commentCount}개 ${showComments ? "닫기" : "보기"}`
-    : `💬 댓글 ${showComments ? "닫기" : "보기"}`;
+    ? `💬 댓글 ${commentCount}개 ${showComments ? "접기" : "열기"}`
+    : `💬 댓글 ${showComments ? "접기" : "열기"}`;
 
   useEffect(() => {
     if (shareState.status === "idle") return undefined;
@@ -186,6 +192,18 @@ export default function PostCard({
         </div>
       )}
 
+      <div style={styles.reactionLedger}>
+        <div style={styles.reactionLedgerTitle}>반응 레이어</div>
+        <div style={styles.reactionLedgerGrid}>
+          {reactionSummary.map((item) => (
+            <div key={item.label} style={styles.reactionLedgerItem}>
+              <span style={styles.reactionLedgerLabel}>{item.label}</span>
+              <strong style={styles.reactionLedgerValue}>{item.value}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {!readOnly && (
         <>
           <div style={styles.actions}>
@@ -194,10 +212,10 @@ export default function PostCard({
                 onUserActivity();
                 likeMutation.mutate();
               }}
-              style={{ ...styles.actionBtn, color: isLiked ? "#dc2626" : "#6b7280" }}
+              style={{ ...styles.actionBtn, ...(isLiked ? styles.actionBtnActiveLike : {}) }}
               disabled={likeMutation.isPending}
             >
-              {isLiked ? "♥" : "♡"} {post.likes}
+              {isLiked ? "♥" : "♡"} 좋아요
             </button>
             <button
               onClick={() => {
@@ -210,14 +228,14 @@ export default function PostCard({
               }}
               style={{
                 ...styles.actionBtn,
-                color: savedState ? "#0f766e" : "#6b7280",
+                ...(savedState ? styles.actionBtnActiveSave : {}),
               }}
               disabled={saveMutation.isPending}
             >
               {savedState ? "🔖 저장됨" : "📌 저장"}
             </button>
             <button onClick={handleShare} style={styles.actionBtn}>
-              {shareButtonLabel}
+              {shareButtonLabel} 공유
             </button>
             <button
               onClick={() => {
@@ -334,6 +352,39 @@ const styles = {
     cursor: "pointer",
     padding: "2px 4px",
   },
+  actionBtnActiveLike: { color: "#dc2626", fontWeight: 700 },
+  actionBtnActiveSave: { color: "#0f766e", fontWeight: 700 },
+  reactionLedger: {
+    marginBottom: 10,
+    padding: "10px 12px",
+    borderRadius: 8,
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
+  },
+  reactionLedgerTitle: {
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "#64748b",
+    marginBottom: 8,
+  },
+  reactionLedgerGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    gap: 8,
+  },
+  reactionLedgerItem: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+    padding: "8px 10px",
+    borderRadius: 8,
+    background: "#fff",
+    border: "1px solid #e2e8f0",
+  },
+  reactionLedgerLabel: { fontSize: 11, color: "#64748b", fontWeight: 700 },
+  reactionLedgerValue: { fontSize: 14, color: "#0f172a" },
   shareState: {
     marginTop: 10,
     fontSize: 12,
