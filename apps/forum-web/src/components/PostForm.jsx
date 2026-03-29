@@ -38,8 +38,8 @@ export default function PostForm({ currentUser = DEFAULT_AUTHOR }) {
     <div style={styles.wrap}>
       <IdentityLoopSummary
         kicker="composition"
-        title="글쓰기 역시 소비와 반응의 다음 단계입니다"
-        subtitle="이 입력창은 캐릭터를 시작하는 곳이 아니라, 무엇을 보고 어떤 반응을 겪었는지 다시 밖으로 내보내는 곳입니다."
+        title="입력은 소비와 반응을 다시 밖으로 내보내는 단계입니다"
+        subtitle="이 입력창은 캐릭터를 시작하는 곳이 아니라, 무엇을 보고 어떤 반응을 겪었는지 다시 글로 남기는 곳입니다."
         cards={[
           {
             label: "현재 사용자",
@@ -84,7 +84,7 @@ export default function PostForm({ currentUser = DEFAULT_AUTHOR }) {
             disabled={mutation.isPending || !content.trim()}
             style={styles.submitBtn}
           >
-            {mutation.isPending ? "등록 중…" : "선택을 글로 남기기"}
+            {mutation.isPending ? "등록 중…" : "선택을 기록하기"}
           </button>
         </div>
         {mutation.isError && (
