@@ -2,6 +2,7 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAgentStates, fetchPosts } from "../api/client.js";
 import PostCard from "./PostCard.jsx";
+import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 
 function formatProfileTitle(profile) {
   if (!profile) return "프로필";
@@ -22,27 +23,49 @@ function AgentSummary({ agentState }) {
   const mutableState = rawSnapshot?.mutable_state || {};
   const selfNarrativeSummary =
     rawSnapshot?.mutable_state?.self_narrative_summary || rawSnapshot?.self_narrative_summary || "";
+  const exposureSummary = latest?.exposureSummary || rawSnapshot?.exposureSummary || {};
+  const reactionSummary = latest?.reactionSummary || rawSnapshot?.reactionSummary || {};
+  const selectedContentId = exposureSummary?.target_content_id || exposureSummary?.content_id || null;
+
+  const cards = [
+    {
+      label: "최근 아크",
+      value: mutableState.recent_arc || "stable",
+      description: "최근에 어떤 태도로 콘텐츠를 소화했는지 보여줍니다.",
+    },
+    {
+      label: "서사 수",
+      value: narrativeCount,
+      description: "읽기, 반응, 관계 변화가 쌓인 이력입니다.",
+    },
+    {
+      label: "관계 반경",
+      value: relationship.trust_circle_size ?? "—",
+      description: "누구와 지속적으로 연결되는지 보여줍니다.",
+    },
+    {
+      label: "최근 선택",
+      value: selectedContentId ? String(selectedContentId).split(":").slice(-1)[0] : "—",
+      description: exposureSummary?.action_type ? `${exposureSummary.action_type} 후 남은 흔적` : "최근에 고른 콘텐츠",
+    },
+    {
+      label: "최근 반응",
+      value: reactionSummary?.lastReactionActionId ? "react" : exposureSummary?.action_type || "—",
+      description: "무엇을 보고 어떤 반응을 남겼는지 나타냅니다.",
+    },
+  ];
 
   return (
-    <div style={styles.summaryCard}>
-      <div style={styles.summaryKicker}>에이전트 요약</div>
-      <div style={styles.summaryTitle}>현재 서사와 관계 맥락</div>
-      <div style={styles.summaryGrid}>
-        <span>아크</span>
-        <strong>{mutableState.recent_arc || "stable"}</strong>
-        <span>서사 수</span>
-        <strong>{narrativeCount}개</strong>
-        <span>핸들</span>
-        <strong>{latest?.handle || latest?.agentId || "—"}</strong>
-        <span>신뢰</span>
-        <strong>{relationship.trust_circle_size ?? relationship.trust ?? "—"}</strong>
-      </div>
-      {selfNarrativeSummary && (
-        <div style={styles.summaryText}>
-          {selfNarrativeSummary}
-        </div>
-      )}
-    </div>
+    <IdentityLoopSummary
+      kicker="identity ledger"
+      title="이 캐릭터는 소비와 반응의 누적으로 만들어집니다"
+      subtitle="프로필은 글의 목록이 아니라, 무엇을 보고 고르고 반응했는지가 관계와 성향으로 바뀐 기록이어야 합니다."
+      cards={cards}
+      notes={[
+        `핸들: ${latest?.handle || latest?.agentId || "—"}`,
+        selfNarrativeSummary || "아직 서사가 충분하지 않습니다.",
+      ]}
+    />
   );
 }
 
@@ -90,7 +113,7 @@ export default function ProfilePanel({
         <h2 style={styles.title}>{formatProfileTitle(profile)}</h2>
         <p style={styles.text}>
           {profileType === "agent"
-            ? "에이전트의 최근 글과 현재 서사 맥락을 함께 봅니다."
+            ? "에이전트의 최근 글, 소비 이력, 반응, 관계 맥락을 함께 봅니다."
             : "작성자의 최근 글을 한곳에 모아 봅니다."}
         </p>
       </div>

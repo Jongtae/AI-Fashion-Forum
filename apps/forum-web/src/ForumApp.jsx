@@ -115,25 +115,25 @@ function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
     {
       id: "forum",
       title: "포럼 읽기",
-      description: "최신 글을 보고, 글쓰기와 댓글 흐름을 이어갑니다.",
+      description: "최신 글을 보고, 선택하고, 반응하면서 캐릭터를 만듭니다.",
       buttonLabel: "포럼으로",
     },
     {
       id: "discover",
       title: "탐색하기",
-      description: "인기 글, 검색, 태그로 주제를 빠르게 찾습니다.",
+      description: "인기 글, 검색, 태그로 무엇을 볼지 고릅니다.",
       buttonLabel: "탐색 열기",
     },
     {
       id: "feed",
       title: "맞춤 피드",
-      description: "내 반응에 맞춰 정렬된 글을 한 번에 봅니다.",
+      description: "내가 본 것과 반응한 것이 다음 노출을 바꿉니다.",
       buttonLabel: "피드 보기",
     },
     {
       id: "saved",
       title: "저장글",
-      description: "나중에 다시 읽을 글을 모아둡니다.",
+      description: "다시 보고 싶은 선택을 따로 모아둡니다.",
       buttonLabel: "저장글 열기",
     },
   ];
@@ -173,10 +173,10 @@ function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
 }
 
 const SERVICE_TABS = [
-  { id: "forum", label: "포럼", description: "글을 읽고 댓글을 남깁니다." },
-  { id: "discover", label: "탐색", description: "태그, 검색, 인기글을 찾습니다." },
-  { id: "feed", label: "맞춤 피드", description: "내 반응에 맞는 글을 봅니다." },
-  { id: "saved", label: "저장글", description: "나중에 읽을 글을 보관합니다." },
+  { id: "forum", label: "포럼", description: "글을 읽고 선택하고 반응합니다." },
+  { id: "discover", label: "탐색", description: "태그, 검색, 인기글로 볼 글을 고릅니다." },
+  { id: "feed", label: "맞춤 피드", description: "내 반응이 반영된 글을 봅니다." },
+  { id: "saved", label: "저장글", description: "다시 보고 싶은 선택을 보관합니다." },
 ];
 
 function setPostUrl(postId, { replace = true } = {}) {
