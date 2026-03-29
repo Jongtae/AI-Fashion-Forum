@@ -128,7 +128,7 @@ export default function PostCard({
   const canDelete = post.authorId === currentUser.id;
 
   return (
-    <div style={styles.card}>
+    <div style={styles.card} data-post-card={post._id}>
       <div style={styles.header}>
         <button
           type="button"
@@ -261,6 +261,10 @@ export default function PostCard({
               postId={post._id}
               currentUser={currentUser}
               onUserActivity={onUserActivity}
+              onJumpToTarget={() => {
+                const node = document.querySelector(`[data-post-card="${post._id}"]`);
+                node?.scrollIntoView({ block: "start", behavior: "smooth" });
+              }}
               replyTarget={{
                 type: "post",
                 authorId: post.authorId,
