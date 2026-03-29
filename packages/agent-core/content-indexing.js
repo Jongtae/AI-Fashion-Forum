@@ -250,7 +250,7 @@ export function selectBiasedExposure({
     exposureLog: selected.map((record, order) => ({
       rank: order + 1,
       content_id: record.content_id,
-      reason: `Selected for ${agentState.handle} because affinity=${record.score_breakdown.affinity}, novelty=${record.score_breakdown.novelty}, social_proof=${record.score_breakdown.social_proof}, controversy=${record.score_breakdown.controversy}.`,
+      reason: `${agentState.handle}에게 ${record.content_id}를 선택했다. affinity=${record.score_breakdown.affinity}, novelty=${record.score_breakdown.novelty}, social_proof=${record.score_breakdown.social_proof}, controversy=${record.score_breakdown.controversy}.`,
       score_breakdown: record.score_breakdown,
     })),
   };
@@ -481,12 +481,12 @@ export function createSprint1ReactionRecord({
       salience: resonanceScore >= 0.7 ? "high" : resonanceScore >= 0.25 ? "medium" : "low",
       narrative_hint:
         meaningFrame === "care_context"
-          ? "This felt like evidence that care and daily life matter in the forum."
+          ? "이 반응은 돌봄과 일상 문맥이 포럼에서 중요하다는 신호로 읽혔다."
           : meaningFrame === "tradeoff_filter"
-            ? "This reinforced a tradeoff-first reading of the same world."
+            ? "같은 세계를 트레이드오프 중심으로 읽게 만드는 반응이었다."
             : meaningFrame === "signal_filter"
-              ? "This sharpened the sense that novelty separates people."
-              : "This added another practical reading of the same world.",
+              ? "새로움이 사람들 사이의 차이를 더 또렷하게 만든다는 감각을 강화했다."
+              : "같은 세계를 다시 실용적으로 읽게 하는 또 하나의 계기였다.",
     },
     explanation: `rank=${rank} because total=${sprintScore.total}, feeling=${dominantFeeling}, frame=${meaningFrame}, stance=${stanceSignal}.`,
     score_breakdown: sprintScore,
@@ -564,7 +564,7 @@ export async function createSprint1ExposureSample({
       exposureLog: selected.map((record, order) => ({
         rank: order + 1,
         content_id: record.content_id,
-        reason: `Selected for Sprint 1 because total=${record.score_breakdown.total}, interest_pull=${record.score_breakdown.tag_alignment.interest_pull}, value_pull=${record.score_breakdown.tag_alignment.value_pull}, audience_pull=${record.score_breakdown.tag_alignment.audience_pull}.`,
+        reason: `Sprint 1 노출 후보로 선택했다. total=${record.score_breakdown.total}, interest_pull=${record.score_breakdown.tag_alignment.interest_pull}, value_pull=${record.score_breakdown.tag_alignment.value_pull}, audience_pull=${record.score_breakdown.tag_alignment.audience_pull}.`,
         score_breakdown: record.score_breakdown,
       })),
     },

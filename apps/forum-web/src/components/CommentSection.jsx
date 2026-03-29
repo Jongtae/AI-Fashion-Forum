@@ -4,7 +4,7 @@ import { fetchComments, createComment, deleteComment } from "../api/client.js";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
-export default function CommentSection({ postId, currentUser = DEFAULT_USER }) {
+export default function CommentSection({ postId, currentUser = DEFAULT_USER, onUserActivity = () => {} }) {
   const [text, setText] = useState("");
   const queryClient = useQueryClient();
 
@@ -17,18 +17,31 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER }) {
     mutationFn: (data) => createComment(postId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+      queryClient.invalidateQueries({ queryKey: ["post", postId] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["operator-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["latest-report"] });
       setText("");
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (commentId) => deleteComment(postId, commentId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["comments", postId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+      queryClient.invalidateQueries({ queryKey: ["post", postId] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["operator-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["latest-report"] });
+    },
   });
 
   function handleSubmit(e) {
     e.preventDefault();
     if (!text.trim()) return;
+    onUserActivity();
     addMutation.mutate({
       content: text.trim(),
       authorId: currentUser.id,
@@ -51,12 +64,25 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER }) {
             </div>
           )}
           <p style={styles.text}>{c.content}</p>
+          {c.generationContext?.summary && (
+            <div style={styles.generationContext}>
+              <div style={styles.generationContextTitle}>생성 맥락</div>
+              <div style={styles.generationContextSummary}>{c.generationContext.summary}</div>
+              <div style={styles.generationContextMeta}>
+                {c.generationContext.situation && <span>상황: {c.generationContext.situation}</span>}
+                {c.generationContext.toneLabel && <span>톤: {c.generationContext.toneLabel}</span>}
+              </div>
+            </div>
+          )}
           {c.authorId === currentUser.id && (
-            <button
-              onClick={() => deleteMutation.mutate(c._id)}
-              style={styles.deleteBtn}
-              disabled={deleteMutation.isPending}
-            >
+          <button
+            onClick={() => {
+              onUserActivity();
+              deleteMutation.mutate(c._id);
+            }}
+            style={styles.deleteBtn}
+            disabled={deleteMutation.isPending}
+          >
               삭제
             </button>
           )}
@@ -89,6 +115,32 @@ const styles = {
   author: { fontSize: 12, fontWeight: 600, color: "#6b7280" },
   replyMeta: { marginTop: 4, fontSize: 11, color: "#9ca3af" },
   text: { margin: "4px 0 0", fontSize: 14, color: "#374151" },
+  generationContext: {
+    marginTop: 8,
+    padding: "8px 10px",
+    borderRadius: 6,
+    background: "#f9fafb",
+    border: "1px solid #e5e7eb",
+  },
+  generationContextTitle: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: "#4b5563",
+    marginBottom: 3,
+  },
+  generationContextSummary: {
+    fontSize: 12,
+    color: "#374151",
+    lineHeight: 1.5,
+    marginBottom: 4,
+  },
+  generationContextMeta: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    fontSize: 10,
+    color: "#6b7280",
+  },
   deleteBtn: {
     fontSize: 11,
     color: "#ef4444",

@@ -28,6 +28,45 @@ const router = Router();
 
 const FORUM_SERVER_URL = process.env.FORUM_SERVER_URL || "http://localhost:4000";
 
+const KO_TOPIC_LABELS = {
+  style: "스타일",
+  fashion: "패션",
+  fit: "핏",
+  brand: "브랜드",
+  color: "색감",
+  outerwear: "아우터",
+  layering: "레이어링",
+  office: "오피스",
+  commute: "출퇴근",
+  pricing: "가격",
+  trend_fatigue: "트렌드 피로",
+  forum_drama: "포럼 이슈",
+  status_signal: "상태 신호",
+  designer_labels: "디자이너 라벨",
+};
+
+function localizeTopicLabel(value) {
+  if (!value) {
+    return "일반";
+  }
+
+  return KO_TOPIC_LABELS[value] || value.replace(/_/g, " ");
+}
+
+function buildKoreanTargetContent({ agent, entry }) {
+  const interestTopics = agent?.interest_vector ? Object.keys(agent.interest_vector).slice(0, 3) : [];
+  const localizedTopics = interestTopics.length
+    ? interestTopics.map(localizeTopicLabel)
+    : ["스타일", "코디"];
+
+  return {
+    title: "최근 패션 흐름",
+    body: entry?.reason || "",
+    topics: localizedTopics,
+    emotions: ["호기심"],
+  };
+}
+
 // ── Forum server HTTP client ──────────────────────────────────────────────────
 
 async function forumPost(path, body) {
@@ -151,12 +190,14 @@ router.post("/tick", async (req, res) => {
 
     if (entry.action === "post") {
       let content;
+      let artifact = null;
       try {
         const targetAgent = result.snapshots[0]?.agents?.[0] || agent;
-        const artifact = generateForumArtifact({
+        const targetContent = buildKoreanTargetContent({ agent, entry });
+        artifact = generateForumArtifact({
           actionRecord: entry,
           author: agent,
-          targetContent: { title: "fashion topic", topics: ["style"], emotions: ["curiosity"] },
+          targetContent,
           targetAgent,
         });
         content = getForumArtifactText(
@@ -175,6 +216,7 @@ router.post("/tick", async (req, res) => {
           tags: agent.interest_vector ? Object.keys(agent.interest_vector).slice(0, 3) : [],
           agentRound: round,
           agentTick: entry.tick,
+          generationContext: artifact?.generation_context ?? null,
         });
         createdPosts.push(post);
         artifactResults.set(entry.action_id, { artifactId: post._id.toString(), artifactType: "post" });
@@ -206,9 +248,9 @@ router.post("/tick", async (req, res) => {
             actionRecord: entry,
             author: agent,
             targetContent: {
-              title: recentPost.content?.slice(0, 80) || "recent post",
+              title: "최근 글",
               body: recentPost.content || "",
-              topics: recentPost.tags || [],
+              topics: (recentPost.tags || []).map(localizeTopicLabel),
             },
             targetAgent,
             targetComment: replyTargetComment,
@@ -222,6 +264,7 @@ router.post("/tick", async (req, res) => {
             authorType: "agent",
             agentRound: round,
             agentTick: entry.tick,
+            generationContext: artifact?.generation_context ?? null,
           };
 
           if (replyTargetComment) {

@@ -8,6 +8,7 @@ import {
   createMemoryRuntime,
   buildSprint1PostTitle,
   buildSprint1PostBody,
+  buildSprint1GenerationContext,
   runTicks,
   createBaselineWorldRules,
   computeTickLevelMetrics,
@@ -109,6 +110,12 @@ router.post("/", async (req, res) => {
       stance_signal: selectedReaction.stance_signal,
       title: buildSprint1PostTitle(updatedAgent, selectedReaction, variationSeed),
       body: buildSprint1PostBody(updatedAgent, selectedReaction, selectedContent, variationSeed),
+      generationContext: buildSprint1GenerationContext({
+        updatedAgent,
+        reactionRecord: selectedReaction,
+        contentRecord: selectedContent,
+        variationSeed,
+      }),
       trace: {
         dominant_feeling: selectedReaction.dominant_feeling,
         resonance_score: selectedReaction.resonance_score,
@@ -123,13 +130,14 @@ router.post("/", async (req, res) => {
   // ── Step 3: Post to forum-server ──────────────────────────────────────────
   const createdPosts = [];
   for (const post of generatedPosts) {
-    try {
-      const result = await postToForum("/api/posts", {
-        content: `${post.title}\n\n${post.body}`,
-        authorId: post.agent_id,
-        authorType: "agent",
-        tags: [post.meaning_frame, post.stance_signal].filter(Boolean),
-      });
+      try {
+        const result = await postToForum("/api/posts", {
+          content: `${post.title}\n\n${post.body}`,
+          authorId: post.agent_id,
+          authorType: "agent",
+          tags: [post.meaning_frame, post.stance_signal].filter(Boolean),
+          generationContext: post.generationContext,
+        });
       createdPosts.push({ ...post, forumPostId: result._id?.toString() ?? null });
     } catch (err) {
       console.warn(`[run] forum post failed for ${post.agent_id}:`, err.message);
