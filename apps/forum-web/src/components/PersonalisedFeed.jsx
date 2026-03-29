@@ -88,17 +88,7 @@ export default function PersonalisedFeed({
             {tickMutation.isPending ? "진행 중…" : `+ 흐름 3회 진행 (${timeSpeed}x)`}
           </button>
         </div>
-        <button
-          style={styles.refreshBtn}
-          onClick={() => {
-            onUserActivity();
-            tickMutation.mutate();
-          }}
-          disabled={tickMutation.isPending}
-        >
-          {tickMutation.isPending ? "갱신 중…" : "↻ 새로고침"}
-        </button>
-      </div>
+      )}
 
       {isLoading && <p style={styles.msg}>피드 계산 중…</p>}
       {isError && <p style={styles.err}>{error?.message || "피드 로딩 실패"}</p>}
@@ -125,7 +115,7 @@ export default function PersonalisedFeed({
 }
 
 const styles = {
-  headerRow: {
+  banner: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
