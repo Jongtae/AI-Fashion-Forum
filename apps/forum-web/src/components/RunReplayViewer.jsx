@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchLatestReplay, triggerRun } from "../api/client.js";
 import AgentEvolutionPanel from "./AgentEvolutionPanel.jsx";
@@ -31,6 +31,29 @@ const ARCHETYPE_LABELS = {
   contrarian_commenter: "반론자",
   empathetic_responder: "공감 응답자",
 };
+
+const STORAGE_KEYS = {
+  lastAnchor: "replay-viewer:last-anchor",
+  runForm: "replay-viewer:last-run-form",
+  agentStateExpanded: "replay-viewer:agent-state-expanded",
+};
+
+function readStorage(key, fallback = null) {
+  try {
+    const value = window.localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore storage failures in private mode / disabled storage environments
+  }
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function pct(value) {
@@ -105,7 +128,7 @@ function ContinuityCard({ replay, onOpenSprint1 }) {
       <div style={styles.continuityHeader}>
         <div>
           <div style={styles.continuityKicker}>연결 보기</div>
-          <div style={styles.continuityTitle}>이번 replay에서 스프린트 요약으로 돌아가기</div>
+          <div style={styles.continuityTitle}>이번 기록에서 스프린트 요약으로 돌아가기</div>
         </div>
         {onOpenSprint1 && (
           <button style={styles.continuityButton} onClick={onOpenSprint1}>
@@ -114,7 +137,7 @@ function ContinuityCard({ replay, onOpenSprint1 }) {
         )}
       </div>
       <div style={styles.continuityText}>
-        동일한 자극에서 어떤 프레임 분포가 나왔는지 보고, 같은 맥락의 Sprint 1 요약과 비교해 볼 수 있습니다.
+        같은 자극에서 어떤 반응 흐름이 나왔는지 보고, 같은 맥락의 Sprint 1 요약과 비교해 볼 수 있습니다.
       </div>
       <div style={styles.continuityMeta}>
         <span>run: {replay?.run_id || "—"}</span>
@@ -170,39 +193,39 @@ function PostCard({ post }) {
       <div style={styles.postTitle}>{post.title}</div>
       <div style={styles.postBody}>{post.body}</div>
       <button style={styles.traceBtn} onClick={() => setExpanded((v) => !v)}>
-        {expanded ? "생성 원인 숨기기 ▲" : "생성 원인 보기 ▼"}
+        {expanded ? "배경 숨기기 ▲" : "배경 보기 ▼"}
       </button>
       {expanded && (
         <div style={styles.tracePanel}>
-          <div style={styles.traceTitle}>생성 원인 추적</div>
+          <div style={styles.traceTitle}>작성 배경</div>
           <div style={styles.traceGrid}>
-            <span style={styles.traceKey}>출처 콘텐츠</span>
+            <span style={styles.traceKey}>참고 글</span>
             <span style={styles.traceVal}>{post.source_content_id?.split(":").slice(-1)[0] || "—"}</span>
-            <span style={styles.traceKey}>의미 프레임</span>
+            <span style={styles.traceKey}>읽기 방식</span>
             <span style={styles.traceVal}>{frameLabel}</span>
-            <span style={styles.traceKey}>스탠스</span>
+            <span style={styles.traceKey}>반응 톤</span>
             <span style={styles.traceVal}>{stanceLabel}</span>
             {post.trace?.dominant_feeling && (
               <>
-                <span style={styles.traceKey}>지배 감정</span>
+                <span style={styles.traceKey}>중심 감정</span>
                 <span style={styles.traceVal}>{post.trace.dominant_feeling}</span>
               </>
             )}
             {post.trace?.resonance_score != null && (
               <>
-                <span style={styles.traceKey}>공명 점수</span>
+                <span style={styles.traceKey}>반응 강도</span>
                 <span style={styles.traceVal}>{score(post.trace.resonance_score)}</span>
               </>
             )}
             {post.trace?.self_narrative_summary && (
               <>
-                <span style={styles.traceKey}>자기 내러티브</span>
+                <span style={styles.traceKey}>자기 흐름</span>
                 <span style={styles.traceVal}>{post.trace.self_narrative_summary}</span>
               </>
             )}
             {post.trace?.recent_arc && (
               <>
-                <span style={styles.traceKey}>현재 아크</span>
+                <span style={styles.traceKey}>최근 흐름</span>
                 <span style={styles.traceVal}>{post.trace.recent_arc}</span>
               </>
             )}
@@ -214,13 +237,12 @@ function PostCard({ post }) {
 }
 
 // ── Agent state panel ─────────────────────────────────────────────────────────
-function AgentStatePanel({ agents }) {
+function AgentStatePanel({ agents, expanded, onToggle }) {
   if (!agents?.length) return null;
-  const [expanded, setExpanded] = useState(false);
 
   return (
     <div style={styles.agentStatePanel}>
-      <button style={styles.sectionHeaderBtn} onClick={() => setExpanded((v) => !v)}>
+      <button style={styles.sectionHeaderBtn} onClick={onToggle}>
         에이전트 상태 ({agents.length}명) {expanded ? "▲" : "▼"}
       </button>
       {expanded && (
@@ -248,10 +270,15 @@ function AgentStatePanel({ agents }) {
 }
 
 // ── Run trigger panel ─────────────────────────────────────────────────────────
-function RunTriggerPanel({ onRunComplete, timeSpeed = 1 }) {
+function RunTriggerPanel({
+  onRunComplete,
+  timeSpeed = 1,
+  seed,
+  ticks,
+  onSeedChange,
+  onTicksChange,
+}) {
   const queryClient = useQueryClient();
-  const [seed, setSeed] = useState(42);
-  const [ticks, setTicks] = useState(5);
 
   const mutation = useMutation({
     mutationFn: () => triggerRun({ seed, ticks, speed: timeSpeed }),
@@ -263,7 +290,7 @@ function RunTriggerPanel({ onRunComplete, timeSpeed = 1 }) {
 
   return (
     <div style={styles.runPanel}>
-      <div style={styles.runPanelTitle}>새 실험 실행</div>
+      <div style={styles.runPanelTitle}>새 기록 만들기</div>
       <div style={styles.runInputRow}>
         <label style={styles.runLabel}>
           Seed
@@ -271,7 +298,7 @@ function RunTriggerPanel({ onRunComplete, timeSpeed = 1 }) {
             style={styles.runInput}
             type="number"
             value={seed}
-            onChange={(e) => setSeed(Number(e.target.value))}
+            onChange={(e) => onSeedChange(Number(e.target.value))}
             min={0}
           />
         </label>
@@ -281,7 +308,7 @@ function RunTriggerPanel({ onRunComplete, timeSpeed = 1 }) {
             style={styles.runInput}
             type="number"
             value={ticks}
-            onChange={(e) => setTicks(Math.min(10, Math.max(1, Number(e.target.value))))}
+            onChange={(e) => onTicksChange(Math.min(10, Math.max(1, Number(e.target.value))))}
             min={1}
             max={10}
           />
@@ -291,7 +318,7 @@ function RunTriggerPanel({ onRunComplete, timeSpeed = 1 }) {
           onClick={() => mutation.mutate()}
           disabled={mutation.isPending}
         >
-          {mutation.isPending ? "실행 중..." : `▶ Run (${timeSpeed}x)`}
+          {mutation.isPending ? "기록 만드는 중..." : `▶ 실행 (${timeSpeed}x)`}
         </button>
       </div>
       {mutation.isError && (
@@ -301,7 +328,7 @@ function RunTriggerPanel({ onRunComplete, timeSpeed = 1 }) {
       )}
       {mutation.isSuccess && (
         <div style={styles.runSuccess}>
-          완료 — posts: {mutation.data?.posts_created}, replay: {mutation.data?.replay_file}
+          완료 — posts: {mutation.data?.posts_created}, 기록: {mutation.data?.replay_file}
         </div>
       )}
     </div>
@@ -310,6 +337,17 @@ function RunTriggerPanel({ onRunComplete, timeSpeed = 1 }) {
 
 // ── Main viewer ───────────────────────────────────────────────────────────────
 export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
+  const storedRunForm = readStorage(STORAGE_KEYS.runForm, { seed: 42, ticks: 5 });
+  const [seed, setSeed] = useState(storedRunForm.seed ?? 42);
+  const [ticks, setTicks] = useState(storedRunForm.ticks ?? 5);
+  const [agentStateExpanded, setAgentStateExpanded] = useState(
+    () => readStorage(STORAGE_KEYS.agentStateExpanded, false) === true
+  );
+  const [activeAnchor, setActiveAnchor] = useState(
+    () => readStorage(STORAGE_KEYS.lastAnchor, "run-panel") || "run-panel"
+  );
+  const restoreAnchorRef = useRef(false);
+
   const {
     data: replay,
     isLoading,
@@ -328,12 +366,82 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
     refetchOnMount: true,
   });
 
+  useEffect(() => {
+    writeStorage(STORAGE_KEYS.runForm, { seed, ticks });
+  }, [seed, ticks]);
+
+  useEffect(() => {
+    writeStorage(STORAGE_KEYS.agentStateExpanded, agentStateExpanded);
+  }, [agentStateExpanded]);
+
+  useEffect(() => {
+    if (!replay || restoreAnchorRef.current) {
+      return;
+    }
+
+    const target = window.localStorage.getItem(STORAGE_KEYS.lastAnchor) || activeAnchor;
+    if (!target) {
+      return;
+    }
+
+    const node = document.querySelector(`[data-replay-anchor="${target}"]`);
+    if (!node) {
+      return;
+    }
+
+    restoreAnchorRef.current = true;
+    window.requestAnimationFrame(() => {
+      node.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+  }, [replay, activeAnchor]);
+
+  useEffect(() => {
+    if (!replay) return undefined;
+
+    const nodes = Array.from(document.querySelectorAll("[data-replay-anchor]"));
+    if (nodes.length === 0) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting);
+        if (visible.length === 0) return;
+
+        const anchor = visible
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
+          .target.getAttribute("data-replay-anchor");
+
+        if (anchor) {
+          setActiveAnchor(anchor);
+          writeStorage(STORAGE_KEYS.lastAnchor, anchor);
+        }
+      },
+      {
+        root: null,
+        threshold: 0.15,
+        rootMargin: "-10% 0px -65% 0px",
+      }
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+
+    return () => observer.disconnect();
+  }, [replay, agentStateExpanded]);
+
   return (
     <div style={styles.root}>
-      <RunTriggerPanel onRunComplete={refetch} timeSpeed={timeSpeed} />
+      <div data-replay-anchor="run-panel">
+        <RunTriggerPanel
+          onRunComplete={refetch}
+          timeSpeed={timeSpeed}
+          seed={seed}
+          ticks={ticks}
+          onSeedChange={setSeed}
+          onTicksChange={setTicks}
+        />
+      </div>
 
       <div style={styles.liveHint}>
-        {isFetching ? "최신 replay 확인 중…" : "최신 replay를 5초마다 자동 갱신합니다."}
+        {isFetching ? "최근 기록을 확인 중…" : "최근 기록을 5초마다 자동 갱신합니다."}
         {dataUpdatedAt ? (
           <span style={styles.liveHintMeta}>
             마지막 갱신: {new Date(dataUpdatedAt).toLocaleTimeString("ko-KR")}
@@ -341,38 +449,44 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
         ) : null}
       </div>
 
-      {isLoading && <div style={styles.loading}>Replay 로딩 중...</div>}
+      {isLoading && <div style={styles.loading}>기록 불러오는 중...</div>}
 
       {error && !isLoading && (
         <div style={styles.noReplay}>
-          <div style={styles.noReplayTitle}>아직 실행된 replay가 없습니다</div>
-          <div style={styles.noReplayMsg}>위 Run 버튼으로 첫 번째 실험을 실행하세요.</div>
+          <div style={styles.noReplayTitle}>아직 기록이 없습니다</div>
+          <div style={styles.noReplayMsg}>위 실행 버튼으로 첫 기록을 만들어보세요.</div>
         </div>
       )}
 
       {replay && (
         <>
-          <ContinuityCard replay={replay} onOpenSprint1={onOpenSprint1} />
+          <div data-replay-anchor="continuity-card">
+            <ContinuityCard replay={replay} onOpenSprint1={onOpenSprint1} />
+          </div>
 
-          <div style={styles.runMeta}>
-            <span style={styles.runMetaItem}>run: <code>{replay.run_id}</code></span>
+          <div style={styles.runMeta} data-replay-anchor="run-meta">
+            <span style={styles.runMetaItem}>기록: <code>{replay.run_id}</code></span>
             <span style={styles.runMetaItem}>seed: {replay.seed}</span>
             <span style={styles.runMetaItem}>ticks: {replay.ticks}</span>
             <span style={styles.runMetaItem}>{replay.created_at?.slice(0, 19).replace("T", " ")}</span>
           </div>
 
-          <MetricsPanel report={replay.report} />
+          <div data-replay-anchor="metrics">
+            <MetricsPanel report={replay.report} />
+          </div>
 
-          <AgentEvolutionPanel
-            title="에이전트 성장/진화"
-            subtitle="리플레이에 기록된 에이전트 수 증가와 각자의 최근 변화 흐름을 봅니다."
-            agentGrowth={replay.agent_growth}
-            evolutions={replay.agent_evolution ?? []}
-            emptyText="아직 진화 정보가 없습니다."
-          />
+          <div data-replay-anchor="evolution">
+            <AgentEvolutionPanel
+              title="에이전트 변화 흐름"
+              subtitle="기록된 에이전트 변화와 각자의 최근 흐름을 봅니다."
+              agentGrowth={replay.agent_growth}
+              evolutions={replay.agent_evolution ?? []}
+              emptyText="아직 진화 정보가 없습니다."
+            />
+          </div>
 
-          <div style={styles.sectionHeader}>
-            Exposure 추적 ({Object.keys(replay.exposures ?? {}).length}명)
+          <div style={styles.sectionHeader} data-replay-anchor="exposure">
+            반응 기록 ({Object.keys(replay.exposures ?? {}).length}명)
           </div>
           <div style={styles.exposureList}>
             {Object.entries(replay.exposures ?? {}).map(([id, exp]) => (
@@ -380,8 +494,8 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
             ))}
           </div>
 
-          <div style={styles.sectionHeader}>
-            에이전트 포스트 ({replay.posts?.length ?? 0}개)
+          <div style={styles.sectionHeader} data-replay-anchor="posts">
+            에이전트 글 ({replay.posts?.length ?? 0}개)
           </div>
           <div style={styles.postList}>
             {(replay.posts ?? []).map((post) => (
@@ -389,7 +503,13 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
             ))}
           </div>
 
-          <AgentStatePanel agents={replay.agents} />
+          <div data-replay-anchor="agent-state">
+            <AgentStatePanel
+              agents={replay.agents}
+              expanded={agentStateExpanded}
+              onToggle={() => setAgentStateExpanded((value) => !value)}
+            />
+          </div>
         </>
       )}
     </div>
