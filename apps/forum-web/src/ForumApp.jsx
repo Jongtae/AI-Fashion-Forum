@@ -9,6 +9,7 @@ import DiscoveryPanel from "./components/DiscoveryPanel.jsx";
 import AuthModal from "./components/AuthModal.jsx";
 import AdminDashboard from "./components/AdminDashboard.jsx";
 import ProfilePanel from "./components/ProfilePanel.jsx";
+import { MessageCircleMore } from "lucide-react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -154,7 +155,9 @@ function ServiceRail({
 }) {
   return (
     <aside style={styles.rail}>
-      <div style={styles.railBrand}>@</div>
+      <div style={styles.railBrand} aria-label="AI Fashion Forum">
+        <MessageCircleMore size={28} strokeWidth={2.25} />
+      </div>
       <div style={styles.railNav}>
         {SERVICE_TABS.map((tabItem) => {
           const isActive = currentTab === tabItem.id;
@@ -665,7 +668,9 @@ export default function ForumApp() {
           <>
             <div style={styles.serviceTopBar}>
               <div style={styles.serviceTopBrandWrap}>
-                <div style={styles.serviceTopBrand}>@</div>
+                <div style={styles.serviceTopBrand} aria-label="AI Fashion Forum">
+                  <MessageCircleMore size={24} strokeWidth={2.25} />
+                </div>
                 <div style={styles.serviceTopBrandTitle}>ai fashion forum</div>
               </div>
             </div>
