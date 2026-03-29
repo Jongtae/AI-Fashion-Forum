@@ -455,7 +455,7 @@ async function resolvePostDraft({
   mode,
   variationSeed = 0,
   apiKey = process.env.OPENAI_API_KEY || "",
-  model = process.env.OPENAI_POST_CONTEXT_MODEL || "gpt-5",
+  model = process.env.OPENAI_POST_CONTEXT_MODEL || "gpt-4o",
   fetchImpl = globalThis.fetch,
   agentHandle,
   sourceTitle,
