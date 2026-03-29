@@ -110,7 +110,7 @@ export function rankFeed({
       format: contentRecord.format,
       score: clamp(score),
       score_breakdown: signals,
-      reason: `${agentState.handle} 기준 ${experimentFlag} 랭킹: interest=${signals.interestMatch.toFixed(3)}, trust=${signals.trustSignal.toFixed(3)}, novelty=${signals.noveltySignal.toFixed(3)}, controversy=${signals.controversySignal.toFixed(3)}, recency=${signals.recencySignal.toFixed(3)}.`,
+      reason: `${agentState.handle} 기준 ${experimentFlag} 랭킹으로 선택했다. 관심=${signals.interestMatch.toFixed(3)}, 신뢰=${signals.trustSignal.toFixed(3)}, 새로움=${signals.noveltySignal.toFixed(3)}, 논쟁성=${signals.controversySignal.toFixed(3)}, 최신성=${signals.recencySignal.toFixed(3)}.`,
     };
   });
 
