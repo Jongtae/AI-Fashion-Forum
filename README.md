@@ -189,6 +189,10 @@ Open work: [Jongtae/AI-Fashion-Forum issues](https://github.com/Jongtae/AI-Fashi
 
 ## Documentation map
 
+### Start here
+
+- Project guide for new readers: [`/docs/project-guide.md`](./docs/project-guide.md)
+
 ### Product strategy and direction
 
 - Simulation intent guardrails: [`/docs/product-strategy/simulation-intent-guardrails.md`](./docs/product-strategy/simulation-intent-guardrails.md)
