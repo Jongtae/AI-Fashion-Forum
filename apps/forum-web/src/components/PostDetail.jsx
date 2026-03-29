@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchPost, toggleLike, deletePost, savePost, unsavePost } from "../api/client.js";
 import CommentSection from "./CommentSection.jsx";
 import { localizeLabel } from "../lib/localized-labels.js";
+import { sharePostLink } from "../lib/post-sharing.js";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
@@ -41,6 +42,7 @@ export default function PostDetail({
   isAuthenticated = false,
 }) {
   const queryClient = useQueryClient();
+  const [shareState, setShareState] = React.useState({ status: "idle", message: "" });
 
   const { data: post, isLoading, isError, error } = useQuery({
     queryKey: ["post", postId, currentUser.id],
@@ -67,6 +69,28 @@ export default function PostDetail({
       onBack();
     },
   });
+
+  async function handleShare() {
+    onUserActivity();
+    try {
+      const result = await sharePostLink({
+        postId,
+        title: post?.content?.slice(0, 80),
+      });
+      setShareState({
+        status: "success",
+        message:
+          result.method === "native"
+            ? "공유 창을 열었어요"
+            : result.method === "clipboard"
+            ? "링크를 복사했어요"
+            : "링크를 직접 복사해 주세요",
+      });
+    } catch (err) {
+      if (err?.name === "AbortError") return;
+      setShareState({ status: "error", message: "공유에 실패했어요" });
+    }
+  }
 
   if (isLoading) {
     return <div style={styles.container}><p style={styles.msg}>글을 불러오는 중…</p></div>;
@@ -222,7 +246,21 @@ export default function PostDetail({
           >
             {isSaved ? "🔖 저장됨" : "📌 저장"}
           </button>
+          <button onClick={handleShare} style={styles.actionBtn}>
+            ↗ 공유
+          </button>
         </div>
+
+        {shareState.status !== "idle" && (
+          <div
+            style={{
+              ...styles.shareState,
+              ...(shareState.status === "error" ? styles.shareStateError : styles.shareStateSuccess),
+            }}
+          >
+            {shareState.message}
+          </div>
+        )}
       </article>
 
       <section style={styles.commentsSection}>
@@ -364,6 +402,13 @@ const styles = {
     cursor: "pointer",
     padding: "4px 0",
   },
+  shareState: {
+    marginTop: 12,
+    fontSize: 12,
+    lineHeight: 1.4,
+  },
+  shareStateSuccess: { color: "#0f766e" },
+  shareStateError: { color: "#dc2626" },
   commentsSection: {
     background: "#fff",
     border: "1px solid #e5e7eb",
