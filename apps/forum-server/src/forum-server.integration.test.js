@@ -23,6 +23,48 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function matchesPostQuery(post, filter = {}) {
+  if (filter._id?.$in && !filter._id.$in.some((value) => String(value) === String(post._id))) {
+    return false;
+  }
+  if (filter.tags && !post.tags?.includes(filter.tags)) {
+    return false;
+  }
+  if (filter.authorId && post.authorId !== filter.authorId) {
+    return false;
+  }
+  if (filter.authorType && post.authorType !== filter.authorType) {
+    return false;
+  }
+  if (filter.$or?.length) {
+    const haystack = [
+      post.content,
+      post.authorId,
+      post.format,
+      ...(post.tags || []),
+    ]
+      .filter(Boolean)
+      .map((value) => String(value).toLowerCase());
+
+    const matchesAny = filter.$or.some((clause) => {
+      const [field, condition] = Object.entries(clause)[0] || [];
+      if (!field || !condition?.$regex) return false;
+      const regex = new RegExp(condition.$regex, condition.$options || "");
+      if (field === "tags") {
+        return (post.tags || []).some((tag) => regex.test(String(tag)));
+      }
+      const value = String(post[field] || "").toLowerCase();
+      return regex.test(value) || haystack.some((entry) => regex.test(entry));
+    });
+
+    if (!matchesAny) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function createServer(app) {
   return new Promise((resolve) => {
     const server = app.listen(0, () => {
@@ -74,6 +116,28 @@ function makeCommentDocument(store, input) {
 }
 
 function installUserStorePatches(store, restorers) {
+  function buildUserQuery(match) {
+    const resolved = match ? clone(match) : null;
+    return {
+      select() {
+        return {
+          lean: async () => {
+            if (!resolved) return null;
+            const { passwordHash, ...safeUser } = resolved;
+            return safeUser;
+          },
+        };
+      },
+      lean: async () => resolved,
+      then(resolve, reject) {
+        return Promise.resolve(resolved).then(resolve, reject);
+      },
+      catch(reject) {
+        return Promise.resolve(resolved).catch(reject);
+      },
+    };
+  }
+
   restorers.push(
     patch(User.prototype, "save", async function save() {
       const snapshot = clone(this.toObject({ depopulate: true }));
@@ -85,8 +149,8 @@ function installUserStorePatches(store, restorers) {
       }
       return this;
     }),
-    patch(User, "findOne", async (query) => {
-      return store.users.find((user) => user.username === query.username) || null;
+    patch(User, "findOne", (query) => {
+      return buildUserQuery(store.users.find((user) => user.username === query.username) || null);
     }),
     patch(User, "findById", (id) => ({
       select() {
@@ -212,12 +276,7 @@ test("posts comments likes and reports persist through the CRUD routes", async (
       return this;
     }),
     patch(Post, "find", (filter = {}) => {
-      const matches = store.posts.filter((post) => {
-        if (filter.tags) {
-          return post.tags?.includes(filter.tags);
-        }
-        return true;
-      });
+      const matches = store.posts.filter((post) => matchesPostQuery(post, filter));
 
       return {
         sort() {
@@ -233,12 +292,7 @@ test("posts comments likes and reports persist through the CRUD routes", async (
       };
     }),
     patch(Post, "countDocuments", async (filter = {}) => {
-      return store.posts.filter((post) => {
-        if (filter.tags) {
-          return post.tags?.includes(filter.tags);
-        }
-        return true;
-      }).length;
+      return store.posts.filter((post) => matchesPostQuery(post, filter)).length;
     }),
     patch(Post, "findById", (id) => {
       const post = store.posts.find((entry) => String(entry._id) === String(id));
@@ -479,6 +533,126 @@ test("posts comments likes and reports persist through the CRUD routes", async (
   assert.equal(deletePostRes.status, 200);
   assert.equal(deletePostBody.deleted, true);
   assert.equal(store.posts.length, 0);
+});
+
+test("discovery search popular saved and profile routes surface Threads/Reddit-style browsing", async (t) => {
+  const store = createInMemoryForumStore();
+  const restorers = [];
+  installUserStorePatches(store, restorers);
+
+  restorers.push(
+    patch(Post.prototype, "save", async function save() {
+      const snapshot = clone(this.toObject({ depopulate: true }));
+      const index = store.posts.findIndex((post) => String(post._id) === String(snapshot._id));
+      if (index >= 0) {
+        store.posts[index] = snapshot;
+      } else {
+        store.posts.push(snapshot);
+      }
+      return this;
+    }),
+    patch(Post, "find", (filter = {}) => ({
+      sort() {
+        return this;
+      },
+      skip() {
+        return this;
+      },
+      limit() {
+        return this;
+      },
+      lean: async () => clone(store.posts.filter((post) => matchesPostQuery(post, filter))),
+    })),
+    patch(Post, "countDocuments", async (filter = {}) => store.posts.filter((post) => matchesPostQuery(post, filter)).length),
+    patch(Post, "findById", (id) => {
+      const post = store.posts.find((entry) => String(entry._id) === String(id));
+      return post ? makePostDocument(store, post) : null;
+    }),
+    patch(Interaction.prototype, "save", async function save() {
+      const snapshot = clone(this.toObject({ depopulate: true }));
+      store.interactions.push(snapshot);
+      return this;
+    }),
+    patch(Interaction, "create", async (payload) => {
+      const snapshot = clone(payload);
+      store.interactions.push(snapshot);
+      return snapshot;
+    }),
+    patch(Interaction, "find", (filter = {}) => ({
+      sort() {
+        return this;
+      },
+      limit() {
+        return this;
+      },
+      lean: async () =>
+        clone(
+          store.interactions.filter((interaction) => {
+            if (filter.actorId && interaction.actorId !== filter.actorId) return false;
+            if (filter.eventType && interaction.eventType !== filter.eventType) return false;
+            if (filter.targetType && interaction.targetType !== filter.targetType) return false;
+            if (filter.targetId && String(interaction.targetId) !== String(filter.targetId)) return false;
+            return true;
+          }),
+        ),
+    })),
+  );
+
+  const app = createApp();
+  const { server, baseUrl } = await createServer(app);
+  t.after(() => {
+    server.close();
+    restorers.reverse().forEach((restore) => restore());
+  });
+
+  const forumUserSession = await createAuthedForumUser(baseUrl, "discover-user");
+
+  const officePostRes = await fetch(`${baseUrl}/api/posts`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
+    body: JSON.stringify({
+      content: "Office search baseline for saved posts.",
+      authorId: forumUserSession.username,
+      authorType: "user",
+      tags: ["office_style", "saved_worthy"],
+    }),
+  });
+  const officePost = await officePostRes.json();
+  assert.equal(officePostRes.status, 201);
+
+  const otherPostRes = await fetch(`${baseUrl}/api/posts`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
+    body: JSON.stringify({
+      content: "Later post about a jacket balance update.",
+      authorId: forumUserSession.username,
+      authorType: "user",
+      tags: ["jacket", "fit"],
+    }),
+  });
+  const otherPost = await otherPostRes.json();
+  assert.equal(otherPostRes.status, 201);
+
+  const searchRes = await fetch(`${baseUrl}/api/posts?q=office`);
+  const searchBody = await searchRes.json();
+  assert.equal(searchRes.status, 200);
+  assert.equal(searchBody.posts[0]._id, officePost._id);
+
+  const tagRes = await fetch(`${baseUrl}/api/posts?tag=office_style`);
+  const tagBody = await tagRes.json();
+  assert.equal(tagRes.status, 200);
+  assert.equal(tagBody.posts[0]._id, officePost._id);
+
+  const authorRes = await fetch(`${baseUrl}/api/posts?q=${forumUserSession.username}`);
+  const authorBody = await authorRes.json();
+  assert.equal(authorRes.status, 200);
+  assert.equal(authorBody.posts.some((post) => post._id === otherPost._id), true);
 });
 
 test("agent writes are rate-limited to about three per hour across posts and comments", async (t) => {

@@ -12,6 +12,7 @@ export default function PostList({
   onTagClick = () => {},
   activeTagFilter = "",
   onTagFilterChange = () => {},
+  queryParams = {},
   readOnly = false,
 }) {
   const [internalTagFilter, setInternalTagFilter] = useState("");
@@ -28,9 +29,14 @@ export default function PostList({
     isError,
     error,
   } = useInfiniteQuery({
-    queryKey: ["posts", tagFilter],
+    queryKey: ["posts", tagFilter, queryParams],
     queryFn: ({ pageParam = 1 }) =>
-      fetchPosts({ page: pageParam, limit: PAGE_SIZE, ...(tagFilter ? { tag: tagFilter } : {}) }),
+      fetchPosts({
+        page: pageParam,
+        limit: PAGE_SIZE,
+        ...(tagFilter ? { tag: tagFilter } : {}),
+        ...queryParams,
+      }),
     getNextPageParam: (lastPage) => {
       const { page, pages } = lastPage.pagination;
       return page < pages ? page + 1 : undefined;

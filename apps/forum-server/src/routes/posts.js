@@ -176,15 +176,22 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
-  const skip = (page - 1) * limit;
   const tag = req.query.tag;
+  const search = typeof req.query.q === "string" ? req.query.q.trim() : "";
 
   const filter = tag ? { tags: tag } : {};
+  if (search) {
+    const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filter.$or = [
+      { content: { $regex: escaped, $options: "i" } },
+      { authorId: { $regex: escaped, $options: "i" } },
+      { tags: { $regex: escaped, $options: "i" } },
+    ];
+  }
 
-  const [posts, total] = await Promise.all([
-    Post.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-    Post.countDocuments(filter),
-  ]);
+  const posts = await Post.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean();
+  const total = await Post.countDocuments(filter);
+  const skip = (page - 1) * limit;
 
   res.json({
     posts,
