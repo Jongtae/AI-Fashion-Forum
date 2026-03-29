@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deletePost, savePost, toggleLike, unsavePost } from "../api/client.js";
 import CommentSection from "./CommentSection.jsx";
 import { localizeLabel } from "../lib/localized-labels.js";
+import { sharePostLink } from "../lib/post-sharing.js";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
@@ -43,6 +44,7 @@ export default function PostCard({
 }) {
   const [showComments, setShowComments] = useState(false);
   const [savedState, setSavedState] = useState(Boolean(post.savedByCurrentUser));
+  const [shareState, setShareState] = useState({ status: "idle", message: "" });
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -73,6 +75,28 @@ export default function PostCard({
       queryClient.invalidateQueries({ queryKey: ["operator-dashboard"] });
     },
   });
+
+  async function handleShare() {
+    onUserActivity();
+    try {
+      const result = await sharePostLink({
+        postId: post._id,
+        title: post.content?.slice(0, 80),
+      });
+      setShareState({
+        status: "success",
+        message:
+          result.method === "native"
+            ? "공유 창을 열었어요"
+            : result.method === "clipboard"
+            ? "링크를 복사했어요"
+            : "링크를 직접 복사해 주세요",
+      });
+    } catch (err) {
+      if (err?.name === "AbortError") return;
+      setShareState({ status: "error", message: "공유에 실패했어요" });
+    }
+  }
 
   const isLiked = post.likedBy?.includes(currentUser.id);
   const canDelete = post.authorId === currentUser.id;
@@ -166,6 +190,9 @@ export default function PostCard({
             >
               {savedState ? "🔖 저장됨" : "📌 저장"}
             </button>
+            <button onClick={handleShare} style={styles.actionBtn}>
+              ↗ 공유
+            </button>
             <button
               onClick={() => {
                 onUserActivity();
@@ -188,6 +215,17 @@ export default function PostCard({
               </button>
             )}
           </div>
+
+          {shareState.status !== "idle" && (
+            <div
+              style={{
+                ...styles.shareState,
+                ...(shareState.status === "error" ? styles.shareStateError : styles.shareStateSuccess),
+              }}
+            >
+              {shareState.message}
+            </div>
+          )}
 
           {showComments && (
             <CommentSection postId={post._id} currentUser={currentUser} onUserActivity={onUserActivity} />
@@ -267,4 +305,11 @@ const styles = {
     cursor: "pointer",
     padding: "2px 4px",
   },
+  shareState: {
+    marginTop: 10,
+    fontSize: 12,
+    lineHeight: 1.4,
+  },
+  shareStateSuccess: { color: "#0f766e" },
+  shareStateError: { color: "#dc2626" },
 };

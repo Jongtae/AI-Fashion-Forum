@@ -34,11 +34,29 @@ function getInitialTab() {
   return "forum";
 }
 
+function getInitialSelectedPostId() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("postId") || null;
+}
+
+function setPostUrl(postId) {
+  const params = new URLSearchParams(window.location.search);
+  if (postId) {
+    params.set("postId", postId);
+  } else {
+    params.delete("postId");
+  }
+
+  const search = params.toString();
+  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+  window.history.replaceState({}, "", nextUrl);
+}
+
 export default function ForumApp() {
   const [authUser, setAuthUser] = useState(loadStoredUser);
   const [showAuth, setShowAuth] = useState(false);
   const [tab, setTab] = useState(getInitialTab);
-  const [selectedPostId, setSelectedPostId] = useState(null);
+  const [selectedPostId, setSelectedPostId] = useState(getInitialSelectedPostId);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [activeTagFilter, setActiveTagFilter] = useState("");
   const [composerOpen, setComposerOpen] = useState(false);
@@ -90,8 +108,9 @@ export default function ForumApp() {
     if (!tag) return;
     markForumActivity();
     setSelectedProfile(null);
-    setTab("forum");
     setSelectedPostId(null);
+    setPostUrl(null);
+    setTab("forum");
     setActiveTagFilter(tag);
   }
 
@@ -99,16 +118,24 @@ export default function ForumApp() {
     setSelectedProfile(null);
     setSelectedPostId(postId);
     setTab("forum");
+    setPostUrl(postId);
+  }
+
+  function closePost() {
+    setSelectedPostId(null);
+    setPostUrl(null);
   }
 
   function openProfile(profile) {
     if (!profile?.id) return;
     setSelectedPostId(null);
+    setPostUrl(null);
     setSelectedProfile(profile);
   }
 
   function openSavedPosts() {
     setSelectedPostId(null);
+    setPostUrl(null);
     setSelectedProfile(null);
     if (!authUser) {
       setPendingTab("saved");
@@ -265,7 +292,7 @@ export default function ForumApp() {
                   <PostDetail
                     postId={selectedPostId}
                     currentUser={currentUser}
-                    onBack={() => setSelectedPostId(null)}
+                    onBack={closePost}
                     onUserActivity={markForumActivity}
                     onTagClick={openTagFilter}
                     onAuthorClick={openProfile}
