@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchLatestReplay, triggerRun } from "../api/client.js";
+import { fetchLatestReplay, submitFeedback, triggerRun } from "../api/client.js";
 import AgentEvolutionPanel from "./AgentEvolutionPanel.jsx";
 
 const REPLAY_REFRESH_MS = 5_000;
@@ -363,6 +363,7 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
   );
   const [restoreStatus, setRestoreStatus] = useState("대기 중");
   const [restoredAnchor, setRestoredAnchor] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
   const restoreAnchorRef = useRef(false);
 
   const {
@@ -381,6 +382,28 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
+  });
+
+  const restoreFeedbackMutation = useMutation({
+    mutationFn: (rating) =>
+      submitFeedback({
+        userId: "replay-viewer",
+        category: "satisfaction",
+        targetId: replay?.run_id || "replay_viewer",
+        targetType: "system",
+        rating,
+        message: `replay restore:${restoreStatus} anchor:${restoredAnchor || activeAnchor} rating:${rating}`,
+        metadata: {
+          surface: "replay_viewer",
+          restoreStatus,
+          anchor: restoredAnchor || activeAnchor,
+          replayRunId: replay?.run_id || null,
+          replaySeed: replay?.seed ?? null,
+        },
+      }),
+    onSuccess: (_data, rating) => {
+      setFeedbackMessage(rating >= 4 ? "복원 피드백을 남겼어요." : "복원 피드백을 저장했어요.");
+    },
   });
 
   useEffect(() => {
@@ -478,6 +501,31 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
           ) : null}
         </div>
       </div>
+      {restoredAnchor && (
+        <div style={styles.restoreFeedbackCard}>
+          <div style={styles.restoreFeedbackTitle}>복원 도움 피드백</div>
+          <div style={styles.restoreFeedbackText}>마지막 위치 복원이 작업에 도움이 되었나요?</div>
+          <div style={styles.restoreFeedbackActions}>
+            <button
+              type="button"
+              style={styles.restoreFeedbackBtn}
+              onClick={() => restoreFeedbackMutation.mutate(5)}
+              disabled={restoreFeedbackMutation.isPending}
+            >
+              도움이 됨
+            </button>
+            <button
+              type="button"
+              style={styles.restoreFeedbackBtnSecondary}
+              onClick={() => restoreFeedbackMutation.mutate(2)}
+              disabled={restoreFeedbackMutation.isPending}
+            >
+              별로였음
+            </button>
+          </div>
+          {feedbackMessage && <div style={styles.restoreFeedbackMessage}>{feedbackMessage}</div>}
+        </div>
+      )}
 
       {isLoading && <div style={styles.loading}>기록 불러오는 중...</div>}
 
@@ -590,6 +638,55 @@ const styles = {
     background: "#e2e8f0",
     borderRadius: 999,
     padding: "3px 8px",
+    fontWeight: 600,
+  },
+  restoreFeedbackCard: {
+    padding: 12,
+    borderRadius: 8,
+    border: "1px solid #dbeafe",
+    background: "#eff6ff",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  restoreFeedbackTitle: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#1d4ed8",
+  },
+  restoreFeedbackText: {
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: "#1e3a8a",
+  },
+  restoreFeedbackActions: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  restoreFeedbackBtn: {
+    border: "none",
+    borderRadius: 999,
+    padding: "7px 12px",
+    background: "#2563eb",
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  restoreFeedbackBtnSecondary: {
+    border: "1px solid #93c5fd",
+    borderRadius: 999,
+    padding: "7px 12px",
+    background: "#fff",
+    color: "#1d4ed8",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  restoreFeedbackMessage: {
+    fontSize: 12,
+    color: "#065f46",
     fontWeight: 600,
   },
   loading: { padding: 32, textAlign: "center", color: "#6b7280" },
