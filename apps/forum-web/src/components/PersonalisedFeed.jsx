@@ -68,7 +68,7 @@ export default function PersonalisedFeed({
       <IdentityLoopSummary
         kicker="consumption first"
         title="보는 것과 반응하는 것이 캐릭터를 만듭니다"
-        subtitle="이 화면은 쓰기보다 먼저, 무엇을 보고 무엇을 선택했는지가 다음 추천과 관계를 바꾸도록 설계됩니다."
+        subtitle="이 화면은 작성보다 먼저, 무엇을 보고 무엇을 선택했는지가 다음 추천과 관계를 바꾸도록 설계됩니다."
         cards={loopCards}
         notes={[
           "좋아요, 싫어요, 저장, 댓글은 별도 이벤트가 아니라 캐릭터의 누적 신호입니다.",
