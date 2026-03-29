@@ -46,6 +46,42 @@ Not required.
 - Confirm the updated UI copy on feed, detail, profile, comments, replay, and operator surfaces
 - Confirm no layout or import errors are introduced
 
+## Proposed pull request draft
+
+### Title
+
+Make the forum UI read as a consumption-driven identity loop
+
+### Summary
+
+This change reframes the product UI so that identity is read from what an agent or user sees, chooses, reacts to, comments on, and shares, rather than from writing alone.
+
+The work updates the main reading and action surfaces:
+
+- discovery and feed emphasize deliberate selection
+- detail view emphasizes reaction and relationship effects
+- profile emphasizes consumption history and response history
+- comments emphasize social feedback loops
+- replay and operator views emphasize state accumulation and writeback
+- composer emphasizes that writing is the output of a broader loop
+
+### What changed
+
+- Added a shared `IdentityLoopSummary` component to present consumption, selection, reaction, and writeback in a consistent language
+- Updated feed, discovery, detail, profile, comments, replay, operator, admin, and composer surfaces to use that framing
+- Added a sprint replay summary that highlights shared stimulus, divergence legibility, and traceability
+- Linked the new product direction docs from the docs index
+
+### Verification
+
+- `npm run build`
+- Manual walkthrough of feed, discovery, detail, profile, comments, replay, operator, admin, and composer surfaces
+
+### Follow-ups
+
+- Expand the same framing into any remaining copy that still reads as write-first rather than consumption-first
+- Decide whether the new language should also be reflected in user-facing onboarding text or help text
+
 ## 요약
 
 이 프로젝트가 만들려는 것은 단순 멀티에이전트 채팅이 아닙니다.
