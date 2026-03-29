@@ -110,6 +110,68 @@ function ServiceContextSummary({ tab, discoveryMode, activeTagFilter, discoveryS
   );
 }
 
+function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
+  const actions = [
+    {
+      id: "forum",
+      title: "포럼 읽기",
+      description: "최신 글을 보고, 글쓰기와 댓글 흐름을 이어갑니다.",
+      buttonLabel: "포럼으로",
+    },
+    {
+      id: "discover",
+      title: "탐색하기",
+      description: "인기 글, 검색, 태그로 주제를 빠르게 찾습니다.",
+      buttonLabel: "탐색 열기",
+    },
+    {
+      id: "feed",
+      title: "맞춤 피드",
+      description: "내 반응에 맞춰 정렬된 글을 한 번에 봅니다.",
+      buttonLabel: "피드 보기",
+    },
+    {
+      id: "saved",
+      title: "저장글",
+      description: "나중에 다시 읽을 글을 모아둡니다.",
+      buttonLabel: "저장글 열기",
+    },
+  ];
+
+  return (
+    <section style={styles.quickActions}>
+      <div style={styles.quickActionsHeader}>
+        <p style={styles.quickActionsKicker}>바로 시작</p>
+        <h2 style={styles.quickActionsTitle}>이곳에서 할 수 있는 것</h2>
+        <p style={styles.quickActionsText}>
+          글을 읽고, 주제를 찾고, 반응을 남기고, 다시 볼 글을 저장할 수 있습니다.
+        </p>
+      </div>
+      <div style={styles.quickActionsGrid}>
+        {actions.map((action) => (
+          <button
+            key={action.id}
+            type="button"
+            style={styles.quickActionCard}
+            onClick={() => {
+              if (action.id === "saved") {
+                onOpenSavedPosts();
+                return;
+              }
+
+              onActivateTab(action.id);
+            }}
+          >
+            <div style={styles.quickActionTitle}>{action.title}</div>
+            <div style={styles.quickActionDescription}>{action.description}</div>
+            <span style={styles.quickActionButton}>{action.buttonLabel}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function setPostUrl(postId, { replace = true } = {}) {
   const params = new URLSearchParams(window.location.search);
   if (postId) {
@@ -548,6 +610,7 @@ export default function ForumApp() {
               </button>
             </nav>
 
+            <ServiceQuickActions onActivateTab={activateTab} onOpenSavedPosts={openSavedPosts} />
             <ServiceContextSummary
               tab={tab}
               discoveryMode={discoveryMode}
@@ -793,6 +856,67 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: 20,
+  },
+  quickActions: {
+    maxWidth: 680,
+    margin: "0 auto",
+    padding: "0 16px 4px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+  },
+  quickActionsHeader: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  },
+  quickActionsKicker: {
+    margin: 0,
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: "0.08em",
+    color: "#2563eb",
+  },
+  quickActionsTitle: {
+    margin: 0,
+    fontSize: 20,
+    lineHeight: 1.2,
+    color: "#111827",
+  },
+  quickActionsText: {
+    margin: 0,
+    fontSize: 14,
+    lineHeight: 1.6,
+    color: "#4b5563",
+  },
+  quickActionsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 10,
+  },
+  quickActionCard: {
+    textAlign: "left",
+    padding: 14,
+    borderRadius: 16,
+    border: "1px solid #dbe3f1",
+    background: "#fff",
+    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    minHeight: 132,
+  },
+  quickActionTitle: { fontSize: 16, fontWeight: 800, color: "#111827" },
+  quickActionDescription: { fontSize: 13, lineHeight: 1.5, color: "#6b7280" },
+  quickActionButton: {
+    alignSelf: "flex-start",
+    marginTop: "auto",
+    fontSize: 12,
+    fontWeight: 800,
+    color: "#2563eb",
+    background: "#eff6ff",
+    borderRadius: 999,
+    padding: "6px 10px",
   },
   formSection: {
     display: "flex",
