@@ -62,7 +62,7 @@ Not required.
 ### Review gates
 
 - Can a reviewer trace a character change from exposure to selection to reaction to writeback?
-- Can a reviewer tell whether the UI is consumption-first rather than write-first?
+- Can a reviewer tell whether the UI is consumption-first rather than write-centered?
 - Can a reviewer see the same framing across feed, detail, profile, comments, replay, and operator surfaces?
 - Can the build run cleanly after these changes?
 
@@ -207,7 +207,7 @@ The work updates the main reading and action surfaces:
 
 ### Follow-ups
 
-- Expand the same framing into any remaining copy that still reads as write-first rather than consumption-first
+- Expand the same framing into any remaining copy that still reads as writing-centered rather than consumption-first
 - Decide whether the new language should also be reflected in user-facing onboarding text or help text
 
 ## Final PR text
