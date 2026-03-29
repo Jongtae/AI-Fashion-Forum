@@ -56,6 +56,24 @@ function setPostUrl(postId, { replace = true } = {}) {
   }
 }
 
+const FEED_SCROLL_KEY = "forum:last-feed-scroll-y";
+
+function saveFeedScrollPosition() {
+  try {
+    window.sessionStorage.setItem(FEED_SCROLL_KEY, String(window.scrollY || 0));
+  } catch {}
+}
+
+function restoreFeedScrollPosition() {
+  try {
+    const raw = window.sessionStorage.getItem(FEED_SCROLL_KEY);
+    const scrollY = raw ? Number(raw) : 0;
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: Number.isFinite(scrollY) ? scrollY : 0, behavior: "auto" });
+    });
+  } catch {}
+}
+
 export default function ForumApp() {
   const [authUser, setAuthUser] = useState(loadStoredUser);
   const [showAuth, setShowAuth] = useState(false);
@@ -69,6 +87,7 @@ export default function ForumApp() {
   const [isAutoRunning, setIsAutoRunning] = useState(true);
   const [pendingTab, setPendingTab] = useState(null);
   const autoTickInFlightRef = useRef(false);
+  const prevSelectedPostIdRef = useRef(null);
 
   // currentUser: 로그인 시 JWT 사용자, 미로그인 시 guest
   const currentUser = authUser
@@ -113,6 +132,14 @@ export default function ForumApp() {
     return () => window.removeEventListener("popstate", syncSelectedPostFromLocation);
   }, []);
 
+  useEffect(() => {
+    const prevSelectedPostId = prevSelectedPostIdRef.current;
+    if (prevSelectedPostId && !selectedPostId) {
+      restoreFeedScrollPosition();
+    }
+    prevSelectedPostIdRef.current = selectedPostId;
+  }, [selectedPostId]);
+
   function toggleComposerOpen() {
     setComposerOpen((prev) => !prev);
   }
@@ -133,6 +160,7 @@ export default function ForumApp() {
 
   function openPost(postId) {
     setSelectedProfile(null);
+    saveFeedScrollPosition();
     setSelectedPostId(postId);
     setTab("forum");
     setPostUrl(postId, { replace: false });
@@ -142,6 +170,7 @@ export default function ForumApp() {
     setSelectedPostId(null);
     setPostUrl(null);
     setSelectedProfile(null);
+    restoreFeedScrollPosition();
   }
 
   function openProfile(profile) {
