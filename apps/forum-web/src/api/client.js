@@ -40,6 +40,8 @@ export const updatePost = (postId, data) =>
 export const deletePost = (postId) => forumRequest(`/api/posts/${postId}`, { method: "DELETE" });
 export const toggleLike = (postId, userId) =>
   forumRequest(`/api/posts/${postId}/like`, { method: "POST", body: { userId } });
+export const savePost = (postId) => forumRequest(`/api/posts/${postId}/save`, { method: "POST" });
+export const unsavePost = (postId) => forumRequest(`/api/posts/${postId}/save`, { method: "DELETE" });
 
 // ── Comments (forum-server) ───────────────────────────────────────────────────
 export const fetchComments = (postId) => forumRequest(`/api/posts/${postId}/comments`);

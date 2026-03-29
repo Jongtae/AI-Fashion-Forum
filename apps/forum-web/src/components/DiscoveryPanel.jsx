@@ -27,6 +27,8 @@ export default function DiscoveryPanel({
   onSelectPost = () => {},
   onUserActivity = () => {},
   onTagClick = () => {},
+  onRequireAuth = () => {},
+  isAuthenticated = false,
 }) {
   const [searchText, setSearchText] = useState("");
   const [topicFilter, setTopicFilter] = useState("");
@@ -138,6 +140,8 @@ export default function DiscoveryPanel({
           setTopicFilter(tag);
           onTagClick(tag);
         }}
+        onRequireAuth={onRequireAuth}
+        isAuthenticated={isAuthenticated}
         activeTagFilter={topicFilter}
         onTagFilterChange={(value) => setTopicFilter(value)}
         queryParams={queryParams}

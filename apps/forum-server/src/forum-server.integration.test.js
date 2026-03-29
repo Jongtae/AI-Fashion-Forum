@@ -65,6 +65,31 @@ function matchesPostQuery(post, filter = {}) {
   return true;
 }
 
+function matchesInteractionQuery(interaction, filter = {}) {
+  if (filter.actorId && interaction.actorId !== filter.actorId) {
+    return false;
+  }
+  if (filter.actorType && interaction.actorType !== filter.actorType) {
+    return false;
+  }
+  if (filter.targetType && interaction.targetType !== filter.targetType) {
+    return false;
+  }
+  if (filter.eventType && interaction.eventType !== filter.eventType) {
+    return false;
+  }
+  if (filter.targetId?.$in) {
+    const allowedIds = filter.targetId.$in.map((value) => String(value));
+    if (!allowedIds.includes(String(interaction.targetId))) {
+      return false;
+    }
+  } else if (filter.targetId && String(interaction.targetId) !== String(filter.targetId)) {
+    return false;
+  }
+
+  return true;
+}
+
 function createServer(app) {
   return new Promise((resolve) => {
     const server = app.listen(0, () => {
@@ -364,14 +389,39 @@ test("posts comments likes and reports persist through the CRUD routes", async (
       return makeCommentDocument(store, removed);
     }),
     patch(Interaction.prototype, "save", async function save() {
+      if (!this.createdAt) this.createdAt = new Date();
+      if (!this.updatedAt) this.updatedAt = new Date();
       const snapshot = clone(this.toObject({ depopulate: true }));
       store.interactions.push(snapshot);
       return this;
     }),
+    patch(Interaction, "find", (filter = {}) => {
+      const matches = store.interactions.filter((interaction) => matchesInteractionQuery(interaction, filter));
+
+      return {
+        sort() {
+          return this;
+        },
+        lean: async () => clone(matches),
+      };
+    }),
+    patch(Interaction, "findOne", async (query = {}) => {
+      const match = store.interactions.find((interaction) => matchesInteractionQuery(interaction, query));
+      return match ? clone(match) : null;
+    }),
     patch(Interaction, "create", async (payload) => {
-      const snapshot = clone(payload);
+      const snapshot = clone({
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        ...payload,
+      });
       store.interactions.push(snapshot);
       return snapshot;
+    }),
+    patch(Interaction, "deleteMany", async (filter = {}) => {
+      const before = store.interactions.length;
+      store.interactions = store.interactions.filter((interaction) => !matchesInteractionQuery(interaction, filter));
+      return { acknowledged: true, deletedCount: before - store.interactions.length };
     }),
     patch(Report, "findOne", async (query) => {
       return store.reports.find(
@@ -423,6 +473,55 @@ test("posts comments likes and reports persist through the CRUD routes", async (
   const getBody = await getRes.json();
   assert.equal(getRes.status, 200);
   assert.equal(getBody.content, "Weekend outfit check for a weekday office look.");
+
+  const saveRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}/save`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
+  });
+  const saveBody = await saveRes.json();
+  assert.equal(saveRes.status, 201);
+  assert.equal(saveBody.saved, true);
+
+  const savedListRes = await fetch(`${baseUrl}/api/posts?saved=true`, {
+    headers: {
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
+  });
+  const savedListBody = await savedListRes.json();
+  assert.equal(savedListRes.status, 200);
+  assert.equal(savedListBody.posts.length, 1);
+  assert.equal(savedListBody.posts[0].savedByCurrentUser, true);
+  assert.ok(savedListBody.posts[0].savedAt);
+
+  const authedListRes = await fetch(`${baseUrl}/api/posts?limit=10`, {
+    headers: {
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
+  });
+  const authedListBody = await authedListRes.json();
+  assert.equal(authedListRes.status, 200);
+  assert.equal(authedListBody.posts[0].savedByCurrentUser, true);
+
+  const unsaveRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}/save`, {
+    method: "DELETE",
+    headers: {
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
+  });
+  const unsaveBody = await unsaveRes.json();
+  assert.equal(unsaveRes.status, 200);
+  assert.equal(unsaveBody.saved, false);
+
+  const emptySavedListRes = await fetch(`${baseUrl}/api/posts?saved=true`, {
+    headers: {
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
+  });
+  const emptySavedListBody = await emptySavedListRes.json();
+  assert.equal(emptySavedListRes.status, 200);
+  assert.equal(emptySavedListBody.posts.length, 0);
 
   const updateRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}`, {
     method: "PUT",

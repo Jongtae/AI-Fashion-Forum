@@ -1,6 +1,6 @@
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchPost, toggleLike, deletePost } from "../api/client.js";
+import { fetchPost, toggleLike, deletePost, savePost, unsavePost } from "../api/client.js";
 import CommentSection from "./CommentSection.jsx";
 import { localizeLabel } from "../lib/localized-labels.js";
 
@@ -36,17 +36,27 @@ export default function PostDetail({
   onBack,
   onUserActivity = () => {},
   onTagClick = () => {},
+  onRequireAuth = () => {},
+  isAuthenticated = false,
 }) {
   const queryClient = useQueryClient();
 
   const { data: post, isLoading, isError, error } = useQuery({
-    queryKey: ["post", postId],
+    queryKey: ["post", postId, currentUser.id],
     queryFn: () => fetchPost(postId),
   });
 
   const likeMutation = useMutation({
     mutationFn: () => toggleLike(postId, currentUser.id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["post", postId] }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: () => (post?.savedByCurrentUser ? unsavePost(postId) : savePost(postId)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["post", postId] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
   });
 
   const deleteMutation = useMutation({
@@ -97,6 +107,7 @@ export default function PostDetail({
 
   const isLiked = post.likedBy?.includes(currentUser.id);
   const canDelete = post.authorId === currentUser.id;
+  const isSaved = Boolean(post.savedByCurrentUser);
 
   return (
     <div style={styles.container}>
@@ -183,6 +194,23 @@ export default function PostDetail({
             disabled={likeMutation.isPending}
           >
             {isLiked ? "♥" : "♡"} {post.likes}
+          </button>
+          <button
+            onClick={() => {
+              onUserActivity();
+              if (!isAuthenticated) {
+                onRequireAuth();
+                return;
+              }
+              saveMutation.mutate();
+            }}
+            style={{
+              ...styles.actionBtn,
+              color: isSaved ? "#0f766e" : "#6b7280",
+            }}
+            disabled={saveMutation.isPending}
+          >
+            {isSaved ? "🔖 저장됨" : "📌 저장"}
           </button>
         </div>
       </article>
