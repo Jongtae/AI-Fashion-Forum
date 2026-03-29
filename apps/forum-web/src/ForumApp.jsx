@@ -39,12 +39,41 @@ function getInitialSelectedPostId() {
   return params.get("postId") || null;
 }
 
+function getInitialSelectedProfile() {
+  const params = new URLSearchParams(window.location.search);
+  const profileId = params.get("profileId");
+  if (!profileId) return null;
+  return {
+    id: profileId,
+    type: params.get("profileType") || "user",
+  };
+}
+
 function setPostUrl(postId, { replace = true } = {}) {
   const params = new URLSearchParams(window.location.search);
   if (postId) {
     params.set("postId", postId);
   } else {
     params.delete("postId");
+  }
+
+  const search = params.toString();
+  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+  if (replace) {
+    window.history.replaceState({}, "", nextUrl);
+  } else {
+    window.history.pushState({}, "", nextUrl);
+  }
+}
+
+function setProfileUrl(profile, { replace = true } = {}) {
+  const params = new URLSearchParams(window.location.search);
+  if (profile?.id) {
+    params.set("profileId", profile.id);
+    params.set("profileType", profile.type || "user");
+  } else {
+    params.delete("profileId");
+    params.delete("profileType");
   }
 
   const search = params.toString();
@@ -79,7 +108,7 @@ export default function ForumApp() {
   const [showAuth, setShowAuth] = useState(false);
   const [tab, setTab] = useState(getInitialTab);
   const [selectedPostId, setSelectedPostId] = useState(getInitialSelectedPostId);
-  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [selectedProfile, setSelectedProfile] = useState(getInitialSelectedProfile);
   const [activeTagFilter, setActiveTagFilter] = useState("");
   const [composerOpen, setComposerOpen] = useState(false);
   const [hasForumActivity, setHasForumActivity] = useState(false);
@@ -123,7 +152,12 @@ export default function ForumApp() {
     const syncSelectedPostFromLocation = () => {
       const params = new URLSearchParams(window.location.search);
       setSelectedPostId(params.get("postId") || null);
-      setSelectedProfile(null);
+      const profileId = params.get("profileId");
+      setSelectedProfile(
+        profileId
+          ? { id: profileId, type: params.get("profileType") || "user" }
+          : null
+      );
     };
 
     window.addEventListener("popstate", syncSelectedPostFromLocation);
@@ -152,6 +186,7 @@ export default function ForumApp() {
     if (!tag) return;
     markForumActivity();
     setSelectedProfile(null);
+    setProfileUrl(null);
     setSelectedPostId(null);
     setPostUrl(null);
     setTab("forum");
@@ -160,6 +195,7 @@ export default function ForumApp() {
 
   function openPost(postId) {
     setSelectedProfile(null);
+    setProfileUrl(null);
     saveFeedScrollPosition();
     setSelectedPostId(postId);
     setTab("forum");
@@ -170,6 +206,7 @@ export default function ForumApp() {
     setSelectedPostId(null);
     setPostUrl(null);
     setSelectedProfile(null);
+    setProfileUrl(null);
     restoreFeedScrollPosition();
   }
 
@@ -178,12 +215,14 @@ export default function ForumApp() {
     setSelectedPostId(null);
     setPostUrl(null);
     setSelectedProfile(profile);
+    setProfileUrl(profile, { replace: false });
   }
 
   function openSavedPosts() {
     setSelectedPostId(null);
     setPostUrl(null);
     setSelectedProfile(null);
+    setProfileUrl(null);
     if (!authUser) {
       setPendingTab("saved");
       setShowAuth(true);
