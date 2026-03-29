@@ -16,7 +16,7 @@ export default function CommentSection({
   const queryClient = useQueryClient();
   const replyTargetLabel = replyTarget?.type === "comment" ? "댓글" : "글";
   const submitHint = replyTarget?.preview
-    ? `이 답글은 ${replyTargetLabel}에 연결됩니다. 제출 전 대상과 내용을 한 번 더 확인해 주세요.`
+    ? `답글 대상: ${replyTargetLabel}`
     : "";
   const draftPreview = replyTarget?.preview && text.trim()
     ? text.trim()
@@ -95,17 +95,14 @@ export default function CommentSection({
       )}
       {!isLoading && comments.length === 0 && (
         <div style={styles.emptyState}>
-          <div style={styles.emptyStateTitle}>첫 댓글을 남겨보세요!</div>
-          <div style={styles.emptyStateText}>
-            이 대화의 시작을 먼저 남기면 다른 사람도 이어서 반응하기 쉬워집니다.
-          </div>
+          <div style={styles.emptyStateTitle}>아직 댓글이 없습니다.</div>
         </div>
       )}
       {statusMessage && <div style={styles.statusMessage}>{statusMessage}</div>}
       {submitHint && <div style={styles.submitHint}>{submitHint}</div>}
       {draftPreview && (
         <div style={styles.draftPreview}>
-          <div style={styles.draftPreviewHeader}>작성 중 미리보기</div>
+          <div style={styles.draftPreviewHeader}>미리보기</div>
           <div style={styles.draftPreviewBody}>
             <div style={styles.draftPreviewTarget}>
               {replyTargetLabel} · @{replyTarget.authorId || "post"}
@@ -188,11 +185,6 @@ const styles = {
     fontWeight: 700,
     color: "#334155",
     marginBottom: 4,
-  },
-  emptyStateText: {
-    fontSize: 12,
-    lineHeight: 1.5,
-    color: "#64748b",
   },
   statusMessage: {
     marginBottom: 10,

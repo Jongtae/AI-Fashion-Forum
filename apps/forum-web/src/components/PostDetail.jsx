@@ -213,17 +213,6 @@ export default function PostDetail({
           </div>
         )}
 
-        {post.moderationStatus && (
-          <div style={styles.moderation}>
-            <span style={styles.status}>
-              {post.moderationStatus === "approved" ? "✓" : "⚠"}
-            </span>
-            <span style={styles.score}>
-              흐름 점검: {(post.moderationScore || 0).toFixed(2)}
-            </span>
-          </div>
-        )}
-
         <div style={styles.actions}>
           <button
             onClick={() => {
@@ -378,22 +367,6 @@ const styles = {
     appearance: "none",
     fontFamily: "inherit",
     lineHeight: 1.4,
-  },
-  moderation: {
-    display: "flex",
-    gap: 8,
-    fontSize: 12,
-    color: "#6b7280",
-    padding: "8px 12px",
-    background: "#f9fafb",
-    borderRadius: 6,
-    marginBottom: 16,
-  },
-  status: {
-    fontWeight: 600,
-  },
-  score: {
-    marginLeft: "auto",
   },
   actions: {
     display: "flex",

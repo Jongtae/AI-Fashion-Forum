@@ -4,9 +4,9 @@ import { fetchPosts } from "../api/client.js";
 import PostList from "./PostList.jsx";
 
 const MODES = [
-  { id: "recent", label: "최신", description: "방금 올라온 글" },
-  { id: "popular", label: "인기", description: "반응이 많은 글" },
-  { id: "search", label: "검색", description: "글, 태그, 작성자" },
+  { id: "recent", label: "최신", description: "최근 글" },
+  { id: "popular", label: "인기", description: "반응 많은 글" },
+  { id: "search", label: "검색", description: "글·태그·작성자" },
 ];
 
 function deriveTopTopics(posts) {
@@ -60,10 +60,8 @@ export default function DiscoveryPanel({
       <section style={styles.hero}>
         <div style={styles.heroCopy}>
           <p style={styles.kicker}>발견 허브</p>
-          <h2 style={styles.title}>글, 태그, 작성자를 찾아보세요</h2>
-          <p style={styles.description}>
-            검색하거나 인기 글을 보고, 주제를 눌러 같은 흐름의 글을 이어서 볼 수 있습니다.
-          </p>
+          <h2 style={styles.title}>글을 찾아보세요</h2>
+          <p style={styles.description}>검색, 인기, 태그 탐색.</p>
         </div>
 
         <div style={styles.modeGrid}>
@@ -106,10 +104,8 @@ export default function DiscoveryPanel({
       </section>
 
       <section style={styles.topicBar}>
-        <div style={styles.sectionLabel}>주제 커뮤니티</div>
-        <div style={styles.topicHint}>
-          태그를 눌러 같은 주제의 글만 모아 볼 수 있습니다.
-        </div>
+        <div style={styles.sectionLabel}>태그</div>
+        <div style={styles.topicHint}>같은 글 모아보기</div>
         <div style={styles.topicChips}>
           {topTopics.map((topic) => (
             <button
