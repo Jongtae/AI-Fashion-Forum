@@ -6,8 +6,6 @@ import PostList from "./components/PostList.jsx";
 import PostDetail from "./components/PostDetail.jsx";
 import PersonalisedFeed from "./components/PersonalisedFeed.jsx";
 import AuthModal from "./components/AuthModal.jsx";
-import Sprint1ReplayPanel from "./components/Sprint1ReplayPanel.jsx";
-import RunReplayViewer from "./components/RunReplayViewer.jsx";
 import OperatorDashboard from "./components/OperatorDashboard.jsx";
 
 const queryClient = new QueryClient({
@@ -28,8 +26,12 @@ function loadStoredUser() {
 export default function ForumApp() {
   const [authUser, setAuthUser] = useState(loadStoredUser);
   const [showAuth, setShowAuth] = useState(false);
-  const [tab, setTab] = useState("forum");
+  const [tab, setTab] = useState(() =>
+    window.location.pathname.startsWith("/operator") ? "operator" : "forum"
+  );
   const [selectedPostId, setSelectedPostId] = useState(null);
+  const [activeTagFilter, setActiveTagFilter] = useState("");
+  const [composerOpen, setComposerOpen] = useState(false);
   const [timeSpeed, setTimeSpeed] = useState(1);
   const [isAutoRunning, setIsAutoRunning] = useState(true);
   const autoTickInFlightRef = useRef(false);
@@ -49,6 +51,17 @@ export default function ForumApp() {
     localStorage.removeItem("auth_user");
     setAuthUser(null);
     queryClient.clear();
+  }
+
+  function toggleComposerOpen() {
+    setComposerOpen((prev) => !prev);
+  }
+
+  function openTagFilter(tag) {
+    if (!tag) return;
+    setTab("forum");
+    setSelectedPostId(null);
+    setActiveTagFilter(tag);
   }
 
   useEffect(() => {
@@ -71,6 +84,8 @@ export default function ForumApp() {
         await queryClient.invalidateQueries({ queryKey: ["feed"] });
         await queryClient.invalidateQueries({ queryKey: ["posts"] });
         await queryClient.invalidateQueries({ queryKey: ["agent-states"] });
+        await queryClient.invalidateQueries({ queryKey: ["operator-dashboard"] });
+        await queryClient.invalidateQueries({ queryKey: ["latest-report"] });
       } catch (err) {
         console.warn("[forum-web] auto simulation tick failed:", err?.message || err);
       } finally {
@@ -133,75 +148,92 @@ export default function ForumApp() {
           </div>
         </header>
 
-        <nav style={styles.nav}>
-          <button
-            style={{ ...styles.tabBtn, ...(tab === "forum" ? styles.tabActive : {}) }}
-            onClick={() => setTab("forum")}
-          >
-            포럼
-          </button>
-          <button
-            style={{ ...styles.tabBtn, ...(tab === "feed" ? styles.tabActive : {}) }}
-            onClick={() => setTab("feed")}
-          >
-            맞춤 피드
-          </button>
-          <button
-            style={{ ...styles.tabBtn, ...(tab === "replay-viewer" ? styles.tabActive : {}) }}
-            onClick={() => setTab("replay-viewer")}
-          >
-            Replay Viewer
-          </button>
-          <button
-            style={{ ...styles.tabBtn, ...(tab === "replay" ? styles.tabActive : {}) }}
-            onClick={() => setTab("replay")}
-          >
-            Sprint 1 (Legacy)
-          </button>
-          <button
-            style={{ ...styles.tabBtn, ...(tab === "operator" ? styles.tabActive : {}) }}
-            onClick={() => setTab("operator")}
-          >
-            Operator
-          </button>
-        </nav>
-
-        <main style={styles.main}>
-          {tab === "forum" ? (
-            selectedPostId ? (
-              <PostDetail
-                postId={selectedPostId}
-                currentUser={currentUser}
-                onBack={() => setSelectedPostId(null)}
-              />
-            ) : (
-              <>
-                <section style={styles.formSection}>
-                  <PostForm currentUser={currentUser} />
-                </section>
-                <section style={styles.feedSection}>
-                  <PostList currentUser={currentUser} onSelectPost={setSelectedPostId} />
-                </section>
-              </>
-            )
-          ) : tab === "feed" ? (
-            <section>
-              <PersonalisedFeed currentUser={currentUser} timeSpeed={timeSpeed} />
-            </section>
-          ) : tab === "replay-viewer" ? (
-            <section>
-              <RunReplayViewer timeSpeed={timeSpeed} />
-            </section>
-          ) : tab === "operator" ? (
+        {tab === "operator" ? (
+          <main style={styles.main}>
             <section>
               <OperatorDashboard />
             </section>
-          ) : (
-            <section>
-              <Sprint1ReplayPanel />
-            </section>
-          )}
-        </main>
+          </main>
+        ) : (
+          <>
+            <nav style={styles.nav}>
+              <button
+                style={{ ...styles.tabBtn, ...(tab === "forum" ? styles.tabActive : {}) }}
+                onClick={() => setTab("forum")}
+              >
+                포럼
+              </button>
+              <button
+                style={{ ...styles.tabBtn, ...(tab === "feed" ? styles.tabActive : {}) }}
+                onClick={() => setTab("feed")}
+              >
+                맞춤 피드
+              </button>
+            </nav>
+
+            <main style={styles.main}>
+              {tab === "forum" ? (
+                selectedPostId ? (
+                  <PostDetail
+                    postId={selectedPostId}
+                    currentUser={currentUser}
+                    onBack={() => setSelectedPostId(null)}
+                    onTagClick={openTagFilter}
+                  />
+                ) : (
+                  <>
+                    <section style={styles.formSection}>
+                      <div style={styles.composerGate}>
+                        <div>
+                          <p style={styles.composerTitle}>글쓰기</p>
+                          <p style={styles.composerHint}>
+                            포럼 상단을 덜 차지하는 compact 진입점입니다.
+                          </p>
+                        </div>
+                        <button
+                          style={{
+                            ...styles.composerBtn,
+                            ...styles.composerBtnActive,
+                          }}
+                          onClick={toggleComposerOpen}
+                        >
+                          {composerOpen ? "글쓰기 닫기" : "글쓰기 열기"}
+                        </button>
+                      </div>
+                      {composerOpen && (
+                        <div style={styles.composerPanel}>
+                          <PostForm currentUser={currentUser} />
+                        </div>
+                      )}
+                    </section>
+                    <section style={styles.feedSection}>
+                      <PostList
+                        currentUser={currentUser}
+                        activeTagFilter={activeTagFilter}
+                        onTagFilterChange={setActiveTagFilter}
+                        onSelectPost={(postId) => {
+                          setSelectedPostId(postId);
+                        }}
+                        onTagClick={openTagFilter}
+                      />
+                    </section>
+                  </>
+                )
+              ) : tab === "feed" ? (
+                <section>
+                  <PersonalisedFeed currentUser={currentUser} timeSpeed={timeSpeed} />
+                </section>
+              ) : (
+                <section style={styles.placeholderCard}>
+                  <p style={styles.placeholderTitle}>운영 도구는 `/operator` 경로로 분리했습니다.</p>
+                  <p style={styles.placeholderText}>
+                    서비스 화면에서는 포럼과 맞춤 피드만 제공합니다.
+                  </p>
+                </section>
+              )}
+            </main>
+          </>
+        )}
       </div>
     </QueryClientProvider>
   );
@@ -290,13 +322,74 @@ const styles = {
     flexDirection: "column",
     gap: 20,
   },
-  formSection: {},
+  formSection: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+  },
+  composerGate: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+    padding: 16,
+    background: "#fff",
+    border: "1px solid #e5e7eb",
+    borderRadius: 8,
+  },
+  composerTitle: {
+    margin: 0,
+    fontSize: 15,
+    fontWeight: 700,
+    color: "#111827",
+  },
+  composerHint: {
+    margin: "4px 0 0",
+    fontSize: 13,
+    color: "#6b7280",
+    lineHeight: 1.5,
+  },
+  composerBtn: {
+    border: "1px solid transparent",
+    borderRadius: 999,
+    padding: "7px 14px",
+    fontSize: 13,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  composerBtnActive: {
+    background: "#111827",
+    color: "#fff",
+  },
+  composerPanel: {
+    marginTop: 2,
+  },
   feedSection: {},
   nav: {
     background: "#1f2937",
     padding: "0 24px",
     display: "flex",
     gap: 4,
+  },
+  placeholderCard: {
+    marginTop: 8,
+    padding: "18px 20px",
+    borderRadius: 12,
+    border: "1px solid #e5e7eb",
+    background: "#fff",
+    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+  },
+  placeholderTitle: {
+    margin: 0,
+    fontSize: 16,
+    fontWeight: 700,
+    color: "#111827",
+  },
+  placeholderText: {
+    margin: "6px 0 0",
+    fontSize: 13,
+    color: "#6b7280",
+    lineHeight: 1.6,
   },
   tabBtn: {
     padding: "10px 16px",

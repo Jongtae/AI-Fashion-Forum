@@ -5,6 +5,9 @@ import {
   reviewModerationItem,
   fetchLatestReport,
 } from "../api/client.js";
+import PostList from "./PostList.jsx";
+import RunReplayViewer from "./RunReplayViewer.jsx";
+import Sprint1ReplayPanel from "./Sprint1ReplayPanel.jsx";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function pct(value) {
@@ -121,6 +124,7 @@ function EvalMiniPanel({ report }) {
 // ── Main dashboard ────────────────────────────────────────────────────────────
 export default function OperatorDashboard() {
   const queryClient = useQueryClient();
+  const operatorUser = { id: "operator-view", type: "user" };
 
   const { data: dashboard, isLoading, error, refetch } = useQuery({
     queryKey: ["operator-dashboard"],
@@ -171,6 +175,22 @@ export default function OperatorDashboard() {
           <span style={styles.computedAt}>{dashboard.computed_at.slice(11, 19)} 기준</span>
         )}
       </div>
+
+      <SectionCard title="공유 콘텐츠 스트림" badge="Forum">
+        <PostList
+          currentUser={operatorUser}
+          readOnly
+          onSelectPost={undefined}
+        />
+      </SectionCard>
+
+      <SectionCard title="Replay Viewer" badge="운영">
+        <RunReplayViewer />
+      </SectionCard>
+
+      <SectionCard title="Sprint 1 Replay" badge="운영">
+        <Sprint1ReplayPanel />
+      </SectionCard>
 
       {/* 1. Flag 비율 요약 */}
       <SectionCard
