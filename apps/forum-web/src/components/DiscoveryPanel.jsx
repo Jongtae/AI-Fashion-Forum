@@ -29,13 +29,14 @@ export default function DiscoveryPanel({
   onUserActivity = () => {},
   searchText = "",
   onSearchTextChange = () => {},
+  mode = "recent",
+  onModeChange = () => {},
   onTagClick = () => {},
   onRequireAuth = () => {},
   onAuthorClick = () => {},
   isAuthenticated = false,
 }) {
   const [topicFilter, setTopicFilter] = useState("");
-  const [mode, setMode] = useState("recent");
 
   const { data: recentPostsData } = useQuery({
     queryKey: ["discovery-topics"],
@@ -76,7 +77,7 @@ export default function DiscoveryPanel({
               }}
               onClick={() => {
                 onUserActivity();
-                setMode(modeItem.id);
+                onModeChange(modeItem.id);
               }}
             >
               <div style={styles.modeLabel}>{modeItem.label}</div>
