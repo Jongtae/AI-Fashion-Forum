@@ -7,7 +7,8 @@ import { Report } from "../models/Report.js";
 import { normalizeInteractionPayload } from "../lib/engagement.js";
 import { buildModerationState, classifyDecisionType } from "../lib/moderation.js";
 import { recordModerationDecision } from "../lib/moderation-decision.js";
-import { publishForumPostCreated } from "../lib/redis.js";
+import { publishForumPostCreated, publishForumCommentCreated } from "../lib/redis.js";
+import { checkAgentWriteRateLimit } from "../lib/write-rate-limit.js";
 
 const router = Router();
 
@@ -47,6 +48,23 @@ router.post("/", async (req, res) => {
   const errors = validatePost(req.body);
   if (errors.length) return res.status(400).json({ error: errors.join("; ") });
 
+  const rateLimit = await checkAgentWriteRateLimit({
+    authorId: req.body.authorId,
+    authorType: req.body.authorType,
+    PostModel: Post,
+    CommentModel: Comment,
+  });
+  if (!rateLimit.allowed) {
+    return res.status(429).json({
+      error: "agent_write_rate_limited",
+      limit: rateLimit.limit,
+      window_ms: rateLimit.windowMs,
+      current_count: rateLimit.currentCount,
+      remaining: rateLimit.remaining,
+      since: rateLimit.since.toISOString(),
+    });
+  }
+
   const moderationState = buildModerationState({
     content: req.body.content.trim(),
     tags: req.body.tags ?? [],
@@ -59,6 +77,7 @@ router.post("/", async (req, res) => {
     tags: req.body.tags ?? [],
     imageUrls: req.body.imageUrls ?? [],
     format: req.body.format,
+    generationContext: req.body.generationContext ?? null,
     ...moderationState,
   });
 
@@ -106,6 +125,7 @@ router.post("/", async (req, res) => {
         tags: post.tags ?? [],
         likes: post.likes ?? 0,
         format: post.format || "forum_post",
+        generationContext: post.generationContext ?? null,
         createdAt: publishedAt.toISOString(),
       },
     });
@@ -231,6 +251,23 @@ router.post("/:postId/comments", async (req, res) => {
   const errors = validateComment(req.body);
   if (errors.length) return res.status(400).json({ error: errors.join("; ") });
 
+  const rateLimit = await checkAgentWriteRateLimit({
+    authorId: req.body.authorId,
+    authorType: req.body.authorType,
+    PostModel: Post,
+    CommentModel: Comment,
+  });
+  if (!rateLimit.allowed) {
+    return res.status(429).json({
+      error: "agent_write_rate_limited",
+      limit: rateLimit.limit,
+      window_ms: rateLimit.windowMs,
+      current_count: rateLimit.currentCount,
+      remaining: rateLimit.remaining,
+      since: rateLimit.since.toISOString(),
+    });
+  }
+
   const replyToCommentId = req.body.replyToCommentId || null;
   let replyTarget = null;
   if (replyToCommentId) {
@@ -248,6 +285,7 @@ router.post("/:postId/comments", async (req, res) => {
     authorId: req.body.authorId,
     authorType: req.body.authorType,
     content: req.body.content.trim(),
+    generationContext: req.body.generationContext ?? null,
     replyToCommentId,
     replyTargetType: replyTarget ? "comment" : "post",
     replyTargetId: replyTarget ? replyTarget._id.toString() : req.params.postId,
@@ -258,6 +296,42 @@ router.post("/:postId/comments", async (req, res) => {
   });
 
   await comment.save();
+  post.commentCount = (post.commentCount || 0) + 1;
+  await post.save();
+
+  const createdAt = comment.createdAt ? new Date(comment.createdAt) : new Date();
+
+  try {
+    await publishForumCommentCreated({
+      eventId: `comment:${comment._id}:${createdAt.getTime()}`,
+      eventType: "comment.created",
+      occurredAt: createdAt.toISOString(),
+      post: {
+        _id: post._id.toString(),
+        content: post.content,
+        authorId: post.authorId,
+        authorType: post.authorType,
+        tags: post.tags ?? [],
+        createdAt: post.createdAt ? new Date(post.createdAt).toISOString() : createdAt.toISOString(),
+      },
+      comment: {
+        _id: comment._id.toString(),
+        postId: comment.postId.toString(),
+        content: comment.content,
+        authorId: comment.authorId,
+        authorType: comment.authorType,
+        generationContext: comment.generationContext ?? null,
+        replyToCommentId: comment.replyToCommentId ? comment.replyToCommentId.toString() : null,
+        replyTargetType: comment.replyTargetType,
+        replyTargetId: comment.replyTargetId,
+        replyTargetAuthorId: comment.replyTargetAuthorId,
+        replyTargetPreview: comment.replyTargetPreview,
+        createdAt: createdAt.toISOString(),
+      },
+    });
+  } catch (err) {
+    console.warn("[forum-server] failed to publish comment.created:", err.message);
+  }
 
   // Record interaction
   if (req.body.authorType === "user") {
@@ -296,6 +370,13 @@ router.delete("/:postId/comments/:commentId", async (req, res) => {
     postId: req.params.postId,
   });
   if (!comment) return res.status(404).json({ error: "Comment not found" });
+
+  const post = await Post.findById(req.params.postId);
+  if (post) {
+    post.commentCount = Math.max(0, (post.commentCount || 0) - 1);
+    await post.save();
+  }
+
   res.json({ deleted: true, commentId: req.params.commentId });
 });
 

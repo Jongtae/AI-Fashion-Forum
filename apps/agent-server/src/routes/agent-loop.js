@@ -77,7 +77,10 @@ async function forumPost(path, body) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(`forum-server ${path} failed: ${err.error || res.status}`);
+    const error = new Error(`forum-server ${path} failed: ${err.error || res.status}`);
+    error.status = res.status;
+    error.payload = err;
+    throw error;
   }
   return res.json();
 }
@@ -225,6 +228,14 @@ router.post("/tick", async (req, res) => {
           generationContext: artifactResults.get(entry.action_id)?.generationContext ?? null,
         });
       } catch (err) {
+        if (err.status === 429) {
+          artifactResults.set(entry.action_id, {
+            executionStatus: "blocked",
+            blockReason: "agent_write_rate_limited",
+          });
+          continue;
+        }
+
         console.warn("[agent-loop] post creation failed:", err.message);
         artifactResults.set(entry.action_id, {
           errorClass: "forum_post_failed",
@@ -292,6 +303,14 @@ router.post("/tick", async (req, res) => {
           });
         }
       } catch (err) {
+        if (err.status === 429) {
+          artifactResults.set(entry.action_id, {
+            executionStatus: "blocked",
+            blockReason: "agent_write_rate_limited",
+          });
+          continue;
+        }
+
         console.warn("[agent-loop] comment creation failed:", err.message);
         artifactResults.set(entry.action_id, {
           errorClass: "forum_comment_failed",
