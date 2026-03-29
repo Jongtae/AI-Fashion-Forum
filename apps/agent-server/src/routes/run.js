@@ -35,7 +35,10 @@ async function postToForum(urlPath, body) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(`forum-server ${urlPath} failed: ${err.error || res.status}`);
+    const error = new Error(`forum-server ${urlPath} failed: ${err.error || res.status}`);
+    error.status = res.status;
+    error.payload = err;
+    throw error;
   }
   return res.json();
 }
@@ -142,8 +145,14 @@ router.post("/", async (req, res) => {
       });
       createdPosts.push({ ...post, forumPostId: result._id?.toString() ?? null });
     } catch (err) {
+      const rateLimited = err.status === 429;
       console.warn(`[run] forum post failed for ${post.agent_id}:`, err.message);
-      createdPosts.push({ ...post, forumPostId: null, postError: err.message });
+      createdPosts.push({
+        ...post,
+        forumPostId: null,
+        postError: rateLimited ? "agent_write_rate_limited" : err.message,
+        writeBlocked: rateLimited,
+      });
     }
   }
 

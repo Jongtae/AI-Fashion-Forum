@@ -419,3 +419,157 @@ test("posts comments likes and reports persist through the CRUD routes", async (
   assert.equal(deletePostBody.deleted, true);
   assert.equal(store.posts.length, 0);
 });
+
+test("agent writes are rate-limited to about three per hour across posts and comments", async (t) => {
+  const store = createInMemoryForumStore();
+  const restorers = [];
+  const fixedNow = new Date("2026-03-29T12:00:00.000Z");
+
+  function normalizeTimestamp(value) {
+    if (value instanceof Date) return value;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? fixedNow : date;
+  }
+
+  function matchesWriteFilter(entry, filter = {}) {
+    if (filter.authorId && entry.authorId !== filter.authorId) {
+      return false;
+    }
+    if (filter.authorType && entry.authorType !== filter.authorType) {
+      return false;
+    }
+    if (filter.createdAt?.$gte) {
+      return normalizeTimestamp(entry.createdAt).getTime() >= filter.createdAt.$gte.getTime();
+    }
+    return true;
+  }
+
+  restorers.push(
+    patch(Post.prototype, "save", async function save() {
+      if (!this.createdAt) this.createdAt = fixedNow;
+      if (!this.updatedAt) this.updatedAt = fixedNow;
+      const snapshot = clone(this.toObject({ depopulate: true }));
+      const index = store.posts.findIndex((post) => String(post._id) === String(snapshot._id));
+      if (index >= 0) {
+        store.posts[index] = snapshot;
+      } else {
+        store.posts.push(snapshot);
+      }
+      return this;
+    }),
+    patch(Post, "countDocuments", async (filter = {}) => store.posts.filter((post) => matchesWriteFilter(post, filter)).length),
+    patch(Post, "find", (filter = {}) => ({
+      sort() {
+        return this;
+      },
+      skip() {
+        return this;
+      },
+      limit() {
+        return this;
+      },
+      lean: async () => clone(store.posts.filter((post) => {
+        if (filter.tags) {
+          return post.tags?.includes(filter.tags);
+        }
+        return true;
+      })),
+    })),
+    patch(Post, "findById", (id) => {
+      const post = store.posts.find((entry) => String(entry._id) === String(id));
+      return post ? makePostDocument(store, post) : null;
+    }),
+    patch(Comment.prototype, "save", async function save() {
+      if (!this.createdAt) this.createdAt = fixedNow;
+      if (!this.updatedAt) this.updatedAt = fixedNow;
+      const snapshot = clone(this.toObject({ depopulate: true }));
+      const index = store.comments.findIndex((comment) => String(comment._id) === String(snapshot._id));
+      if (index >= 0) {
+        store.comments[index] = snapshot;
+      } else {
+        store.comments.push(snapshot);
+      }
+      return this;
+    }),
+    patch(Comment, "countDocuments", async (filter = {}) => store.comments.filter((comment) => matchesWriteFilter(comment, filter)).length),
+    patch(Comment, "findOne", (query = {}) => {
+      const match = store.comments.find((comment) => {
+        if (query.postId && String(comment.postId) !== String(query.postId)) {
+          return false;
+        }
+        if (query._id && String(comment._id) !== String(query._id)) {
+          return false;
+        }
+        return true;
+      });
+
+      return {
+        lean: async () => (match ? clone(match) : null),
+      };
+    }),
+  );
+
+  const app = createApp();
+  const { server, baseUrl } = await createServer(app);
+  t.after(() => {
+    server.close();
+    restorers.reverse().forEach((restore) => restore());
+  });
+
+  const createAgentPost = async (content) => {
+    const res = await fetch(`${baseUrl}/api/posts`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        content,
+        authorId: "A01",
+        authorType: "agent",
+        tags: ["office_style"],
+      }),
+    });
+    return res;
+  };
+
+  const firstPostRes = await createAgentPost("First agent post");
+  const secondPostRes = await createAgentPost("Second agent post");
+  assert.equal(firstPostRes.status, 201);
+  assert.equal(secondPostRes.status, 201);
+
+  const firstPost = await firstPostRes.json();
+
+  const commentRes = await fetch(`${baseUrl}/api/posts/${firstPost._id}/comments`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      content: "Agent comment one",
+      authorId: "A01",
+      authorType: "agent",
+      replyTargetType: "post",
+      replyTargetId: firstPost._id,
+    }),
+  });
+  assert.equal(commentRes.status, 201);
+
+  const blockedPostRes = await createAgentPost("Third agent post should be blocked");
+  const blockedPostBody = await blockedPostRes.json();
+  assert.equal(blockedPostRes.status, 429);
+  assert.equal(blockedPostBody.error, "agent_write_rate_limited");
+  assert.equal(blockedPostBody.current_count, 3);
+
+  const blockedCommentRes = await fetch(`${baseUrl}/api/posts/${firstPost._id}/comments`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      content: "Agent comment two should be blocked",
+      authorId: "A01",
+      authorType: "agent",
+      replyTargetType: "post",
+      replyTargetId: firstPost._id,
+    }),
+  });
+  const blockedCommentBody = await blockedCommentRes.json();
+  assert.equal(blockedCommentRes.status, 429);
+  assert.equal(blockedCommentBody.error, "agent_write_rate_limited");
+  assert.equal(store.posts.length, 2);
+  assert.equal(store.comments.length, 1);
+});
