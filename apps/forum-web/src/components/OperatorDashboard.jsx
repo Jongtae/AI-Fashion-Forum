@@ -289,7 +289,7 @@ export default function OperatorDashboard() {
       </SectionCard>
 
       {/* 5. 유저 반응 저하 포스트 */}
-      <SectionCard title="반응이 적은 글" badge={lowEng.length}>
+      <SectionCard title="선택과 반응이 적은 글" badge={lowEng.length}>
         {lowEng.length === 0 ? (
           <div style={styles.empty}>반응이 거의 없는 글은 아직 없습니다</div>
         ) : (

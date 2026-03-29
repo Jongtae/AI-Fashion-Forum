@@ -144,7 +144,7 @@ function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
         <p style={styles.quickActionsKicker}>바로 시작</p>
         <h2 style={styles.quickActionsTitle}>이곳에서 할 수 있는 것</h2>
         <p style={styles.quickActionsText}>
-          글을 읽고, 주제를 찾고, 반응을 남기고, 다시 볼 글을 저장할 수 있습니다.
+          무엇을 볼지 고르고, 반응을 남기고, 다시 돌아올 선택을 저장할 수 있습니다.
         </p>
       </div>
       <div style={styles.quickActionsGrid}>
@@ -685,13 +685,13 @@ export default function ForumApp() {
                     <section style={styles.formSection}>
                       <div style={styles.composerGate}>
                         <div>
-                          <p style={styles.composerTitle}>글쓰기</p>
-                          <p style={styles.composerHint}>
-                            {hasForumActivity || authUser
-                              ? "포럼 상호작용 이후 열리는 compact 진입점입니다."
+                      <p style={styles.composerTitle}>선택을 글로 남기기</p>
+                      <p style={styles.composerHint}>
+                        {hasForumActivity || authUser
+                              ? "반응과 선택을 다시 밖으로 내보내는 compact 진입점입니다."
                               : "댓글·반응·로그인 이후에 활성화됩니다."}
-                          </p>
-                        </div>
+                      </p>
+                    </div>
                         <button
                           style={{
                             ...styles.composerBtn,
@@ -700,7 +700,7 @@ export default function ForumApp() {
                           onClick={toggleComposerOpen}
                           disabled={!(hasForumActivity || authUser)}
                         >
-                          {composerOpen ? "글쓰기 닫기" : "글쓰기 열기"}
+                          {composerOpen ? "입력 닫기" : "입력 열기"}
                         </button>
                       </div>
                       {composerOpen && (
@@ -763,9 +763,9 @@ export default function ForumApp() {
                     <section style={styles.savedSection}>
                   <div style={styles.savedHero}>
                     <p style={styles.savedKicker}>저장한 글</p>
-                    <h2 style={styles.savedTitle}>나중에 다시 볼 글을 모아두는 공간</h2>
+                    <h2 style={styles.savedTitle}>다시 돌아올 선택을 모아두는 공간</h2>
                     <p style={styles.savedText}>
-                      마음에 든 글을 저장해 두고, 다시 돌아와서 이어 읽을 수 있습니다.
+                      마음에 든 글을 저장해 두고, 나중에 같은 선택 경로를 다시 열 수 있습니다.
                     </p>
                   </div>
                     <PostList
