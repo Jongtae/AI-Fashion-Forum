@@ -45,6 +45,7 @@ export default function PostCard({
   const [showComments, setShowComments] = useState(false);
   const [savedState, setSavedState] = useState(Boolean(post.savedByCurrentUser));
   const [shareState, setShareState] = useState({ status: "idle", message: "" });
+  const [shareButtonLabel, setShareButtonLabel] = useState("↗ 공유");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -56,6 +57,16 @@ export default function PostCard({
 
     return () => window.clearTimeout(timerId);
   }, [shareState.status]);
+
+  useEffect(() => {
+    if (shareButtonLabel === "↗ 공유") return undefined;
+
+    const timerId = window.setTimeout(() => {
+      setShareButtonLabel("↗ 공유");
+    }, 2200);
+
+    return () => window.clearTimeout(timerId);
+  }, [shareButtonLabel]);
 
   useEffect(() => {
     setSavedState(Boolean(post.savedByCurrentUser));
@@ -102,6 +113,7 @@ export default function PostCard({
             ? "링크를 복사했어요"
             : "링크를 직접 복사해 주세요",
       });
+      setShareButtonLabel(result.method === "native" ? "공유됨" : "복사됨");
     } catch (err) {
       if (err?.name === "AbortError") return;
       setShareState({ status: "error", message: "공유에 실패했어요" });
@@ -201,7 +213,7 @@ export default function PostCard({
               {savedState ? "🔖 저장됨" : "📌 저장"}
             </button>
             <button onClick={handleShare} style={styles.actionBtn}>
-              ↗ 공유
+              {shareButtonLabel}
             </button>
             <button
               onClick={() => {

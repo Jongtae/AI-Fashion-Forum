@@ -43,6 +43,7 @@ export default function PostDetail({
 }) {
   const queryClient = useQueryClient();
   const [shareState, setShareState] = React.useState({ status: "idle", message: "" });
+  const [shareButtonLabel, setShareButtonLabel] = React.useState("↗ 공유");
 
   React.useEffect(() => {
     if (shareState.status === "idle") return undefined;
@@ -53,6 +54,16 @@ export default function PostDetail({
 
     return () => window.clearTimeout(timerId);
   }, [shareState.status]);
+
+  React.useEffect(() => {
+    if (shareButtonLabel === "↗ 공유") return undefined;
+
+    const timerId = window.setTimeout(() => {
+      setShareButtonLabel("↗ 공유");
+    }, 2200);
+
+    return () => window.clearTimeout(timerId);
+  }, [shareButtonLabel]);
 
   const { data: post, isLoading, isError, error } = useQuery({
     queryKey: ["post", postId, currentUser.id],
@@ -96,6 +107,7 @@ export default function PostDetail({
             ? "링크를 복사했어요"
             : "링크를 직접 복사해 주세요",
       });
+      setShareButtonLabel(result.method === "native" ? "공유됨" : "복사됨");
     } catch (err) {
       if (err?.name === "AbortError") return;
       setShareState({ status: "error", message: "공유에 실패했어요" });
@@ -257,7 +269,7 @@ export default function PostDetail({
             {isSaved ? "🔖 저장됨" : "📌 저장"}
           </button>
           <button onClick={handleShare} style={styles.actionBtn}>
-            ↗ 공유
+            {shareButtonLabel}
           </button>
         </div>
 
