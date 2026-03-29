@@ -6,21 +6,21 @@ import Sprint1ReplayPanel from "./Sprint1ReplayPanel.jsx";
 const SECTIONS = [
   {
     id: "operator",
-    label: "운영 지표",
-    category: "운영",
-    description: "모더레이션, 공유 콘텐츠 스트림, 운영 메트릭을 봅니다.",
+    label: "글 흐름",
+    category: "흐름",
+    description: "글의 반응 흐름과 공유 콘텐츠 지표를 봅니다.",
   },
   {
     id: "replay",
-    label: "재생 검토",
-    category: "재생",
-    description: "최신 run replay를 검토합니다.",
+    label: "기록 보기",
+    category: "기록",
+    description: "최근 기록을 확인합니다.",
   },
   {
     id: "sprint1",
-    label: "실험 로그",
-    category: "분석",
-    description: "Identity Drift replay와 평가 지표를 봅니다.",
+    label: "흐름 기록",
+    category: "흐름",
+    description: "흐름 기록과 평가 지표를 봅니다.",
   },
 ];
 
@@ -32,14 +32,14 @@ export default function AdminDashboard({ timeSpeed = 1 }) {
       <div style={styles.homeGrid}>
         <div style={styles.homeHero}>
           <p style={styles.homeKicker}>첫 화면</p>
-          <h2 style={styles.homeTitle}>운영 도구 허브</h2>
+          <h2 style={styles.homeTitle}>포럼 흐름 허브</h2>
           <p style={styles.homeText}>
-            서비스와 분리된 운영 메뉴를 한곳에 모아두고, 현재 위치와 카테고리를 항상 같은 방식으로 보여줍니다.
+            서비스와 분리된 흐름과 기록을 한곳에 모아두고, 현재 위치와 카테고리를 같은 방식으로 보여줍니다.
           </p>
           <div style={styles.locationLine}>
-            <span style={styles.locationBadge}>Admin</span>
+            <span style={styles.locationBadge}>허브</span>
             <span style={styles.locationSep}>/</span>
-            <span style={styles.locationBadgeActive}>허브 홈</span>
+            <span style={styles.locationBadgeActive}>홈</span>
           </div>
         </div>
 
@@ -65,10 +65,10 @@ export default function AdminDashboard({ timeSpeed = 1 }) {
     <div style={styles.root}>
       <div style={styles.hero}>
         <div>
-          <p style={styles.kicker}>Admin</p>
-          <h1 style={styles.title}>운영 도구 허브</h1>
+          <p style={styles.kicker}>허브</p>
+          <h1 style={styles.title}>포럼 흐름 허브</h1>
           <p style={styles.description}>
-            서비스 화면과 분리된 운영용 메뉴를 이곳에 모았습니다.
+            서비스 화면과 분리된 흐름과 기록을 이곳에 모았습니다.
           </p>
         </div>
         <div style={styles.menuGrid}>
@@ -82,7 +82,7 @@ export default function AdminDashboard({ timeSpeed = 1 }) {
           >
             <span style={styles.menuCategory}>허브</span>
             <span style={styles.menuLabel}>첫 화면</span>
-            <span style={styles.menuDesc}>운영 메뉴와 현재 위치를 한 번에 봅니다.</span>
+            <span style={styles.menuDesc}>흐름 메뉴와 현재 위치를 한 번에 봅니다.</span>
           </button>
           {SECTIONS.map((section) => (
             <button

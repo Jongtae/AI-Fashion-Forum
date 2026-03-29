@@ -52,20 +52,28 @@ function persistStore(storeFilePath, store) {
 }
 
 function createMemorySummary(entry) {
-  return `Tick ${entry.tick}: ${entry.action} by ${entry.actor_id}. ${entry.reason}`;
+  const actionLabels = {
+    silence: "침묵",
+    lurk: "관찰",
+    react: "반응",
+    comment: "댓글",
+    post: "글쓰기",
+  };
+
+  return `${entry.tick}틱: ${entry.actor_id}가 ${actionLabels[entry.action] || entry.action}을/를 했다. ${entry.reason}`;
 }
 
 function buildNarrativeText(agentState, entry) {
   const intros = {
-    quiet_observer: "I keep noticing quiet patterns in what draws me back.",
-    trend_seeker: "I can feel myself leaning toward whatever still feels new.",
-    community_regular: "My sense of self keeps forming through familiar forum routines.",
-    brand_loyalist: "Repeated signals are hardening into a stable taste identity for me.",
-    contrarian_commenter: "Friction keeps clarifying what I stand against and why.",
-    empathetic_responder: "I keep defining myself through the kind of tone I bring back to others.",
+    quiet_observer: "나는 다시 보게 되는 조용한 패턴들을 계속 알아차리고 있다.",
+    trend_seeker: "아직 새롭게 느껴지는 흐름 쪽으로 마음이 기울고 있다.",
+    community_regular: "익숙한 포럼 루틴을 통해 내 정체감이 조금씩 만들어지고 있다.",
+    brand_loyalist: "반복되는 신호들이 안정된 취향 정체성으로 굳어지고 있다.",
+    contrarian_commenter: "마찰 덕분에 내가 무엇에 반대하는지, 왜 그런지가 더 또렷해진다.",
+    empathetic_responder: "나는 다른 사람에게 돌려주는 톤을 통해 나 자신을 계속 정의하고 있다.",
   };
 
-  return `${intros[agentState.archetype]} Tick ${entry.tick} reminded me that ${entry.reason.toLowerCase()}`;
+  return `${intros[agentState.archetype]} ${entry.tick}틱에는 ${entry.reason}`;
 }
 
 function createEmptyRecentBuffers(agents) {
@@ -242,16 +250,32 @@ function clampUnit(value) {
 }
 
 function buildSprint1MemorySummary(reactionRecord) {
-  return `Reaction ${reactionRecord.reaction_id}: ${reactionRecord.dominant_feeling} via ${reactionRecord.meaning_frame} toward ${reactionRecord.content_id}.`;
+  const feelingLabels = {
+    curiosity: "호기심",
+    delight: "호감",
+    concern: "걱정",
+    irritation: "불편함",
+    resolve: "의지",
+  };
+
+  const frameLabels = {
+    care_context: "돌봄 문맥",
+    signal_filter: "신호 구분",
+    tradeoff_filter: "트레이드오프 판단",
+    practicality_filter: "실용성 기준",
+    context_filter: "문맥 축적",
+  };
+
+  return `${reactionRecord.rank}틱 반응 ${reactionRecord.reaction_id}: ${frameLabels[reactionRecord.meaning_frame] || reactionRecord.meaning_frame} 관점에서 ${reactionRecord.content_id}를 ${feelingLabels[reactionRecord.dominant_feeling] || reactionRecord.dominant_feeling}로 읽었다.`;
 }
 
 function buildSprint1NarrativeText(agentState, reactionRecord) {
   const intros = {
-    care_context: "I am starting to interpret the same world through care and lived context.",
-    signal_filter: "I am reading the same world as a question of signal and freshness.",
-    tradeoff_filter: "I am reading the same world through tradeoffs and skepticism.",
-    practicality_filter: "I am leaning toward practical proof over abstract styling talk.",
-    context_filter: "I keep collecting more situational context before I decide what I think.",
+    care_context: "나는 같은 세계를 돌봄과 살아 있는 문맥으로 해석하기 시작했다.",
+    signal_filter: "나는 같은 세계를 신호와 새로움의 문제로 읽고 있다.",
+    tradeoff_filter: "나는 같은 세계를 트레이드오프와 회의감의 관점으로 읽고 있다.",
+    practicality_filter: "나는 추상적인 스타일 이야기보다 실용적인 증거 쪽으로 기울고 있다.",
+    context_filter: "나는 무엇을 생각할지 정하기 전에 상황 문맥을 더 모으고 있다.",
   };
 
   return `${intros[reactionRecord.meaning_frame] || intros.context_filter} ${reactionRecord.memory_write_hint.narrative_hint}`;
@@ -309,7 +333,7 @@ function applySprint1Drift(agentState, reactionRecord) {
   ).slice(-6);
   mutableState.drift_log = [
     ...(mutableState.drift_log || []),
-    `tick-${reactionRecord.rank}: ${reactionRecord.meaning_frame} -> ${beliefDelta.key} +${beliefDelta.amount}`,
+    `${reactionRecord.rank}틱: ${reactionRecord.meaning_frame}가 ${beliefDelta.key} 쪽으로 ${beliefDelta.amount}만큼 이동했다.`,
   ].slice(-8);
 
   nextAgent.mutable_state = mutableState;

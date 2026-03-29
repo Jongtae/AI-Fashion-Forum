@@ -10,8 +10,10 @@ const postSchema = new Schema(
     tags: [{ type: String }],
     imageUrls: [{ type: String }],
     likes: { type: Number, default: 0 },
+    commentCount: { type: Number, default: 0 },
     likedBy: [{ type: String }], // list of userIds
     format: { type: String }, // CONTENT_FORMATS from shared-types
+    generationContext: { type: Schema.Types.Mixed },
     // agent-generated post metadata
     agentRound: { type: Number },
     agentTick: { type: Number },

@@ -110,7 +110,7 @@ export function rankFeed({
       format: contentRecord.format,
       score: clamp(score),
       score_breakdown: signals,
-      reason: `Ranked for ${agentState.handle} with ${experimentFlag}: interest=${signals.interestMatch.toFixed(3)}, trust=${signals.trustSignal.toFixed(3)}, novelty=${signals.noveltySignal.toFixed(3)}, controversy=${signals.controversySignal.toFixed(3)}, recency=${signals.recencySignal.toFixed(3)}.`,
+      reason: `${agentState.handle} 기준 ${experimentFlag} 랭킹: interest=${signals.interestMatch.toFixed(3)}, trust=${signals.trustSignal.toFixed(3)}, novelty=${signals.noveltySignal.toFixed(3)}, controversy=${signals.controversySignal.toFixed(3)}, recency=${signals.recencySignal.toFixed(3)}.`,
     };
   });
 

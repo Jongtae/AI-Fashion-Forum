@@ -219,11 +219,11 @@ export function buildForumGenerationContext({
   const targetTitle = targetContent?.title || "스레드";
   const situation = isComment
     ? targetComment
-      ? "다른 댓글에 반응한 상황"
-      : "게시글 본문에 답글을 남긴 상황"
+      ? "다른 댓글에 자연스럽게 반응한 흐름"
+      : "게시글 본문에 답글을 이어간 흐름"
     : isPost
-      ? "새 글을 여는 상황"
-      : "기타 생성 상황";
+      ? "새 글을 자연스럽게 여는 흐름"
+      : "기타 작성 흐름";
 
   const trigger = targetComment
     ? `댓글 ${targetComment.authorId}를 따라 대화가 이어졌다.`
@@ -243,7 +243,7 @@ export function buildForumGenerationContext({
     targetContentId: targetContent?.content_id || targetContent?._id || null,
     targetCommentId: targetComment?._id || null,
     targetCommentAuthorId: targetComment?.authorId || null,
-    summary: `${situation}: ${trigger}`,
+    summary: `${targetTitle}을/를 ${situation}으로 읽어 반응했다.`,
   };
 }
 
@@ -268,7 +268,7 @@ export function buildSprint1GenerationContext({
     sourceContentTopics: contentSummary.topics,
     sourceContentSnippet: contentSummary.bodySnippet || contentSummary.text || "",
     variationSeed,
-    summary: `${handle}가 ${contentSummary.title}를 읽고 ${reactionRecord?.meaning_frame || "context_filter"} 맥락의 한국어 글을 생성했다.`,
+    summary: `${handle}가 ${contentSummary.title}를 읽고 ${reactionRecord?.meaning_frame || "context_filter"} 흐름으로 한국어 글을 남겼다.`,
   };
 }
 

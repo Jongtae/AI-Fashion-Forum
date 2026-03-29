@@ -38,7 +38,7 @@ export default function PostForm({ currentUser = DEFAULT_AUTHOR }) {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="포스트 내용을 입력하세요…"
+        placeholder="글 내용을 입력하세요…"
         rows={3}
         style={styles.textarea}
         disabled={mutation.isPending}
@@ -56,7 +56,7 @@ export default function PostForm({ currentUser = DEFAULT_AUTHOR }) {
           disabled={mutation.isPending || !content.trim()}
           style={styles.submitBtn}
         >
-          {mutation.isPending ? "등록 중…" : "포스트"}
+          {mutation.isPending ? "등록 중…" : "글 올리기"}
         </button>
       </div>
       {mutation.isError && (

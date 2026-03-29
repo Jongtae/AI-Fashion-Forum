@@ -51,7 +51,7 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
 
   return (
     <div style={styles.container}>
-      {isLoading && <p style={styles.loading}>댓글 불러오는 중…</p>}
+      {isLoading && <p style={styles.loading}>댓글을 불러오는 중…</p>}
       {comments.map((c) => (
         <div key={c._id} style={styles.comment}>
           <span style={styles.author}>
@@ -60,39 +60,35 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
           </span>
           {c.replyTargetType && (
             <div style={styles.replyMeta}>
-              ↪ {c.replyTargetType === "comment" ? `@${c.replyTargetAuthorId || "comment"} 의 댓글` : "본문"}
+              ↪ {c.replyTargetType === "comment" ? `@${c.replyTargetAuthorId || "comment"}의 답글` : "글 본문"}
             </div>
           )}
           <p style={styles.text}>{c.content}</p>
           {c.generationContext?.summary && (
             <div style={styles.generationContext}>
-              <div style={styles.generationContextTitle}>생성 맥락</div>
+              <div style={styles.generationContextTitle}>작성 배경</div>
               <div style={styles.generationContextSummary}>{c.generationContext.summary}</div>
-              <div style={styles.generationContextMeta}>
-                {c.generationContext.situation && <span>상황: {c.generationContext.situation}</span>}
-                {c.generationContext.toneLabel && <span>톤: {c.generationContext.toneLabel}</span>}
-              </div>
             </div>
           )}
           {c.authorId === currentUser.id && (
           <button
-            onClick={() => {
-              onUserActivity();
-              deleteMutation.mutate(c._id);
-            }}
-            style={styles.deleteBtn}
-            disabled={deleteMutation.isPending}
+              onClick={() => {
+                onUserActivity();
+                deleteMutation.mutate(c._id);
+              }}
+              style={styles.deleteBtn}
+              disabled={deleteMutation.isPending}
           >
-              삭제
+              지우기
             </button>
           )}
         </div>
       ))}
       <form onSubmit={handleSubmit} style={styles.form}>
-        <input
+          <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="댓글 입력…"
+          placeholder="댓글을 남겨보세요…"
           style={styles.input}
           disabled={addMutation.isPending}
         />
@@ -123,23 +119,16 @@ const styles = {
     border: "1px solid #e5e7eb",
   },
   generationContextTitle: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 700,
-    color: "#4b5563",
+    color: "#374151",
     marginBottom: 3,
   },
   generationContextSummary: {
     fontSize: 12,
-    color: "#374151",
+    color: "#4b5563",
     lineHeight: 1.5,
-    marginBottom: 4,
-  },
-  generationContextMeta: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-    fontSize: 10,
-    color: "#6b7280",
+    marginBottom: 2,
   },
   deleteBtn: {
     fontSize: 11,

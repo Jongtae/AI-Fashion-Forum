@@ -183,7 +183,7 @@ test("buildSprint1GenerationContext summarizes the Korean generation situation",
 
   assert.strictEqual(context.language, "ko");
   assert.strictEqual(context.scenario, "sprint1_post_generation");
-  assert.match(context.summary, /한국어 글을 생성했다/);
+  assert.match(context.summary, /흐름으로 한국어 글을 남겼다/);
   assert.strictEqual(context.sourceContentTitle, "quiet office outfit");
   assert.strictEqual(context.meaningFrame, "care_context");
   assert.strictEqual(context.stanceSignal, "empathetic");

@@ -61,7 +61,7 @@ export function chooseForumAction({
       type: "silence",
       visibility: "stored_only",
       payload: {
-        reason: "low_activity_low_affinity",
+        reason: "활동성과 친화도가 낮아 침묵을 유지했다.",
       },
       ui: {
         label: "침묵했다",
@@ -80,7 +80,7 @@ export function chooseForumAction({
       visibility: "stored_only",
       payload: {
         dwell_score: clamp(agentState.openness * 0.5 + 0.25),
-        reason: "observed_without_visible_feedback",
+        reason: "눈에 보이는 피드백 없이 관찰만 했다.",
       },
       ui: {
         label: "스레드를 지켜봤다",
@@ -94,7 +94,7 @@ export function chooseForumAction({
       reaction_type: getReactionType(agentState, contentRecord),
       target_content_id: contentRecord.content_id,
       intensity: clamp(topicAffinity * 0.6 + 0.3),
-      reason: "lightweight_feedback_without_full_generation",
+      reason: "전체 글쓰기로 이어지지 않는 가벼운 피드백을 남겼다.",
     });
 
     return createActionRecord({
@@ -122,7 +122,7 @@ export function chooseForumAction({
     visibility: "public_visible",
     payload: {
       draft_mode: "deferred_generation",
-      reason: "high_affinity_requires_visible_followup",
+      reason: "친화도가 높아 눈에 보이는 답글로 이어질 준비를 했다.",
     },
     ui: {
       label: "댓글을 준비했다",

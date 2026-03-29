@@ -111,11 +111,11 @@ function EvalMiniPanel({ report }) {
   const m = report.metrics;
   return (
     <div style={styles.evalMini}>
-      <SummaryRow label="Identity Differentiation" value={pct(m.identityDifferentiation)} />
-      <SummaryRow label="Echo Chamber Index" value={pct(m.echoChamberIndex)} />
-      <SummaryRow label="Moderation Flag Rate" value={pct(m.moderationFlagRate)} />
-      <SummaryRow label="Content Diversity" value={pct(m.contentDiversity)} />
-      <SummaryRow label="Divergence Legible" value={m.divergenceLegible ? "✓ 충족" : "✗ 미충족"} highlight={!m.divergenceLegible} />
+      <SummaryRow label="고유성" value={pct(m.identityDifferentiation)} />
+      <SummaryRow label="반향실 정도" value={pct(m.echoChamberIndex)} />
+      <SummaryRow label="표시율" value={pct(m.moderationFlagRate)} />
+      <SummaryRow label="글 다양성" value={pct(m.contentDiversity)} />
+      <SummaryRow label="흐름이 읽히는가" value={m.divergenceLegible ? "✓ 충족" : "✗ 미충족"} highlight={!m.divergenceLegible} />
     </div>
   );
 }
@@ -145,7 +145,7 @@ export default function OperatorDashboard() {
   });
 
   if (isLoading) {
-    return <div style={styles.loading}>대시보드 로딩 중...</div>;
+    return <div style={styles.loading}>흐름 지표를 불러오는 중...</div>;
   }
 
   if (error) {
@@ -170,14 +170,14 @@ export default function OperatorDashboard() {
   return (
     <div style={styles.root}>
       <div style={styles.topBar}>
-        <span style={styles.pageTitle}>Operator Dashboard</span>
+        <span style={styles.pageTitle}>활동 지표</span>
         <button style={styles.refreshBtn} onClick={refetch}>새로고침</button>
         {dashboard?.computed_at && (
           <span style={styles.computedAt}>{dashboard.computed_at.slice(11, 19)} 기준</span>
         )}
       </div>
 
-      <SectionCard title="공유 콘텐츠 스트림" badge="Forum">
+      <SectionCard title="공유 글 흐름" badge="Forum">
         <PostList
           currentUser={operatorUser}
           readOnly
@@ -186,30 +186,30 @@ export default function OperatorDashboard() {
       </SectionCard>
 
       <AgentEvolutionPanel
-        title="에이전트 성장/진화"
-        subtitle="서비스와 같은 에이전트 풀을 기준으로 성장과 성격 변화를 확인합니다."
+        title="에이전트 변화 흐름"
+        subtitle="글 흐름에서 보이는 최근 변화와 성격 이동을 확인합니다."
         agentGrowth={agentGrowth}
         evolutions={agentEvolution}
-        emptyText="아직 운영 대시보드에 표시할 진화 정보가 없습니다."
+        emptyText="아직 보여줄 변화 흐름이 없습니다."
       />
 
       {/* 1. Flag 비율 요약 */}
       <SectionCard
-        title="오늘의 Flag 비율"
+        title="오늘의 표시 현황"
         badge={pct(s.flag_rate)}
         badgeColor={s.flag_rate > 0.1 ? "#fee2e2" : "#dcfce7"}
       >
         <div style={styles.summaryGrid}>
-          <SummaryRow label="전체 포스트" value={s.total_posts ?? "—"} />
-          <SummaryRow label="Flag된 포스트" value={s.flagged_posts ?? "—"} highlight={(s.flagged_posts ?? 0) > 0} />
-          <SummaryRow label="Flag 비율" value={pct(s.flag_rate)} highlight={(s.flag_rate ?? 0) > 0.1} />
+          <SummaryRow label="전체 글" value={s.total_posts ?? "—"} />
+          <SummaryRow label="표시된 글" value={s.flagged_posts ?? "—"} highlight={(s.flagged_posts ?? 0) > 0} />
+          <SummaryRow label="표시 비율" value={pct(s.flag_rate)} highlight={(s.flag_rate ?? 0) > 0.1} />
         </div>
       </SectionCard>
 
       {/* 2. 논쟁성 높은 스레드 Top 5 */}
-      <SectionCard title="논쟁성 높은 스레드 Top 5" badge={threads.length}>
+      <SectionCard title="반응이 강한 글 Top 5" badge={threads.length}>
         {threads.length === 0 ? (
-          <div style={styles.empty}>신고된 스레드 없음</div>
+          <div style={styles.empty}>눈에 띄게 강하게 반응된 글이 없습니다</div>
         ) : (
           threads.map((t) => <ThreadRow key={t.id} thread={t} />)
         )}
@@ -217,12 +217,12 @@ export default function OperatorDashboard() {
 
       {/* 3. 급격한 정체성 변화 에이전트 */}
       <SectionCard
-        title="급격한 정체성 변화 에이전트"
+        title="최근 변화가 큰 에이전트"
         badge={identityShifts.length}
         badgeColor={identityShifts.length > 0 ? "#fef3c7" : "#dcfce7"}
       >
         {identityShifts.length === 0 ? (
-          <div style={styles.empty}>임계값 초과 에이전트 없음</div>
+          <div style={styles.empty}>눈에 띄는 변화가 있는 에이전트가 없습니다</div>
         ) : (
           identityShifts.map((agent) => (
             <div key={agent.agentId} style={styles.shiftAgentRow}>
@@ -237,9 +237,9 @@ export default function OperatorDashboard() {
       </SectionCard>
 
       {/* 4. 규칙 위반 후보 + 피드백 인터페이스 */}
-      <SectionCard title="규칙 위반 후보 (Moderation Queue)" badge={queue.length} badgeColor="#fee2e2">
+      <SectionCard title="검토가 필요한 글" badge={queue.length} badgeColor="#fee2e2">
         {queue.length === 0 ? (
-          <div style={styles.empty}>대기 중인 항목 없음</div>
+          <div style={styles.empty}>지금은 따로 살펴볼 글이 없습니다</div>
         ) : (
           queue.map((item) => (
             <ModerationItem
@@ -255,9 +255,9 @@ export default function OperatorDashboard() {
       </SectionCard>
 
       {/* 5. 유저 반응 저하 포스트 */}
-      <SectionCard title="유저 반응 저하 포스트 (좋아요·댓글 0)" badge={lowEng.length}>
+      <SectionCard title="반응이 적은 글" badge={lowEng.length}>
         {lowEng.length === 0 ? (
-          <div style={styles.empty}>해당 포스트 없음</div>
+          <div style={styles.empty}>반응이 거의 없는 글은 아직 없습니다</div>
         ) : (
           lowEng.map((p) => (
             <div key={p.id} style={styles.lowEngRow}>
@@ -269,17 +269,17 @@ export default function OperatorDashboard() {
         )}
       </SectionCard>
 
-      {/* 6. 최신 시뮬레이션 지표 (from run report) */}
-      <SectionCard title="최신 시뮬레이션 지표">
+      {/* 6. 최근 기록 지표 */}
+      <SectionCard title="최근 기록 지표">
         {latestReport ? (
           <>
             <div style={styles.reportMeta}>
-              run: <code>{latestReport.run_id}</code> · seed {latestReport.seed}
+              기록: <code>{latestReport.run_id}</code> · 씨드 {latestReport.seed}
             </div>
             <EvalMiniPanel report={latestReport} />
           </>
         ) : (
-          <div style={styles.empty}>아직 실행된 시뮬레이션 없음 — Replay Viewer에서 실행하세요.</div>
+          <div style={styles.empty}>아직 생성된 기록이 없습니다 — 기록 보기에서 새 기록을 만들어보세요.</div>
         )}
       </SectionCard>
     </div>
