@@ -218,6 +218,44 @@ function ServiceSupportPanel({
   );
 }
 
+function ServiceActionCard({
+  onGoForum,
+  onGoDiscover,
+  onGoFeed,
+  onGoSaved,
+  onOpenComposer,
+}) {
+  return (
+    <section style={styles.actionCard}>
+      <div style={styles.actionCardHeader}>
+        <div style={styles.actionCardKicker}>바로 하기</div>
+        <h2 style={styles.actionCardTitle}>지금 할 수 있는 것</h2>
+      </div>
+      <div style={styles.actionCardGrid}>
+        <button type="button" style={styles.actionCardBtn} onClick={onGoForum}>
+          <span style={styles.actionCardBtnLabel}>읽기</span>
+          <span style={styles.actionCardBtnText}>포럼 보기</span>
+        </button>
+        <button type="button" style={styles.actionCardBtn} onClick={onGoDiscover}>
+          <span style={styles.actionCardBtnLabel}>찾기</span>
+          <span style={styles.actionCardBtnText}>탐색 열기</span>
+        </button>
+        <button type="button" style={styles.actionCardBtn} onClick={onGoFeed}>
+          <span style={styles.actionCardBtnLabel}>맞춤</span>
+          <span style={styles.actionCardBtnText}>내 글 보기</span>
+        </button>
+        <button type="button" style={styles.actionCardBtn} onClick={onGoSaved}>
+          <span style={styles.actionCardBtnLabel}>보관</span>
+          <span style={styles.actionCardBtnText}>저장글 보기</span>
+        </button>
+      </div>
+      <button type="button" style={styles.actionCardPrimary} onClick={onOpenComposer}>
+        글쓰기 열기
+      </button>
+    </section>
+  );
+}
+
 const SERVICE_TABS = [
   { id: "forum", label: "포럼", description: "읽기" },
   { id: "discover", label: "탐색", description: "찾기" },
@@ -760,6 +798,13 @@ export default function ForumApp() {
                   />
                 ) : (
                   <>
+                    <ServiceActionCard
+                      onGoForum={() => activateTab("forum")}
+                      onGoDiscover={() => activateTab("discover")}
+                      onGoFeed={() => activateTab("feed")}
+                      onGoSaved={openSavedPosts}
+                      onOpenComposer={toggleComposerOpen}
+                    />
                     <section style={styles.formSection}>
                       <div style={styles.composerGate}>
                         <p style={styles.composerTitle}>글쓰기</p>
@@ -1481,6 +1526,71 @@ const styles = {
     boxShadow: "inset 0 0 0 1px rgba(17,17,17,0.08)",
     color: "#111",
     fontWeight: 700,
+    cursor: "pointer",
+  },
+  actionCard: {
+    marginBottom: 16,
+    padding: 18,
+    borderRadius: 24,
+    background: "#fff",
+    border: "1px solid rgba(17,17,17,0.08)",
+    boxShadow: "0 18px 40px rgba(17,17,17,0.05)",
+  },
+  actionCardHeader: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+    marginBottom: 14,
+  },
+  actionCardKicker: {
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "#6b7280",
+  },
+  actionCardTitle: {
+    margin: 0,
+    fontSize: 18,
+    fontWeight: 800,
+    color: "#111827",
+  },
+  actionCardGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 10,
+    marginBottom: 14,
+  },
+  actionCardBtn: {
+    padding: "14px 12px",
+    borderRadius: 18,
+    border: "1px solid rgba(17,17,17,0.08)",
+    background: "#fafafa",
+    cursor: "pointer",
+    textAlign: "left",
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+  },
+  actionCardBtnLabel: {
+    fontSize: 12,
+    fontWeight: 800,
+    color: "#6b7280",
+  },
+  actionCardBtnText: {
+    fontSize: 15,
+    fontWeight: 800,
+    color: "#111827",
+  },
+  actionCardPrimary: {
+    width: "100%",
+    border: "none",
+    borderRadius: 16,
+    padding: "14px 16px",
+    background: "#111827",
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: 800,
     cursor: "pointer",
   },
   supportMetaRow: {
