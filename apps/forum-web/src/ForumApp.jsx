@@ -61,6 +61,11 @@ function getInitialDiscoveryQuery() {
   return params.get("q") || "";
 }
 
+function getInitialDiscoveryMode() {
+  const params = new URLSearchParams(window.location.search);
+  return ["recent", "popular", "search"].includes(params.get("mode")) ? params.get("mode") : "recent";
+}
+
 function setPostUrl(postId, { replace = true } = {}) {
   const params = new URLSearchParams(window.location.search);
   if (postId) {
@@ -131,6 +136,23 @@ function setDiscoveryQueryUrl(query, { replace = true } = {}) {
   }
 }
 
+function setDiscoveryModeUrl(mode, { replace = true } = {}) {
+  const params = new URLSearchParams(window.location.search);
+  if (mode) {
+    params.set("mode", mode);
+  } else {
+    params.delete("mode");
+  }
+
+  const search = params.toString();
+  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+  if (replace) {
+    window.history.replaceState({}, "", nextUrl);
+  } else {
+    window.history.pushState({}, "", nextUrl);
+  }
+}
+
 function setViewUrl(view, { replace = true } = {}) {
   const params = new URLSearchParams(window.location.search);
   if (view) {
@@ -174,6 +196,7 @@ export default function ForumApp() {
   const [selectedProfile, setSelectedProfile] = useState(getInitialSelectedProfile);
   const [activeTagFilter, setActiveTagFilter] = useState(getInitialActiveTagFilter);
   const [discoverySearchText, setDiscoverySearchText] = useState(getInitialDiscoveryQuery);
+  const [discoveryMode, setDiscoveryMode] = useState(getInitialDiscoveryMode);
   const [composerOpen, setComposerOpen] = useState(false);
   const [hasForumActivity, setHasForumActivity] = useState(false);
   const [timeSpeed, setTimeSpeed] = useState(1);
@@ -229,6 +252,7 @@ export default function ForumApp() {
       );
       setActiveTagFilter(params.get("tag") || "");
       setDiscoverySearchText(params.get("q") || "");
+      setDiscoveryMode(["recent", "popular", "search"].includes(params.get("mode")) ? params.get("mode") : "recent");
     };
 
     window.addEventListener("popstate", syncSelectedPostFromLocation);
@@ -327,6 +351,11 @@ export default function ForumApp() {
   function handleDiscoverySearchChange(value) {
     setDiscoverySearchText(value);
     setDiscoveryQueryUrl(value, { replace: false });
+  }
+
+  function handleDiscoveryModeChange(value) {
+    setDiscoveryMode(value);
+    setDiscoveryModeUrl(value, { replace: false });
   }
 
   useEffect(() => {
@@ -544,6 +573,8 @@ export default function ForumApp() {
                     onUserActivity={markForumActivity}
                     searchText={discoverySearchText}
                     onSearchTextChange={handleDiscoverySearchChange}
+                    mode={discoveryMode}
+                    onModeChange={handleDiscoveryModeChange}
                     onTagClick={(tag) => {
                       if (tag) setActiveTagFilter(tag);
                     }}
