@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchComments, createComment, deleteComment } from "../api/client.js";
 
@@ -11,6 +11,7 @@ export default function CommentSection({
   replyTarget = null,
 }) {
   const [text, setText] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
   const queryClient = useQueryClient();
   const replyTargetLabel = replyTarget?.type === "comment" ? "댓글" : "글";
   const submitHint = replyTarget?.preview
@@ -35,6 +36,7 @@ export default function CommentSection({
       queryClient.invalidateQueries({ queryKey: ["operator-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["latest-report"] });
       setText("");
+      setStatusMessage("댓글이 등록됐어요.");
     },
   });
 
@@ -49,6 +51,16 @@ export default function CommentSection({
       queryClient.invalidateQueries({ queryKey: ["latest-report"] });
     },
   });
+
+  useEffect(() => {
+    if (!statusMessage) return undefined;
+
+    const timerId = window.setTimeout(() => {
+      setStatusMessage("");
+    }, 2200);
+
+    return () => window.clearTimeout(timerId);
+  }, [statusMessage]);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -80,6 +92,15 @@ export default function CommentSection({
           <div style={styles.replyTargetPreview}>{replyTarget.preview}</div>
         </div>
       )}
+      {!isLoading && comments.length === 0 && (
+        <div style={styles.emptyState}>
+          <div style={styles.emptyStateTitle}>첫 댓글을 남겨보세요!</div>
+          <div style={styles.emptyStateText}>
+            이 대화의 시작을 먼저 남기면 다른 사람도 이어서 반응하기 쉬워집니다.
+          </div>
+        </div>
+      )}
+      {statusMessage && <div style={styles.statusMessage}>{statusMessage}</div>}
       {submitHint && <div style={styles.submitHint}>{submitHint}</div>}
       {draftPreview && (
         <div style={styles.draftPreview}>
@@ -147,6 +168,34 @@ export default function CommentSection({
 const styles = {
   container: { paddingTop: 12 },
   loading: { fontSize: 13, color: "#9ca3af" },
+  emptyState: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 8,
+    background: "#f8fafc",
+    border: "1px dashed #cbd5e1",
+  },
+  emptyStateTitle: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: "#334155",
+    marginBottom: 4,
+  },
+  emptyStateText: {
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: "#64748b",
+  },
+  statusMessage: {
+    marginBottom: 10,
+    padding: "8px 10px",
+    borderRadius: 6,
+    background: "#ecfdf5",
+    border: "1px solid #a7f3d0",
+    color: "#047857",
+    fontSize: 12,
+    fontWeight: 600,
+  },
   replyTargetCard: {
     marginBottom: 12,
     padding: 12,
