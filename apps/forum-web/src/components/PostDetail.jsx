@@ -22,17 +22,6 @@ function formatPostTime(value) {
   });
 }
 
-function GenerationContextBlock({ context }) {
-  if (!context) return null;
-
-  return (
-    <div style={styles.generationContext}>
-      <div style={styles.generationContextTitle}>작성 배경</div>
-      {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
-    </div>
-  );
-}
-
 export default function PostDetail({
   postId,
   currentUser = DEFAULT_USER,
@@ -241,8 +230,6 @@ export default function PostDetail({
           {post.content}
         </div>
 
-        <GenerationContextBlock context={post.generationContext} />
-
         {post.tags?.length > 0 && (
           <div style={styles.tags}>
             {post.tags.map((t) => (
@@ -258,17 +245,6 @@ export default function PostDetail({
                 #{localizeLabel(t)}
               </button>
             ))}
-          </div>
-        )}
-
-        {post.moderationStatus && (
-          <div style={styles.moderation}>
-            <span style={styles.status}>
-              {post.moderationStatus === "approved" ? "✓" : "⚠"}
-            </span>
-            <span style={styles.score}>
-              흐름 점검: {(post.moderationScore || 0).toFixed(2)}
-            </span>
           </div>
         )}
 
@@ -325,7 +301,20 @@ export default function PostDetail({
 
       <section style={styles.commentsSection}>
         <h3 style={styles.commentsTitle}>대화 ({post.commentCount || 0})</h3>
-        <CommentSection postId={postId} currentUser={currentUser} onUserActivity={onUserActivity} />
+        <CommentSection
+          postId={postId}
+          currentUser={currentUser}
+          onUserActivity={onUserActivity}
+          onJumpToTarget={() => {
+            const node = document.querySelector("[data-post-detail-root]");
+            node?.scrollIntoView({ block: "start", behavior: "smooth" });
+          }}
+          replyTarget={{
+            type: "post",
+            authorId: post.authorId,
+            preview: post.content?.trim().slice(0, 180) || "이 글에 답글을 남겨보세요.",
+          }}
+        />
       </section>
     </div>
   );

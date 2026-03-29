@@ -14,6 +14,11 @@ export default function PostList({
   onTagClick = () => {},
   onRequireAuth = () => {},
   onAuthorClick = () => {},
+  onCreateFirstPost = () => {},
+  onEmptyStateAction = () => {},
+  emptyStateActionLabel = "",
+  emptyStateTitle = "",
+  emptyStateText = "",
   isAuthenticated = false,
   activeTagFilter = "",
   onTagFilterChange = () => {},
@@ -134,10 +139,25 @@ export default function PostList({
 
       {isLoading && <p style={styles.msg}>글을 불러오는 중…</p>}
       {isError && <p style={styles.error}>{error?.message || "오류가 발생했습니다."}</p>}
-      {!isLoading && posts.length === 0 && (
-        <p style={styles.msg}>
-          {isSavedView ? "아직 저장한 글이 없습니다. 마음에 드는 글을 저장해 보세요!" : "아직 글이 없습니다. 첫 번째 글을 써보세요!"}
-        </p>
+      {isEmpty && (
+        <div style={styles.emptyState}>
+          <p style={styles.emptyStateTitle}>{resolvedEmptyTitle}</p>
+          <p style={styles.emptyStateText}>{resolvedEmptyText}</p>
+          {!isSavedView && (
+            <button
+              type="button"
+              style={styles.emptyStateBtn}
+              onClick={queryParams?.q && onEmptyStateAction ? onEmptyStateAction : onCreateFirstPost}
+            >
+              {queryParams?.q ? (emptyStateActionLabel || "검색 지우기") : "글쓰기 열기"}
+            </button>
+          )}
+          {isSavedView && onEmptyStateAction && (
+            <button type="button" style={styles.emptyStateBtn} onClick={onEmptyStateAction}>
+              {emptyStateActionLabel || "포럼으로 돌아가기"}
+            </button>
+          )}
+        </div>
       )}
 
       <div style={styles.list} onScroll={handleScroll}>

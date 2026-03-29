@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchComments, createComment, deleteComment } from "../api/client.js";
 import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
@@ -6,9 +6,23 @@ import { chatTheme } from "../lib/chat-ui-theme.js";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
-export default function CommentSection({ postId, currentUser = DEFAULT_USER, onUserActivity = () => {} }) {
+export default function CommentSection({
+  postId,
+  currentUser = DEFAULT_USER,
+  onUserActivity = () => {},
+  replyTarget = null,
+  onJumpToTarget = () => {},
+}) {
   const [text, setText] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
   const queryClient = useQueryClient();
+  const replyTargetLabel = replyTarget?.type === "comment" ? "댓글" : "글";
+  const submitHint = replyTarget?.preview
+    ? `답글 대상: ${replyTargetLabel}`
+    : "";
+  const draftPreview = replyTarget?.preview && text.trim()
+    ? text.trim()
+    : "";
 
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ["comments", postId],
@@ -51,6 +65,7 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
       queryClient.invalidateQueries({ queryKey: ["operator-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["latest-report"] });
       setText("");
+      setStatusMessage("댓글이 등록됐어요.");
     },
   });
 
@@ -65,6 +80,16 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
       queryClient.invalidateQueries({ queryKey: ["latest-report"] });
     },
   });
+
+  useEffect(() => {
+    if (!statusMessage) return undefined;
+
+    const timerId = window.setTimeout(() => {
+      setStatusMessage("");
+    }, 2200);
+
+    return () => window.clearTimeout(timerId);
+  }, [statusMessage]);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -91,24 +116,65 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
       />
 
       {isLoading && <p style={styles.loading}>댓글을 불러오는 중…</p>}
+      {replyTarget?.preview && (
+        <div style={styles.replyTargetCard}>
+          <div style={styles.replyTargetHeader}>
+            <span style={styles.replyTargetLabel}>답글 대상</span>
+            <span style={styles.replyTargetType}>
+              {replyTarget.type === "comment" ? "댓글" : "글"}
+            </span>
+          </div>
+          <div style={styles.replyTargetAuthor}>
+            {replyTarget.type === "comment"
+              ? `@${replyTarget.authorId || "comment"}`
+              : `@${replyTarget.authorId || "post"}`}
+          </div>
+          <div style={styles.replyTargetPreview}>{replyTarget.preview}</div>
+        </div>
+      )}
+      {!isLoading && comments.length === 0 && (
+        <div style={styles.emptyState}>
+          <div style={styles.emptyStateTitle}>아직 댓글이 없습니다.</div>
+        </div>
+      )}
+      {statusMessage && <div style={styles.statusMessage}>{statusMessage}</div>}
+      {submitHint && <div style={styles.submitHint}>{submitHint}</div>}
+      {draftPreview && (
+        <div style={styles.draftPreview}>
+          <div style={styles.draftPreviewHeader}>미리보기</div>
+          <div style={styles.draftPreviewBody}>
+            <div style={styles.draftPreviewTarget}>
+              {replyTargetLabel} · @{replyTarget.authorId || "post"}
+            </div>
+            <div style={styles.draftPreviewText}>{draftPreview}</div>
+          </div>
+        </div>
+      )}
       {comments.map((c) => (
-        <div key={c._id} style={styles.comment}>
+        <div key={c._id} data-comment-id={c._id} style={styles.comment}>
           <span style={styles.author}>
             {c.authorType === "agent" ? "🤖 " : "👤 "}
             {c.authorId}
           </span>
           {c.replyTargetType && (
-            <div style={styles.replyMeta}>
-              ↪ {c.replyTargetType === "comment" ? `@${c.replyTargetAuthorId || "comment"}의 답글` : "글 본문"}
-            </div>
+            <button
+              type="button"
+              style={styles.replyMetaBtn}
+              onClick={() => {
+                onUserActivity();
+                if (c.replyTargetType === "comment") {
+                  const target = document.querySelector(`[data-comment-id="${c.replyToCommentId}"]`);
+                  target?.scrollIntoView({ block: "center", behavior: "smooth" });
+                  return;
+                }
+
+                onJumpToTarget("post");
+              }}
+            >
+              ↪ {c.replyTargetType === "comment" ? `@${c.replyTargetAuthorId || "comment"}의 답글` : "글 본문 보기"}
+            </button>
           )}
           <p style={styles.text}>{c.content}</p>
-          {c.generationContext?.summary && (
-            <div style={styles.generationContext}>
-              <div style={styles.generationContextTitle}>작성 배경</div>
-              <div style={styles.generationContextSummary}>{c.generationContext.summary}</div>
-            </div>
-          )}
           {c.authorId === currentUser.id && (
           <button
               onClick={() => {
@@ -124,7 +190,7 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
         </div>
       ))}
       <form onSubmit={handleSubmit} style={styles.form}>
-          <input
+        <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="반응을 남겨보세요. 내 댓글도 캐릭터가 됩니다…"
@@ -136,7 +202,7 @@ export default function CommentSection({ postId, currentUser = DEFAULT_USER, onU
           style={styles.btn}
           disabled={addMutation.isPending || !text.trim()}
         >
-          {addMutation.isPending ? "…" : "등록"}
+          {addMutation.isPending ? "…" : replyTarget?.preview ? "답글 등록" : "등록"}
         </button>
       </form>
     </div>

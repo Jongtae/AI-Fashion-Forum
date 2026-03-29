@@ -1,42 +1,29 @@
-import React, { useState } from "react";
+import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchFeed, triggerAgentTick, fetchAgentLoopStatus } from "../api/client.js";
+import { fetchFeed } from "../api/client.js";
 import PostCard from "./PostCard.jsx";
 import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 import { chatTheme } from "../lib/chat-ui-theme.js";
 
-const FLAGS = ["baseline", "noveltyBoost", "trustBoost", "controversyDampen"];
-
 export default function PersonalisedFeed({
   currentUser,
-  timeSpeed = 1,
   onUserActivity = () => {},
   onRequireAuth = () => {},
   onAuthorClick = () => {},
   isAuthenticated = false,
 }) {
-  const [flag, setFlag] = useState("baseline");
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["feed", currentUser.id, flag],
-    queryFn: () => fetchFeed({ userId: currentUser.id, experimentFlag: flag }),
-  });
-
-  const { data: agentStatus } = useQuery({
-    queryKey: ["agent-loop-status"],
-    queryFn: fetchAgentLoopStatus,
-    refetchInterval: 10_000,
+    queryKey: ["feed", currentUser.id],
+    queryFn: () => fetchFeed({ userId: currentUser.id }),
   });
 
   const tickMutation = useMutation({
-    mutationFn: (ticks) => triggerAgentTick({ ticks, speed: timeSpeed }),
+    mutationFn: () => refetch(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      queryClient.invalidateQueries({ queryKey: ["agent-loop-status"] });
-      queryClient.invalidateQueries({ queryKey: ["operator-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["latest-report"] });
     },
   });
 
@@ -101,49 +88,27 @@ export default function PersonalisedFeed({
             {tickMutation.isPending ? "진행 중…" : `+ 흐름 3회 진행 (${timeSpeed}x)`}
           </button>
         </div>
-      )}
-
-      {/* Experiment flag selector */}
-      <div style={styles.flagRow}>
-        <span style={styles.flagLabel}>피드 방식:</span>
-        {FLAGS.map((f) => (
-          <button
-            key={f}
-            style={{ ...styles.flagBtn, ...(flag === f ? styles.flagActive : {}) }}
-            onClick={() => setFlag(f)}
-          >
-            {f}
-          </button>
-        ))}
-        <button style={styles.refreshBtn} onClick={() => refetch()}>
-          ↻
+        <button
+          style={styles.refreshBtn}
+          onClick={() => {
+            onUserActivity();
+            tickMutation.mutate();
+          }}
+          disabled={tickMutation.isPending}
+        >
+          {tickMutation.isPending ? "갱신 중…" : "↻ 새로고침"}
         </button>
       </div>
 
       {isLoading && <p style={styles.msg}>피드 계산 중…</p>}
       {isError && <p style={styles.err}>{error?.message || "피드 로딩 실패"}</p>}
       {!isLoading && feed.length === 0 && (
-        <p style={styles.msg}>
-          피드가 비어있습니다.{" "}
-          <button
-            style={styles.inlineBtn}
-            onClick={() => {
-              onUserActivity();
-              tickMutation.mutate(5);
-            }}
-          >
-            흐름 5회 진행 ({timeSpeed}x)
-          </button>
-          해서 글을 더 불러와보세요.
-        </p>
+        <p style={styles.msg}>아직 글이 없습니다.</p>
       )}
 
       <div style={styles.list}>
         {feed.map((post) => (
           <div key={post._id} style={styles.feedItem}>
-            {post._score !== undefined && (
-              <div style={styles.score}>score: {post._score}</div>
-            )}
             <PostCard
               post={post}
               currentUser={currentUser}
@@ -160,8 +125,9 @@ export default function PersonalisedFeed({
 }
 
 const styles = {
-  banner: {
+  headerRow: {
     display: "flex",
+    alignItems: "center",
     justifyContent: "space-between",
     alignItems: "center",
     background: chatTheme.panelBg,
@@ -190,7 +156,6 @@ const styles = {
     gap: 6,
     alignItems: "center",
     marginBottom: 14,
-    flexWrap: "wrap",
   },
   flagLabel: { fontSize: 12, color: "#6b7280", marginRight: 4 },
   flagBtn: {

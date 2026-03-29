@@ -57,44 +57,49 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
 
 test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => {
   const localApiKey = "local-test-key";
-  const fetchImpl = async () => ({
-    ok: true,
-    json: async () => ({
-      id: "resp_123",
-      output_text: JSON.stringify({
-        contexts: [
-          {
-            context_id: "ctx-a",
-            context_label: "생활 리듬",
-            angle: "일상 기준",
-            content: "오피스 흐름을 생활 기준으로 다시 읽은 한국어 글입니다.",
-            tone: "차분한",
-          },
-          {
-            context_id: "ctx-b",
-            context_label: "신호 읽기",
-            angle: "새 신호",
-            content: "새 신호를 중심으로 정리한 한국어 글입니다.",
-            tone: "관찰적인",
-          },
-          {
-            context_id: "ctx-c",
-            context_label: "손익 점검",
-            angle: "손익 기준",
-            content: "손익을 따지는 한국어 글입니다.",
-            tone: "신중한",
-          },
-          {
-            context_id: "ctx-d",
-            context_label: "커뮤니티 반응",
-            angle: "대화 흐름",
-            content: "대화형 톤의 한국어 글입니다.",
-            tone: "대화형",
-          },
-        ],
+  let requestBody = null;
+  const fetchImpl = async (_url, options = {}) => {
+    requestBody = options.body ? JSON.parse(options.body) : null;
+    return {
+      ok: true,
+      json: async () => ({
+        id: "resp_123",
+        output_text: JSON.stringify({
+          contexts: [
+            {
+              context_id: "ctx-a",
+              context_label: "생활 리듬",
+              angle: "일상 기준",
+              content: "오피스 흐름을 생활 기준으로 다시 읽은 한국어 글입니다.",
+              tone: "차분한",
+            },
+            {
+              context_id: "ctx-b",
+              context_label: "신호 읽기",
+              angle: "새 신호",
+              content: "새 신호를 중심으로 정리한 한국어 글입니다.",
+              tone: "관찰적인",
+            },
+            {
+              context_id: "ctx-c",
+              context_label: "손익 점검",
+              angle: "손익 기준",
+              content: "손익을 따지는 한국어 글입니다.",
+              tone: "신중한",
+            },
+            {
+              context_id: "ctx-d",
+              context_label: "커뮤니티 반응",
+              angle: "대화 흐름",
+              content: "대화형 톤의 한국어 글입니다.",
+              tone: "대화형",
+            },
+          ],
+        }),
       }),
-    }),
-  });
+      text: async () => "",
+    };
+  };
 
   const draft = await createRunPostDraft({
     updatedAgent: {
@@ -119,6 +124,7 @@ test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => 
   assert.strictEqual(draft.generationContext.contextPoolSize, 4);
   assert.strictEqual(draft.generationContext.selectedContextLabel, "커뮤니티 반응");
   assert.match(draft.content, /대화형 톤의 한국어 글입니다/);
+  assert.strictEqual(requestBody?.model, "gpt-4o");
 });
 
 test("createLiveCommentDraft uses local OpenAI mock contexts and targets comments", async () => {

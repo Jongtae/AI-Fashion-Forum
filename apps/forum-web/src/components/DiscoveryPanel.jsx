@@ -6,9 +6,9 @@ import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 import { chatTheme } from "../lib/chat-ui-theme.js";
 
 const MODES = [
-  { id: "recent", label: "최신", description: "방금 올라온 글" },
-  { id: "popular", label: "인기", description: "반응이 많은 글" },
-  { id: "search", label: "검색", description: "글, 태그, 작성자" },
+  { id: "recent", label: "최신", description: "최근 글" },
+  { id: "popular", label: "인기", description: "반응 많은 글" },
+  { id: "search", label: "검색", description: "글·태그·작성자" },
 ];
 
 function deriveTopTopics(posts) {
@@ -141,10 +141,8 @@ export default function DiscoveryPanel({
       </section>
 
       <section style={styles.topicBar}>
-        <div style={styles.sectionLabel}>주제 커뮤니티</div>
-        <div style={styles.topicHint}>
-          태그를 눌러 같은 주제의 글만 모아 볼 수 있습니다.
-        </div>
+        <div style={styles.sectionLabel}>태그</div>
+        <div style={styles.topicHint}>같은 글 모아보기</div>
         <div style={styles.topicChips}>
           {topTopics.map((topic) => (
             <button
@@ -191,6 +189,10 @@ export default function DiscoveryPanel({
         activeTagFilter={topicFilter}
         onTagFilterChange={(value) => setTopicFilter(value)}
         queryParams={queryParams}
+        emptyStateActionLabel="검색 지우기"
+        onEmptyStateAction={() => onSearchTextChange("")}
+        emptyStateTitle={searchText.trim() ? "검색 결과가 없습니다." : ""}
+        emptyStateText={searchText.trim() ? "검색어를 지우거나 다른 주제를 찾아보세요." : ""}
       />
     </div>
   );

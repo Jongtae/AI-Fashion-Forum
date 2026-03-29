@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchLatestReplay, triggerRun } from "../api/client.js";
+import { fetchLatestReplay, submitFeedback, submitUserAction, triggerRun } from "../api/client.js";
 import AgentEvolutionPanel from "./AgentEvolutionPanel.jsx";
 import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 
@@ -39,6 +39,17 @@ const STORAGE_KEYS = {
   agentStateExpanded: "replay-viewer:agent-state-expanded",
 };
 
+const ANCHOR_LABELS = {
+  "run-panel": "기록 실행",
+  "continuity-card": "연결 보기",
+  "run-meta": "기록 메타",
+  metrics: "평가 지표",
+  evolution: "에이전트 변화",
+  exposure: "반응 기록",
+  posts: "글 흐름",
+  "agent-state": "에이전트 상태",
+};
+
 function readStorage(key, fallback = null) {
   try {
     const value = window.localStorage.getItem(key);
@@ -54,6 +65,10 @@ function writeStorage(key, value) {
   } catch {
     // ignore storage failures in private mode / disabled storage environments
   }
+}
+
+function formatAnchorLabel(anchor) {
+  return ANCHOR_LABELS[anchor] || anchor || "—";
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -348,6 +363,9 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
   const [activeAnchor, setActiveAnchor] = useState(
     () => readStorage(STORAGE_KEYS.lastAnchor, "run-panel") || "run-panel"
   );
+  const [restoreStatus, setRestoreStatus] = useState("대기 중");
+  const [restoredAnchor, setRestoredAnchor] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
   const restoreAnchorRef = useRef(false);
 
   const {
@@ -414,19 +432,26 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
 
     const target = window.localStorage.getItem(STORAGE_KEYS.lastAnchor) || activeAnchor;
     if (!target) {
+      setRestoreStatus("복원 대상 없음");
       return;
     }
 
     const node = document.querySelector(`[data-replay-anchor="${target}"]`);
     if (!node) {
+      setRestoreStatus("복원 위치를 찾지 못함");
       return;
     }
 
     restoreAnchorRef.current = true;
+    setRestoredAnchor(target);
+    setRestoreStatus("마지막 위치 복원됨");
+    if (replay?.run_id) {
+      restoreLogMutation.mutate();
+    }
     window.requestAnimationFrame(() => {
       node.scrollIntoView({ block: "start", behavior: "smooth" });
     });
-  }, [replay, activeAnchor]);
+  }, [replay, activeAnchor, restoreLogMutation]);
 
   useEffect(() => {
     if (!replay) return undefined;
@@ -474,13 +499,47 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
       </div>
 
       <div style={styles.liveHint}>
-        {isFetching ? "최근 기록을 확인 중…" : "최근 기록을 5초마다 자동 갱신합니다."}
-        {dataUpdatedAt ? (
-          <span style={styles.liveHintMeta}>
-            마지막 갱신: {new Date(dataUpdatedAt).toLocaleTimeString("ko-KR")}
-          </span>
-        ) : null}
+        <div style={styles.liveHintMain}>
+          {isFetching ? "최근 기록을 확인 중…" : "최근 기록을 5초마다 자동 갱신합니다."}
+          {dataUpdatedAt ? (
+            <span style={styles.liveHintMeta}>
+              마지막 갱신: {new Date(dataUpdatedAt).toLocaleTimeString("ko-KR")}
+            </span>
+          ) : null}
+        </div>
+        <div style={styles.anchorStatusRow}>
+          <span style={styles.anchorStatusChip}>현재 위치: {formatAnchorLabel(activeAnchor)}</span>
+          <span style={styles.anchorStatusChip}>복원 상태: {restoreStatus}</span>
+          {restoredAnchor ? (
+            <span style={styles.anchorStatusChipSoft}>복원 앵커: {formatAnchorLabel(restoredAnchor)}</span>
+          ) : null}
+        </div>
       </div>
+      {restoredAnchor && (
+        <div style={styles.restoreFeedbackCard}>
+          <div style={styles.restoreFeedbackTitle}>복원 도움 피드백</div>
+          <div style={styles.restoreFeedbackText}>마지막 위치 복원이 작업에 도움이 되었나요?</div>
+          <div style={styles.restoreFeedbackActions}>
+            <button
+              type="button"
+              style={styles.restoreFeedbackBtn}
+              onClick={() => restoreFeedbackMutation.mutate(5)}
+              disabled={restoreFeedbackMutation.isPending}
+            >
+              도움이 됨
+            </button>
+            <button
+              type="button"
+              style={styles.restoreFeedbackBtnSecondary}
+              onClick={() => restoreFeedbackMutation.mutate(2)}
+              disabled={restoreFeedbackMutation.isPending}
+            >
+              별로였음
+            </button>
+          </div>
+          {feedbackMessage && <div style={styles.restoreFeedbackMessage}>{feedbackMessage}</div>}
+        </div>
+      )}
 
       {isLoading && <div style={styles.loading}>기록 불러오는 중...</div>}
 
@@ -565,9 +624,8 @@ const styles = {
   root: { display: "flex", flexDirection: "column", gap: 16 },
   liveHint: {
     display: "flex",
-    justifyContent: "space-between",
-    gap: 12,
-    alignItems: "center",
+    flexDirection: "column",
+    gap: 8,
     padding: "10px 14px",
     borderRadius: 8,
     background: "#f8fafc",
@@ -575,9 +633,86 @@ const styles = {
     color: "#475569",
     fontSize: 12,
   },
+  liveHintMain: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 12,
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
   liveHintMeta: {
     color: "#64748b",
     whiteSpace: "nowrap",
+  },
+  anchorStatusRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  anchorStatusChip: {
+    fontSize: 11,
+    color: "#1d4ed8",
+    background: "#dbeafe",
+    borderRadius: 999,
+    padding: "3px 8px",
+    fontWeight: 600,
+  },
+  anchorStatusChipSoft: {
+    fontSize: 11,
+    color: "#475569",
+    background: "#e2e8f0",
+    borderRadius: 999,
+    padding: "3px 8px",
+    fontWeight: 600,
+  },
+  restoreFeedbackCard: {
+    padding: 12,
+    borderRadius: 8,
+    border: "1px solid #dbeafe",
+    background: "#eff6ff",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  restoreFeedbackTitle: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#1d4ed8",
+  },
+  restoreFeedbackText: {
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: "#1e3a8a",
+  },
+  restoreFeedbackActions: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  restoreFeedbackBtn: {
+    border: "none",
+    borderRadius: 999,
+    padding: "7px 12px",
+    background: "#2563eb",
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  restoreFeedbackBtnSecondary: {
+    border: "1px solid #93c5fd",
+    borderRadius: 999,
+    padding: "7px 12px",
+    background: "#fff",
+    color: "#1d4ed8",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  restoreFeedbackMessage: {
+    fontSize: 12,
+    color: "#065f46",
+    fontWeight: 600,
   },
   loading: { padding: 32, textAlign: "center", color: "#6b7280" },
 

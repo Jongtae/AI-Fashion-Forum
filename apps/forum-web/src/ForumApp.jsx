@@ -67,26 +67,35 @@ function getInitialDiscoveryMode() {
   return ["recent", "popular", "search"].includes(params.get("mode")) ? params.get("mode") : "recent";
 }
 
-function ServiceContextSummary({ tab, discoveryMode, activeTagFilter, discoverySearchText }) {
+function ServiceContextSummary({
+  tab,
+  discoveryMode,
+  activeTagFilter,
+  discoverySearchText,
+  onClearTab,
+  onClearMode,
+  onClearTag,
+  onClearSearch,
+}) {
   const handleClearContext = () => {
     window.dispatchEvent(new CustomEvent("forum:clear-context"));
   };
   const chips = [];
 
   if (tab && tab !== "forum") {
-    chips.push({ label: "탭", value: tab });
+    chips.push({ label: "탭", value: tab, onClear: onClearTab });
   }
 
   if (tab === "discover" && discoveryMode && discoveryMode !== "recent") {
-    chips.push({ label: "모드", value: discoveryMode });
+    chips.push({ label: "모드", value: discoveryMode, onClear: onClearMode });
   }
 
   if (activeTagFilter) {
-    chips.push({ label: "태그", value: `#${activeTagFilter}` });
+    chips.push({ label: "태그", value: `#${activeTagFilter}`, onClear: onClearTag });
   }
 
   if (tab === "discover" && discoverySearchText) {
-    chips.push({ label: "검색", value: discoverySearchText });
+    chips.push({ label: "검색", value: discoverySearchText, onClear: onClearSearch });
   }
 
   if (chips.length === 0) return null;
@@ -104,6 +113,15 @@ function ServiceContextSummary({ tab, discoveryMode, activeTagFilter, discoveryS
           <span key={`${chip.label}-${chip.value}`} style={styles.contextChip}>
             <strong>{chip.label}</strong>
             <span>{chip.value}</span>
+            <button
+              type="button"
+              style={styles.contextChipRemoveBtn}
+              onClick={chip.onClear}
+              aria-label={`${chip.label} 지우기`}
+              title={`${chip.label} 지우기`}
+            >
+              ×
+            </button>
           </span>
         ))}
       </div>
@@ -139,6 +157,15 @@ function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
     },
   ];
 
+function ServiceRail({
+  currentTab,
+  authUser,
+  hasForumActivity,
+  composerOpen,
+  onActivateTab,
+  onOpenSavedPosts,
+  onOpenComposer,
+}) {
   return (
     <section style={styles.quickActions}>
       <div style={styles.quickActionsHeader}>
@@ -160,15 +187,97 @@ function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
                 return;
               }
 
-              onActivateTab(action.id);
-            }}
-          >
-            <div style={styles.quickActionTitle}>{action.title}</div>
-            <div style={styles.quickActionDescription}>{action.description}</div>
-            <span style={styles.quickActionButton}>{action.buttonLabel}</span>
-          </button>
-        ))}
+          return (
+            <button
+              key={tabItem.id}
+              type="button"
+              style={{
+                ...styles.railButton,
+                ...(isActive ? styles.railButtonActive : {}),
+              }}
+              title={tabItem.label}
+              onClick={handleClick}
+            >
+              <span style={styles.railIcon}>{getTabIcon(tabItem.id)}</span>
+              <span style={styles.railButtonLabel}>{tabItem.label}</span>
+            </button>
+          );
+        })}
       </div>
+      <button
+        type="button"
+        style={{
+          ...styles.railComposerButton,
+          ...(!(hasForumActivity || authUser) ? styles.railComposerButtonDisabled : {}),
+        }}
+        onClick={onOpenComposer}
+        disabled={!(hasForumActivity || authUser)}
+      >
+        <span style={styles.railComposerPlus}>{composerOpen ? "–" : "+"}</span>
+      </button>
+      <div style={styles.railFooter}>
+        <span style={styles.railFooterLine}>{authUser ? "로그인됨" : "게스트"}</span>
+        <span style={styles.railFooterLine}>service</span>
+      </div>
+    </aside>
+  );
+}
+
+function ServiceSupportPanel({
+  authUser,
+  onShowAuth,
+  onLogout,
+}) {
+  return (
+    <aside style={styles.supportPanel}>
+      <div style={styles.supportCard}>
+        <div style={styles.supportTitle}>{authUser ? "참여 중" : "로그인"}</div>
+        <button
+          type="button"
+          style={styles.supportPrimaryButton}
+          onClick={authUser ? onLogout : onShowAuth}
+        >
+          {authUser ? "로그아웃" : "로그인 또는 가입하기"}
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+function ServiceActionCard({
+  onGoForum,
+  onGoDiscover,
+  onGoFeed,
+  onGoSaved,
+  onOpenComposer,
+}) {
+  return (
+    <section style={styles.actionCard}>
+      <div style={styles.actionCardHeader}>
+        <div style={styles.actionCardKicker}>바로 하기</div>
+        <h2 style={styles.actionCardTitle}>지금 할 수 있는 것</h2>
+      </div>
+      <div style={styles.actionCardGrid}>
+        <button type="button" style={styles.actionCardBtn} onClick={onGoForum}>
+          <span style={styles.actionCardBtnLabel}>읽기</span>
+          <span style={styles.actionCardBtnText}>포럼 보기</span>
+        </button>
+        <button type="button" style={styles.actionCardBtn} onClick={onGoDiscover}>
+          <span style={styles.actionCardBtnLabel}>찾기</span>
+          <span style={styles.actionCardBtnText}>탐색 열기</span>
+        </button>
+        <button type="button" style={styles.actionCardBtn} onClick={onGoFeed}>
+          <span style={styles.actionCardBtnLabel}>맞춤</span>
+          <span style={styles.actionCardBtnText}>내 글 보기</span>
+        </button>
+        <button type="button" style={styles.actionCardBtn} onClick={onGoSaved}>
+          <span style={styles.actionCardBtnLabel}>보관</span>
+          <span style={styles.actionCardBtnText}>저장글 보기</span>
+        </button>
+      </div>
+      <button type="button" style={styles.actionCardPrimary} onClick={onOpenComposer}>
+        글쓰기 열기
+      </button>
     </section>
   );
 }
@@ -316,9 +425,20 @@ export default function ForumApp() {
   const [timeSpeed, setTimeSpeed] = useState(1);
   const [isAutoRunning, setIsAutoRunning] = useState(true);
   const [pendingTab, setPendingTab] = useState(null);
+  const [viewportWidth, setViewportWidth] = useState(
+    typeof window === "undefined" ? 1280 : window.innerWidth
+  );
   const autoTickInFlightRef = useRef(false);
   const prevSelectedPostIdRef = useRef(null);
   const previousServiceTabRef = useRef("forum");
+  const isCompact = viewportWidth < 1024;
+  const isMobile = viewportWidth < 768;
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const handleClearContext = () => {
@@ -493,6 +613,30 @@ export default function ForumApp() {
     setDiscoveryModeUrl(value, { replace: false });
   }
 
+  function clearTabContext() {
+    setSelectedPostId(null);
+    setPostUrl(null);
+    setSelectedProfile(null);
+    setProfileUrl(null);
+    setTab("forum");
+    setViewUrl("forum", { replace: false });
+  }
+
+  function clearModeContext() {
+    setDiscoveryMode("recent");
+    setDiscoveryModeUrl("recent", { replace: false });
+  }
+
+  function clearTagContext() {
+    setActiveTagFilter("");
+    setTagUrl("", { replace: false });
+  }
+
+  function clearSearchContext() {
+    setDiscoverySearchText("");
+    setDiscoveryQueryUrl("", { replace: false });
+  }
+
   function renderAdminShell() {
     return (
       <div style={styles.shell}>
@@ -636,17 +780,47 @@ export default function ForumApp() {
                 </button>
                 {authUser ? (
                   <>
-                    <span style={styles.userId}>👤 {authUser.displayName || authUser.username}</span>
-                    <button style={styles.editBtn} onClick={handleLogout}>로그아웃</button>
-                  </>
-                ) : (
-                  <>
-                    <span style={styles.userId}>🔒 게스트</span>
-                    <button style={styles.editBtn} onClick={() => setShowAuth(true)}>로그인</button>
+                    <ServiceContextSummary
+                      tab={tab}
+                      discoveryMode={discoveryMode}
+                      activeTagFilter={activeTagFilter}
+                      discoverySearchText={discoverySearchText}
+                      onClearTab={clearTabContext}
+                      onClearMode={clearModeContext}
+                      onClearTag={clearTagContext}
+                      onClearSearch={clearSearchContext}
+                    />
+
+                    <nav style={{ ...styles.nav, ...(isMobile ? styles.navMobile : {}) }}>
+                      {SERVICE_TABS.map((tabItem) => {
+                        const isActive = tab === tabItem.id;
+                        const handleClick =
+                          tabItem.id === "saved" ? openSavedPosts : () => activateTab(tabItem.id);
+
+                        return (
+                          <button
+                            key={tabItem.id}
+                            type="button"
+                            style={{ ...styles.tabBtn, ...(isActive ? styles.tabActive : {}) }}
+                            onClick={handleClick}
+                          >
+                            <span style={styles.tabLabel}>{tabItem.label}</span>
+                            {!isMobile && (
+                              <span
+                                style={{
+                                  ...styles.tabDescription,
+                                  ...(isActive ? styles.tabDescriptionActive : {}),
+                                }}
+                              >
+                                {tabItem.description}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </nav>
                   </>
                 )}
-              </div>
-            </header>
 
             <nav style={styles.nav}>
               {SERVICE_TABS.map((tabItem) => {
@@ -712,6 +886,13 @@ export default function ForumApp() {
                   />
                 ) : (
                   <>
+                    <ServiceActionCard
+                      onGoForum={() => activateTab("forum")}
+                      onGoDiscover={() => activateTab("discover")}
+                      onGoFeed={() => activateTab("feed")}
+                      onGoSaved={openSavedPosts}
+                      onOpenComposer={toggleComposerOpen}
+                    />
                     <section style={styles.formSection}>
                       <div style={styles.composerGate}>
                         <div>
@@ -756,6 +937,10 @@ export default function ForumApp() {
                         onRequireAuth={() => setShowAuth(true)}
                         isAuthenticated={Boolean(authUser)}
                         onAuthorClick={openProfile}
+                        onCreateFirstPost={() => {
+                          markForumActivity();
+                          setComposerOpen(true);
+                        }}
                       />
                     </section>
                   </>
@@ -816,14 +1001,16 @@ export default function ForumApp() {
                       queryParams={{ saved: "true" }}
                       requiresAuth
                       onAuthorClick={openProfile}
+                      onEmptyStateAction={() => {
+                        activateTab("forum");
+                      }}
+                      emptyStateActionLabel="포럼으로 돌아가기"
                   />
                 </section>
               ) : (
                 <section style={styles.placeholderCard}>
-                  <p style={styles.placeholderTitle}>관리 화면은 `/admin` 경로에서 볼 수 있어요.</p>
-                  <p style={styles.placeholderText}>
-                    서비스 화면에서는 포럼과 맞춤 피드만 보여드려요.
-                  </p>
+                  <p style={styles.placeholderTitle}>페이지를 찾을 수 없습니다.</p>
+                  <p style={styles.placeholderText}>포럼으로 돌아가서 다시 살펴보세요.</p>
                 </section>
               )}
               </main>
@@ -998,7 +1185,7 @@ const styles = {
   autoBtn: {
     border: "1px solid transparent",
     borderRadius: 999,
-    padding: "4px 10px",
+    padding: "6px 10px",
     fontSize: 12,
     cursor: "pointer",
   },
@@ -1085,7 +1272,7 @@ const styles = {
   },
   quickActionsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gridTemplateColumns: "1fr",
     gap: 10,
   },
   quickActionCard: {
@@ -1197,7 +1384,7 @@ const styles = {
     background: chatTheme.shellBg,
     padding: "0 14px",
     display: "flex",
-    gap: 4,
+    gap: 6,
     alignItems: "stretch",
     border: `1px solid ${chatTheme.shellBorder}`,
     borderRadius: chatTheme.radiusXL,
@@ -1252,6 +1439,17 @@ const styles = {
     color: chatTheme.text,
     fontSize: 12,
   },
+  contextChipRemoveBtn: {
+    width: 20,
+    height: 20,
+    borderRadius: 999,
+    border: "none",
+    background: "#e5e7eb",
+    color: "#374151",
+    cursor: "pointer",
+    lineHeight: 1,
+    padding: 0,
+  },
   placeholderCard: {
     marginTop: 8,
     padding: "18px 20px",
@@ -1273,18 +1471,19 @@ const styles = {
     lineHeight: 1.6,
   },
   tabBtn: {
-    padding: "10px 16px 12px",
+    padding: "12px 14px",
     background: "transparent",
     border: "none",
     color: chatTheme.textMuted,
     fontSize: 14,
     cursor: "pointer",
-    borderBottom: "2px solid transparent",
+    borderRadius: 18,
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
     gap: 3,
-    minWidth: 132,
+    minWidth: 120,
+    flex: 1,
   },
   tabActive: {
     color: chatTheme.text,

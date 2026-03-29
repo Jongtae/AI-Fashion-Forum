@@ -21,17 +21,6 @@ function formatPostTime(value) {
   });
 }
 
-function GenerationContextBlock({ context }) {
-  if (!context) return null;
-
-  return (
-    <div style={styles.generationContext}>
-      <div style={styles.generationContextTitle}>작성 배경</div>
-      {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
-    </div>
-  );
-}
-
 export default function PostCard({
   post,
   currentUser = DEFAULT_USER,
@@ -135,7 +124,7 @@ export default function PostCard({
   const canDelete = post.authorId === currentUser.id;
 
   return (
-    <div style={styles.card}>
+    <div style={styles.card} data-post-card={post._id}>
       <div style={styles.header}>
         <button
           type="button"
@@ -166,8 +155,6 @@ export default function PostCard({
         >
         {post.content}
       </p>
-
-      <GenerationContextBlock context={post.generationContext} />
 
       {post.tags?.length > 0 && (
         <div style={styles.tags}>
@@ -276,7 +263,20 @@ export default function PostCard({
           )}
 
           {showComments && (
-            <CommentSection postId={post._id} currentUser={currentUser} onUserActivity={onUserActivity} />
+            <CommentSection
+              postId={post._id}
+              currentUser={currentUser}
+              onUserActivity={onUserActivity}
+              onJumpToTarget={() => {
+                const node = document.querySelector(`[data-post-card="${post._id}"]`);
+                node?.scrollIntoView({ block: "start", behavior: "smooth" });
+              }}
+              replyTarget={{
+                type: "post",
+                authorId: post.authorId,
+                preview: post.content?.trim().slice(0, 180) || "이 글에 답글을 남겨보세요.",
+              }}
+            />
           )}
         </>
       )}
