@@ -6,9 +6,7 @@ import {
   createSprint1ExposureSample,
   rememberSprint1Reaction,
   createMemoryRuntime,
-  buildSprint1PostTitle,
-  buildSprint1PostBody,
-  buildSprint1GenerationContext,
+  createRunPostDraft,
   runTicks,
   createBaselineWorldRules,
   computeTickLevelMetrics,
@@ -86,7 +84,8 @@ router.post("/", async (req, res) => {
   }
 
   // ── Step 2: State-driven post generation (after memory writeback) ─────────
-  const generatedPosts = runtime.state.agents.map((updatedAgent, index) => {
+  const generatedPosts = [];
+  for (const [index, updatedAgent] of runtime.state.agents.entries()) {
     const exposureSample = exposureByAgent[updatedAgent.agent_id];
     const reactions = exposureSample?.reaction_records || [];
     const selectedContents = exposureSample?.exposure?.selected || [];
@@ -97,10 +96,17 @@ router.post("/", async (req, res) => {
     const selectedContent = selectedContents[contentIndex] || selectedContents[0] || null;
 
     if (!selectedReaction || !selectedContent) {
-      return null;
+      continue;
     }
 
-    return {
+    const draft = await createRunPostDraft({
+      updatedAgent,
+      reactionRecord: selectedReaction,
+      contentRecord: selectedContent,
+      variationSeed,
+    });
+
+    generatedPosts.push({
       post_id: `${runId}:post:${updatedAgent.agent_id}`,
       agent_id: updatedAgent.agent_id,
       handle: updatedAgent.handle,
@@ -108,14 +114,10 @@ router.post("/", async (req, res) => {
       source_reaction_id: selectedReaction.reaction_id,
       meaning_frame: selectedReaction.meaning_frame,
       stance_signal: selectedReaction.stance_signal,
-      title: buildSprint1PostTitle(updatedAgent, selectedReaction, variationSeed),
-      body: buildSprint1PostBody(updatedAgent, selectedReaction, selectedContent, variationSeed),
-      generationContext: buildSprint1GenerationContext({
-        updatedAgent,
-        reactionRecord: selectedReaction,
-        contentRecord: selectedContent,
-        variationSeed,
-      }),
+      title: null,
+      body: draft.content,
+      generationContext: draft.generationContext,
+      contextPool: draft.contextPool,
       trace: {
         dominant_feeling: selectedReaction.dominant_feeling,
         resonance_score: selectedReaction.resonance_score,
@@ -124,20 +126,20 @@ router.post("/", async (req, res) => {
         selected_content_id: selectedContent.content_id,
         variation_seed: variationSeed,
       },
-    };
-  }).filter(Boolean);
+    });
+  }
 
   // ── Step 3: Post to forum-server ──────────────────────────────────────────
   const createdPosts = [];
   for (const post of generatedPosts) {
-      try {
-        const result = await postToForum("/api/posts", {
-          content: `${post.title}\n\n${post.body}`,
-          authorId: post.agent_id,
-          authorType: "agent",
-          tags: [post.meaning_frame, post.stance_signal].filter(Boolean),
-          generationContext: post.generationContext,
-        });
+    try {
+      const result = await postToForum("/api/posts", {
+        content: post.body,
+        authorId: post.agent_id,
+        authorType: "agent",
+        tags: [post.meaning_frame, post.stance_signal].filter(Boolean),
+        generationContext: post.generationContext,
+      });
       createdPosts.push({ ...post, forumPostId: result._id?.toString() ?? null });
     } catch (err) {
       console.warn(`[run] forum post failed for ${post.agent_id}:`, err.message);

@@ -27,6 +27,8 @@ function GenerationContextBlock({ context }) {
       <div style={styles.generationContextTitle}>생성 맥락</div>
       {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
       <div style={styles.generationContextMeta}>
+        {context.source && <span>출처: {context.source === "openai" ? "OpenAI" : "fallback"}</span>}
+        {context.selectedContextLabel && <span>맥락: {context.selectedContextLabel}</span>}
         {context.situation && <span>상황: {context.situation}</span>}
         {context.toneLabel && <span>톤: {context.toneLabel}</span>}
         {context.sourceContentTitle && <span>대상: {context.sourceContentTitle}</span>}

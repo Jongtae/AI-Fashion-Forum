@@ -75,14 +75,20 @@ function AgentPostCard({ post }) {
       <div style={styles.postBody}>{post.body}</div>
       {generationContext?.summary && (
         <div style={styles.generationContext}>
-          <div style={styles.generationContextTitle}>생성 맥락</div>
-          <div style={styles.generationContextSummary}>{generationContext.summary}</div>
-          <div style={styles.generationContextMeta}>
-            {generationContext.situation && <span>상황: {generationContext.situation}</span>}
-            {generationContext.toneLabel && <span>톤: {generationContext.toneLabel}</span>}
-            {generationContext.sourceContentTitle && <span>대상: {generationContext.sourceContentTitle}</span>}
-          </div>
-        </div>
+      <div style={styles.generationContextTitle}>생성 맥락</div>
+      <div style={styles.generationContextSummary}>{generationContext.summary}</div>
+      <div style={styles.generationContextMeta}>
+        {generationContext.source && (
+          <span>출처: {generationContext.source === "openai" ? "OpenAI" : "fallback"}</span>
+        )}
+        {generationContext.selectedContextLabel && (
+          <span>맥락: {generationContext.selectedContextLabel}</span>
+        )}
+        {generationContext.situation && <span>상황: {generationContext.situation}</span>}
+        {generationContext.toneLabel && <span>톤: {generationContext.toneLabel}</span>}
+        {generationContext.sourceContentTitle && <span>대상: {generationContext.sourceContentTitle}</span>}
+      </div>
+    </div>
       )}
       {post.trace && (
         <button

@@ -4,6 +4,7 @@ import {
   createBaselineWorldRules,
   generateForumArtifact,
   getForumArtifactText,
+  createLivePostDraft,
 } from "@ai-fashion-forum/agent-core";
 import {
   SAMPLE_STATE_SNAPSHOT,
@@ -190,20 +191,20 @@ router.post("/tick", async (req, res) => {
 
     if (entry.action === "post") {
       let content;
-      let artifact = null;
       try {
-        const targetAgent = result.snapshots[0]?.agents?.[0] || agent;
         const targetContent = buildKoreanTargetContent({ agent, entry });
-        artifact = generateForumArtifact({
-          actionRecord: entry,
-          author: agent,
+        const draft = await createLivePostDraft({
+          agent,
           targetContent,
-          targetAgent,
+          sourceSignal: entry.reason || `${entry.action} at tick ${entry.tick}`,
+          variationSeed: seed + round + entry.tick,
         });
-        content = getForumArtifactText(
-          artifact,
-          entry.reason || `${agent.handle || agent.agent_id}가 새 글을 올렸다.`
-        );
+        content = draft.content || entry.reason || `${agent.handle || agent.agent_id}가 새 글을 올렸다.`;
+        artifactResults.set(entry.action_id, {
+          artifactId: null,
+          artifactType: "post",
+          generationContext: draft.generationContext,
+        });
       } catch {
         content = entry.reason || `${agent.handle || agent.agent_id}가 새 글을 올렸다.`;
       }
@@ -216,10 +217,14 @@ router.post("/tick", async (req, res) => {
           tags: agent.interest_vector ? Object.keys(agent.interest_vector).slice(0, 3) : [],
           agentRound: round,
           agentTick: entry.tick,
-          generationContext: artifact?.generation_context ?? null,
+          generationContext: artifactResults.get(entry.action_id)?.generationContext ?? null,
         });
         createdPosts.push(post);
-        artifactResults.set(entry.action_id, { artifactId: post._id.toString(), artifactType: "post" });
+        artifactResults.set(entry.action_id, {
+          artifactId: post._id.toString(),
+          artifactType: "post",
+          generationContext: artifactResults.get(entry.action_id)?.generationContext ?? null,
+        });
       } catch (err) {
         console.warn("[agent-loop] post creation failed:", err.message);
         artifactResults.set(entry.action_id, {
