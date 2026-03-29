@@ -275,6 +275,9 @@ export default function PostDetail({
 
         {shareState.status !== "idle" && (
           <div
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
             style={{
               ...styles.shareState,
               ...(shareState.status === "error" ? styles.shareStateError : styles.shareStateSuccess),
