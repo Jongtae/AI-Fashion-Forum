@@ -257,6 +257,7 @@ router.get("/", async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
   const tag = req.query.tag;
+  const authorId = typeof req.query.authorId === "string" ? req.query.authorId.trim() : "";
   const search = typeof req.query.q === "string" ? req.query.q.trim() : "";
   const sort = typeof req.query.sort === "string" ? req.query.sort.trim().toLowerCase() : "";
   const savedOnly = String(req.query.saved || "").toLowerCase() === "true";
@@ -280,7 +281,13 @@ router.get("/", async (req, res) => {
     });
   }
 
-  const filter = tag ? { tags: tag } : {};
+  const filter = {};
+  if (tag) {
+    filter.tags = tag;
+  }
+  if (authorId) {
+    filter.authorId = authorId;
+  }
   if (search) {
     const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     filter.$or = [

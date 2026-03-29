@@ -758,6 +758,11 @@ test("discovery search popular saved and profile routes surface Threads/Reddit-s
   assert.equal(authorRes.status, 200);
   assert.equal(authorBody.posts.some((post) => post._id === otherPost._id), true);
 
+  const profileRes = await fetch(`${baseUrl}/api/posts?authorId=${forumUserSession.username}`);
+  const profileBody = await profileRes.json();
+  assert.equal(profileRes.status, 200);
+  assert.equal(profileBody.posts.every((post) => post.authorId === forumUserSession.username), true);
+
   const popularRes = await fetch(`${baseUrl}/api/posts?sort=popular&limit=10`);
   const popularBody = await popularRes.json();
   assert.equal(popularRes.status, 200);

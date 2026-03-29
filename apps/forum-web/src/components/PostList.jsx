@@ -11,6 +11,7 @@ export default function PostList({
   onUserActivity = () => {},
   onTagClick = () => {},
   onRequireAuth = () => {},
+  onAuthorClick = () => {},
   isAuthenticated = false,
   activeTagFilter = "",
   onTagFilterChange = () => {},
@@ -113,6 +114,7 @@ export default function PostList({
             onUserActivity={onUserActivity}
             onTagClick={onTagClick}
             onRequireAuth={onRequireAuth}
+            onAuthorClick={onAuthorClick}
             isAuthenticated={isAuthenticated}
             readOnly={readOnly}
           />

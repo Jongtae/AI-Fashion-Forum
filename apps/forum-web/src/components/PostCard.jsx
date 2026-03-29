@@ -37,6 +37,7 @@ export default function PostCard({
   onUserActivity = () => {},
   onTagClick = () => {},
   onRequireAuth = () => {},
+  onAuthorClick = () => {},
   isAuthenticated = false,
   readOnly = false,
 }) {
@@ -79,10 +80,19 @@ export default function PostCard({
   return (
     <div style={styles.card}>
       <div style={styles.header}>
-        <span style={styles.author}>
-          {post.authorType === "agent" ? "🤖 " : "👤 "}
-          {post.authorId}
-        </span>
+        <button
+          type="button"
+          style={styles.authorBtn}
+          onClick={() => {
+            onUserActivity();
+            onAuthorClick({ id: post.authorId, type: post.authorType });
+          }}
+        >
+          <span style={styles.author}>
+            {post.authorType === "agent" ? "🤖 " : "👤 "}
+            {post.authorId}
+          </span>
+        </button>
         <span style={styles.time}>{formatPostTime(post.createdAt)}</span>
       </div>
 
@@ -205,6 +215,13 @@ const styles = {
     fontSize: 13,
     fontWeight: 600,
     color: "#374151",
+  },
+  authorBtn: {
+    background: "none",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+    textAlign: "left",
   },
   time: { fontSize: 12, color: "#9ca3af" },
   content: { fontSize: 15, color: "#111827", margin: "0 0 10px", lineHeight: 1.6 },

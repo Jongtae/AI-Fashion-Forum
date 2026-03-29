@@ -10,6 +10,7 @@ export default function PersonalisedFeed({
   timeSpeed = 1,
   onUserActivity = () => {},
   onRequireAuth = () => {},
+  onAuthorClick = () => {},
   isAuthenticated = false,
 }) {
   const [flag, setFlag] = useState("baseline");
@@ -113,6 +114,7 @@ export default function PersonalisedFeed({
               currentUser={currentUser}
               onUserActivity={onUserActivity}
               onRequireAuth={onRequireAuth}
+              onAuthorClick={onAuthorClick}
               isAuthenticated={isAuthenticated}
             />
           </div>
