@@ -32,7 +32,7 @@ test("silence writeback preserves context without creating a target dependency",
       reason: "low_activity_low_affinity",
     },
     ui: {
-      label: "Stayed silent",
+      label: "침묵했다",
     },
   });
 

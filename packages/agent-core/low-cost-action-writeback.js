@@ -43,24 +43,24 @@ function mergeTopicBoosts(baseVector = {}, topics = [], boost = 0) {
 }
 
 function buildWritebackSummary(actionType, contentRecord) {
-  const title = contentRecord?.title || contentRecord?.content_id || "an observed thread";
+  const title = contentRecord?.title || contentRecord?.content_id || "관찰한 스레드";
 
   if (actionType === "silence") {
-    return `Stayed silent on ${title} while keeping the context available for later re-entry.`;
+    return `“${title}”을 지켜보며 침묵을 유지했고, 나중에 다시 들어올 수 있도록 맥락을 남겨두었다.`;
   }
 
-  return `Lurked on ${title} and kept the topic signals in working memory.`;
+  return `“${title}”을 지켜보며 스레드의 주제 신호를 작업 기억에 남겨두었다.`;
 }
 
 function buildNarrativeText(actionType, contentRecord) {
-  const title = contentRecord?.title || "the thread";
+  const title = contentRecord?.title || "스레드";
 
   if (actionType === "silence") {
-    return `I kept quiet on ${title} so I could return with the full context intact.`;
+    return `“${title}”에서는 조용히 머물렀고, 다음에 돌아올 때 맥락을 그대로 이어가고 싶었다.`;
   }
 
-  const topicList = (contentRecord?.topics || []).join(", ") || "the thread";
-  return `Watching ${topicList} sharpened what I pay attention to, even before I speak.`;
+  const topicList = (contentRecord?.topics || []).join(", ") || "스레드";
+  return `“${topicList}”를 지켜보는 동안 내가 무엇에 먼저 반응하는지가 더 분명해졌다.`;
 }
 
 export function buildLowCostActionWriteback({

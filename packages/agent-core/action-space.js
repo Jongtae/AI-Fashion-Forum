@@ -64,7 +64,7 @@ export function chooseForumAction({
         reason: "low_activity_low_affinity",
       },
       ui: {
-        label: "Stayed silent",
+        label: "침묵했다",
         icon: "moon",
       },
     });
@@ -83,7 +83,7 @@ export function chooseForumAction({
         reason: "observed_without_visible_feedback",
       },
       ui: {
-        label: "Lurked on thread",
+        label: "스레드를 지켜봤다",
         secondaryText: contentRecord.title,
       },
     });
@@ -106,7 +106,7 @@ export function chooseForumAction({
       visibility: "public_lightweight",
       payload: reactionPayload,
       ui: {
-        label: `Reacted with ${reactionPayload.reaction_type}`,
+        label: `${reactionPayload.reaction_type}로 반응했다`,
         icon: reactionPayload.reaction_type,
         secondaryText: contentRecord.title,
       },
@@ -125,7 +125,7 @@ export function chooseForumAction({
       reason: "high_affinity_requires_visible_followup",
     },
     ui: {
-      label: "Queued comment",
+      label: "댓글을 준비했다",
       secondaryText: contentRecord.title,
     },
   });
