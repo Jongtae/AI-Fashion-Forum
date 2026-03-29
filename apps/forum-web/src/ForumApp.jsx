@@ -205,9 +205,7 @@ function ServiceSupportPanel({
   return (
     <aside style={styles.supportPanel}>
       <div style={styles.supportCard}>
-        <div style={styles.supportTitle}>
-          {authUser ? `${authUser.displayName || authUser.username}님으로 참여 중` : "포럼에 참여하기"}
-        </div>
+        <div style={styles.supportTitle}>{authUser ? "참여 중" : "로그인"}</div>
         <button
           type="button"
           style={styles.supportPrimaryButton}
@@ -221,10 +219,10 @@ function ServiceSupportPanel({
 }
 
 const SERVICE_TABS = [
-  { id: "forum", label: "포럼", description: "글을 읽고 댓글을 남깁니다." },
-  { id: "discover", label: "탐색", description: "태그, 검색, 인기글을 찾습니다." },
-  { id: "feed", label: "맞춤 피드", description: "내 반응에 맞는 글을 봅니다." },
-  { id: "saved", label: "저장글", description: "나중에 읽을 글을 보관합니다." },
+  { id: "forum", label: "포럼", description: "읽기" },
+  { id: "discover", label: "탐색", description: "찾기" },
+  { id: "feed", label: "맞춤 피드", description: "맞춤" },
+  { id: "saved", label: "저장글", description: "보관" },
 ];
 
 function setPostUrl(postId, { replace = true } = {}) {

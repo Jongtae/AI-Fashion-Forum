@@ -32,7 +32,7 @@ export default function PersonalisedFeed({
       <div style={styles.headerRow}>
         <div>
           <div style={styles.kicker}>맞춤 피드</div>
-          <div style={styles.title}>내 반응에 맞춰 정렬된 글</div>
+          <div style={styles.title}>내 글</div>
         </div>
         <button
           style={styles.refreshBtn}
@@ -49,7 +49,7 @@ export default function PersonalisedFeed({
       {isLoading && <p style={styles.msg}>피드 계산 중…</p>}
       {isError && <p style={styles.err}>{error?.message || "피드 로딩 실패"}</p>}
       {!isLoading && feed.length === 0 && (
-        <p style={styles.msg}>아직 보여줄 글이 없습니다. 다른 글을 읽고 반응하면 피드가 더 풍성해집니다.</p>
+        <p style={styles.msg}>아직 글이 없습니다.</p>
       )}
 
       <div style={styles.list}>
