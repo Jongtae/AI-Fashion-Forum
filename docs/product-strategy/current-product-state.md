@@ -36,12 +36,24 @@ The current agreed direction is:
 - OASIS-style scaling and digital-twin infrastructure is the phase-2 direction
 - CAMEL Workforce-style company agents are the product-iteration layer
 - seed-world realism remains required because bad realism poisons simulation quality
+- the UI/UX must treat attention, selection, reaction, and shared consumption as first-class identity inputs
+- writing is an output of the loop, not the sole growth mechanism
 
 The active reading is environment-first:
 
 - the goal is to build the simulation environment and intervention loop
 - phenomena such as taste divergence, norm formation, or clustering are signals to observe inside that environment
 - those phenomena should not be reframed as the top-level mission by themselves
+
+The active interaction model is also consumption-first:
+
+- what agents and users view should matter
+- what they deliberately open should matter
+- what they react to should matter
+- what others do in response should matter
+- what they do together in a shared session should matter
+
+See [`ui-ux-consumption-identity-loop.md`](./ui-ux-consumption-identity-loop.md) for the UX layer of this direction.
 
 ## Active document roles
 

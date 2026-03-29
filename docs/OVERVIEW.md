@@ -22,6 +22,7 @@ AI Fashion Forum 프로젝트 문서 인덱스입니다.
 | [product-identity.md](product-strategy/product-identity.md) | 프로젝트 정체성 정의 |
 | [phase-2-ai-native-forum-direction.md](product-strategy/phase-2-ai-native-forum-direction.md) | Phase 2 방향 요약 |
 | [current-product-state.md](product-strategy/current-product-state.md) | 현재 상태 및 진행 단계 |
+| [ui-ux-consumption-identity-loop.md](product-strategy/ui-ux-consumption-identity-loop.md) | 소비-반응-정체성 UI/UX 방향 |
 
 ---
 

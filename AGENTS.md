@@ -3,7 +3,7 @@
 Workflow rules for AI agents working in this repository.
 
 All rules are defined in [`WORKFLOW.md`](./WORKFLOW.md). Read that file before starting any task.
-Before any code work, check the latest `origin/main` and sync to it unless the user explicitly wants to stay on the current state.
+Before any code work, define the GitHub issue and branch strategy first, then check the latest `origin/main` and sync to it unless the user explicitly wants to stay on the current state.
 Prefer the smallest reviewable issue, and split again if a request spans more than one user-visible behavior or verification path.
 When a user request becomes an issue, record it in task language rather than verbatim chat text, per `WORKFLOW.md`.
 When a task is finished, do not stop at the code change: make sure the related issue is closed, the feature branch is merged or cleaned up, and the workspace is back on `main`, per `WORKFLOW.md`.
