@@ -118,6 +118,7 @@ agent loop, action-state contract, backend 연결 초안 문서.
 | 파일 | 내용 |
 |------|------|
 | [ai-forum-world-implementation-plan.md](project-planning/ai-forum-world-implementation-plan.md) | 전체 구현 계획 (한/영) |
+| [ui-ux-consumption-identity-loop.md](product-strategy/ui-ux-consumption-identity-loop.md) | 소비-반응-정체성 UI/UX 방향 |
 | [mvp-v1-project-backlog.md](project-planning/mvp-v1-project-backlog.md) | MVP v1 백로그 (10 epic / 20 issue) |
 
 ---
