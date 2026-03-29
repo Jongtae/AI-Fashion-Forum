@@ -9,6 +9,7 @@ import DiscoveryPanel from "./components/DiscoveryPanel.jsx";
 import AuthModal from "./components/AuthModal.jsx";
 import AdminDashboard from "./components/AdminDashboard.jsx";
 import ProfilePanel from "./components/ProfilePanel.jsx";
+import { MessageCircleMore } from "lucide-react";
 import { chatTheme } from "./lib/chat-ui-theme.js";
 
 const queryClient = new QueryClient({
@@ -583,7 +584,9 @@ export default function ForumApp() {
           <div style={styles.shell}>
             <header style={styles.header}>
               <div style={styles.brandBlock}>
-                <div style={styles.brandAvatar}>✦</div>
+                <div style={styles.brandAvatar} aria-label="AI Fashion Forum">
+                  <MessageCircleMore size={24} strokeWidth={2.25} />
+                </div>
                 <div style={styles.brandCopy}>
                   <span style={styles.logo}>AI Fashion Forum</span>
                   <span style={styles.headerHint}>소비 · 선택 · 반응 · writeback</span>
