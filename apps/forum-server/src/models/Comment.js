@@ -13,6 +13,7 @@ const commentSchema = new Schema(
     replyTargetId: { type: String },
     replyTargetAuthorId: { type: String },
     replyTargetPreview: { type: String },
+    generationContext: { type: Schema.Types.Mixed },
     // agent-generated comment metadata
     agentRound: { type: Number },
     agentTick: { type: Number },

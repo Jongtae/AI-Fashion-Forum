@@ -24,16 +24,8 @@ function GenerationContextBlock({ context }) {
 
   return (
     <div style={styles.generationContext}>
-      <div style={styles.generationContextTitle}>생성 맥락</div>
+      <div style={styles.generationContextTitle}>작성 배경</div>
       {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
-      <div style={styles.generationContextMeta}>
-        {context.source && <span>출처: {context.source === "openai" ? "OpenAI" : "fallback"}</span>}
-        {context.selectedContextLabel && <span>맥락: {context.selectedContextLabel}</span>}
-        {context.situation && <span>상황: {context.situation}</span>}
-        {context.toneLabel && <span>톤: {context.toneLabel}</span>}
-        {context.sourceContentTitle && <span>대상: {context.sourceContentTitle}</span>}
-        {context.sourceContentSnippet && <span>단서: {context.sourceContentSnippet}</span>}
-      </div>
     </div>
   );
 }
@@ -66,7 +58,7 @@ export default function PostDetail({
   });
 
   if (isLoading) {
-    return <div style={styles.container}><p style={styles.msg}>포스트 불러오는 중…</p></div>;
+    return <div style={styles.container}><p style={styles.msg}>글을 불러오는 중…</p></div>;
   }
 
   if (isError) {
@@ -89,7 +81,7 @@ export default function PostDetail({
   if (!post) {
     return (
       <div style={styles.container}>
-        <p style={styles.msg}>포스트를 찾을 수 없습니다.</p>
+        <p style={styles.msg}>글을 찾을 수 없습니다.</p>
         <button
           onClick={() => {
             onUserActivity();
@@ -138,7 +130,7 @@ export default function PostDetail({
             style={{ ...styles.deleteBtn, color: "#dc2626" }}
             disabled={deleteMutation.isPending}
           >
-              {deleteMutation.isPending ? "삭제 중…" : "삭제"}
+              {deleteMutation.isPending ? "지우는 중…" : "글 삭제"}
             </button>
           )}
         </div>
@@ -173,7 +165,7 @@ export default function PostDetail({
               {post.moderationStatus === "approved" ? "✓" : "⚠"}
             </span>
             <span style={styles.score}>
-              신뢰도: {(post.moderationScore || 0).toFixed(2)}
+              흐름 점검: {(post.moderationScore || 0).toFixed(2)}
             </span>
           </div>
         )}
@@ -196,7 +188,7 @@ export default function PostDetail({
       </article>
 
       <section style={styles.commentsSection}>
-        <h3 style={styles.commentsTitle}>댓글 ({post.commentCount || 0})</h3>
+        <h3 style={styles.commentsTitle}>대화 ({post.commentCount || 0})</h3>
         <CommentSection postId={postId} currentUser={currentUser} onUserActivity={onUserActivity} />
       </section>
     </div>
@@ -269,24 +261,17 @@ const styles = {
     border: "1px solid #e5e7eb",
   },
   generationContextTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 700,
-    color: "#4b5563",
-    letterSpacing: "0.02em",
+    color: "#374151",
+    letterSpacing: "0.01em",
     marginBottom: 4,
   },
   generationContextSummary: {
     fontSize: 13,
-    color: "#374151",
+    color: "#4b5563",
     lineHeight: 1.5,
-    marginBottom: 6,
-  },
-  generationContextMeta: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-    fontSize: 11,
-    color: "#6b7280",
+    marginBottom: 2,
   },
   tags: {
     display: "flex",

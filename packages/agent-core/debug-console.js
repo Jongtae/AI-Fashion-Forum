@@ -60,7 +60,7 @@ function seedDebugMemoryRuntime(agentId) {
       actorId: agentId,
       action: "lurk",
       targetId: "T03",
-      reason: "Observed office layering thread without responding.",
+      reason: "오피스 레이어링 스레드를 지켜보기만 했다.",
       ruleId: "office_layering",
     }),
     createReplayEntry({
@@ -68,7 +68,7 @@ function seedDebugMemoryRuntime(agentId) {
       actorId: agentId,
       action: "comment",
       targetId: "T14",
-      reason: "Shared practical fit feedback after repeated commuter-style exposure.",
+      reason: "출퇴근 스타일을 반복해서 보다가 실용적인 핏 피드백을 남겼다.",
       ruleId: "fit_feedback",
     }),
     createReplayEntry({
@@ -76,7 +76,7 @@ function seedDebugMemoryRuntime(agentId) {
       actorId: agentId,
       action: "react",
       targetId: "T07",
-      reason: "Left quick support on a confidence-rebuilding outfit post.",
+      reason: "자신감을 다시 세우는 코디 글에 짧은 응원을 남겼다.",
       ruleId: "empathetic_support",
     }),
     createReplayEntry({
@@ -84,7 +84,7 @@ function seedDebugMemoryRuntime(agentId) {
       actorId: agentId,
       action: "post",
       targetId: "T20",
-      reason: "Started a new thread after hot-topic trench discussions kept resurfacing.",
+      reason: "뜨거운 트렌치 논의가 계속 올라와 새 스레드를 열었다.",
       ruleId: "trend_followup",
     }),
   ];
@@ -102,7 +102,7 @@ function collectRetrievedMemories(runtime, agentId, targetContent) {
       summary: memory.summary,
       salience: memory.salience,
       relevance: scoreMemoryRelevance(memory, targetContent),
-      reason: `Matched against ${targetContent.content_id} topics: ${targetContent.topics.join(", ")}.`,
+      reason: `비슷한 주제로 ${targetContent.content_id}와 연결됨: ${targetContent.topics.join(", ")}.`,
     }))
     .sort((left, right) => right.relevance - left.relevance)
     .slice(0, 3);
@@ -124,8 +124,8 @@ function buildGraphReasons(agentId, targetContent) {
       to: relation.to,
       note:
         relation.to === targetContent.content_id
-          ? "Agent-authored or upstream relation points into the selected content."
-          : "Selected content is connected to a topic cluster used for retrieval and ranking context.",
+          ? "에이전트 작성 또는 상위 관계가 선택된 콘텐츠로 이어진다."
+          : "선택된 콘텐츠는 검색과 랭킹 문맥에 쓰이는 토픽 클러스터와 연결되어 있다.",
     })),
   };
 }
@@ -142,14 +142,14 @@ function buildDecisionSummary({
   return {
     outcome: wrote ? "wrote_visible_reply" : "ignored_or_deferred",
     explanation: wrote
-      ? `${agent.handle} crossed the visible-action threshold because ranking, memory salience, and policy checks all remained favorable for ${targetContent.title}.`
-      : `${agent.handle} did not escalate into visible writing because affinity and ranked urgency stayed below the comment threshold for ${targetContent.title}.`,
+      ? `${agent.handle}가 랭킹, 기억의 중요도, 정책 조건을 모두 만족해 ${targetContent.title}에 눈에 보이는 답글을 남겼다.`
+      : `${agent.handle}는 친화도와 우선순위가 댓글 기준을 넘지 못해 ${targetContent.title}에 눈에 보이는 글쓰기로 이어지지 않았다.`,
     why_now: [
       rankedItem?.reason,
-      `Retrieved ${retrievedMemories.length} durable memories tied to similar topics.`,
+      `비슷한 주제의 오래된 기억 ${retrievedMemories.length}개를 불러왔다.`,
       moderatedItem
-        ? `Policy ${moderatedItem.moderation.policyFlag} left the item ${moderatedItem.moderation.status}.`
-        : "No policy override was required for the selected content.",
+        ? `정책 ${moderatedItem.moderation.policyFlag} 때문에 항목 상태가 ${moderatedItem.moderation.status}로 남았다.`
+        : "선택된 콘텐츠에는 별도 정책 재정의가 필요하지 않았다.",
     ],
   };
 }
@@ -295,7 +295,7 @@ export function createDebugConsoleSample({
     },
     identityDriftDebug: {
       selfNarrative: queryMemoryTimeline(runtime, agent.agent_id).selfNarrative.slice(-3),
-      note: "Use repeated memory retrieval plus action outcomes to inspect whether the agent is hardening toward a narrow topic identity.",
+      note: "반복된 기억 조회와 행동 결과를 통해 에이전트가 좁은 주제 정체성으로 굳어지는지 확인한다.",
     },
   };
 }

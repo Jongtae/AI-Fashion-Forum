@@ -5,8 +5,19 @@ import PostCard from "./PostCard.jsx";
 
 const PAGE_SIZE = 20;
 
-export default function PostList({ currentUser, onSelectPost }) {
-  const [tagFilter, setTagFilter] = useState("");
+export default function PostList({
+  currentUser,
+  onSelectPost,
+  onUserActivity = () => {},
+  onTagClick = () => {},
+  activeTagFilter = "",
+  onTagFilterChange = () => {},
+  readOnly = false,
+}) {
+  const [internalTagFilter, setInternalTagFilter] = useState("");
+  const tagFilter = typeof activeTagFilter === "string" ? activeTagFilter : internalTagFilter;
+  const setTagFilter =
+    typeof onTagFilterChange === "function" ? onTagFilterChange : setInternalTagFilter;
 
   const {
     data,
@@ -49,16 +60,21 @@ export default function PostList({ currentUser, onSelectPost }) {
           style={styles.filterInput}
         />
         {tagFilter && (
-          <button onClick={() => setTagFilter("")} style={styles.clearBtn}>
+          <button
+            onClick={() => {
+              setTagFilter("");
+            }}
+            style={styles.clearBtn}
+          >
             ✕
           </button>
         )}
       </div>
 
-      {isLoading && <p style={styles.msg}>포스트 불러오는 중…</p>}
+      {isLoading && <p style={styles.msg}>글을 불러오는 중…</p>}
       {isError && <p style={styles.error}>{error?.message || "오류가 발생했습니다."}</p>}
       {!isLoading && posts.length === 0 && (
-        <p style={styles.msg}>아직 포스트가 없습니다. 첫 번째 포스트를 작성해보세요!</p>
+        <p style={styles.msg}>아직 글이 없습니다. 첫 번째 글을 써보세요!</p>
       )}
 
       <div style={styles.list} onScroll={handleScroll}>
@@ -68,11 +84,14 @@ export default function PostList({ currentUser, onSelectPost }) {
             post={post}
             currentUser={currentUser}
             onSelectPost={onSelectPost}
+            onUserActivity={onUserActivity}
+            onTagClick={onTagClick}
+            readOnly={readOnly}
           />
         ))}
         {isFetchingNextPage && <p style={styles.msg}>더 불러오는 중…</p>}
         {!hasNextPage && posts.length > 0 && (
-          <p style={styles.end}>모든 포스트를 불러왔습니다.</p>
+          <p style={styles.end}>모든 글을 불러왔습니다.</p>
         )}
       </div>
     </div>

@@ -390,8 +390,8 @@ function buildGenerationContext({
     selectedTone: selectedContext?.tone || null,
     model: model || null,
     summary: selectedContext
-      ? `${selectedContext.contextLabel} 맥락으로 ${sourceTitle}를 한국어 글로 생성했다.`
-      : `${sourceTitle}를 한국어 글로 생성했다.`,
+      ? `${sourceTitle}를 ${selectedContext.contextLabel} 흐름으로 자연스럽게 풀어냈다.`
+      : `${sourceTitle}를 자연스럽게 풀어냈다.`,
     situation: selectedContext?.contextLabel || null,
     toneLabel: selectedContext?.tone || null,
   };

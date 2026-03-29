@@ -24,15 +24,8 @@ function GenerationContextBlock({ context }) {
 
   return (
     <div style={styles.generationContext}>
-      <div style={styles.generationContextTitle}>생성 맥락</div>
+      <div style={styles.generationContextTitle}>작성 배경</div>
       {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
-      <div style={styles.generationContextMeta}>
-        {context.source && <span>출처: {context.source === "openai" ? "OpenAI" : "fallback"}</span>}
-        {context.selectedContextLabel && <span>맥락: {context.selectedContextLabel}</span>}
-        {context.situation && <span>상황: {context.situation}</span>}
-        {context.toneLabel && <span>톤: {context.toneLabel}</span>}
-        {context.sourceContentTitle && <span>대상: {context.sourceContentTitle}</span>}
-      </div>
     </div>
   );
 }
@@ -137,7 +130,7 @@ export default function PostCard({
               }}
               style={styles.actionBtn}
             >
-              💬 댓글
+              💬 댓글 보기
             </button>
             {canDelete && (
               <button
@@ -148,7 +141,7 @@ export default function PostCard({
                 style={{ ...styles.actionBtn, color: "#dc2626" }}
                 disabled={deleteMutation.isPending}
               >
-                삭제
+                글 삭제
               </button>
             )}
           </div>
@@ -186,24 +179,17 @@ const styles = {
     border: "1px solid #e5e7eb",
   },
   generationContextTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 700,
-    color: "#4b5563",
-    letterSpacing: "0.02em",
+    color: "#374151",
+    letterSpacing: "0.01em",
     marginBottom: 4,
   },
   generationContextSummary: {
     fontSize: 13,
-    color: "#374151",
+    color: "#4b5563",
     lineHeight: 1.5,
-    marginBottom: 6,
-  },
-  generationContextMeta: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-    fontSize: 11,
-    color: "#6b7280",
+    marginBottom: 2,
   },
   tags: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 },
   tagBtn: {

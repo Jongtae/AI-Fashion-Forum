@@ -75,27 +75,16 @@ function AgentPostCard({ post }) {
       <div style={styles.postBody}>{post.body}</div>
       {generationContext?.summary && (
         <div style={styles.generationContext}>
-      <div style={styles.generationContextTitle}>생성 맥락</div>
-      <div style={styles.generationContextSummary}>{generationContext.summary}</div>
-      <div style={styles.generationContextMeta}>
-        {generationContext.source && (
-          <span>출처: {generationContext.source === "openai" ? "OpenAI" : "fallback"}</span>
-        )}
-        {generationContext.selectedContextLabel && (
-          <span>맥락: {generationContext.selectedContextLabel}</span>
-        )}
-        {generationContext.situation && <span>상황: {generationContext.situation}</span>}
-        {generationContext.toneLabel && <span>톤: {generationContext.toneLabel}</span>}
-        {generationContext.sourceContentTitle && <span>대상: {generationContext.sourceContentTitle}</span>}
-      </div>
-    </div>
+          <div style={styles.generationContextTitle}>작성 배경</div>
+          <div style={styles.generationContextSummary}>{generationContext.summary}</div>
+        </div>
       )}
       {post.trace && (
         <button
           style={styles.traceToggle}
           onClick={() => setExpanded((v) => !v)}
         >
-          {expanded ? "추적 정보 숨기기 ▲" : "추적 정보 보기 ▼"}
+          {expanded ? "세부 정보 숨기기 ▲" : "세부 정보 보기 ▼"}
         </button>
       )}
       {expanded && post.trace && (
@@ -105,19 +94,19 @@ function AgentPostCard({ post }) {
             <span>{post.trace.dominant_feeling}</span>
           </div>
           <div style={styles.traceRow}>
-            <span style={styles.traceKey}>내러티브</span>
+            <span style={styles.traceKey}>흐름</span>
             <span>{post.trace.self_narrative_summary || "—"}</span>
           </div>
           <div style={styles.traceRow}>
-            <span style={styles.traceKey}>아크</span>
+            <span style={styles.traceKey}>변화</span>
             <span>{post.trace.recent_arc}</span>
           </div>
           <div style={styles.traceRow}>
-            <span style={styles.traceKey}>출처 콘텐츠</span>
+            <span style={styles.traceKey}>참고 글</span>
             <span style={styles.traceId}>{post.source_content_id}</span>
           </div>
           <div style={styles.traceRow}>
-            <span style={styles.traceKey}>반응 ID</span>
+            <span style={styles.traceKey}>반응 기록 ID</span>
             <span style={styles.traceId}>{post.source_reaction_id}</span>
           </div>
         </div>
@@ -131,18 +120,18 @@ function EvaluationPanel({ evaluation }) {
   if (!evaluation?.verdicts) return null;
   const { verdicts } = evaluation;
   return (
-    <div style={styles.evalPanel}>
+      <div style={styles.evalPanel}>
       <div style={styles.evalTitle}>Sprint 1 수용 기준</div>
       <div style={styles.badgeRow}>
         <VerdictBadge label="발산 가독성" pass={verdicts.divergence_legible} />
-        <VerdictBadge label="추적 완전성" pass={verdicts.traceability_complete} />
+        <VerdictBadge label="기록 완전성" pass={verdicts.traceability_complete} />
         <VerdictBadge label="자극 일관성" pass={verdicts.shared_stimulus_consistent} />
       </div>
       {verdicts.detail && (
         <div style={styles.evalDetail}>
           <span>의미 프레임: {verdicts.detail.meaningFrames?.join(", ")}</span>
           <span>스탠스 신호: {verdicts.detail.stanceSignals?.join(", ")}</span>
-          <span>포스트 수: {verdicts.detail.postCount}</span>
+          <span>글 수: {verdicts.detail.postCount}</span>
         </div>
       )}
     </div>
@@ -158,20 +147,20 @@ function ContinuityCard({ evaluation, onOpenReplay }) {
       <div style={styles.continuityHeader}>
         <div>
           <div style={styles.continuityKicker}>연결 보기</div>
-          <div style={styles.continuityTitle}>같은 자극의 replay로 이어보기</div>
+          <div style={styles.continuityTitle}>같은 자극의 기록으로 이어보기</div>
         </div>
         {onOpenReplay && (
           <button style={styles.continuityButton} onClick={onOpenReplay}>
-            Replay Viewer 열기
+            기록 보기 열기
           </button>
         )}
       </div>
       <div style={styles.continuityText}>
-        이 요약에서 본 의미 프레임과 스탠스 신호를 실제 replay와 나란히 볼 수 있습니다.
+        이 요약에서 본 의미 프레임과 반응 신호를 실제 기록과 나란히 볼 수 있습니다.
       </div>
       {detail.postCount != null && (
         <div style={styles.continuityMeta}>
-          <span>포스트 수: {detail.postCount}</span>
+          <span>글 수: {detail.postCount}</span>
           <span>의미 프레임: {detail.meaningFrames?.length || 0}개</span>
           <span>스탠스 신호: {detail.stanceSignals?.length || 0}개</span>
         </div>
@@ -182,7 +171,7 @@ function ContinuityCard({ evaluation, onOpenReplay }) {
             발산 가독성 {verdicts.divergence_legible ? "충족" : "미충족"}
           </span>
           <span style={styles.continuityChip}>
-            추적 완전성 {verdicts.traceability_complete ? "충족" : "미충족"}
+            기록 완전성 {verdicts.traceability_complete ? "충족" : "미충족"}
           </span>
           <span style={styles.continuityChip}>
             자극 일관성 {verdicts.shared_stimulus_consistent ? "충족" : "미충족"}
@@ -210,7 +199,7 @@ export default function Sprint1ReplayPanel({ onOpenReplay }) {
   });
 
   if (postsLoading || evalLoading) {
-    return <div style={styles.loading}>Sprint 1 데이터 로딩 중...</div>;
+    return <div style={styles.loading}>Sprint 1 기록 불러오는 중...</div>;
   }
 
   if (postsError) {
@@ -229,7 +218,7 @@ export default function Sprint1ReplayPanel({ onOpenReplay }) {
 
   return (
     <div style={styles.root}>
-      <div style={styles.panelTitle}>Sprint 1 — Identity Drift Replay</div>
+      <div style={styles.panelTitle}>Sprint 1 — Identity Drift 기록</div>
 
       <ContinuityCard evaluation={evalData} onOpenReplay={onOpenReplay} />
 
@@ -237,7 +226,7 @@ export default function Sprint1ReplayPanel({ onOpenReplay }) {
 
       <StimulusCard content={sharedContent} />
 
-      <div style={styles.sectionTitle}>에이전트별 포스트 ({posts.length}개)</div>
+      <div style={styles.sectionTitle}>에이전트별 글 ({posts.length}개)</div>
       <div style={styles.postList}>
         {posts.map((post) => (
           <AgentPostCard key={post.post_id} post={post} />
@@ -415,21 +404,14 @@ const styles = {
   generationContextTitle: {
     fontSize: 11,
     fontWeight: 700,
-    color: "#4b5563",
+    color: "#374151",
     marginBottom: 4,
   },
   generationContextSummary: {
     fontSize: 12,
-    color: "#374151",
+    color: "#4b5563",
     lineHeight: 1.5,
-    marginBottom: 4,
-  },
-  generationContextMeta: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-    fontSize: 11,
-    color: "#6b7280",
+    marginBottom: 2,
   },
   traceToggle: {
     fontSize: 11,

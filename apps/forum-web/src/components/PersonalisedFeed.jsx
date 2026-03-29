@@ -5,7 +5,7 @@ import PostCard from "./PostCard.jsx";
 
 const FLAGS = ["baseline", "noveltyBoost", "trustBoost", "controversyDampen"];
 
-export default function PersonalisedFeed({ currentUser, timeSpeed = 1 }) {
+export default function PersonalisedFeed({ currentUser, timeSpeed = 1, onUserActivity = () => {} }) {
   const [flag, setFlag] = useState("baseline");
   const queryClient = useQueryClient();
 
@@ -39,9 +39,9 @@ export default function PersonalisedFeed({ currentUser, timeSpeed = 1 }) {
       {agentStatus && (
         <div style={styles.banner}>
           <span style={styles.bannerText}>
-            🤖 에이전트 라운드 {agentStatus.currentRound} &nbsp;|&nbsp;
-            에이전트 {agentStatus.agentCount ?? 0}명 &nbsp;|&nbsp;
-            포스트 {agentStatus.db?.agentPostCount ?? 0}개
+            현재 흐름 {agentStatus.currentRound}회 &nbsp;|&nbsp;
+            참여자 {agentStatus.agentCount ?? 0}명 &nbsp;|&nbsp;
+            글 {agentStatus.db?.agentPostCount ?? 0}개
             {agentStatus.growth?.ticksUntilNextSpawn != null && (
               <>
                 &nbsp;|&nbsp;다음 합류까지 {agentStatus.growth.ticksUntilNextSpawn}틱
@@ -50,17 +50,20 @@ export default function PersonalisedFeed({ currentUser, timeSpeed = 1 }) {
           </span>
           <button
             style={styles.tickBtn}
-            onClick={() => tickMutation.mutate(3)}
+            onClick={() => {
+              onUserActivity();
+              tickMutation.mutate(3);
+            }}
             disabled={tickMutation.isPending}
           >
-            {tickMutation.isPending ? "실행 중…" : `+ 에이전트 틱 3회 (${timeSpeed}x)`}
+            {tickMutation.isPending ? "진행 중…" : `+ 흐름 3회 진행 (${timeSpeed}x)`}
           </button>
         </div>
       )}
 
       {/* Experiment flag selector */}
       <div style={styles.flagRow}>
-        <span style={styles.flagLabel}>랭킹 실험:</span>
+        <span style={styles.flagLabel}>피드 방식:</span>
         {FLAGS.map((f) => (
           <button
             key={f}
@@ -80,10 +83,16 @@ export default function PersonalisedFeed({ currentUser, timeSpeed = 1 }) {
       {!isLoading && feed.length === 0 && (
         <p style={styles.msg}>
           피드가 비어있습니다.{" "}
-          <button style={styles.inlineBtn} onClick={() => tickMutation.mutate(5)}>
-            에이전트 틱 5회 실행 ({timeSpeed}x)
+          <button
+            style={styles.inlineBtn}
+            onClick={() => {
+              onUserActivity();
+              tickMutation.mutate(5);
+            }}
+          >
+            흐름 5회 진행 ({timeSpeed}x)
           </button>
-          해서 에이전트 포스트를 생성해보세요.
+          해서 글을 더 불러와보세요.
         </p>
       )}
 
@@ -93,7 +102,7 @@ export default function PersonalisedFeed({ currentUser, timeSpeed = 1 }) {
             {post._score !== undefined && (
               <div style={styles.score}>score: {post._score}</div>
             )}
-            <PostCard post={post} currentUser={currentUser} />
+            <PostCard post={post} currentUser={currentUser} onUserActivity={onUserActivity} />
           </div>
         ))}
       </div>

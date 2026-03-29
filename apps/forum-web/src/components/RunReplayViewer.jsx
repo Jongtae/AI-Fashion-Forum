@@ -98,14 +98,14 @@ function MetricsPanel({ report }) {
     <div style={styles.metricsPanel}>
       <div style={styles.sectionHeader}>평가 지표 (8개)</div>
       <div style={styles.metricsGrid}>
-        <MetricRow label="Identity Differentiation" value={m.identityDifferentiation} description="에이전트 간 belief/interest 거리" />
-        <MetricRow label="Visible Participation" value={m.visibleParticipationRate} description="가시 액션 비율" />
-        <MetricRow label="Consistency Score" value={m.consistencyScore} description="에이전트 일관성 평균" />
-        <MetricRow label="Conflict Heat" value={m.conflictHeat} description="갈등 신호 비율" />
-        <MetricRow label="Content Diversity" value={m.contentDiversity} description="의미 프레임 다양도" />
-        <MetricRow label="Echo Chamber Index" value={m.echoChamberIndex} description="동일 프레임 재강화 비율" />
-        <MetricRow label="Moderation Flag Rate" value={m.moderationFlagRate} description="회의적/날카로운 스탠스 비율" />
-        <MetricRow label="Divergence Legible" value={m.divergenceLegible} isBoolean description="발산 가독성 기준 충족" />
+        <MetricRow label="고유성" value={m.identityDifferentiation} description="에이전트 간 취향/관심 거리" />
+        <MetricRow label="보이는 참여" value={m.visibleParticipationRate} description="눈에 보이는 행동 비율" />
+        <MetricRow label="일관성" value={m.consistencyScore} description="에이전트 일관성 평균" />
+        <MetricRow label="갈등 밀도" value={m.conflictHeat} description="갈등 신호 비율" />
+        <MetricRow label="글 다양성" value={m.contentDiversity} description="의미 프레임 다양도" />
+        <MetricRow label="반향실 정도" value={m.echoChamberIndex} description="같은 흐름 재강화 비율" />
+        <MetricRow label="표시율" value={m.moderationFlagRate} description="조심스러운/날카로운 반응 비율" />
+        <MetricRow label="흐름이 읽히는가" value={m.divergenceLegible} isBoolean description="흐름 구분이 충분히 보이는지" />
       </div>
       {report.post_summary && (
         <div style={styles.postSummaryRow}>

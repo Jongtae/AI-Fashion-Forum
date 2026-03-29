@@ -73,10 +73,7 @@ function makeCommentDocument(store, input) {
   return doc;
 }
 
-test("auth register/login/me round-trip persists user identity", async (t) => {
-  const store = createInMemoryForumStore();
-  const restorers = [];
-
+function installUserStorePatches(store, restorers) {
   restorers.push(
     patch(User.prototype, "save", async function save() {
       const snapshot = clone(this.toObject({ depopulate: true }));
@@ -104,6 +101,43 @@ test("auth register/login/me round-trip persists user identity", async (t) => {
       },
     })),
   );
+}
+
+async function createAuthedForumUser(baseUrl, username = "forum-user") {
+  const registerRes = await fetch(`${baseUrl}/api/auth/register`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      username,
+      displayName: "Forum User",
+      password: "secret123",
+    }),
+  });
+  assert.equal(registerRes.status, 201);
+
+  const loginRes = await fetch(`${baseUrl}/api/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      username,
+      password: "secret123",
+    }),
+  });
+  const loginBody = await loginRes.json();
+  assert.equal(loginRes.status, 200);
+  assert.ok(loginBody.token);
+
+  return {
+    username,
+    token: loginBody.token,
+  };
+}
+
+test("auth register/login/me round-trip persists user identity", async (t) => {
+  const store = createInMemoryForumStore();
+  const restorers = [];
+
+  installUserStorePatches(store, restorers);
 
   const app = createApp();
   const { server, baseUrl } = await createServer(app);
@@ -164,6 +198,7 @@ test("auth register/login/me round-trip persists user identity", async (t) => {
 test("posts comments likes and reports persist through the CRUD routes", async (t) => {
   const store = createInMemoryForumStore();
   const restorers = [];
+  installUserStorePatches(store, restorers);
 
   restorers.push(
     patch(Post.prototype, "save", async function save() {
@@ -305,12 +340,17 @@ test("posts comments likes and reports persist through the CRUD routes", async (
     restorers.reverse().forEach((restore) => restore());
   });
 
+  const forumUserSession = await createAuthedForumUser(baseUrl, "forum-user");
+
   const postRes = await fetch(`${baseUrl}/api/posts`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
     body: JSON.stringify({
       content: "Weekend outfit check for a weekday office look.",
-      authorId: "u-1",
+      authorId: forumUserSession.username,
       authorType: "user",
       tags: ["office_style", "fit"],
       imageUrls: ["https://example.com/post.jpg"],
@@ -332,7 +372,10 @@ test("posts comments likes and reports persist through the CRUD routes", async (
 
   const updateRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}`, {
     method: "PUT",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
     body: JSON.stringify({
       content: "Updated outfit check with a softer jacket.",
       tags: ["office_style", "jacket"],
@@ -344,7 +387,10 @@ test("posts comments likes and reports persist through the CRUD routes", async (
 
   const likeRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}/like`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
     body: JSON.stringify({ userId: "u-2" }),
   });
   const likeBody = await likeRes.json();
@@ -354,10 +400,13 @@ test("posts comments likes and reports persist through the CRUD routes", async (
 
   const commentRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}/comments`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
     body: JSON.stringify({
       content: "The jacket balance looks good here.",
-      authorId: "u-3",
+      authorId: forumUserSession.username,
       authorType: "user",
     }),
   });
@@ -365,14 +414,17 @@ test("posts comments likes and reports persist through the CRUD routes", async (
   assert.equal(commentRes.status, 201);
   assert.equal(store.comments.length, 1);
   assert.equal(createdComment.replyTargetType, "post");
-  assert.equal(createdComment.replyTargetAuthorId, "u-1");
+  assert.equal(createdComment.replyTargetAuthorId, forumUserSession.username);
 
   const replyRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}/comments`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
     body: JSON.stringify({
       content: "Agreeing with the comment above.",
-      authorId: "u-4",
+      authorId: forumUserSession.username,
       authorType: "user",
       replyToCommentId: createdComment._id,
     }),
@@ -380,7 +432,7 @@ test("posts comments likes and reports persist through the CRUD routes", async (
   const repliedComment = await replyRes.json();
   assert.equal(replyRes.status, 201);
   assert.equal(repliedComment.replyTargetType, "comment");
-  assert.equal(repliedComment.replyTargetAuthorId, "u-3");
+  assert.equal(repliedComment.replyTargetAuthorId, forumUserSession.username);
   assert.equal(repliedComment.replyToCommentId, createdComment._id);
 
   const commentListRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}/comments`);
@@ -392,6 +444,9 @@ test("posts comments likes and reports persist through the CRUD routes", async (
     `${baseUrl}/api/posts/${createdPost._id}/comments/${createdComment._id}`,
     {
       method: "DELETE",
+      headers: {
+        authorization: `Bearer ${forumUserSession.token}`,
+      },
     },
   );
   assert.equal(deleteCommentRes.status, 200);
@@ -400,9 +455,12 @@ test("posts comments likes and reports persist through the CRUD routes", async (
 
   const reportRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}/report`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
     body: JSON.stringify({
-      reporterId: "u-4",
+      reporterId: forumUserSession.username,
       reason: "inappropriate",
       detail: "Needs review",
     }),
@@ -413,6 +471,9 @@ test("posts comments likes and reports persist through the CRUD routes", async (
 
   const deletePostRes = await fetch(`${baseUrl}/api/posts/${createdPost._id}`, {
     method: "DELETE",
+    headers: {
+      authorization: `Bearer ${forumUserSession.token}`,
+    },
   });
   const deletePostBody = await deletePostRes.json();
   assert.equal(deletePostRes.status, 200);

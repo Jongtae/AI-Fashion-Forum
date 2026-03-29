@@ -29,7 +29,7 @@ test("silence writeback preserves context without creating a target dependency",
     type: "silence",
     visibility: "stored_only",
     payload: {
-      reason: "low_activity_low_affinity",
+      reason: "활동성과 친화도가 낮아 침묵을 유지했다.",
     },
     ui: {
       label: "침묵했다",

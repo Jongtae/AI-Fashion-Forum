@@ -11,9 +11,7 @@
 import mongoose from "mongoose";
 import {
   SAMPLE_AGENT_STATES,
-  SPRINT1_AGENT_STATES,
-  SPRINT1_ROUND_SNAPSHOTS,
-  SPRINT1_FORUM_POSTS_BY_ROUND,
+  SAMPLE_CONTENT_RECORDS,
 } from "../packages/shared-types/index.js";
 
 const MONGODB_URI =
@@ -83,8 +81,8 @@ async function seed() {
   await AgentState.deleteMany({});
   console.log("[seed] Cleared existing agent/post seed data");
 
-  // 1. Migrate SAMPLE_AGENT_STATES as round-0 snapshots
-  const sampleAgentDocs = SAMPLE_AGENT_STATES.map((a) => ({
+  // 1. Seed SAMPLE_AGENT_STATES as round-0 snapshots
+  const sampleAgentDocs = SAMPLE_AGENT_STATES.map((a, index) => ({
     agentId: a.agent_id,
     round: 0,
     tick: a.joined_tick ?? 0,
@@ -99,85 +97,35 @@ async function seed() {
     archetype: a.archetype,
     selfNarratives: a.self_narrative ?? [],
     rawSnapshot: a,
+    createdAt: new Date(Date.now() + index),
+    updatedAt: new Date(Date.now() + index),
   }));
   await AgentState.insertMany(sampleAgentDocs, { ordered: false });
   console.log(`[seed] Inserted ${sampleAgentDocs.length} SAMPLE_AGENT_STATES`);
 
-  // 2. Migrate SPRINT1_AGENT_STATES as round-0 snapshots
-  const sprint1AgentDocs = SPRINT1_AGENT_STATES.map((a) => ({
-    agentId: a.agent_id,
-    round: 0,
-    tick: a.joined_tick ?? 0,
-    seedAxes: buildSeedAxes(a),
-    mutableAxes: {
-      attention_bias: 0.5,
-      belief_shift: 0,
-      affect_intensity: 0.5,
-      identity_confidence: 0.6,
-      social_posture: 0.5,
-    },
-    archetype: a.archetype,
-    selfNarratives: a.self_narrative ?? [],
-    rawSnapshot: a,
-  }));
-  // upsert to avoid unique-index conflicts when re-running
-  for (const doc of sprint1AgentDocs) {
-    await AgentState.findOneAndUpdate(
-      { agentId: doc.agentId, round: doc.round },
-      { $setOnInsert: doc },
-      { upsert: true }
-    );
-  }
-  console.log(`[seed] Inserted ${sprint1AgentDocs.length} SPRINT1_AGENT_STATES`);
-
-  // 3. Migrate SPRINT1_ROUND_SNAPSHOTS
-  for (const snapshot of SPRINT1_ROUND_SNAPSHOTS) {
-    const agentId = snapshot.agent_id ?? snapshot.agentId;
-    const round = snapshot.round ?? 1;
-    await AgentState.findOneAndUpdate(
-      { agentId, round },
-      {
-        $setOnInsert: {
-          agentId,
-          round,
-          tick: snapshot.tick ?? round,
-          archetype: snapshot.archetype,
-          exposureSummary: snapshot.exposure_summary,
-          reactionSummary: snapshot.reaction_summary,
-          rawSnapshot: snapshot,
-        },
-      },
-      { upsert: true }
-    );
-  }
-  console.log(`[seed] Inserted ${SPRINT1_ROUND_SNAPSHOTS.length} SPRINT1_ROUND_SNAPSHOTS`);
-
-  // 4. Migrate SPRINT1_FORUM_POSTS_BY_ROUND
+  // 2. Seed SAMPLE_CONTENT_RECORDS as initial agent posts
   const postDocs = [];
-  for (const [roundId, roundData] of Object.entries(SPRINT1_FORUM_POSTS_BY_ROUND)) {
-    const round = parseInt(roundId, 10) || 0;
-    // roundData may be an array of posts directly, or an object with a .posts array
-    const posts = Array.isArray(roundData) ? roundData : (roundData?.posts ?? []);
-    for (const p of posts) {
-      postDocs.push({
-        content: p.body ?? p.content ?? p.text ?? p.title ?? JSON.stringify(p),
-        authorId: p.agent_id ?? p.authorId ?? "unknown",
-        authorType: "agent",
-        tags: p.tags ?? [],
-        imageUrls: p.image_urls ?? [],
-        format: p.format,
-        agentRound: round,
-        agentTick: p.tick,
-        likes: 0,
-        likedBy: [],
-      });
-    }
+  for (const [index, content] of SAMPLE_CONTENT_RECORDS.entries()) {
+    postDocs.push({
+      content: content.body || content.title,
+      authorId: content.author_id,
+      authorType: "agent",
+      tags: content.topics ?? [],
+      imageUrls: [],
+      format: content.format,
+      agentRound: 0,
+      agentTick: content.created_tick ?? index,
+      likes: 0,
+      likedBy: [],
+      createdAt: new Date(Date.now() + index),
+      updatedAt: new Date(Date.now() + index),
+    });
   }
   if (postDocs.length > 0) {
     await Post.insertMany(postDocs);
-    console.log(`[seed] Inserted ${postDocs.length} SPRINT1_FORUM_POSTS_BY_ROUND`);
+    console.log(`[seed] Inserted ${postDocs.length} SAMPLE_CONTENT_RECORDS as posts`);
   } else {
-    console.log("[seed] No sprint1 forum posts found");
+    console.log("[seed] No sample content records found");
   }
 
   await mongoose.disconnect();
