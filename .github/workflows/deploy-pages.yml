@@ -1,9 +1,7 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
+  # Temporarily disabled from automatic main-branch deploys to avoid noisy failures.
   workflow_dispatch:
 
 permissions:
