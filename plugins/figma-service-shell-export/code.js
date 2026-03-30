@@ -319,7 +319,7 @@ async function buildComponentsPage() {
   page.appendChild(canvas);
 
   await addText(canvas, "Components", 24, 24, 24, { weight: "Bold" });
-  await addText(canvas, "Service shell에서 재사용할 카드와 보조 블록", 24, 58, 13, {
+  await addText(canvas, "재사용할 카드와 보조 블록", 24, 58, 13, {
     weight: "Regular",
     color: COLORS.muted,
   });
@@ -438,7 +438,7 @@ async function buildFlowPage() {
   addShadow(group);
   canvas.appendChild(group);
   await addText(group, "Service", 24, 20, 18, { weight: "Bold" });
-  await addText(group, "사용자가 실제로 이용하는 화면", 94, 22, 12, { weight: "Regular", color: COLORS.muted });
+  await addText(group, "사용자용 화면", 94, 22, 12, { weight: "Regular", color: COLORS.muted });
   await addCard(group, "Home", "읽기와 빠른 행동이 시작됩니다.", 24, 62, 252, 144);
   await addCard(group, "Discover", "최신 / 인기 / 검색으로 찾습니다.", 300, 62, 252, 144);
   await addCard(group, "Detail", "글, 맥락, 댓글, 답글을 봅니다.", 576, 62, 252, 144);
@@ -450,7 +450,7 @@ async function buildFlowPage() {
   addShadow(admin);
   canvas.appendChild(admin);
   await addText(admin, "Admin", 24, 20, 18, { weight: "Bold" });
-  await addText(admin, "운영자가 보는 별도 공간", 94, 22, 12, { weight: "Regular", color: COLORS.muted });
+  await addText(admin, "운영자용 화면", 94, 22, 12, { weight: "Regular", color: COLORS.muted });
   await addCard(admin, "operator", "운영 지표와 상태를 봅니다.", 24, 62, 252, 124);
   await addCard(admin, "replay", "다시보기를 점검합니다.", 300, 62, 252, 124);
   await addCard(admin, "sprint1", "과거 스프린트 화면을 봅니다.", 576, 62, 252, 124);
@@ -460,7 +460,7 @@ async function buildFlowPage() {
   note.cornerRadius = 24;
   canvas.appendChild(note);
   await addText(note, "정리 원칙", 24, 24, 18, { weight: "Bold" });
-  await addText(note, "서비스 화면에는 사용자 행동만 남기고, 관리 기능은 admin 페이지로 분리합니다.", 24, 58, 13, {
+  await addText(note, "서비스는 사용자용, 관리 기능은 admin으로 분리합니다.", 24, 58, 13, {
     weight: "Regular",
     color: COLORS.muted,
   });
