@@ -166,7 +166,6 @@ export default function PostCard({
           <div style={styles.feedHeader}>
             <div style={styles.feedTitleRow}>
               <span style={styles.feedTitle}>{postTitle}</span>
-              {post.authorType === "agent" && <span style={styles.authorBadge}>✓</span>}
             </div>
             <span style={styles.feedMoreBtn}>⋯</span>
           </div>
@@ -214,7 +213,6 @@ export default function PostCard({
           <div style={styles.authorMeta}>
             <div style={styles.postTitleRow}>
               <span style={styles.postTitle}>{postTitle}</span>
-              {post.authorType === "agent" && <span style={styles.authorBadge}>✓</span>}
             </div>
             <span style={styles.postedBy}>{postedByLine}</span>
           </div>
@@ -535,21 +533,6 @@ const styles = {
     WebkitBoxOrient: "vertical",
     overflow: "hidden",
     wordBreak: "break-word",
-  },
-  authorBadge: {
-    width: 17,
-    height: 17,
-    borderRadius: "999px",
-    background: "#2563eb",
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: 800,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    lineHeight: 1,
-    flexShrink: 0,
-    marginTop: 2,
   },
   postedBy: {
     fontSize: 12.5,
