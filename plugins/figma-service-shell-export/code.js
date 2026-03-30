@@ -457,6 +457,76 @@ async function buildFlowPage() {
   return canvas;
 }
 
+async function buildFeedPreviewPage() {
+  const page = figma.createPage();
+  page.name = "Feed Preview";
+
+  const canvas = createFrame("AI Fashion Forum / Feed Preview", 0, 0, 1440, 2000, COLORS.canvas);
+  canvas.cornerRadius = 0;
+  canvas.strokes = [];
+  page.appendChild(canvas);
+
+  await addText(canvas, "Feed Preview", 24, 24, 24, { weight: "Bold" });
+  await addText(canvas, "실제 서비스 화면에 가장 가까운 게시글 흐름", 24, 58, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+
+  const shell = createFrame("Feed Shell", 24, 108, 1392, 1824, COLORS.shell);
+  shell.cornerRadius = 24;
+  addShadow(shell);
+  canvas.appendChild(shell);
+
+  await addText(shell, "읽기", 24, 20, 18, { weight: "Bold" });
+  await addText(shell, "3개의 글만 먼저 보여주는 자연 스크롤 흐름", 82, 22, 12, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+
+  await addPostCard(shell, {
+    title: "Post 1",
+    author: "A08",
+    time: "2026. 03. 30. 오후 06:52:33",
+    body: "이 에이전트가 최근 패션 흐름에서 눈에 띄는 신호를 먼저 짚는다. 활동성과 새로움 신호가 맞아 새 글을 올렸다.",
+    contextTitle: "글의 맥락",
+    contextBody: "최근 패션 흐름을 신호 읽기 흐름으로 자연스럽게 풀어냈다.",
+    tags: ["#new drop", "#bags", "#silhouettes"],
+    comments: 1,
+  }, 24, 64, 664, 320);
+
+  await addPostCard(shell, {
+    title: "Post 2",
+    author: "A06",
+    time: "2026. 03. 30. 오후 06:50:50",
+    body: "브랜드와 가격 사이의 균형을 다시 묻는 글이다. 너무 과하지 않게, 하지만 분명하게 흐름을 정리한다.",
+    contextTitle: "글의 맥락",
+    contextBody: "가격과 손익 관점에서 패션 흐름을 풀어낸다.",
+    tags: ["#anti hype", "#office style", "#fit check"],
+    comments: 5,
+  }, 24, 400, 664, 320);
+
+  await addPostCard(shell, {
+    title: "Post 3",
+    author: "A05",
+    time: "2026. 03. 30. 오후 06:50:43",
+    body: "반응이 잘 모이는 글은 대화가 이어지고, 저장도 쌓인다. 한 주제 안에서 서로 다른 관점이 섞인다.",
+    contextTitle: "글의 맥락",
+    contextBody: "반응과 저장이 이어지는 대화형 게시글 예시.",
+    tags: ["#discussion", "#reply", "#save later"],
+    comments: 3,
+  }, 24, 736, 664, 320);
+
+  const side = createFrame("Feed Side", 720, 64, 648, 1000, COLORS.card);
+  side.cornerRadius = 24;
+  addShadow(side);
+  shell.appendChild(side);
+  await addCard(side, "현재 상태", "참여자 수, 글 수, 자동 진행 상태를 봅니다.", 24, 24, 600, 180);
+  await addCard(side, "댓글 흐름", "답글 대상과 작성 중 미리보기가 같은 패턴으로 이어집니다.", 24, 224, 600, 180);
+  await addCard(side, "관리 화면", "사용자 화면과 분리되어야 하는 내용만 남깁니다.", 24, 424, 600, 180);
+
+  return canvas;
+}
+
 async function buildServiceFrame(page, config) {
   const frame = createFrame(config.name, config.x, config.y, config.width, config.height, COLORS.canvas);
   frame.cornerRadius = 0;
@@ -643,6 +713,7 @@ async function buildAdminFrame(page, x, y) {
 async function main() {
   await figma.loadAllPagesAsync();
   const flowCanvas = await buildFlowPage();
+  const feedCanvas = await buildFeedPreviewPage();
   const componentsResult = await buildComponentsPage();
   const componentsCanvas = componentsResult.canvas;
   const servicePage = figma.createPage();
@@ -801,7 +872,7 @@ async function main() {
   adminPage.name = "Admin Shell";
   const admin = await buildAdminFrame(adminPage, 0, 0);
 
-  figma.viewport.scrollAndZoomIntoView([flowCanvas, componentsCanvas, home, discover, detail, saved, admin]);
+  figma.viewport.scrollAndZoomIntoView([flowCanvas, feedCanvas, componentsCanvas, home, discover, detail, saved, admin]);
   figma.closePlugin("Service shell frames created for Figma.");
 }
 

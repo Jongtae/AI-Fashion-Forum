@@ -16,6 +16,7 @@ This local Figma plugin creates a set of frames that mirror the current service 
 4. The plugin creates three pages:
    - `Components` for reusable UI parts
    - `Flow Map` for navigation and page separation
+   - `Feed Preview` for real post card flow
    - `Service Shell` for user-facing screens
    - `Admin Shell` for admin-only screens
 
