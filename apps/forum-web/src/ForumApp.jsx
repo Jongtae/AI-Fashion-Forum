@@ -129,6 +129,65 @@ function ServiceContextSummary({
   );
 }
 
+function ServiceSidebar({
+  authUser,
+  hasForumActivity,
+  composerOpen,
+  onToggleComposer,
+  onShowAuth,
+  onLogout,
+  tab,
+  discoveryMode,
+  activeTagFilter,
+  discoverySearchText,
+  onClearTab,
+  onClearMode,
+  onClearTag,
+  onClearSearch,
+}) {
+  const canWrite = Boolean(hasForumActivity || authUser);
+
+  return (
+    <aside style={styles.serviceSidebar}>
+      <div style={styles.sidebarCard}>
+        <div style={styles.sidebarKicker}>빠른 동작</div>
+        <div style={styles.sidebarTitle}>글쓰기</div>
+        <div style={styles.sidebarText}>{canWrite ? "새 글을 바로 열 수 있습니다." : "먼저 글을 읽거나 로그인하세요."}</div>
+        <button
+          type="button"
+          style={{
+            ...styles.sidebarPrimaryBtn,
+            ...(canWrite ? styles.sidebarPrimaryBtnActive : styles.sidebarPrimaryBtnPrompt),
+          }}
+          onClick={canWrite ? onToggleComposer : onShowAuth}
+        >
+          {composerOpen ? "글쓰기 닫기" : "글쓰기 열기"}
+        </button>
+      </div>
+
+      <ServiceContextSummary
+        tab={tab}
+        discoveryMode={discoveryMode}
+        activeTagFilter={activeTagFilter}
+        discoverySearchText={discoverySearchText}
+        onClearTab={onClearTab}
+        onClearMode={onClearMode}
+        onClearTag={onClearTag}
+        onClearSearch={onClearSearch}
+      />
+
+      <div style={styles.sidebarCard}>
+        <div style={styles.sidebarKicker}>계정</div>
+        <div style={styles.sidebarTitle}>{authUser ? authUser.displayName || authUser.username : "게스트"}</div>
+        <div style={styles.sidebarText}>{authUser ? "로그인된 상태입니다." : "로그인하면 저장과 글쓰기가 쉬워집니다."}</div>
+        <button type="button" style={styles.sidebarSecondaryBtn} onClick={authUser ? onLogout : onShowAuth}>
+          {authUser ? "로그아웃" : "로그인"}
+        </button>
+      </div>
+    </aside>
+  );
+}
+
 
 const SERVICE_TABS = [
   { id: "forum", label: "포럼" },
@@ -619,16 +678,18 @@ export default function ForumApp() {
 
             <div style={{ ...styles.serviceShell, ...(isCompact ? styles.serviceShellCompact : {}) }}>
               <div style={styles.centerColumn}>
-                <ServiceContextSummary
-                  tab={tab}
-                  discoveryMode={discoveryMode}
-                  activeTagFilter={activeTagFilter}
-                  discoverySearchText={discoverySearchText}
-                  onClearTab={clearTabContext}
-                  onClearMode={clearModeContext}
-                  onClearTag={clearTagContext}
-                  onClearSearch={clearSearchContext}
-                />
+                {isCompact && (
+                  <ServiceContextSummary
+                    tab={tab}
+                    discoveryMode={discoveryMode}
+                    activeTagFilter={activeTagFilter}
+                    discoverySearchText={discoverySearchText}
+                    onClearTab={clearTabContext}
+                    onClearMode={clearModeContext}
+                    onClearTag={clearTagContext}
+                    onClearSearch={clearSearchContext}
+                  />
+                )}
 
                 <main style={styles.main}>
               {selectedProfile ? (
@@ -664,32 +725,13 @@ export default function ForumApp() {
                   />
                 ) : (
                   <>
-
-                    <section style={styles.formSection}>
-                      <div style={styles.composerGate}>
-                        <div style={styles.composerCopy}>
-                          <p style={styles.composerTitle}>글쓰기</p>
-                          <span style={styles.composerState}>
-                            {hasForumActivity || authUser ? "열림" : "잠김"}
-                          </span>
-                        </div>
-                        <button
-                          style={{
-                            ...styles.composerBtn,
-                            ...(hasForumActivity || authUser ? styles.composerBtnActive : styles.composerBtnDisabled),
-                          }}
-                          onClick={toggleComposerOpen}
-                          disabled={!(hasForumActivity || authUser)}
-                        >
-                          {composerOpen ? "글쓰기 닫기" : "글쓰기 열기"}
-                        </button>
-                      </div>
-                      {composerOpen && (
+                    {composerOpen && (
+                      <section style={styles.formSection}>
                         <div style={styles.composerPanel}>
                           <PostForm currentUser={currentUser} />
                         </div>
-                      )}
-                    </section>
+                      </section>
+                    )}
                     <section style={styles.feedSection}>
                       <PostList
                         currentUser={currentUser}
@@ -781,6 +823,25 @@ export default function ForumApp() {
                 </main>
               </div>
 
+              {!isCompact && (
+                <ServiceSidebar
+                  authUser={authUser}
+                  hasForumActivity={hasForumActivity}
+                  composerOpen={composerOpen}
+                  onToggleComposer={toggleComposerOpen}
+                  onShowAuth={() => setShowAuth(true)}
+                  onLogout={handleLogout}
+                  tab={tab}
+                  discoveryMode={discoveryMode}
+                  activeTagFilter={activeTagFilter}
+                  discoverySearchText={discoverySearchText}
+                  onClearTab={clearTabContext}
+                  onClearMode={clearModeContext}
+                  onClearTag={clearTagContext}
+                  onClearSearch={clearSearchContext}
+                />
+              )}
+
             </div>
           </>
         )}
@@ -837,7 +898,7 @@ const styles = {
     margin: "0 auto",
     padding: "18px 20px 40px",
     display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr)",
+    gridTemplateColumns: "minmax(0, 1fr) 304px",
     justifyContent: "center",
     gap: 20,
     alignItems: "start",
@@ -845,6 +906,74 @@ const styles = {
   serviceShellCompact: {
     gridTemplateColumns: "minmax(0, 1fr)",
     padding: "12px 12px 28px",
+  },
+  serviceSidebar: {
+    position: "sticky",
+    top: 96,
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    alignSelf: "start",
+  },
+  sidebarCard: {
+    background: "#fff",
+    border: "1px solid rgba(17,17,17,0.06)",
+    borderRadius: 12,
+    padding: 16,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  sidebarKicker: {
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "#6b7280",
+  },
+  sidebarTitle: {
+    fontSize: 16,
+    fontWeight: 800,
+    color: "#111827",
+    lineHeight: 1.25,
+  },
+  sidebarText: {
+    fontSize: 12,
+    color: "#6b7280",
+    lineHeight: 1.5,
+  },
+  sidebarPrimaryBtn: {
+    border: "1px solid transparent",
+    borderRadius: 10,
+    padding: "10px 12px",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+    width: "100%",
+  },
+  sidebarPrimaryBtnActive: {
+    background: "#111",
+    color: "#fff",
+  },
+  sidebarPrimaryBtnDisabled: {
+    background: "#f3f4f6",
+    color: "#9ca3af",
+  },
+  sidebarPrimaryBtnPrompt: {
+    background: "#fff",
+    color: "#111827",
+    borderColor: "#d1d5db",
+  },
+  sidebarSecondaryBtn: {
+    border: "1px solid #d1d5db",
+    background: "#fff",
+    color: "#111827",
+    borderRadius: 10,
+    padding: "9px 12px",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+    width: "100%",
   },
   rail: {
     position: "sticky",
