@@ -196,32 +196,22 @@ export default function AdminDashboard({ timeSpeed = 1 }) {
             서비스 화면과 분리된 운영 전용 공간입니다. 무엇을 보고 무엇을 해야 하는지 바로 보이도록 정리했습니다.
           </p>
         </div>
-        <div style={styles.menuGrid}>
+        <div style={styles.tabBar}>
           <button
             type="button"
-            style={{
-              ...styles.menuCard,
-              ...(activeSection === "home" ? styles.menuCardActive : {}),
-            }}
+            style={{ ...styles.tabButton, ...(activeSection === "home" ? styles.tabButtonActive : {}) }}
             onClick={() => setActiveSection("home")}
           >
-            <span style={styles.menuCategory}>허브</span>
-            <span style={styles.menuLabel}>첫 화면</span>
-            <span style={styles.menuDesc}>흐름 메뉴와 현재 위치를 한 번에 봅니다.</span>
+            첫 화면
           </button>
           {SECTIONS.map((section) => (
             <button
               key={section.id}
               type="button"
-              style={{
-                ...styles.menuCard,
-                ...(activeSection === section.id ? styles.menuCardActive : {}),
-              }}
+              style={{ ...styles.tabButton, ...(activeSection === section.id ? styles.tabButtonActive : {}) }}
               onClick={() => setActiveSection(section.id)}
             >
-              <span style={styles.menuCategory}>{section.category}</span>
-              <span style={styles.menuLabel}>{section.label}</span>
-              <span style={styles.menuDesc}>{section.description}</span>
+              {section.label}
             </button>
           ))}
         </div>
@@ -279,46 +269,34 @@ const styles = {
     color: "#6b7280",
     lineHeight: 1.6,
   },
-  menuGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: 10,
-    alignItems: "stretch",
+  tabBar: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "flex-end",
+    gap: 8,
+    alignItems: "center",
     minWidth: 0,
     flex: 1,
   },
-  menuCard: {
+  tabButton: {
     textAlign: "left",
-    padding: 14,
-    borderRadius: 10,
+    padding: "8px 12px",
+    borderRadius: 8,
     border: "1px solid #e5e7eb",
     background: "#fff",
     cursor: "pointer",
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
-    minHeight: 96,
-  },
-  menuCategory: {
-    fontSize: 10,
+    minHeight: 36,
+    fontSize: 13,
     fontWeight: 700,
-    color: "#64748b",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
+    color: "#334155",
   },
-  menuCardActive: {
+  tabButtonActive: {
     borderColor: "#111827",
     boxShadow: "0 0 0 1px #111827 inset",
-  },
-  menuLabel: {
-    fontSize: 14,
-    fontWeight: 700,
-    color: "#111827",
-  },
-  menuDesc: {
-    fontSize: 12,
-    color: "#6b7280",
-    lineHeight: 1.5,
   },
   panel: {
     display: "flex",
