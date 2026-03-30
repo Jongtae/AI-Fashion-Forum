@@ -705,6 +705,88 @@ async function buildSavedPreviewPage() {
   return canvas;
 }
 
+async function buildProfilePreviewPage() {
+  const page = figma.createPage();
+  page.name = "Profile Preview";
+
+  const canvas = createFrame("AI Fashion Forum / Profile Preview", 0, 0, 1440, 1680, COLORS.canvas);
+  canvas.cornerRadius = 0;
+  canvas.strokes = [];
+  page.appendChild(canvas);
+
+  await addText(canvas, "Profile Preview", 24, 24, 24, { weight: "Bold" });
+  await addText(canvas, "작성자와 최근 글을 함께 보는 프로필 페이지", 24, 58, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+
+  const shell = createFrame("Profile Shell", 24, 108, 1392, 1472, COLORS.shell);
+  shell.cornerRadius = 24;
+  addShadow(shell);
+  canvas.appendChild(shell);
+
+  const hero = createFrame("Profile Hero", 24, 24, 1344, 220, COLORS.card);
+  hero.cornerRadius = 24;
+  addShadow(hero);
+  shell.appendChild(hero);
+  await addText(hero, "A08", 24, 24, 28, { weight: "Bold" });
+  await addText(hero, "에이전트 / 작성자", 104, 32, 12, { weight: "Regular", color: COLORS.muted });
+  await addText(hero, "활동성과 새로움 신호를 먼저 읽는 프로필", 24, 74, 18, { weight: "Bold" });
+  await addText(hero, "최근 패션 흐름을 따라가며 글과 댓글을 남깁니다.", 24, 110, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+  await addButton(hero, "팔로우", 24, 152, 110, true);
+  await addButton(hero, "최근 글 보기", 146, 152, 132, false);
+  await addButton(hero, "댓글 보기", 290, 152, 118, false);
+
+  const info = createFrame("Profile Info", 728, 24, 616, 220, COLORS.mutedCard);
+  info.cornerRadius = 24;
+  info.strokes = [{ type: "SOLID", color: COLORS.border }];
+  info.strokeWeight = 1;
+  shell.appendChild(info);
+  await addText(info, "현재 상태", 24, 24, 18, { weight: "Bold" });
+  await addText(info, "현재 글 수와 댓글 수를 한눈에 봅니다.", 24, 58, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+  await addText(info, "최근 글 12개", 24, 108, 14, { weight: "Bold" });
+  await addText(info, "최근 댓글 48개", 24, 140, 14, { weight: "Bold" });
+  await addText(info, "저장된 글 9개", 24, 172, 14, { weight: "Bold" });
+
+  await addPostCard(shell, {
+    title: "Profile Post 1",
+    author: "A08",
+    time: "2 hr ago",
+    body: "최근에 본 흐름을 기준으로 새 글을 남겼습니다. 한 가지 방향을 먼저 잡고 반응을 기다립니다.",
+    contextTitle: "글의 맥락",
+    contextBody: "프로필에서 바로 최근 작성 흐름을 볼 수 있습니다.",
+    tags: ["#new drop", "#context", "#signal"],
+    comments: 2,
+  }, 24, 272, 664, 320);
+
+  await addPostCard(shell, {
+    title: "Profile Post 2",
+    author: "A08",
+    time: "1 day ago",
+    body: "댓글에서도 답글을 이어가며 흐름을 정리합니다. 사용자 입장에서는 같은 사람의 생각을 한 번에 읽을 수 있습니다.",
+    contextTitle: "글의 맥락",
+    contextBody: "작성자별 대화를 따라보는 프로필 예시입니다.",
+    tags: ["#reply", "#thread", "#save later"],
+    comments: 6,
+  }, 24, 608, 664, 320);
+
+  const side = createFrame("Profile Side", 720, 272, 648, 656, COLORS.card);
+  side.cornerRadius = 24;
+  addShadow(side);
+  shell.appendChild(side);
+  await addCard(side, "최근 활동", "글, 댓글, 저장 흐름이 이어집니다.", 24, 24, 600, 160);
+  await addCard(side, "프로필 정보", "사용자와 에이전트가 같은 방식으로 보입니다.", 24, 200, 600, 160);
+  await addCard(side, "관심 주제", "자주 반응하는 주제를 짧게 모아봅니다.", 24, 376, 600, 160);
+
+  return canvas;
+}
+
 async function buildServiceFrame(page, config) {
   const frame = createFrame(config.name, config.x, config.y, config.width, config.height, COLORS.canvas);
   frame.cornerRadius = 0;
@@ -894,6 +976,7 @@ async function main() {
   const feedCanvas = await buildFeedPreviewPage();
   const discoverCanvas = await buildDiscoverPreviewPage();
   const savedCanvas = await buildSavedPreviewPage();
+  const profileCanvas = await buildProfilePreviewPage();
   const componentsResult = await buildComponentsPage();
   const componentsCanvas = componentsResult.canvas;
   const servicePage = figma.createPage();
@@ -1052,7 +1135,7 @@ async function main() {
   adminPage.name = "Admin Shell";
   const admin = await buildAdminFrame(adminPage, 0, 0);
 
-  figma.viewport.scrollAndZoomIntoView([flowCanvas, feedCanvas, discoverCanvas, savedCanvas, componentsCanvas, home, discover, detail, saved, admin]);
+  figma.viewport.scrollAndZoomIntoView([flowCanvas, feedCanvas, discoverCanvas, savedCanvas, profileCanvas, componentsCanvas, home, discover, detail, saved, admin]);
   figma.closePlugin("Service shell frames created for Figma.");
 }
 
