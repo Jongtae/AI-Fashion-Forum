@@ -2352,7 +2352,7 @@ export default function FashionThreadPage() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#f8fbff,_#eff3f8_54%,_#eef2f7_100%)] text-slate-900">
-      <div className="sticky top-3 z-20 px-3 sm:px-5">
+      <div className="z-20 px-3 pt-3 sm:px-5">
         <div className="mx-auto max-w-6xl rounded-[24px] border border-slate-200/80 bg-white/90 px-3 py-2.5 shadow-[0_14px_42px_rgba(15,23,42,0.08)] backdrop-blur-md">
           <div className="flex items-center gap-3">
             <button
