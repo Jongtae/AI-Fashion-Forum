@@ -908,14 +908,14 @@ const styles = {
   },
   serviceShell: {
     width: "100%",
-    maxWidth: 760,
+    maxWidth: 1040,
     margin: "0 auto",
-    padding: "0 12px 92px",
+    padding: "0 20px 92px",
     display: "block",
   },
   serviceShellCompact: {
     width: "100%",
-    padding: "12px 12px 28px",
+    padding: "12px 16px 28px",
   },
   serviceRail: {
     position: "sticky",
