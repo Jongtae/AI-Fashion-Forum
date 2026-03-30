@@ -783,6 +783,7 @@ export default function ForumApp() {
                           markForumActivity();
                           setComposerOpen(true);
                         }}
+                        surfaceVariant="feed"
                       />
                     </section>
                   </>

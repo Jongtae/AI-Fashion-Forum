@@ -42,7 +42,16 @@ function formatPostedByLine(authorId, value) {
   return `Posted by ${authorLabel} ${diffDays} days ago at ${time}`;
 }
 
+function formatFeedDateLabel(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" }).format(date);
+}
+
 function getPostTitle(post) {
+  const explicitTitle = String(post?.title || "").trim();
+  if (explicitTitle) return explicitTitle;
   const content = String(post?.content || "").trim();
   if (!content) return "Untitled post";
   const firstLine = content.split(/\r?\n/)[0].trim();
@@ -75,7 +84,7 @@ function extractInitials(authorId, authorType) {
   return (authorId || "?").slice(0, 2).toUpperCase();
 }
 
-function Avatar({ authorId, authorType }) {
+function Avatar({ authorId, authorType, size = 42 }) {
   const initials = extractInitials(authorId, authorType);
   const [bg, fg] = getAvatarColor(authorId);
   const avatarSvg = `data:image/svg+xml;utf8,${encodeURIComponent(`
@@ -92,7 +101,11 @@ function Avatar({ authorId, authorType }) {
     </svg>
   `)}`;
   return (
-    <img src={avatarSvg} alt={`${authorId || "user"} avatar`} style={styles.avatar} />
+    <img
+      src={avatarSvg}
+      alt={`${authorId || "user"} avatar`}
+      style={{ ...styles.avatar, width: size, height: size }}
+    />
   );
 }
 
@@ -106,6 +119,7 @@ export default function PostCard({
   onAuthorClick = () => {},
   isAuthenticated = false,
   readOnly = false,
+  surfaceVariant = "default",
 }) {
   const [showComments, setShowComments] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -118,9 +132,11 @@ export default function PostCard({
   const hasMedia = Boolean(mediaUrl);
   const postTitle = getPostTitle(post);
   const postedByLine = formatPostedByLine(post.authorId, post.createdAt);
+  const feedDateLabel = formatFeedDateLabel(post.createdAt);
   const commentButtonText = commentCount > 0
     ? `댓글 ${commentCount}개 ${showComments ? "닫기" : "보기"}`
     : `댓글 ${showComments ? "닫기" : "보기"}`;
+  const isFeedVariant = surfaceVariant === "feed";
 
   useEffect(() => {
     if (shareState.status === "idle") return undefined;
@@ -183,6 +199,60 @@ export default function PostCard({
   const CLAMP_LINES = 3;
   const needsClamp = !expanded && (post.content || "").split("\n").length > CLAMP_LINES || (post.content || "").length > 200;
   const contentLines = hasMedia ? 2 : 3;
+
+  if (isFeedVariant) {
+    return (
+      <article style={styles.feedCard} data-post-card={post._id}>
+        <button
+          type="button"
+          style={styles.feedCardBtn}
+          onClick={() => {
+            if (readOnly) return;
+            onUserActivity();
+            onSelectPost?.(post._id);
+          }}
+        >
+          <div style={styles.feedHeader}>
+            <div style={styles.feedAuthorGroup}>
+              <Avatar authorId={post.authorId} authorType={post.authorType} size={48} />
+              <div style={styles.feedAuthorMeta}>
+                <div style={styles.feedTitleRow}>
+                  <span style={styles.feedTitle}>{postTitle}</span>
+                  {post.authorType === "agent" && <span style={styles.authorBadge}>✓</span>}
+                </div>
+                <span style={styles.feedPostedBy}>{postedByLine}</span>
+              </div>
+            </div>
+            <span style={styles.feedMoreBtn}>⋯</span>
+          </div>
+
+          <p style={styles.feedContent}>{post.content}</p>
+
+          {hasMedia && (
+            <div style={styles.feedMediaWrap}>
+              <img
+                src={mediaUrl}
+                alt={post.content?.slice(0, 80) || "게시글 이미지"}
+                style={styles.feedMedia}
+                loading="lazy"
+              />
+            </div>
+          )}
+
+          <div style={styles.feedFooter}>
+            <div style={styles.feedFooterMeta}>
+              <Avatar authorId={post.authorId} authorType={post.authorType} size={24} />
+              <span style={styles.feedFooterText}>
+                {commentCount > 0 ? `${commentCount} answers` : "0 answers"}
+                {feedDateLabel ? `, ${feedDateLabel}` : ""}
+              </span>
+            </div>
+            {post.tags?.[0] && <span style={styles.feedTag}>#{localizeLabel(post.tags[0])}</span>}
+          </div>
+        </button>
+      </article>
+    );
+  }
 
   return (
     <div style={{ ...styles.card, ...(hasMedia ? styles.cardMedia : styles.cardText) }} data-post-card={post._id}>
@@ -346,6 +416,126 @@ const styles = {
     borderRadius: 28,
     padding: 18,
     boxShadow: "0 12px 30px rgba(15, 23, 42, 0.04)",
+  },
+  feedCard: {
+    background: "#ffffff",
+    border: "1px solid rgba(148,163,184,0.22)",
+    borderRadius: 28,
+    padding: 18,
+    boxShadow: "0 10px 22px rgba(15, 23, 42, 0.04)",
+    overflow: "hidden",
+  },
+  feedCardBtn: {
+    display: "block",
+    width: "100%",
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    textAlign: "left",
+  },
+  feedHeader: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 14,
+  },
+  feedAuthorGroup: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 12,
+    minWidth: 0,
+    flex: 1,
+  },
+  feedAuthorMeta: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+    minWidth: 0,
+    flex: 1,
+  },
+  feedTitleRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    minWidth: 0,
+  },
+  feedTitle: {
+    fontSize: 22,
+    fontWeight: 800,
+    color: "#111827",
+    lineHeight: 1.18,
+    letterSpacing: "-0.03em",
+    minWidth: 0,
+    flex: 1,
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+    wordBreak: "break-word",
+  },
+  feedPostedBy: {
+    fontSize: 12,
+    color: "#6b7280",
+    lineHeight: 1.3,
+  },
+  feedMoreBtn: {
+    flexShrink: 0,
+    color: "#6b7280",
+    fontSize: 22,
+    lineHeight: 1,
+    paddingTop: 2,
+  },
+  feedContent: {
+    margin: 0,
+    fontSize: 16,
+    lineHeight: 1.72,
+    color: "#334155",
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+    display: "-webkit-box",
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+  },
+  feedMediaWrap: {
+    marginTop: 14,
+    marginBottom: 14,
+  },
+  feedMedia: {
+    display: "block",
+    width: "100%",
+    aspectRatio: "1.5 / 1",
+    objectFit: "cover",
+    borderRadius: 24,
+    background: "#f3f4f6",
+  },
+  feedFooter: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTop: "1px solid rgba(148,163,184,0.2)",
+  },
+  feedFooterMeta: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    minWidth: 0,
+  },
+  feedFooterText: {
+    fontSize: 12,
+    color: "#6b7280",
+    whiteSpace: "nowrap",
+  },
+  feedTag: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#6d78dc",
+    whiteSpace: "nowrap",
   },
   header: {
     display: "flex",

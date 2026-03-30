@@ -23,6 +23,7 @@ export default function PostList({
   queryParams = {},
   requiresAuth = false,
   readOnly = false,
+  surfaceVariant = "default",
 }) {
   const [internalTagFilter, setInternalTagFilter] = useState("");
   const loadMoreRef = useRef(null);
@@ -32,6 +33,7 @@ export default function PostList({
   const viewerId = currentUser?.id || "guest";
   const queryLocked = requiresAuth && !isAuthenticated;
   const isSavedView = String(queryParams?.saved || "").toLowerCase() === "true";
+  const isFeedVariant = surfaceVariant === "feed";
 
   const {
     data,
@@ -131,24 +133,26 @@ export default function PostList({
 
   return (
     <div>
-      <div style={styles.filterRow}>
-        <input
-          value={tagFilter}
-          onChange={(e) => setTagFilter(e.target.value)}
-          placeholder="태그로 필터링…"
-          style={styles.filterInput}
-        />
-        {tagFilter && (
-          <button
-            onClick={() => {
-              setTagFilter("");
-            }}
-            style={styles.clearBtn}
-          >
-            ✕
-          </button>
-        )}
-      </div>
+      {!isFeedVariant && (
+        <div style={styles.filterRow}>
+          <input
+            value={tagFilter}
+            onChange={(e) => setTagFilter(e.target.value)}
+            placeholder="태그로 필터링…"
+            style={styles.filterInput}
+          />
+          {tagFilter && (
+            <button
+              onClick={() => {
+                setTagFilter("");
+              }}
+              style={styles.clearBtn}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      )}
 
       {isLoading && <p style={styles.msg}>글을 불러오는 중…</p>}
       {isError && <p style={styles.error}>{error?.message || "오류가 발생했습니다."}</p>}
@@ -186,6 +190,7 @@ export default function PostList({
             onAuthorClick={onAuthorClick}
             isAuthenticated={isAuthenticated}
             readOnly={readOnly}
+            surfaceVariant={surfaceVariant}
           />
         ))}
         {isFetchingNextPage && <p style={styles.msg}>더 불러오는 중…</p>}
