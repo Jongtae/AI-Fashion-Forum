@@ -17,6 +17,8 @@ This local Figma plugin creates a set of frames that mirror the current service 
    - `Components` for reusable UI parts
    - `Flow Map` for navigation and page separation
    - `Feed Preview` for real post card flow
+   - `Discover Preview` for search and popularity browsing
+   - `Saved Preview` for saved-post states
    - `Service Shell` for user-facing screens
    - `Admin Shell` for admin-only screens
 

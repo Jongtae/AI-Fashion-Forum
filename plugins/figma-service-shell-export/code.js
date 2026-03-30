@@ -542,6 +542,169 @@ async function buildFeedPreviewPage() {
   return canvas;
 }
 
+async function buildDiscoverPreviewPage() {
+  const page = figma.createPage();
+  page.name = "Discover Preview";
+
+  const canvas = createFrame("AI Fashion Forum / Discover Preview", 0, 0, 1440, 1720, COLORS.canvas);
+  canvas.cornerRadius = 0;
+  canvas.strokes = [];
+  page.appendChild(canvas);
+
+  await addText(canvas, "Discover Preview", 24, 24, 24, { weight: "Bold" });
+  await addText(canvas, "검색과 인기 흐름을 실제 화면처럼 확인하는 페이지", 24, 58, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+
+  const shell = createFrame("Discover Shell", 24, 108, 1392, 1504, COLORS.shell);
+  shell.cornerRadius = 24;
+  addShadow(shell);
+  canvas.appendChild(shell);
+
+  await addText(shell, "탐색", 24, 20, 18, { weight: "Bold" });
+  await addText(shell, "최신 / 인기 / 검색을 한 흐름으로 탐색합니다", 78, 22, 12, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+
+  await addButton(shell, "최신", 24, 60, 102, true);
+  await addButton(shell, "인기", 136, 60, 102, false);
+  await addButton(shell, "검색", 248, 60, 102, false);
+
+  const search = createFrame("Search Bar", 24, 120, 664, 52, COLORS.mutedCard);
+  search.cornerRadius = 16;
+  search.strokes = [{ type: "SOLID", color: COLORS.border }];
+  search.strokeWeight = 1;
+  await addText(search, "검색어를 입력하세요", 18, 16, 13, {
+    weight: "Regular",
+    color: COLORS.softer,
+  });
+  shell.appendChild(search);
+
+  await addChip(shell, "#new drop", 24, 190, false);
+  await addChip(shell, "#bags", 148, 190, false);
+  await addChip(shell, "#silhouettes", 238, 190, false);
+  await addChip(shell, "#office style", 380, 190, false);
+
+  await addPostCard(shell, {
+    title: "Discover 1",
+    author: "r/news",
+    time: "4 hr ago",
+    body: "최근 흐름을 빠르게 보고 싶을 때 먼저 보는 글입니다. 제목과 본문이 바로 방향을 알려줍니다.",
+    contextTitle: "글의 맥락",
+    contextBody: "최근 반응이 많은 주제를 한 번에 보여줍니다.",
+    tags: ["#popular", "#trending", "#shared"],
+    comments: 12,
+  }, 24, 248, 664, 320);
+
+  await addPostCard(shell, {
+    title: "Discover 2",
+    author: "r/askreddit",
+    time: "12 hr ago",
+    body: "질문에서 시작해서 댓글이 이어지는 전형적인 탐색 예시입니다. 반응이 많은 글이 눈에 들어옵니다.",
+    contextTitle: "글의 맥락",
+    contextBody: "질문 중심 흐름과 댓글 반응이 잘 보입니다.",
+    tags: ["#discussion", "#reply", "#save later"],
+    comments: 18,
+  }, 24, 584, 664, 320);
+
+  const side = createFrame("Discover Side", 720, 120, 648, 800, COLORS.card);
+  side.cornerRadius = 24;
+  addShadow(side);
+  shell.appendChild(side);
+  await addCard(side, "인기 태그", "#new drop / #bags / #office style", 24, 24, 600, 160);
+  await addCard(side, "검색 도움말", "태그와 단어를 섞어 원하는 글을 좁혀 보세요.", 24, 200, 600, 160);
+  await addCard(side, "지금 많이 보는 주제", "커뮤니티가 지금 보고 있는 흐름을 보여줍니다.", 24, 376, 600, 160);
+
+  return canvas;
+}
+
+async function buildSavedPreviewPage() {
+  const page = figma.createPage();
+  page.name = "Saved Preview";
+
+  const canvas = createFrame("AI Fashion Forum / Saved Preview", 0, 0, 1440, 1520, COLORS.canvas);
+  canvas.cornerRadius = 0;
+  canvas.strokes = [];
+  page.appendChild(canvas);
+
+  await addText(canvas, "Saved Preview", 24, 24, 24, { weight: "Bold" });
+  await addText(canvas, "저장한 글이 어떻게 모이는지 확인하는 페이지", 24, 58, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+
+  const shell = createFrame("Saved Shell", 24, 108, 1392, 1304, COLORS.shell);
+  shell.cornerRadius = 24;
+  addShadow(shell);
+  canvas.appendChild(shell);
+
+  await addText(shell, "저장한 글", 24, 20, 18, { weight: "Bold" });
+  await addText(shell, "다시 보고 싶은 글을 모아둔 곳입니다", 106, 22, 12, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+
+  await addButton(shell, "저장", 24, 60, 102, true);
+  await addButton(shell, "최근 저장", 136, 60, 110, false);
+  await addButton(shell, "댓글 많은 글", 256, 60, 126, false);
+
+  await addPostCard(shell, {
+    title: "Saved 1",
+    author: "A08",
+    time: "saved just now",
+    body: "나중에 다시 보고 싶은 글입니다. 한 번 읽고 다시 생각해볼 만한 맥락이 들어 있습니다.",
+    contextTitle: "글의 맥락",
+    contextBody: "저장해 두면 다시 읽을 때 흐름을 놓치지 않습니다.",
+    tags: ["#keep", "#later", "#context"],
+    comments: 1,
+  }, 24, 124, 664, 320);
+
+  await addPostCard(shell, {
+    title: "Saved 2",
+    author: "A06",
+    time: "saved 2 days ago",
+    body: "반응이 좋았던 글을 다시 확인할 수 있게 저장해 둔 예시입니다. 나중에 댓글까지 같이 보기 좋습니다.",
+    contextTitle: "글의 맥락",
+    contextBody: "저장한 뒤에도 댓글과 공유 흐름을 다시 볼 수 있습니다.",
+    tags: ["#follow up", "#thread", "#reply"],
+    comments: 5,
+  }, 24, 460, 664, 320);
+
+  const empty = createFrame("Saved Empty State", 720, 124, 648, 200, COLORS.mutedCard);
+  empty.cornerRadius = 24;
+  empty.strokes = [{ type: "SOLID", color: COLORS.border }];
+  empty.strokeWeight = 1;
+  await addText(empty, "저장한 글이 아직 없습니다", 24, 24, 18, { weight: "Bold" });
+  await addText(empty, "읽다가 다시 보고 싶은 글을 저장해 보세요.", 24, 58, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+  await addButton(empty, "포럼으로 돌아가기", 24, 108, 170, false);
+  shell.appendChild(empty);
+
+  const tip = createFrame("Saved Tip", 720, 352, 648, 240, COLORS.card);
+  tip.cornerRadius = 24;
+  addShadow(tip);
+  shell.appendChild(tip);
+  await addText(tip, "저장글 사용 팁", 24, 24, 18, { weight: "Bold" });
+  await addText(tip, "저장해 둔 글은 여기서 다시 봅니다. 좋아요, 댓글, 공유는 원래 글에서 이어집니다.", 24, 58, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+    width: 600,
+    lineHeight: 20,
+  });
+  await addText(tip, "필요한 글만 저장해 두면 나중에 흐름을 따라가기 쉽습니다.", 24, 118, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+    width: 600,
+    lineHeight: 20,
+  });
+
+  return canvas;
+}
+
 async function buildServiceFrame(page, config) {
   const frame = createFrame(config.name, config.x, config.y, config.width, config.height, COLORS.canvas);
   frame.cornerRadius = 0;
@@ -729,6 +892,8 @@ async function main() {
   await figma.loadAllPagesAsync();
   const flowCanvas = await buildFlowPage();
   const feedCanvas = await buildFeedPreviewPage();
+  const discoverCanvas = await buildDiscoverPreviewPage();
+  const savedCanvas = await buildSavedPreviewPage();
   const componentsResult = await buildComponentsPage();
   const componentsCanvas = componentsResult.canvas;
   const servicePage = figma.createPage();
@@ -887,7 +1052,7 @@ async function main() {
   adminPage.name = "Admin Shell";
   const admin = await buildAdminFrame(adminPage, 0, 0);
 
-  figma.viewport.scrollAndZoomIntoView([flowCanvas, feedCanvas, componentsCanvas, home, discover, detail, saved, admin]);
+  figma.viewport.scrollAndZoomIntoView([flowCanvas, feedCanvas, discoverCanvas, savedCanvas, componentsCanvas, home, discover, detail, saved, admin]);
   figma.closePlugin("Service shell frames created for Figma.");
 }
 
