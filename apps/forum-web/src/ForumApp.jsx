@@ -691,26 +691,28 @@ export default function ForumApp() {
                         }}
                       >
                         {item.label}
+                        {knowledgeView === item.key && <span style={styles.knowledgeTabBtnUnderline} />}
                       </button>
                     ))}
                   </div>
                   <div style={styles.knowledgeTools}>
                     {[
-                      { key: "topic", label: "Topic", onClick: openSearch },
-                      { key: "sort", label: "Sort", onClick: openSearch },
-                      { key: "saved", label: "Bookmarks", onClick: openSavedPosts },
-                      { key: "search", label: "Search", onClick: openSearch, icon: true },
+                      { key: "search", label: "Search", onClick: openSearch, icon: Search },
+                      { key: "saved", label: "Bookmarks", onClick: openSavedPosts, icon: Bookmark },
+                      { key: "profile", label: "Profile", onClick: openProfileTab, icon: UserRound },
                     ].map((item) => (
                       <button
                         key={item.key}
                         type="button"
                         onClick={item.onClick}
+                        aria-label={item.label}
+                        title={item.label}
                         style={{
                           ...styles.knowledgeToolBtn,
                           ...(item.icon ? styles.knowledgeToolBtnIcon : {}),
                         }}
                       >
-                        {item.label}
+                        <item.icon size={16} strokeWidth={2.1} />
                       </button>
                     ))}
                   </div>
@@ -939,20 +941,16 @@ const styles = {
     width: "100%",
     maxWidth: 1320,
     margin: "0 auto",
-    padding: "20px 18px 92px",
+    padding: "12px 18px 92px",
   },
   knowledgeTopBar: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 16,
-    padding: "14px 16px",
-    marginBottom: 16,
-    borderRadius: 22,
-    background: "rgba(255,255,255,0.92)",
-    border: "1px solid rgba(17,17,17,0.06)",
-    boxShadow: "0 16px 34px rgba(17,17,17,0.05)",
-    backdropFilter: "blur(18px)",
+    padding: "6px 0 12px",
+    marginBottom: 12,
+    borderBottom: "1px solid rgba(17,17,17,0.06)",
   },
   knowledgeTabs: {
     display: "inline-flex",
@@ -961,19 +959,27 @@ const styles = {
     flexWrap: "wrap",
   },
   knowledgeTabBtn: {
-    border: "1px solid transparent",
+    border: "none",
     background: "transparent",
-    color: "#6b7280",
-    borderRadius: 999,
-    padding: "8px 12px",
+    color: "#64748b",
+    borderRadius: 0,
+    padding: "10px 4px",
     fontSize: 14,
     fontWeight: 700,
     cursor: "pointer",
+    position: "relative",
   },
   knowledgeTabBtnActive: {
+    color: "#111827",
+  },
+  knowledgeTabBtnUnderline: {
+    position: "absolute",
+    left: 4,
+    right: 4,
+    bottom: 2,
+    height: 2,
+    borderRadius: 999,
     background: "#111827",
-    color: "#fff",
-    boxShadow: "0 8px 18px rgba(17,24,39,0.12)",
   },
   knowledgeTools: {
     display: "inline-flex",
@@ -986,14 +992,14 @@ const styles = {
     background: "#fff",
     color: "#111827",
     borderRadius: 999,
-    padding: "8px 12px",
+    padding: "8px 10px",
     fontSize: 13,
     fontWeight: 700,
     cursor: "pointer",
-    boxShadow: "0 8px 18px rgba(17,17,17,0.04)",
+    boxShadow: "0 6px 12px rgba(17,17,17,0.03)",
   },
   knowledgeToolBtnIcon: {
-    minWidth: 44,
+    minWidth: 40,
     padding: "8px 10px",
   },
   serviceShell: {
@@ -1002,8 +1008,8 @@ const styles = {
     margin: "0 auto",
     padding: "0 0 40px",
     display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) 320px",
-    gap: 18,
+    gridTemplateColumns: "minmax(0, 1fr) 312px",
+    gap: 24,
     alignItems: "start",
   },
   serviceShellCompact: {
@@ -1368,27 +1374,27 @@ const styles = {
     flexDirection: "column",
     gap: 14,
     position: "sticky",
-    top: 16,
+    top: 12,
   },
   composeBtn: {
     width: "100%",
-    border: "1px solid rgba(17,17,17,0.08)",
+    border: "1px solid rgba(17,17,17,0.07)",
     background: "#3b82f6",
     color: "#fff",
-    borderRadius: 18,
-    padding: "14px 16px",
+    borderRadius: 16,
+    padding: "13px 15px",
     fontSize: 15,
     fontWeight: 700,
     cursor: "pointer",
-    boxShadow: "0 16px 32px rgba(59,130,246,0.18)",
+    boxShadow: "0 10px 20px rgba(59,130,246,0.12)",
   },
   sideCard: {
-    background: "rgba(255,255,255,0.9)",
-    border: "1px solid rgba(17,17,17,0.06)",
-    borderRadius: 22,
+    background: "rgba(255,255,255,0.88)",
+    border: "1px solid rgba(17,17,17,0.05)",
+    borderRadius: 18,
     padding: 16,
-    boxShadow: "0 14px 30px rgba(17,17,17,0.04)",
-    backdropFilter: "blur(16px)",
+    boxShadow: "0 8px 18px rgba(17,17,17,0.03)",
+    backdropFilter: "blur(12px)",
   },
   sideCardTitle: {
     fontSize: 18,
