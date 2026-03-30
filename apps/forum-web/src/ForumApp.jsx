@@ -837,13 +837,11 @@ export default function ForumApp() {
 
                     <section style={styles.formSection}>
                       <div style={styles.composerGate}>
-                        <div>
+                        <div style={styles.composerCopy}>
                           <p style={styles.composerTitle}>글쓰기</p>
-                          <p style={styles.composerHint}>
-                            {hasForumActivity || authUser
-                              ? "글을 읽고 반응한 뒤 바로 열 수 있습니다."
-                              : "댓글·반응·로그인 이후에 열립니다."}
-                          </p>
+                          <span style={styles.composerState}>
+                            {hasForumActivity || authUser ? "열림" : "잠김"}
+                          </span>
                         </div>
                         <button
                           style={{
@@ -1299,13 +1297,19 @@ const styles = {
   composerGate: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: 12,
-    padding: 20,
+    padding: "14px 16px",
     background: "#fff",
     border: "1px solid rgba(17,17,17,0.06)",
-    borderRadius: 28,
-    boxShadow: "0 14px 28px rgba(17,17,17,0.04)",
+    borderRadius: 14,
+    boxShadow: "0 8px 16px rgba(17,17,17,0.03)",
+  },
+  composerCopy: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    minWidth: 0,
   },
   composerTitle: {
     margin: 0,
@@ -1313,16 +1317,20 @@ const styles = {
     fontWeight: 700,
     color: "#111827",
   },
-  composerHint: {
-    margin: "4px 0 0",
-    fontSize: 13,
-    color: "#6b7280",
-    lineHeight: 1.5,
+  composerState: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "4px 8px",
+    borderRadius: 12,
+    fontSize: 11,
+    fontWeight: 700,
+    background: "#f3f4f6",
+    color: "#374151",
   },
   composerBtn: {
     border: "1px solid transparent",
-    borderRadius: 999,
-    padding: "7px 14px",
+    borderRadius: 12,
+    padding: "7px 12px",
     fontSize: 13,
     cursor: "pointer",
     whiteSpace: "nowrap",
