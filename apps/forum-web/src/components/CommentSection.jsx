@@ -77,6 +77,12 @@ export default function CommentSection({
   return (
     <div style={styles.container}>
       {isLoading && <p style={styles.loading}>댓글을 불러오는 중…</p>}
+      <div style={styles.threadIntro}>
+        <div style={styles.threadIntroTitle}>댓글 스레드</div>
+        <div style={styles.threadIntroText}>
+          글 아래에서 대화를 이어가며 답글 대상과 작성 흐름을 함께 볼 수 있습니다.
+        </div>
+      </div>
       {replyTarget?.preview && (
         <div style={styles.replyTargetCard}>
           <div style={styles.replyTargetHeader}>
@@ -114,51 +120,6 @@ export default function CommentSection({
           </div>
         </div>
       )}
-      {comments.map((c) => (
-        <div key={c._id} data-comment-id={c._id} style={styles.comment}>
-          <span style={styles.author}>
-            {c.authorType === "agent" ? "🤖 " : "👤 "}
-            {c.authorId}
-          </span>
-          {c.replyTargetType && (
-            <button
-              type="button"
-              style={styles.replyMetaBtn}
-              onClick={() => {
-                onUserActivity();
-                if (c.replyTargetType === "comment") {
-                  const target = document.querySelector(`[data-comment-id="${c.replyToCommentId}"]`);
-                  target?.scrollIntoView({ block: "center", behavior: "smooth" });
-                  return;
-                }
-
-                onJumpToTarget("post");
-              }}
-            >
-              ↪ {c.replyTargetType === "comment" ? `@${c.replyTargetAuthorId || "comment"}의 답글` : "글 본문 보기"}
-            </button>
-          )}
-          <p style={styles.text}>{c.content}</p>
-          {c.generationContext?.summary && (
-            <div style={styles.generationContext}>
-              <div style={styles.generationContextTitle}>댓글의 맥락</div>
-              <div style={styles.generationContextSummary}>{c.generationContext.summary}</div>
-            </div>
-          )}
-          {c.authorId === currentUser.id && (
-          <button
-              onClick={() => {
-                onUserActivity();
-                deleteMutation.mutate(c._id);
-              }}
-              style={styles.deleteBtn}
-              disabled={deleteMutation.isPending}
-          >
-              지우기
-            </button>
-          )}
-        </div>
-      ))}
       <form onSubmit={handleSubmit} style={styles.form}>
         <input
           value={text}
@@ -175,6 +136,75 @@ export default function CommentSection({
           {addMutation.isPending ? "…" : replyTarget?.preview ? "답글 등록" : "등록"}
         </button>
       </form>
+      <div style={styles.commentList}>
+        {comments.map((c) => (
+          <div
+            key={c._id}
+            data-comment-id={c._id}
+            style={{
+              ...styles.commentCard,
+              ...(c.replyTargetType ? styles.commentCardReply : {}),
+            }}
+          >
+            <div style={styles.commentHeader}>
+              <div style={styles.commentAuthorRow}>
+                <span style={styles.avatar}>{c.authorType === "agent" ? "🤖" : "👤"}</span>
+                <div>
+                  <div style={styles.author}>
+                    {c.authorId}
+                  </div>
+                  <div style={styles.commentMeta}>
+                    {c.replyTargetType
+                      ? c.replyTargetType === "comment"
+                        ? `댓글에 답글`
+                        : `글에 답글`
+                      : "새 댓글"}
+                  </div>
+                </div>
+              </div>
+              {c.replyTargetType && (
+                <button
+                  type="button"
+                  style={styles.replyMetaBtn}
+                  onClick={() => {
+                    onUserActivity();
+                    if (c.replyTargetType === "comment") {
+                      const target = document.querySelector(`[data-comment-id="${c.replyToCommentId}"]`);
+                      target?.scrollIntoView({ block: "center", behavior: "smooth" });
+                      return;
+                    }
+
+                    onJumpToTarget("post");
+                  }}
+                >
+                  ↪ {c.replyTargetType === "comment" ? `@${c.replyTargetAuthorId || "comment"}` : "글 본문"}
+                </button>
+              )}
+            </div>
+            <p style={styles.text}>{c.content}</p>
+            {c.generationContext?.summary && (
+              <div style={styles.generationContext}>
+                <div style={styles.generationContextTitle}>댓글의 맥락</div>
+                <div style={styles.generationContextSummary}>{c.generationContext.summary}</div>
+              </div>
+            )}
+            <div style={styles.commentFooter}>
+              {c.authorId === currentUser.id && (
+                <button
+                  onClick={() => {
+                    onUserActivity();
+                    deleteMutation.mutate(c._id);
+                  }}
+                  style={styles.deleteBtn}
+                  disabled={deleteMutation.isPending}
+                >
+                  지우기
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -182,6 +212,24 @@ export default function CommentSection({
 const styles = {
   container: { paddingTop: 12 },
   loading: { fontSize: 13, color: "#9ca3af" },
+  threadIntro: {
+    marginBottom: 12,
+    padding: "12px 14px",
+    borderRadius: 16,
+    border: "1px solid rgba(17,17,17,0.06)",
+    background: "#fff",
+  },
+  threadIntroTitle: {
+    fontSize: 13,
+    fontWeight: 800,
+    color: "#111827",
+    marginBottom: 4,
+  },
+  threadIntroText: {
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: "#64748b",
+  },
   emptyState: {
     marginBottom: 12,
     padding: 12,
@@ -292,10 +340,49 @@ const styles = {
     color: "#111827",
     whiteSpace: "pre-wrap",
   },
-  comment: { padding: "14px 0", borderTop: "1px solid #eef2f7" },
-  author: { fontSize: 12, fontWeight: 600, color: "#6b7280" },
+  commentList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    marginTop: 14,
+  },
+  commentCard: {
+    padding: 14,
+    borderRadius: 18,
+    border: "1px solid rgba(17,17,17,0.06)",
+    background: "#fff",
+  },
+  commentCardReply: {
+    marginLeft: 16,
+    background: "#faf7f2",
+  },
+  commentHeader: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 8,
+  },
+  commentAuthorRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    minWidth: 0,
+  },
+  avatar: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    background: "#f3f4f6",
+    fontSize: 13,
+  },
+  author: { fontSize: 13, fontWeight: 700, color: "#111827" },
+  commentMeta: { fontSize: 11, color: "#94a3b8", marginTop: 2 },
   replyMeta: { marginTop: 4, fontSize: 11, color: "#9ca3af" },
-  text: { margin: "4px 0 0", fontSize: 14, color: "#374151" },
+  text: { margin: 0, fontSize: 14, color: "#374151", lineHeight: 1.65 },
   generationContext: {
     marginTop: 8,
     padding: "10px 12px",
@@ -314,6 +401,11 @@ const styles = {
     color: "#4b5563",
     lineHeight: 1.5,
     marginBottom: 2,
+  },
+  commentFooter: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginTop: 8,
   },
   deleteBtn: {
     fontSize: 11,
