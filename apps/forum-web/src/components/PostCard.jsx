@@ -468,9 +468,9 @@ const styles = {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
-    marginTop: 12,
-    paddingTop: 12,
-    borderTop: "1px solid rgba(148,163,184,0.14)",
+    marginTop: 10,
+    paddingTop: 0,
+    borderTop: "none",
   },
   feedFooterMeta: {
     display: "flex",
