@@ -20,6 +20,16 @@ function formatPostTime(value) {
   });
 }
 
+function getPostTitle(post) {
+  const explicitTitle = String(post?.title || "").trim();
+  if (explicitTitle) return explicitTitle;
+  const content = String(post?.content || "").trim();
+  if (!content) return "Untitled post";
+  const firstLine = content.split(/\r?\n/)[0].trim();
+  if (firstLine.length <= 90) return firstLine;
+  return `${firstLine.slice(0, 90).trim()}…`;
+}
+
 export default function PostDetail({
   postId,
   currentUser = DEFAULT_USER,
@@ -144,6 +154,7 @@ export default function PostDetail({
   const isLiked = post.likedBy?.includes(currentUser.id);
   const canDelete = post.authorId === currentUser.id;
   const isSaved = Boolean(post.savedByCurrentUser);
+  const postTitle = getPostTitle(post);
 
   return (
     <div style={styles.container} data-post-detail-root>
@@ -160,40 +171,7 @@ export default function PostDetail({
       </div>
 
       <article style={styles.article}>
-        <div style={styles.postHeader}>
-          <div>
-            <button
-              type="button"
-              style={styles.authorBtn}
-              onClick={() => {
-                onUserActivity();
-                onAuthorClick({ id: post.authorId, type: post.authorType });
-              }}
-            >
-              <span style={styles.author}>
-                {post.authorType === "agent" ? "🤖 " : "👤 "}
-                {post.authorId}
-              </span>
-            </button>
-            <span style={styles.time}>{formatPostTime(post.createdAt)}</span>
-          </div>
-          {canDelete && (
-            <button
-            onClick={() => {
-              onUserActivity();
-              deleteMutation.mutate();
-            }}
-            style={{ ...styles.deleteBtn, color: "#dc2626" }}
-            disabled={deleteMutation.isPending}
-          >
-              {deleteMutation.isPending ? "지우는 중…" : "글 삭제"}
-            </button>
-          )}
-        </div>
-
-        <div style={styles.content}>
-          {post.content}
-        </div>
+        <h1 style={styles.title}>{postTitle}</h1>
 
         {post.tags?.length > 0 && (
           <div style={styles.tags}>
@@ -212,6 +190,8 @@ export default function PostDetail({
             ))}
           </div>
         )}
+
+        <div style={styles.content}>{post.content}</div>
 
         <div style={styles.actions}>
           <button
@@ -247,6 +227,18 @@ export default function PostDetail({
           <button onClick={handleShare} style={styles.actionBtn}>
             {shareButtonLabel}
           </button>
+          {canDelete && (
+            <button
+              onClick={() => {
+                onUserActivity();
+                deleteMutation.mutate();
+              }}
+              style={{ ...styles.actionBtn, ...styles.actionBtnDelete }}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "지우는 중…" : "삭제"}
+            </button>
+          )}
         </div>
 
         {shareState.status !== "idle" && (
@@ -265,7 +257,7 @@ export default function PostDetail({
       </article>
 
       <section style={styles.commentsSection}>
-        <h3 style={styles.commentsTitle}>댓글 ({post.commentCount || 0})</h3>
+        <h3 style={styles.commentsTitle}>답변 {post.commentCount || 0}개</h3>
         <CommentSection
           postId={postId}
           currentUser={currentUser}
@@ -287,7 +279,7 @@ export default function PostDetail({
 
 const styles = {
   container: {
-    maxWidth: 1080,
+    maxWidth: 760,
     margin: "0 auto",
     padding: "12px 16px 36px",
   },
@@ -297,42 +289,26 @@ const styles = {
   backBtn: {
     background: "transparent",
     border: "none",
-    fontSize: 14,
-    color: "#3b82f6",
+    fontSize: 15,
+    color: "#6d78dc",
     cursor: "pointer",
     padding: "4px 0",
-    textDecoration: "underline",
   },
   article: {
     background: "#fff",
-    border: "1px solid rgba(17,17,17,0.06)",
-    borderRadius: 16,
-    padding: 24,
+    border: "1px solid rgba(17,17,17,0.08)",
+    borderRadius: 24,
+    padding: 28,
     marginBottom: 18,
-    boxShadow: "0 8px 16px rgba(17,17,17,0.03)",
+    boxShadow: "0 12px 22px rgba(17,17,17,0.03)",
   },
-  postHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 18,
-  },
-  author: {
-    fontSize: 16,
-    fontWeight: 700,
+  title: {
+    margin: 0,
+    fontSize: 30,
+    lineHeight: 1.12,
     color: "#111827",
-    marginRight: 12,
-  },
-  authorBtn: {
-    background: "none",
-    border: "none",
-    padding: 0,
-    cursor: "pointer",
-    textAlign: "left",
-  },
-  time: {
-    fontSize: 12,
-    color: "#94a3b8",
+    letterSpacing: "-0.03em",
+    fontWeight: 800,
   },
   deleteBtn: {
     fontSize: 13,
@@ -344,8 +320,8 @@ const styles = {
     color: "#dc2626",
   },
   content: {
-    fontSize: 17,
-    color: "#111827",
+    fontSize: 16,
+    color: "#374151",
     lineHeight: 1.8,
     marginBottom: 18,
     whiteSpace: "pre-wrap",
@@ -355,15 +331,15 @@ const styles = {
     display: "flex",
     gap: 8,
     flexWrap: "wrap",
-    marginBottom: 16,
+    margin: "16px 0 20px",
   },
   tagBtn: {
     fontSize: 13,
-    color: "#6b7280",
-    background: "#f3f4f6",
-    padding: "4px 12px",
-    borderRadius: 12,
-    border: "1px solid transparent",
+    color: "#4338ca",
+    background: "#eef2ff",
+    padding: "6px 12px",
+    borderRadius: 999,
+    border: "1px solid #e0e7ff",
     cursor: "pointer",
     appearance: "none",
     fontFamily: "inherit",
@@ -381,7 +357,7 @@ const styles = {
     color: "#6b7280",
     cursor: "pointer",
     padding: "8px 12px",
-    borderRadius: 12,
+    borderRadius: 999,
   },
   shareState: {
     marginTop: 12,
