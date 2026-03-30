@@ -65,29 +65,28 @@ export default function DiscoveryPanel({
             최신 글, 인기 글, 태그 검색을 한 화면에서 볼 수 있습니다.
           </p>
         </div>
-
-        <div style={styles.modeGrid}>
+        <div style={styles.modeRow}>
           {MODES.map((modeItem) => (
             <button
               key={modeItem.id}
               type="button"
               style={{
-                ...styles.modeCard,
-                ...(mode === modeItem.id ? styles.modeCardActive : {}),
+                ...styles.modePill,
+                ...(mode === modeItem.id ? styles.modePillActive : {}),
               }}
               onClick={() => {
                 onUserActivity();
                 onModeChange(modeItem.id);
               }}
             >
-              <div style={styles.modeLabel}>{modeItem.label}</div>
-              <div style={styles.modeDescription}>{modeItem.description}</div>
+              <span style={styles.modeLabel}>{modeItem.label}</span>
+              <span style={styles.modeDescription}>{modeItem.description}</span>
             </button>
           ))}
         </div>
       </section>
 
-      <section style={styles.controls}>
+      <section style={styles.searchBar}>
         <input
           value={searchText}
           onChange={(e) => onSearchTextChange(e.target.value)}
@@ -106,7 +105,7 @@ export default function DiscoveryPanel({
       </section>
 
       <section style={styles.topicBar}>
-        <div style={styles.sectionLabel}>주제 커뮤니티</div>
+        <div style={styles.sectionLabel}>주제</div>
         <div style={styles.topicHint}>
           태그를 눌러 같은 주제의 글만 모아 볼 수 있습니다.
         </div>
@@ -169,45 +168,53 @@ const styles = {
   layout: {
     display: "flex",
     flexDirection: "column",
-    gap: 14,
+    gap: 12,
   },
   hero: {
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: 16,
-    background: "linear-gradient(180deg, #ffffff 0%, #faf7f2 100%)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+    background: "#fff",
     border: "1px solid rgba(17,17,17,0.06)",
     borderRadius: 24,
     padding: 20,
-    boxShadow: "0 14px 28px rgba(17,17,17,0.04)",
+    boxShadow: "0 12px 24px rgba(17,17,17,0.04)",
   },
   heroCopy: { display: "flex", flexDirection: "column", justifyContent: "center" },
   kicker: { margin: 0, fontSize: 12, fontWeight: 800, letterSpacing: "0.12em", color: "#2563eb" },
-  title: { margin: "8px 0 10px", fontSize: 30, lineHeight: 1.12, color: "#111827" },
+  title: { margin: "8px 0 8px", fontSize: 28, lineHeight: 1.12, color: "#111827" },
   description: { margin: 0, color: "#4b5563", fontSize: 14, lineHeight: 1.7, maxWidth: 640 },
-  modeGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 },
-  modeCard: {
+  modeRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  modePill: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
     textAlign: "left",
-    padding: 16,
-    borderRadius: 20,
+    padding: "10px 14px",
+    borderRadius: 999,
     border: "1px solid #e5e7eb",
-    background: "#fff",
+    background: "#f8fafc",
     cursor: "pointer",
   },
-  modeCardActive: {
+  modePillActive: {
     borderColor: "#111827",
-    boxShadow: "0 10px 20px rgba(17, 24, 39, 0.08)",
+    background: "#111827",
+    boxShadow: "0 10px 20px rgba(17, 24, 39, 0.12)",
   },
-  modeLabel: { fontSize: 16, fontWeight: 800, color: "#111827", marginBottom: 6 },
-  modeDescription: { fontSize: 12, color: "#6b7280", lineHeight: 1.5 },
-  controls: {
+  modeLabel: { fontSize: 14, fontWeight: 800, color: "inherit" },
+  modeDescription: { fontSize: 12, color: "inherit", opacity: 0.72 },
+  searchBar: {
     display: "flex",
     alignItems: "center",
     gap: 8,
     background: "#fff",
     border: "1px solid rgba(17,17,17,0.06)",
     borderRadius: 20,
-    padding: 12,
+    padding: 14,
     boxShadow: "0 10px 20px rgba(17,17,17,0.03)",
   },
   searchInput: {
@@ -229,7 +236,7 @@ const styles = {
   topicBar: {
     display: "flex",
     flexDirection: "column",
-    gap: 10,
+    gap: 8,
     background: "#fff",
     border: "1px solid rgba(17,17,17,0.06)",
     borderRadius: 20,
