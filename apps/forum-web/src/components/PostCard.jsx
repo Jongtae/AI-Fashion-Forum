@@ -4,7 +4,6 @@ import { deletePost, savePost, toggleLike, unsavePost } from "../api/client.js";
 import CommentSection from "./CommentSection.jsx";
 import { localizeLabel } from "../lib/localized-labels.js";
 import { sharePostLink } from "../lib/post-sharing.js";
-import { chatTheme } from "../lib/chat-ui-theme.js";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
@@ -19,6 +18,17 @@ function formatPostTime(value) {
     minute: "2-digit",
     second: "2-digit",
   });
+}
+
+function GenerationContextBlock({ context }) {
+  if (!context) return null;
+
+  return (
+    <div style={styles.generationContext}>
+      <div style={styles.generationContextTitle}>글의 맥락</div>
+      {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
+    </div>
+  );
 }
 
 export default function PostCard({
@@ -38,15 +48,9 @@ export default function PostCard({
   const [shareButtonLabel, setShareButtonLabel] = useState("↗ 공유");
   const queryClient = useQueryClient();
   const commentCount = Number(post.commentCount || 0);
-  const reactionSummary = [
-    { label: "좋아요", value: post.likes ?? 0 },
-    { label: "댓글", value: commentCount },
-    { label: "저장", value: savedState ? "됨" : "안됨" },
-    { label: "공유", value: "가능" },
-  ];
   const commentButtonText = commentCount > 0
-    ? `💬 댓글 ${commentCount}개 ${showComments ? "접기" : "열기"}`
-    : `💬 댓글 ${showComments ? "접기" : "열기"}`;
+    ? `💬 댓글 ${commentCount}개 ${showComments ? "닫기" : "보기"}`
+    : `💬 댓글 ${showComments ? "닫기" : "보기"}`;
 
   useEffect(() => {
     if (shareState.status === "idle") return undefined;
@@ -156,6 +160,8 @@ export default function PostCard({
         {post.content}
       </p>
 
+      <GenerationContextBlock context={post.generationContext} />
+
       {post.tags?.length > 0 && (
         <div style={styles.tags}>
           {post.tags.map((t) => (
@@ -180,18 +186,6 @@ export default function PostCard({
         </div>
       )}
 
-      <div style={styles.reactionLedger}>
-        <div style={styles.reactionLedgerTitle}>반응 레이어</div>
-        <div style={styles.reactionLedgerGrid}>
-          {reactionSummary.map((item) => (
-            <div key={item.label} style={styles.reactionLedgerItem}>
-              <span style={styles.reactionLedgerLabel}>{item.label}</span>
-              <strong style={styles.reactionLedgerValue}>{item.value}</strong>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {!readOnly && (
         <>
           <div style={styles.actions}>
@@ -200,10 +194,10 @@ export default function PostCard({
                 onUserActivity();
                 likeMutation.mutate();
               }}
-              style={{ ...styles.actionBtn, ...(isLiked ? styles.actionBtnActiveLike : {}) }}
+              style={{ ...styles.actionBtn, color: isLiked ? "#dc2626" : "#6b7280" }}
               disabled={likeMutation.isPending}
             >
-              {isLiked ? "♥" : "♡"} 좋아요
+              {isLiked ? "♥" : "♡"} {post.likes}
             </button>
             <button
               onClick={() => {
@@ -216,14 +210,14 @@ export default function PostCard({
               }}
               style={{
                 ...styles.actionBtn,
-                ...(savedState ? styles.actionBtnActiveSave : {}),
+                color: savedState ? "#0f766e" : "#6b7280",
               }}
               disabled={saveMutation.isPending}
             >
               {savedState ? "🔖 저장됨" : "📌 저장"}
             </button>
             <button onClick={handleShare} style={styles.actionBtn}>
-              {shareButtonLabel} 공유
+              {shareButtonLabel}
             </button>
             <button
               onClick={() => {
@@ -286,11 +280,10 @@ export default function PostCard({
 
 const styles = {
   card: {
-    background: "linear-gradient(180deg, rgba(49, 55, 75, 0.98) 0%, rgba(37, 43, 60, 0.98) 100%)",
-    border: `1px solid ${chatTheme.surfaceBorder}`,
-    borderRadius: chatTheme.radiusXL,
-    padding: 16,
-    boxShadow: chatTheme.shadowSoft,
+    background: "#fff",
+    border: "1px solid #e5e7eb",
+    borderRadius: 14,
+    padding: 18,
   },
   header: {
     display: "flex",
@@ -301,7 +294,7 @@ const styles = {
   author: {
     fontSize: 13,
     fontWeight: 600,
-    color: chatTheme.text,
+    color: "#374151",
   },
   authorBtn: {
     background: "none",
@@ -310,89 +303,64 @@ const styles = {
     cursor: "pointer",
     textAlign: "left",
   },
-  time: { fontSize: 12, color: chatTheme.textMuted },
-  content: { fontSize: 15, color: chatTheme.text, margin: "0 0 10px", lineHeight: 1.6 },
+  time: { fontSize: 12, color: "#9ca3af" },
+  content: {
+    fontSize: 16,
+    color: "#111827",
+    margin: "0 0 12px",
+    lineHeight: 1.65,
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+  },
   generationContext: {
-    marginBottom: 10,
-    padding: "10px 12px",
-    borderRadius: chatTheme.radiusMD,
-    background: "rgba(255,255,255,0.04)",
-    border: `1px solid ${chatTheme.surfaceBorder}`,
+    marginBottom: 12,
+    padding: "12px 14px",
+    borderRadius: 12,
+    background: "#fafafa",
+    border: "1px solid #e5e7eb",
   },
   generationContextTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 700,
-    color: chatTheme.textMuted,
+    color: "#374151",
     letterSpacing: "0.01em",
     marginBottom: 4,
   },
   generationContextSummary: {
     fontSize: 13,
-    color: chatTheme.textSoft,
+    color: "#4b5563",
     lineHeight: 1.5,
-    marginBottom: 2,
+    marginBottom: 0,
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
   },
-  tags: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 },
+  tags: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 },
   tagBtn: {
     fontSize: 12,
-    color: chatTheme.textSoft,
-    background: "rgba(255,255,255,0.06)",
-    padding: "4px 10px",
+    color: "#6b7280",
+    background: "#f3f4f6",
+    padding: "2px 8px",
     borderRadius: 99,
-    border: `1px solid ${chatTheme.surfaceBorder}`,
+    border: "1px solid transparent",
     cursor: "pointer",
     appearance: "none",
     fontFamily: "inherit",
     lineHeight: 1.4,
   },
-  actions: { display: "flex", gap: 10, flexWrap: "wrap" },
+  actions: { display: "flex", gap: 14, flexWrap: "wrap" },
   actionBtn: {
-    background: "rgba(255,255,255,0.05)",
-    border: `1px solid ${chatTheme.surfaceBorder}`,
-    fontSize: 13,
-    color: chatTheme.textSoft,
+    background: "none",
+    border: "none",
+    fontSize: 12,
+    color: "#6b7280",
     cursor: "pointer",
-    padding: "8px 12px",
-    borderRadius: 999,
+    padding: "2px 4px",
   },
-  actionBtnActiveLike: { color: chatTheme.accentWarm, fontWeight: 700, borderColor: "rgba(255, 152, 0, 0.35)" },
-  actionBtnActiveSave: { color: "#7dd3fc", fontWeight: 700, borderColor: "rgba(34, 166, 240, 0.35)" },
-  reactionLedger: {
-    marginBottom: 10,
-    padding: "10px 12px",
-    borderRadius: chatTheme.radiusMD,
-    background: "rgba(255,255,255,0.04)",
-    border: `1px solid ${chatTheme.surfaceBorder}`,
-  },
-  reactionLedgerTitle: {
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
-    color: chatTheme.textMuted,
-    marginBottom: 8,
-  },
-  reactionLedgerGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-    gap: 8,
-  },
-  reactionLedgerItem: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-    padding: "8px 10px",
-    borderRadius: chatTheme.radiusMD,
-    background: "rgba(255,255,255,0.06)",
-    border: `1px solid ${chatTheme.surfaceBorder}`,
-  },
-  reactionLedgerLabel: { fontSize: 11, color: chatTheme.textMuted, fontWeight: 700 },
-  reactionLedgerValue: { fontSize: 14, color: chatTheme.text },
   shareState: {
     marginTop: 10,
     fontSize: 12,
     lineHeight: 1.4,
   },
-  shareStateSuccess: { color: "#a7f3d0" },
-  shareStateError: { color: "#fecaca" },
+  shareStateSuccess: { color: "#0f766e" },
+  shareStateError: { color: "#dc2626" },
 };

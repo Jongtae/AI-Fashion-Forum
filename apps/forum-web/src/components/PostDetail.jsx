@@ -2,10 +2,8 @@ import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchPost, toggleLike, deletePost, savePost, unsavePost } from "../api/client.js";
 import CommentSection from "./CommentSection.jsx";
-import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 import { localizeLabel } from "../lib/localized-labels.js";
 import { sharePostLink } from "../lib/post-sharing.js";
-import { chatTheme } from "../lib/chat-ui-theme.js";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
@@ -20,6 +18,17 @@ function formatPostTime(value) {
     minute: "2-digit",
     second: "2-digit",
   });
+}
+
+function GenerationContextBlock({ context }) {
+  if (!context) return null;
+
+  return (
+    <div style={styles.generationContext}>
+      <div style={styles.generationContextTitle}>글의 맥락</div>
+      {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
+    </div>
+  );
 }
 
 export default function PostDetail({
@@ -146,42 +155,9 @@ export default function PostDetail({
   const isLiked = post.likedBy?.includes(currentUser.id);
   const canDelete = post.authorId === currentUser.id;
   const isSaved = Boolean(post.savedByCurrentUser);
-  const summaryCards = [
-    {
-      label: "선택한 글",
-      value: post._id?.split(":").slice(-1)[0] || postId,
-      description: "이 화면은 사용자가 직접 열어본 콘텐츠의 착지점입니다.",
-    },
-    {
-      label: "좋아요",
-      value: post.likes ?? 0,
-      description: "좋아요와 저장은 다음 노출과 관계를 바꿉니다.",
-    },
-    {
-      label: "댓글",
-      value: post.commentCount || 0,
-      description: "댓글은 반응이 다시 사회적 맥락으로 돌아오는 지점입니다.",
-    },
-    {
-      label: "작성자",
-      value: post.authorId,
-      description: post.authorType === "agent" ? "agent가 만든 선택 결과입니다." : "사람이 만든 선택 결과입니다.",
-    },
-  ];
 
   return (
-    <div style={styles.container}>
-      <IdentityLoopSummary
-        kicker="detail view"
-        title="선택한 글은 반응과 관계 변화의 출발점입니다"
-        subtitle="콘텐츠 상세는 단순 읽기 화면이 아니라, 내가 무엇을 선택했고 어떤 반응을 남겼는지 기록으로 남는 곳이어야 합니다."
-        cards={summaryCards}
-        notes={[
-          "좋아요, 저장, 공유, 댓글은 모두 다음 추천과 관계 상태에 영향을 줍니다.",
-          "댓글에 달리는 반응은 다시 캐릭터의 톤과 자기서사에 누적됩니다.",
-        ]}
-      />
-
+    <div style={styles.container} data-post-detail-root>
       <div style={styles.header}>
         <button
           onClick={() => {
@@ -230,6 +206,8 @@ export default function PostDetail({
           {post.content}
         </div>
 
+        <GenerationContextBlock context={post.generationContext} />
+
         {post.tags?.length > 0 && (
           <div style={styles.tags}>
             {post.tags.map((t) => (
@@ -245,6 +223,17 @@ export default function PostDetail({
                 #{localizeLabel(t)}
               </button>
             ))}
+          </div>
+        )}
+
+        {post.moderationStatus && (
+          <div style={styles.moderation}>
+            <span style={styles.status}>
+              {post.moderationStatus === "approved" ? "✓" : "⚠"}
+            </span>
+            <span style={styles.score}>
+              글 상태: {(post.moderationScore || 0).toFixed(2)}
+            </span>
           </div>
         )}
 
@@ -324,30 +313,26 @@ const styles = {
   container: {
     maxWidth: 680,
     margin: "0 auto",
-    padding: "0 0 8px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 14,
+    padding: "24px 16px",
   },
   header: {
-    marginBottom: 0,
+    marginBottom: 24,
   },
   backBtn: {
     background: "transparent",
     border: "none",
     fontSize: 14,
-    color: chatTheme.accent,
+    color: "#3b82f6",
     cursor: "pointer",
     padding: "4px 0",
     textDecoration: "underline",
   },
   article: {
-    background: chatTheme.panelBg,
-    border: `1px solid ${chatTheme.surfaceBorder}`,
-    borderRadius: chatTheme.radiusLG,
-    padding: 24,
-    marginBottom: 0,
-    boxShadow: chatTheme.shadowSoft,
+    background: "#fff",
+    border: "1px solid #e5e7eb",
+    borderRadius: 14,
+    padding: 20,
+    marginBottom: 24,
   },
   postHeader: {
     display: "flex",
@@ -358,7 +343,7 @@ const styles = {
   author: {
     fontSize: 16,
     fontWeight: 700,
-    color: chatTheme.text,
+    color: "#111827",
     marginRight: 12,
   },
   authorBtn: {
@@ -370,20 +355,20 @@ const styles = {
   },
   time: {
     fontSize: 13,
-    color: chatTheme.textMuted,
+    color: "#9ca3af",
   },
   deleteBtn: {
     fontSize: 13,
     background: "transparent",
-    border: `1px solid ${chatTheme.accentWarm}`,
-    borderRadius: 999,
+    border: "1px solid #dc2626",
+    borderRadius: 4,
     padding: "4px 10px",
     cursor: "pointer",
-    color: chatTheme.accentWarm,
+    color: "#dc2626",
   },
   content: {
     fontSize: 16,
-    color: chatTheme.text,
+    color: "#111827",
     lineHeight: 1.8,
     marginBottom: 16,
     whiteSpace: "pre-wrap",
@@ -392,20 +377,20 @@ const styles = {
   generationContext: {
     marginBottom: 16,
     padding: "12px 14px",
-    borderRadius: chatTheme.radiusMD,
-    background: "rgba(255,255,255,0.04)",
-    border: `1px solid ${chatTheme.surfaceBorder}`,
+    borderRadius: 12,
+    background: "#fafafa",
+    border: "1px solid #e5e7eb",
   },
   generationContextTitle: {
     fontSize: 12,
     fontWeight: 700,
-    color: chatTheme.textMuted,
+    color: "#374151",
     letterSpacing: "0.01em",
     marginBottom: 4,
   },
   generationContextSummary: {
     fontSize: 13,
-    color: chatTheme.textSoft,
+    color: "#4b5563",
     lineHeight: 1.5,
     marginBottom: 2,
   },
@@ -417,8 +402,8 @@ const styles = {
   },
   tagBtn: {
     fontSize: 13,
-    color: chatTheme.textSoft,
-    background: "rgba(255,255,255,0.06)",
+    color: "#6b7280",
+    background: "#f3f4f6",
     padding: "4px 12px",
     borderRadius: 99,
     border: "1px solid transparent",
@@ -431,10 +416,10 @@ const styles = {
     display: "flex",
     gap: 8,
     fontSize: 12,
-    color: chatTheme.textMuted,
+    color: "#6b7280",
     padding: "8px 12px",
-    background: "rgba(255,255,255,0.04)",
-    borderRadius: chatTheme.radiusMD,
+    background: "#f9fafb",
+    borderRadius: 10,
     marginBottom: 16,
   },
   status: {
@@ -445,46 +430,45 @@ const styles = {
   },
   actions: {
     display: "flex",
-    gap: 12,
+    gap: 14,
+    flexWrap: "wrap",
   },
   actionBtn: {
-    background: "rgba(255,255,255,0.05)",
-    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: "none",
+    border: "none",
     fontSize: 14,
-    color: chatTheme.textSoft,
+    color: "#6b7280",
     cursor: "pointer",
-    padding: "7px 12px",
-    borderRadius: 999,
+    padding: "4px 0",
   },
   shareState: {
     marginTop: 12,
     fontSize: 12,
     lineHeight: 1.4,
   },
-  shareStateSuccess: { color: "#a7f3d0" },
-  shareStateError: { color: "#fecaca" },
+  shareStateSuccess: { color: "#0f766e" },
+  shareStateError: { color: "#dc2626" },
   commentsSection: {
-    background: chatTheme.panelBg,
-    border: `1px solid ${chatTheme.surfaceBorder}`,
-    borderRadius: chatTheme.radiusLG,
-    padding: 24,
-    boxShadow: chatTheme.shadowSoft,
+    background: "#fff",
+    border: "1px solid #e5e7eb",
+    borderRadius: 14,
+    padding: 20,
   },
   commentsTitle: {
     fontSize: 16,
     fontWeight: 700,
-    color: chatTheme.text,
+    color: "#111827",
     margin: "0 0 16px",
   },
   msg: {
     textAlign: "center",
-    color: chatTheme.textMuted,
+    color: "#9ca3af",
     fontSize: 14,
     padding: "24px 0",
   },
   error: {
     textAlign: "center",
-    color: "#fecaca",
+    color: "#dc2626",
     fontSize: 14,
     padding: "16px 0",
   },

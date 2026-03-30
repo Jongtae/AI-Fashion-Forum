@@ -214,7 +214,7 @@ function PostCard({ post }) {
       </button>
       {expanded && (
         <div style={styles.tracePanel}>
-          <div style={styles.traceTitle}>작성 배경</div>
+          <div style={styles.traceTitle}>반응 맥락</div>
           <div style={styles.traceGrid}>
             <span style={styles.traceKey}>참고 글</span>
             <span style={styles.traceVal}>{post.source_content_id?.split(":").slice(-1)[0] || "—"}</span>

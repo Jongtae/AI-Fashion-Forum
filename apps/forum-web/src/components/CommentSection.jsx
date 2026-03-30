@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchComments, createComment, deleteComment } from "../api/client.js";
-import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
-import { chatTheme } from "../lib/chat-ui-theme.js";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
@@ -18,7 +16,7 @@ export default function CommentSection({
   const queryClient = useQueryClient();
   const replyTargetLabel = replyTarget?.type === "comment" ? "댓글" : "글";
   const submitHint = replyTarget?.preview
-    ? `답글 대상: ${replyTargetLabel}`
+    ? `이 답글은 ${replyTargetLabel}에 연결됩니다. 제출 전 대상과 내용을 한 번 더 확인해 주세요.`
     : "";
   const draftPreview = replyTarget?.preview && text.trim()
     ? text.trim()
@@ -28,32 +26,6 @@ export default function CommentSection({
     queryKey: ["comments", postId],
     queryFn: () => fetchComments(postId),
   });
-
-  const replyCount = comments.filter((comment) => Boolean(comment.replyTargetType)).length;
-  const agentCommentCount = comments.filter((comment) => comment.authorType === "agent").length;
-  const userCommentCount = comments.filter((comment) => comment.authorType !== "agent").length;
-  const commentCards = [
-    {
-      label: "총 댓글",
-      value: comments.length,
-      description: "이 글에 누적된 반응의 크기입니다.",
-    },
-    {
-      label: "답글",
-      value: replyCount,
-      description: "댓글에 다시 반응한 흐름입니다.",
-    },
-    {
-      label: "agent",
-      value: agentCommentCount,
-      description: "사람이 아닌 참여자가 남긴 사회적 신호입니다.",
-    },
-    {
-      label: "사람",
-      value: userCommentCount,
-      description: "사람 참여가 남긴 사회적 신호입니다.",
-    },
-  ];
 
   const addMutation = useMutation({
     mutationFn: (data) => createComment(postId, data),
@@ -104,17 +76,6 @@ export default function CommentSection({
 
   return (
     <div style={styles.container}>
-      <IdentityLoopSummary
-        kicker="conversation feedback"
-        title="댓글은 읽기 끝이 아니라 반응이 되돌아오는 지점입니다"
-        subtitle="이 영역은 단순한 댓글 목록이 아니라, 내가 쓴 말에 다른 agent와 사람이 어떻게 되돌아오는지를 읽는 곳이어야 합니다."
-        cards={commentCards}
-        notes={[
-          "내 댓글에 달린 답글은 다음 관계와 다음 톤을 바꿉니다.",
-          "댓글이 쌓일수록 이 글은 하나의 사회적 맥락이 됩니다.",
-        ]}
-      />
-
       {isLoading && <p style={styles.loading}>댓글을 불러오는 중…</p>}
       {replyTarget?.preview && (
         <div style={styles.replyTargetCard}>
@@ -134,14 +95,17 @@ export default function CommentSection({
       )}
       {!isLoading && comments.length === 0 && (
         <div style={styles.emptyState}>
-          <div style={styles.emptyStateTitle}>아직 댓글이 없습니다.</div>
+          <div style={styles.emptyStateTitle}>첫 댓글을 남겨보세요!</div>
+          <div style={styles.emptyStateText}>
+            이 대화의 시작을 먼저 남기면 다른 사람도 이어서 반응하기 쉬워집니다.
+          </div>
         </div>
       )}
       {statusMessage && <div style={styles.statusMessage}>{statusMessage}</div>}
       {submitHint && <div style={styles.submitHint}>{submitHint}</div>}
       {draftPreview && (
         <div style={styles.draftPreview}>
-          <div style={styles.draftPreviewHeader}>미리보기</div>
+          <div style={styles.draftPreviewHeader}>작성 중 미리보기</div>
           <div style={styles.draftPreviewBody}>
             <div style={styles.draftPreviewTarget}>
               {replyTargetLabel} · @{replyTarget.authorId || "post"}
@@ -175,6 +139,12 @@ export default function CommentSection({
             </button>
           )}
           <p style={styles.text}>{c.content}</p>
+          {c.generationContext?.summary && (
+            <div style={styles.generationContext}>
+              <div style={styles.generationContextTitle}>댓글의 맥락</div>
+              <div style={styles.generationContextSummary}>{c.generationContext.summary}</div>
+            </div>
+          )}
           {c.authorId === currentUser.id && (
           <button
               onClick={() => {
@@ -193,7 +163,7 @@ export default function CommentSection({
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="반응을 남겨보세요. 내 댓글도 캐릭터가 됩니다…"
+          placeholder="댓글을 남겨보세요…"
           style={styles.input}
           disabled={addMutation.isPending}
         />
@@ -211,36 +181,143 @@ export default function CommentSection({
 
 const styles = {
   container: { paddingTop: 12 },
-  loading: { fontSize: 13, color: chatTheme.textMuted },
-  comment: {
-    padding: "10px 0",
-    borderTop: `1px solid ${chatTheme.surfaceBorder}`,
+  loading: { fontSize: 13, color: "#9ca3af" },
+  emptyState: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    background: "#f8fafc",
+    border: "1px dashed #cbd5e1",
   },
-  author: { fontSize: 12, fontWeight: 600, color: chatTheme.text },
-  replyMeta: { marginTop: 4, fontSize: 11, color: chatTheme.textMuted },
-  text: { margin: "4px 0 0", fontSize: 14, color: chatTheme.textSoft },
+  emptyStateTitle: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: "#334155",
+    marginBottom: 4,
+  },
+  emptyStateText: {
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: "#64748b",
+  },
+  statusMessage: {
+    marginBottom: 10,
+    padding: "8px 10px",
+    borderRadius: 10,
+    background: "#ecfdf5",
+    border: "1px solid #a7f3d0",
+    color: "#047857",
+    fontSize: 12,
+    fontWeight: 600,
+  },
+  replyTargetCard: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    border: "1px solid #e5e7eb",
+    background: "#f9fafb",
+  },
+  replyTargetHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 6,
+  },
+  replyTargetLabel: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#374151",
+  },
+  replyTargetType: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#374151",
+    background: "#e5e7eb",
+    borderRadius: 999,
+    padding: "2px 8px",
+  },
+  replyTargetAuthor: {
+    fontSize: 12,
+    fontWeight: 600,
+    color: "#374151",
+    marginBottom: 4,
+  },
+  replyTargetPreview: {
+    fontSize: 13,
+    lineHeight: 1.5,
+    color: "#111827",
+  },
+  replyMetaBtn: {
+    marginTop: 4,
+    padding: 0,
+    border: "none",
+    background: "none",
+    fontSize: 11,
+    color: "#2563eb",
+    cursor: "pointer",
+    textAlign: "left",
+  },
+  submitHint: {
+    marginBottom: 10,
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: "#4b5563",
+  },
+  draftPreview: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    border: "1px solid #e5e7eb",
+    background: "#fafafa",
+  },
+  draftPreviewHeader: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#374151",
+    marginBottom: 8,
+  },
+  draftPreviewBody: {
+    display: "grid",
+    gap: 6,
+  },
+  draftPreviewTarget: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#6b7280",
+  },
+  draftPreviewText: {
+    fontSize: 13,
+    lineHeight: 1.5,
+    color: "#111827",
+    whiteSpace: "pre-wrap",
+  },
+  comment: { padding: "10px 0", borderTop: "1px solid #f3f4f6" },
+  author: { fontSize: 12, fontWeight: 600, color: "#6b7280" },
+  replyMeta: { marginTop: 4, fontSize: 11, color: "#9ca3af" },
+  text: { margin: "4px 0 0", fontSize: 14, color: "#374151" },
   generationContext: {
     marginTop: 8,
     padding: "8px 10px",
-    borderRadius: chatTheme.radiusMD,
-    background: "rgba(255,255,255,0.04)",
-    border: `1px solid ${chatTheme.surfaceBorder}`,
+    borderRadius: 10,
+    background: "#fafafa",
+    border: "1px solid #e5e7eb",
   },
   generationContextTitle: {
     fontSize: 11,
     fontWeight: 700,
-    color: chatTheme.textMuted,
+    color: "#374151",
     marginBottom: 3,
   },
   generationContextSummary: {
     fontSize: 12,
-    color: chatTheme.textSoft,
+    color: "#4b5563",
     lineHeight: 1.5,
     marginBottom: 2,
   },
   deleteBtn: {
     fontSize: 11,
-    color: chatTheme.accentWarm,
+    color: "#ef4444",
     background: "none",
     border: "none",
     cursor: "pointer",
@@ -249,19 +326,19 @@ const styles = {
   form: { display: "flex", gap: 8, marginTop: 10 },
   input: {
     flex: 1,
-    padding: "7px 10px",
-    border: `1px solid ${chatTheme.surfaceBorder}`,
-    borderRadius: chatTheme.radiusMD,
+    padding: "9px 12px",
+    border: "1px solid #d1d5db",
+    borderRadius: 10,
     fontSize: 13,
-    color: chatTheme.text,
-    background: "rgba(255,255,255,0.05)",
+    color: "#111827",
+    background: "#fff",
   },
   btn: {
-    padding: "7px 14px",
-    background: "linear-gradient(135deg, #23a6f0 0%, #9b5cff 100%)",
+    padding: "9px 14px",
+    background: "#111827",
     color: "#fff",
     border: "none",
-    borderRadius: 999,
+    borderRadius: 10,
     fontSize: 13,
     cursor: "pointer",
   },

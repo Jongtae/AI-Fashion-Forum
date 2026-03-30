@@ -76,7 +76,7 @@ function AgentPostCard({ post }) {
       <div style={styles.postBody}>{post.body}</div>
       {generationContext?.summary && (
         <div style={styles.generationContext}>
-          <div style={styles.generationContextTitle}>작성 배경</div>
+          <div style={styles.generationContextTitle}>글의 맥락</div>
           <div style={styles.generationContextSummary}>{generationContext.summary}</div>
         </div>
       )}
@@ -152,7 +152,7 @@ function ContinuityCard({ evaluation, onOpenReplay }) {
         </div>
         {onOpenReplay && (
           <button style={styles.continuityButton} onClick={onOpenReplay}>
-            기록 보기 열기
+            다시보기 열기
           </button>
         )}
       </div>
