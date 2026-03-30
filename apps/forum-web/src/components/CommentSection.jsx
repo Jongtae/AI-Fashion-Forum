@@ -147,7 +147,7 @@ const styles = {
   emptyState: {
     marginBottom: 12,
     padding: 12,
-    borderRadius: 16,
+    borderRadius: 12,
     background: "#faf7f2",
     border: "1px solid rgba(17,17,17,0.06)",
   },
@@ -160,7 +160,7 @@ const styles = {
   replyTargetStrip: {
     marginBottom: 10,
     padding: "8px 12px",
-    borderRadius: 999,
+    borderRadius: 12,
     background: "#f3f4f6",
     color: "#374151",
     fontSize: 12,
@@ -187,7 +187,7 @@ const styles = {
   },
   commentCard: {
     padding: 14,
-    borderRadius: 18,
+    borderRadius: 12,
     border: "1px solid rgba(17,17,17,0.06)",
     background: "#fff",
   },
@@ -214,7 +214,7 @@ const styles = {
     justifyContent: "center",
     width: 28,
     height: 28,
-    borderRadius: 999,
+    borderRadius: 12,
     background: "#f3f4f6",
     fontSize: 13,
   },

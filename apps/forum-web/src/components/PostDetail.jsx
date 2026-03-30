@@ -306,10 +306,10 @@ const styles = {
   article: {
     background: "#fff",
     border: "1px solid rgba(17,17,17,0.06)",
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 24,
     marginBottom: 18,
-    boxShadow: "0 14px 28px rgba(17,17,17,0.04)",
+    boxShadow: "0 8px 16px rgba(17,17,17,0.03)",
   },
   postHeader: {
     display: "flex",
@@ -362,7 +362,7 @@ const styles = {
     color: "#6b7280",
     background: "#f3f4f6",
     padding: "4px 12px",
-    borderRadius: 99,
+    borderRadius: 12,
     border: "1px solid transparent",
     cursor: "pointer",
     appearance: "none",
@@ -381,7 +381,7 @@ const styles = {
     color: "#6b7280",
     cursor: "pointer",
     padding: "8px 12px",
-    borderRadius: 999,
+    borderRadius: 12,
   },
   shareState: {
     marginTop: 12,
@@ -393,9 +393,9 @@ const styles = {
   commentsSection: {
     background: "#fff",
     border: "1px solid rgba(17,17,17,0.06)",
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 22,
-    boxShadow: "0 14px 28px rgba(17,17,17,0.04)",
+    boxShadow: "0 8px 16px rgba(17,17,17,0.03)",
   },
   commentsTitle: {
     fontSize: 16,
