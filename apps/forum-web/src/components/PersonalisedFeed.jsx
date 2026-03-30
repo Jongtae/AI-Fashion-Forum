@@ -7,7 +7,6 @@ const FLAGS = ["baseline", "noveltyBoost", "trustBoost", "controversyDampen"];
 
 export default function PersonalisedFeed({
   currentUser,
-  timeSpeed = 1,
   onUserActivity = () => {},
   onRequireAuth = () => {},
   onAuthorClick = () => {},
@@ -28,7 +27,7 @@ export default function PersonalisedFeed({
   });
 
   const tickMutation = useMutation({
-    mutationFn: (ticks) => triggerAgentTick({ ticks, speed: timeSpeed }),
+    mutationFn: (ticks) => triggerAgentTick({ ticks, speed: 1 }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
@@ -66,7 +65,7 @@ export default function PersonalisedFeed({
             }}
             disabled={tickMutation.isPending}
           >
-            {tickMutation.isPending ? "진행 중…" : `+ 3틱 (${timeSpeed}x)`}
+            {tickMutation.isPending ? "진행 중…" : "+ 3틱"}
           </button>
         </section>
       )}
@@ -103,7 +102,7 @@ export default function PersonalisedFeed({
               tickMutation.mutate(5);
             }}
           >
-            흐름 5회 진행 ({timeSpeed}x)
+            흐름 5회 진행
           </button>
           해서 글을 더 불러와보세요.
         </p>

@@ -289,7 +289,6 @@ function AgentStatePanel({ agents, expanded, onToggle }) {
 // ── Run trigger panel ─────────────────────────────────────────────────────────
 function RunTriggerPanel({
   onRunComplete,
-  timeSpeed = 1,
   seed,
   ticks,
   onSeedChange,
@@ -298,7 +297,7 @@ function RunTriggerPanel({
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: () => triggerRun({ seed, ticks, speed: timeSpeed }),
+    mutationFn: () => triggerRun({ seed, ticks, speed: 1 }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["latest-replay"] });
       onRunComplete?.();
@@ -335,7 +334,7 @@ function RunTriggerPanel({
           onClick={() => mutation.mutate()}
           disabled={mutation.isPending}
         >
-          {mutation.isPending ? "기록 만드는 중..." : `▶ 기록 만들기 (${timeSpeed}x)`}
+          {mutation.isPending ? "기록 만드는 중..." : "▶ 기록 만들기"}
         </button>
       </div>
       {mutation.isError && (
@@ -353,7 +352,7 @@ function RunTriggerPanel({
 }
 
 // ── Main viewer ───────────────────────────────────────────────────────────────
-export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
+export default function RunReplayViewer({ onOpenSprint1 }) {
   const storedRunForm = readStorage(STORAGE_KEYS.runForm, { seed: 42, ticks: 5 });
   const [seed, setSeed] = useState(storedRunForm.seed ?? 42);
   const [ticks, setTicks] = useState(storedRunForm.ticks ?? 5);
@@ -490,7 +489,6 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
       <div data-replay-anchor="run-panel">
         <RunTriggerPanel
           onRunComplete={refetch}
-          timeSpeed={timeSpeed}
           seed={seed}
           ticks={ticks}
           onSeedChange={setSeed}

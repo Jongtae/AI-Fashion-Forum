@@ -53,13 +53,13 @@ function formatLoopSummary(loopStatus, isLoading, error) {
   return `라운드 ${loopStatus.currentRound ?? 0} · 에이전트 ${loopStatus.agentCount ?? 0}명`;
 }
 
-function formatLoopDetail(loopStatus, timeSpeed) {
-  if (!loopStatus) return `실행 속도 ${timeSpeed}x`;
+function formatLoopDetail(loopStatus) {
+  if (!loopStatus) return "자동 진행이 활성화되어 있습니다.";
   const nextSpawn = loopStatus.growth?.ticksUntilNextSpawn;
   if (nextSpawn != null) {
-    return `다음 합류까지 ${nextSpawn}틱 · 실행 속도 ${timeSpeed}x`;
+    return `다음 합류까지 ${nextSpawn}틱`;
   }
-  return `실행 속도 ${timeSpeed}x`;
+  return "자동 진행이 활성화되어 있습니다.";
 }
 
 function formatReportSummary(report, isLoading, error) {
@@ -86,7 +86,7 @@ function StatusCard({ label, title, summary, detail, tone = "neutral" }) {
   );
 }
 
-export default function AdminDashboard({ timeSpeed = 1 }) {
+export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState("home");
   const { data: loopStatus, isLoading: loopLoading, error: loopError } = useQuery({
     queryKey: ["admin-loop-status"],
@@ -165,8 +165,7 @@ export default function AdminDashboard({ timeSpeed = 1 }) {
           <StatusCard
             label="연결 상태"
             title={formatLoopSummary(loopStatus, loopLoading, loopError)}
-            summary={formatLoopDetail(loopStatus, timeSpeed)}
-            detail="자동 진행 중이면 이 값이 계속 갱신됩니다."
+            summary={formatLoopDetail(loopStatus)}
             tone={loopError ? "warn" : "neutral"}
           />
           <StatusCard
@@ -221,10 +220,7 @@ export default function AdminDashboard({ timeSpeed = 1 }) {
         {activeSection === "home" && renderHome()}
         {activeSection === "operator" && <OperatorDashboard />}
         {activeSection === "replay" && (
-          <RunReplayViewer
-            timeSpeed={timeSpeed}
-            onOpenSprint1={() => setActiveSection("sprint1")}
-          />
+          <RunReplayViewer onOpenSprint1={() => setActiveSection("sprint1")} />
         )}
         {activeSection === "sprint1" && (
           <Sprint1ReplayPanel onOpenReplay={() => setActiveSection("replay")} />
