@@ -215,8 +215,6 @@ function ServiceSupportPanel({
   discoveryMode,
   activeTagFilter,
   discoverySearchText,
-  isAutoRunning,
-  timeSpeed,
   onActivateTab,
   onClearTab,
   onClearMode,
@@ -225,17 +223,6 @@ function ServiceSupportPanel({
 }) {
   return (
     <aside style={styles.supportPanel}>
-      <div style={styles.supportCard}>
-        <div style={styles.supportMetaRow}>
-          <span style={styles.supportMetaLabel}>현재 진행</span>
-          <span style={styles.supportMetaValue}>{isAutoRunning ? "자동 진행 중" : "일시정지"}</span>
-        </div>
-        <div style={styles.supportMetaRow}>
-          <span style={styles.supportMetaLabel}>속도</span>
-          <span style={styles.supportMetaValue}>{timeSpeed}x</span>
-        </div>
-      </div>
-
       <ServiceContextSummary
         tab={tab}
         discoveryMode={discoveryMode}
@@ -390,8 +377,6 @@ export default function ForumApp() {
   const [discoveryMode, setDiscoveryMode] = useState(getInitialDiscoveryMode);
   const [composerOpen, setComposerOpen] = useState(false);
   const [hasForumActivity, setHasForumActivity] = useState(false);
-  const [timeSpeed, setTimeSpeed] = useState(1);
-  const [isAutoRunning, setIsAutoRunning] = useState(true);
   const [pendingTab, setPendingTab] = useState(null);
   const [viewportWidth, setViewportWidth] = useState(
     typeof window === "undefined" ? 1280 : window.innerWidth
@@ -632,17 +617,13 @@ export default function ForumApp() {
         </header>
 
         <main style={styles.adminMain}>
-          <AdminDashboard timeSpeed={timeSpeed} />
+          <AdminDashboard />
         </main>
       </>
     );
   }
 
   useEffect(() => {
-    if (!isAutoRunning) {
-      return undefined;
-    }
-
     let cancelled = false;
 
     const runAutoTick = async () => {
@@ -653,7 +634,7 @@ export default function ForumApp() {
       autoTickInFlightRef.current = true;
 
       try {
-        await triggerAgentTick({ ticks: 1, speed: timeSpeed });
+        await triggerAgentTick({ ticks: 1, speed: 1 });
         await queryClient.invalidateQueries({ queryKey: ["agent-loop-status"] });
         await queryClient.invalidateQueries({ queryKey: ["feed"] });
         await queryClient.invalidateQueries({ queryKey: ["posts"] });
@@ -674,7 +655,7 @@ export default function ForumApp() {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [isAutoRunning, timeSpeed]);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -701,32 +682,6 @@ export default function ForumApp() {
                 <div style={styles.serviceTopBrandTitle}>포럼</div>
               </div>
               <div style={styles.userRow}>
-                {!isMobile && (
-                  <>
-                    <label style={styles.speedControl}>
-                      <span style={styles.speedLabel}>속도</span>
-                      <select
-                        style={styles.speedSelect}
-                        value={timeSpeed}
-                        onChange={(e) => setTimeSpeed(Number(e.target.value))}
-                      >
-                        <option value={1}>1x</option>
-                        <option value={2}>2x</option>
-                        <option value={5}>5x</option>
-                        <option value={10}>10x</option>
-                      </select>
-                    </label>
-                    <button
-                      style={{
-                        ...styles.autoBtn,
-                        ...(isAutoRunning ? styles.autoBtnOn : styles.autoBtnOff),
-                      }}
-                      onClick={() => setIsAutoRunning((prev) => !prev)}
-                    >
-                      {isAutoRunning ? "자동 진행 중" : "자동 일시정지"}
-                    </button>
-                  </>
-                )}
                 {isMobile && !authUser && (
                   <button type="button" style={styles.mobileAuthBtn} onClick={() => setShowAuth(true)}>
                     로그인
@@ -907,7 +862,6 @@ export default function ForumApp() {
                 <section>
                   <PersonalisedFeed
                     currentUser={currentUser}
-                    timeSpeed={timeSpeed}
                     onUserActivity={markForumActivity}
                     onRequireAuth={() => setShowAuth(true)}
                     isAuthenticated={Boolean(authUser)}
@@ -952,22 +906,6 @@ export default function ForumApp() {
                 </main>
               </div>
 
-              {!isCompact && (
-                <ServiceSupportPanel
-                  authUser={authUser}
-                  tab={tab}
-                  discoveryMode={discoveryMode}
-                  activeTagFilter={activeTagFilter}
-                  discoverySearchText={discoverySearchText}
-                  isAutoRunning={isAutoRunning}
-                  timeSpeed={timeSpeed}
-                  onActivateTab={activateTab}
-                  onClearTab={clearTabContext}
-                  onClearMode={clearModeContext}
-                  onClearTag={clearTagContext}
-                  onClearSearch={clearSearchContext}
-                />
-              )}
             </div>
           </>
         )}
@@ -1024,7 +962,7 @@ const styles = {
     margin: "0 auto",
     padding: "18px 20px 40px",
     display: "grid",
-    gridTemplateColumns: "92px minmax(0, 760px) 300px",
+    gridTemplateColumns: "92px minmax(0, 1fr)",
     justifyContent: "center",
     gap: 20,
     alignItems: "start",
@@ -1214,38 +1152,6 @@ const styles = {
     gap: 8,
     flexWrap: "wrap",
     justifyContent: "flex-end",
-  },
-  speedControl: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    color: "#6b7280",
-    fontSize: 12,
-  },
-  speedLabel: { opacity: 0.85 },
-  speedSelect: {
-    background: "#fff",
-    color: "#111",
-    border: "1px solid #d1d5db",
-    borderRadius: 999,
-    padding: "5px 10px",
-    fontSize: 12,
-  },
-  autoBtn: {
-    border: "1px solid transparent",
-    borderRadius: 999,
-    padding: "6px 10px",
-    fontSize: 12,
-    cursor: "pointer",
-  },
-  autoBtnOn: {
-    background: "#111",
-    color: "#fff",
-  },
-  autoBtnOff: {
-    background: "#fff",
-    color: "#111",
-    borderColor: "#d1d5db",
   },
   userId: { fontSize: 13, color: "#4b5563" },
   editBtn: {
