@@ -67,11 +67,6 @@ function getInitialDiscoveryMode() {
   return ["recent", "popular", "search"].includes(params.get("mode")) ? params.get("mode") : "recent";
 }
 
-function getInitialCaptureMode() {
-  const params = new URLSearchParams(window.location.search);
-  return ["figma", "compact", "capture"].includes(params.get("capture"));
-}
-
 function ServiceContextSummary({
   tab,
   discoveryMode,
@@ -398,14 +393,13 @@ export default function ForumApp() {
   const [timeSpeed, setTimeSpeed] = useState(1);
   const [isAutoRunning, setIsAutoRunning] = useState(true);
   const [pendingTab, setPendingTab] = useState(null);
-  const [captureMode] = useState(getInitialCaptureMode);
   const [viewportWidth, setViewportWidth] = useState(
     typeof window === "undefined" ? 1280 : window.innerWidth
   );
   const autoTickInFlightRef = useRef(false);
   const prevSelectedPostIdRef = useRef(null);
   const previousServiceTabRef = useRef("forum");
-  const isCompact = captureMode || viewportWidth < 1024;
+  const isCompact = viewportWidth < 1024;
   const isMobile = viewportWidth < 768;
 
   useEffect(() => {

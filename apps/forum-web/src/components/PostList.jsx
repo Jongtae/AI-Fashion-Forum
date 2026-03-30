@@ -24,9 +24,6 @@ export default function PostList({
   requiresAuth = false,
   readOnly = false,
 }) {
-  const isCaptureMode = ["figma", "compact", "capture"].includes(
-    new URLSearchParams(window.location.search).get("capture")
-  );
   const [internalTagFilter, setInternalTagFilter] = useState("");
   const loadMoreRef = useRef(null);
   const tagFilter = typeof activeTagFilter === "string" ? activeTagFilter : internalTagFilter;
@@ -62,7 +59,7 @@ export default function PostList({
   });
 
   const posts = data?.pages.flatMap((p) => p.posts) ?? [];
-  const visiblePosts = isCaptureMode ? posts.slice(0, 3) : posts;
+  const visiblePosts = posts;
   const isEmpty = !isLoading && posts.length === 0;
   const resolvedEmptyTitle =
     emptyStateTitle ||
@@ -79,7 +76,7 @@ export default function PostList({
       ? "검색어를 지우거나 다른 주제를 찾아보세요."
       : "첫 번째 글을 써서 대화를 시작해 보세요.");
   useEffect(() => {
-    if (isCaptureMode || !hasNextPage || isFetchingNextPage || queryLocked) return undefined;
+    if (!hasNextPage || isFetchingNextPage || queryLocked) return undefined;
 
     const target = loadMoreRef.current;
     if (!target) return undefined;
@@ -119,7 +116,7 @@ export default function PostList({
     observer.observe(target);
 
     return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, queryLocked, posts.length, isCaptureMode]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, queryLocked, posts.length]);
 
   if (queryLocked) {
     return (
@@ -192,11 +189,11 @@ export default function PostList({
             readOnly={readOnly}
           />
         ))}
-        {isFetchingNextPage && !isCaptureMode && <p style={styles.msg}>더 불러오는 중…</p>}
-        {!hasNextPage && posts.length > 0 && !isCaptureMode && (
+        {isFetchingNextPage && <p style={styles.msg}>더 불러오는 중…</p>}
+        {!hasNextPage && posts.length > 0 && (
           <p style={styles.end}>모든 글을 불러왔습니다.</p>
         )}
-        {!isCaptureMode && <div ref={loadMoreRef} style={styles.loadMoreSentinel} aria-hidden="true" />}
+        <div ref={loadMoreRef} style={styles.loadMoreSentinel} aria-hidden="true" />
       </div>
     </div>
   );
