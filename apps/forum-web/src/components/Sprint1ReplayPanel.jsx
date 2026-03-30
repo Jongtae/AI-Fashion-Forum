@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchSprint1ForumPosts, fetchSprint1Evaluation } from "../api/client.js";
+import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 import { localizeLabel } from "../lib/localized-labels.js";
 
 // ── Meaning frame display labels ──────────────────────────────────────────────
@@ -215,10 +216,41 @@ export default function Sprint1ReplayPanel({ onOpenReplay }) {
 
   const posts = postData?.posts ?? [];
   const sharedContent = postData?.shared_content;
+  const summaryCards = [
+    {
+      label: "공유 자극",
+      value: sharedContent?.content_id?.split(":").slice(-1)[0] || "—",
+      description: "같은 자극을 본 뒤 서로 다른 반응이 나오는 기준점입니다.",
+    },
+    {
+      label: "에이전트 글",
+      value: posts.length,
+      description: "같은 입력에 대해 어떤 차이가 만들어졌는지 보여줍니다.",
+    },
+    {
+      label: "가독성",
+      value: evalData?.verdicts?.divergence_legible ? "충족" : "미충족",
+      description: "차이가 읽히는지 확인합니다.",
+    },
+    {
+      label: "기록 완전성",
+      value: evalData?.verdicts?.traceability_complete ? "충족" : "미충족",
+      description: "선택과 반응이 추적 가능한지 확인합니다.",
+    },
+  ];
 
   return (
     <div style={styles.root}>
-      <div style={styles.panelTitle}>Sprint 1 — Identity Drift 기록</div>
+      <IdentityLoopSummary
+        kicker="sprint 1 replay"
+        title="같은 자극이 어떻게 서로 다른 캐릭터를 만드는지 봅니다"
+        subtitle="Sprint 1 기록은 글 생산보다, 공유된 입력이 각 agent의 선택과 반응을 어떻게 갈라놓는지 읽는 곳입니다."
+        cards={summaryCards}
+        notes={[
+          "같은 글을 봐도 다른 반응이 나오면 캐릭터가 분화합니다.",
+          "기록이 충분해야 그 차이를 다시 추적할 수 있습니다.",
+        ]}
+      />
 
       <ContinuityCard evaluation={evalData} onOpenReplay={onOpenReplay} />
 

@@ -2,6 +2,8 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAgentStates, fetchPosts } from "../api/client.js";
 import PostCard from "./PostCard.jsx";
+import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
+import { chatTheme } from "../lib/chat-ui-theme.js";
 
 function formatProfileTitle(profile) {
   if (!profile) return "프로필";
@@ -22,27 +24,49 @@ function AgentSummary({ agentState }) {
   const mutableState = rawSnapshot?.mutable_state || {};
   const selfNarrativeSummary =
     rawSnapshot?.mutable_state?.self_narrative_summary || rawSnapshot?.self_narrative_summary || "";
+  const exposureSummary = latest?.exposureSummary || rawSnapshot?.exposureSummary || {};
+  const reactionSummary = latest?.reactionSummary || rawSnapshot?.reactionSummary || {};
+  const selectedContentId = exposureSummary?.target_content_id || exposureSummary?.content_id || null;
+
+  const cards = [
+    {
+      label: "최근 아크",
+      value: mutableState.recent_arc || "stable",
+      description: "최근에 어떤 태도로 콘텐츠를 소화했는지 보여줍니다.",
+    },
+    {
+      label: "서사 수",
+      value: narrativeCount,
+      description: "읽기, 반응, 관계 변화가 쌓인 이력입니다.",
+    },
+    {
+      label: "관계 반경",
+      value: relationship.trust_circle_size ?? "—",
+      description: "누구와 지속적으로 연결되는지 보여줍니다.",
+    },
+    {
+      label: "최근 선택",
+      value: selectedContentId ? String(selectedContentId).split(":").slice(-1)[0] : "—",
+      description: exposureSummary?.action_type ? `${exposureSummary.action_type} 후 남은 흔적` : "최근에 고른 콘텐츠",
+    },
+    {
+      label: "최근 반응",
+      value: reactionSummary?.lastReactionActionId ? "react" : exposureSummary?.action_type || "—",
+      description: "무엇을 보고 어떤 반응을 남겼는지 나타냅니다.",
+    },
+  ];
 
   return (
-    <div style={styles.summaryCard}>
-      <div style={styles.summaryKicker}>에이전트 요약</div>
-      <div style={styles.summaryTitle}>현재 서사와 관계 맥락</div>
-      <div style={styles.summaryGrid}>
-        <span>아크</span>
-        <strong>{mutableState.recent_arc || "stable"}</strong>
-        <span>서사 수</span>
-        <strong>{narrativeCount}개</strong>
-        <span>핸들</span>
-        <strong>{latest?.handle || latest?.agentId || "—"}</strong>
-        <span>신뢰</span>
-        <strong>{relationship.trust_circle_size ?? relationship.trust ?? "—"}</strong>
-      </div>
-      {selfNarrativeSummary && (
-        <div style={styles.summaryText}>
-          {selfNarrativeSummary}
-        </div>
-      )}
-    </div>
+    <IdentityLoopSummary
+      kicker="identity ledger"
+      title="이 캐릭터는 소비와 반응의 누적으로 만들어집니다"
+      subtitle="프로필은 글의 목록이 아니라, 무엇을 보고 고르고 반응했는지가 관계와 성향으로 바뀐 기록이어야 합니다."
+      cards={cards}
+      notes={[
+        `핸들: ${latest?.handle || latest?.agentId || "—"}`,
+        selfNarrativeSummary || "아직 서사가 충분하지 않습니다.",
+      ]}
+    />
   );
 }
 
@@ -90,7 +114,7 @@ export default function ProfilePanel({
         <h2 style={styles.title}>{formatProfileTitle(profile)}</h2>
         <p style={styles.text}>
           {profileType === "agent"
-            ? "에이전트의 최근 글과 현재 서사 맥락을 함께 봅니다."
+            ? "에이전트의 최근 글, 소비 이력, 반응, 관계 맥락을 함께 봅니다."
             : "작성자의 최근 글을 한곳에 모아 봅니다."}
         </p>
       </div>
@@ -138,77 +162,79 @@ const styles = {
     background: "transparent",
     border: "none",
     fontSize: 14,
-    color: "#3b82f6",
+    color: chatTheme.accent,
     cursor: "pointer",
     padding: "4px 0",
     textDecoration: "underline",
   },
   hero: {
     padding: 18,
-    borderRadius: 16,
-    border: "1px solid #e5e7eb",
-    background: "#fff",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
+    boxShadow: chatTheme.shadowSoft,
   },
   kicker: {
     margin: 0,
     fontSize: 12,
     fontWeight: 800,
-    color: "#2563eb",
+    color: chatTheme.accent,
     letterSpacing: "0.08em",
     textTransform: "uppercase",
   },
   title: {
     margin: "8px 0 8px",
     fontSize: 24,
-    color: "#111827",
+    color: chatTheme.text,
   },
   text: {
     margin: 0,
     fontSize: 14,
-    color: "#6b7280",
+    color: chatTheme.textMuted,
     lineHeight: 1.7,
   },
   summaryCard: {
     padding: 18,
-    borderRadius: 16,
-    border: "1px solid #dbeafe",
-    background: "linear-gradient(180deg, #eff6ff 0%, #ffffff 100%)",
+    borderRadius: chatTheme.radiusLG,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    background: chatTheme.panelBg,
+    boxShadow: chatTheme.shadowSoft,
   },
-  summaryKicker: { fontSize: 12, fontWeight: 800, color: "#2563eb", letterSpacing: "0.08em" },
-  summaryTitle: { marginTop: 6, fontSize: 18, fontWeight: 800, color: "#111827" },
+  summaryKicker: { fontSize: 12, fontWeight: 800, color: chatTheme.accent, letterSpacing: "0.08em" },
+  summaryTitle: { marginTop: 6, fontSize: 18, fontWeight: 800, color: chatTheme.text },
   summaryGrid: {
     display: "grid",
     gridTemplateColumns: "auto 1fr",
     gap: "8px 14px",
     marginTop: 14,
     fontSize: 13,
-    color: "#475569",
+    color: chatTheme.textSoft,
   },
   summaryText: {
     marginTop: 12,
     fontSize: 14,
     lineHeight: 1.7,
-    color: "#334155",
-    background: "#ffffffb8",
+    color: chatTheme.textSoft,
+    background: "rgba(255,255,255,0.05)",
     borderRadius: 12,
     padding: 12,
-    border: "1px solid #e2e8f0",
+    border: `1px solid ${chatTheme.surfaceBorder}`,
   },
   listHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  listTitle: { fontSize: 14, fontWeight: 800, color: "#111827" },
-  listCount: { fontSize: 12, color: "#6b7280" },
+  listTitle: { fontSize: 14, fontWeight: 800, color: chatTheme.text },
+  listCount: { fontSize: 12, color: chatTheme.textMuted },
   empty: {
     padding: 18,
     textAlign: "center",
-    borderRadius: 12,
-    background: "#fff",
-    border: "1px solid #e5e7eb",
-    color: "#6b7280",
+    borderRadius: chatTheme.radiusLG,
+    background: chatTheme.panelBg,
+    border: `1px solid ${chatTheme.surfaceBorder}`,
+    color: chatTheme.textMuted,
+    boxShadow: chatTheme.shadowSoft,
   },
   postList: {
     display: "flex",

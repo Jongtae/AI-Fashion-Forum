@@ -1,0 +1,23 @@
+export const chatTheme = {
+  pageBg:
+    "radial-gradient(circle at top, rgba(26, 49, 74, 0.9) 0%, rgba(8, 15, 28, 1) 55%, rgba(3, 7, 18, 1) 100%)",
+  shellBg: "rgba(36, 42, 60, 0.92)",
+  shellBorder: "rgba(255, 255, 255, 0.06)",
+  panelBg: "rgba(47, 53, 72, 0.98)",
+  panelSoft: "rgba(56, 62, 82, 0.95)",
+  panelTint: "rgba(82, 89, 112, 0.36)",
+  text: "#f5f7fb",
+  textMuted: "rgba(245, 247, 251, 0.68)",
+  textSoft: "rgba(245, 247, 251, 0.84)",
+  accent: "#23a6f0",
+  accentAlt: "#b54cff",
+  accentWarm: "#ff9800",
+  accentGreen: "#22c55e",
+  surfaceBorder: "rgba(255, 255, 255, 0.08)",
+  shadow: "0 36px 100px rgba(0, 0, 0, 0.38)",
+  shadowSoft: "0 18px 40px rgba(0, 0, 0, 0.22)",
+  radiusXL: 34,
+  radiusLG: 26,
+  radiusMD: 18,
+  radiusSM: 14,
+};

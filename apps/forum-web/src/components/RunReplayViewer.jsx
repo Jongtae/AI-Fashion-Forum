@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchLatestReplay, submitFeedback, submitUserAction, triggerRun } from "../api/client.js";
 import AgentEvolutionPanel from "./AgentEvolutionPanel.jsx";
+import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 
 const REPLAY_REFRESH_MS = 5_000;
 
@@ -175,11 +176,12 @@ function ContinuityCard({ replay, onOpenSprint1 }) {
 // ── Exposure trace for one agent ──────────────────────────────────────────────
 function AgentExposureRow({ agentId, exposure }) {
   if (!exposure) return null;
+  const selectedCount = exposure.selected_content_ids?.length ?? 0;
   return (
     <div style={styles.exposureRow}>
       <span style={styles.agentChip}>{agentId}</span>
       <span style={styles.exposureDetail}>
-        콘텐츠 {exposure.reaction_count}개 반응 · 메모리 {exposure.writebacks}회 기록
+        선택 {selectedCount}개 · 반응 {exposure.reaction_count}개 · writeback {exposure.writebacks}회
       </span>
       {exposure.selected_content_ids?.slice(0, 2).map((id) => (
         <span key={id} style={styles.contentIdChip}>{id.split(":").slice(-1)[0]}</span>
@@ -384,46 +386,36 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
     refetchOnMount: true,
   });
 
-  const restoreFeedbackMutation = useMutation({
-    mutationFn: (rating) =>
-      submitFeedback({
-        userId: "replay-viewer",
-        category: "satisfaction",
-        targetId: replay?.run_id || "replay_viewer",
-        targetType: "system",
-        rating,
-        message: `replay restore:${restoreStatus} anchor:${restoredAnchor || activeAnchor} rating:${rating}`,
-        metadata: {
-          surface: "replay_viewer",
-          restoreStatus,
-          anchor: restoredAnchor || activeAnchor,
-          replayRunId: replay?.run_id || null,
-          replaySeed: replay?.seed ?? null,
-        },
-      }),
-    onSuccess: (_data, rating) => {
-      setFeedbackMessage(rating >= 4 ? "복원 피드백을 남겼어요." : "복원 피드백을 저장했어요.");
+  const exposureEntries = Object.entries(replay?.exposures ?? {});
+  const selectedContentIds = Array.from(
+    new Set(
+      exposureEntries.flatMap(([, exposure]) => exposure?.selected_content_ids ?? [])
+    )
+  );
+  const totalReactions = exposureEntries.reduce((sum, [, exposure]) => sum + (exposure?.reaction_count ?? 0), 0);
+  const totalWritebacks = exposureEntries.reduce((sum, [, exposure]) => sum + (exposure?.writebacks ?? 0), 0);
+  const replayCards = [
+    {
+      label: "반응한 에이전트",
+      value: exposureEntries.length,
+      description: "누가 어떤 콘텐츠를 골랐는지 보여줍니다.",
     },
-  });
-
-  const restoreLogMutation = useMutation({
-    mutationFn: () =>
-      submitUserAction({
-        actorId: "replay-viewer",
-        actorType: "user",
-        targetId: replay?.run_id || "replay_viewer",
-        targetType: "system",
-        eventType: "view",
-        metadata: {
-          surface: "replay_viewer",
-          restoreStatus,
-          anchor: restoredAnchor || activeAnchor,
-          replayRunId: replay?.run_id || null,
-          replaySeed: replay?.seed ?? null,
-        },
-        source: "replay_restore",
-      }),
-  });
+    {
+      label: "선택된 콘텐츠",
+      value: selectedContentIds.length,
+      description: "노출 이후 실제로 열어본 콘텐츠의 흔적입니다.",
+    },
+    {
+      label: "반응 수",
+      value: totalReactions,
+      description: "좋아요, 댓글, react 같은 소비 후 반응의 총량입니다.",
+    },
+    {
+      label: "writeback",
+      value: totalWritebacks,
+      description: "반응이 상태로 기록된 횟수입니다.",
+    },
+  ];
 
   useEffect(() => {
     writeStorage(STORAGE_KEYS.runForm, { seed, ticks });
@@ -564,6 +556,17 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
             <ContinuityCard replay={replay} onOpenSprint1={onOpenSprint1} />
           </div>
 
+          <IdentityLoopSummary
+            kicker="replay reading"
+            title="이 기록은 선택과 반응이 상태로 바뀐 흔적입니다"
+            subtitle="replay 화면은 글 목록이 아니라, 무엇을 봤고 무엇을 골랐고 어떻게 반응했는지의 누적 기록을 읽는 곳이어야 합니다."
+            cards={replayCards}
+            notes={[
+              "선택된 콘텐츠와 반응 수를 같이 보면, 글이 어떻게 다음 행동을 만들었는지 읽을 수 있습니다.",
+              "같은 콘텐츠라도 agent마다 다른 반응을 남기면 그 차이가 곧 캐릭터가 됩니다.",
+            ]}
+          />
+
           <div style={styles.runMeta} data-replay-anchor="run-meta">
             <span style={styles.runMetaItem}>기록: <code>{replay.run_id}</code></span>
             <span style={styles.runMetaItem}>씨드: {replay.seed}</span>
@@ -586,10 +589,10 @@ export default function RunReplayViewer({ timeSpeed = 1, onOpenSprint1 }) {
           </div>
 
           <div style={styles.sectionHeader} data-replay-anchor="exposure">
-            반응 기록 ({Object.keys(replay.exposures ?? {}).length}명)
+            소비와 반응 기록 ({exposureEntries.length}명)
           </div>
           <div style={styles.exposureList}>
-            {Object.entries(replay.exposures ?? {}).map(([id, exp]) => (
+            {exposureEntries.map(([id, exp]) => (
               <AgentExposureRow key={id} agentId={id} exposure={exp} />
             ))}
           </div>

@@ -20,6 +20,7 @@ When rules change, update only this file.
 
 ## Execution Rules
 
+- Before starting any code change, first define the GitHub issue and expected branch name, then confirm the latest `origin/main` state and align the workspace to it unless the user explicitly asks not to.
 - For a new task, propose:
   - issue title
   - issue summary
