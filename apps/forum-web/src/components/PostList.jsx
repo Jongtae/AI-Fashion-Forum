@@ -64,17 +64,17 @@ export default function PostList({
   const resolvedEmptyTitle =
     emptyStateTitle ||
     (isSavedView
-      ? "아직 저장한 글이 없습니다."
+      ? "저장한 글이 없습니다."
       : queryParams?.q
-      ? "검색 결과가 없습니다."
-      : "아직 글이 없습니다.");
+        ? "검색 결과가 없습니다."
+        : "아직 글이 없습니다.");
   const resolvedEmptyText =
     emptyStateText ||
     (isSavedView
-      ? "마음에 드는 글을 저장하면 이곳에 모입니다."
+      ? "저장한 글이 여기에 모입니다."
       : queryParams?.q
-      ? "검색어를 지우거나 다른 주제를 찾아보세요."
-      : "첫 번째 글을 써서 대화를 시작해 보세요.");
+        ? "검색어를 지우거나 다른 주제를 찾아보세요."
+        : "첫 번째 글을 써서 대화를 시작해 보세요.");
   useEffect(() => {
     if (!hasNextPage || isFetchingNextPage || queryLocked) return undefined;
 
@@ -121,8 +121,7 @@ export default function PostList({
   if (queryLocked) {
     return (
       <div style={styles.lockedCard}>
-        <p style={styles.lockedTitle}>저장한 글은 로그인 후 볼 수 있어요.</p>
-        <p style={styles.lockedText}>저장한 글과 저장 상태를 이어 보려면 먼저 로그인해 주세요.</p>
+        <p style={styles.lockedTitle}>로그인 후 볼 수 있어요.</p>
         <button type="button" style={styles.lockedBtn} onClick={onRequireAuth}>
           로그인하기
         </button>
@@ -265,7 +264,6 @@ const styles = {
     textAlign: "center",
   },
   lockedTitle: { margin: 0, fontSize: 16, fontWeight: 700, color: "#111827" },
-  lockedText: { margin: "8px 0 14px", fontSize: 13, color: "#6b7280", lineHeight: 1.6 },
   lockedBtn: {
     border: "none",
     borderRadius: 999,
