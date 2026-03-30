@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Bookmark, Home, PenSquare, Search, UserRound } from "lucide-react";
-import { triggerAgentTick } from "./api/client.js";
+import { fetchPosts, triggerAgentTick } from "./api/client.js";
 import PostForm from "./components/PostForm.jsx";
 import PostList from "./components/PostList.jsx";
 import PostDetail from "./components/PostDetail.jsx";
@@ -67,6 +67,34 @@ function getInitialDiscoveryQuery() {
 function getInitialDiscoveryMode() {
   const params = new URLSearchParams(window.location.search);
   return ["recent", "popular", "search"].includes(params.get("mode")) ? params.get("mode") : "recent";
+}
+
+function getInitialSidebarTab() {
+  const [first] = getPathSegments();
+  if (first === "saved") return "saved";
+  if (first === "discover") return "discover";
+  if (first === "profile") return "profile";
+  return "forum";
+}
+
+function formatTimeAgo(dateLike) {
+  if (!dateLike) return "";
+  const diffMs = Date.now() - new Date(dateLike).getTime();
+  const diffHours = Math.max(0, Math.round(diffMs / 3_600_000));
+  if (diffHours < 1) return "just now";
+  if (diffHours === 1) return "1 hour ago";
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  const diffDays = Math.max(1, Math.round(diffHours / 24));
+  return diffDays === 1 ? "yesterday" : `${diffDays} days ago`;
+}
+
+function getInitials(value = "") {
+  return value
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("") || "?";
 }
 
 function ServiceContextSummary({
@@ -265,6 +293,7 @@ function setViewUrl(view, { replace = true } = {}) {
 }
 
 const FEED_SCROLL_KEY = "forum:last-feed-scroll-y";
+const USER_AVATAR_PALETTE = ["#dbeafe", "#fce7f3", "#d1fae5", "#fef3c7", "#ede9fe", "#fee2e2"];
 
 function saveFeedScrollPosition() {
   try {
@@ -297,11 +326,39 @@ export default function ForumApp() {
   const [viewportWidth, setViewportWidth] = useState(
     typeof window === "undefined" ? 1280 : window.innerWidth
   );
+  const [knowledgeView, setKnowledgeView] = useState(getInitialSidebarTab);
   const autoTickInFlightRef = useRef(false);
   const prevSelectedPostIdRef = useRef(null);
   const previousServiceTabRef = useRef("forum");
   const isCompact = viewportWidth < 1024;
   const isMobile = viewportWidth < 768;
+  const showBottomNav = isMobile;
+
+  const { data: sidebarPreviewData } = useQuery({
+    queryKey: ["sidebar-preview-posts"],
+    queryFn: () => fetchPosts({ page: 1, limit: 12 }),
+    staleTime: 30_000,
+  });
+
+  const sidebarPreviewPosts = sidebarPreviewData?.posts || [];
+  const topAuthors = useMemo(() => {
+    const counts = new Map();
+    for (const post of sidebarPreviewPosts) {
+      const key = post.authorId || "guest";
+      const prev = counts.get(key) || { id: key, count: 0, type: post.authorType || "user" };
+      counts.set(key, { ...prev, count: prev.count + 1 });
+    }
+    return [...counts.values()].sort((a, b) => b.count - a.count).slice(0, 4);
+  }, [sidebarPreviewPosts]);
+  const topTopics = useMemo(() => {
+    const counts = new Map();
+    for (const post of sidebarPreviewPosts) {
+      for (const tag of post.tags || []) {
+        counts.set(tag, (counts.get(tag) || 0) + 1);
+      }
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+  }, [sidebarPreviewPosts]);
 
   useEffect(() => {
     const handleResize = () => setViewportWidth(window.innerWidth);
@@ -361,6 +418,22 @@ export default function ForumApp() {
       window.history.replaceState({}, "", "/admin");
     }
   }, []);
+
+  useEffect(() => {
+    if (selectedProfile) {
+      setKnowledgeView("profile");
+      return;
+    }
+    if (tab === "saved") {
+      setKnowledgeView("saved");
+      return;
+    }
+    if (tab === "discover") {
+      setKnowledgeView("discover");
+      return;
+    }
+    setKnowledgeView("forum");
+  }, [selectedProfile, tab]);
 
   useEffect(() => {
     const syncSelectedPostFromLocation = () => {
@@ -600,9 +673,54 @@ export default function ForumApp() {
           renderAdminShell()
         ) : (
           <>
-            <div style={{ ...styles.serviceShell, ...(isCompact ? styles.serviceShellCompact : {}) }}>
-              <div style={{ ...styles.centerColumn, ...(isCompact ? styles.centerColumnCompact : {}) }}>
-                <main style={styles.main}>
+            <div style={styles.knowledgePage}>
+              {!isCompact && (
+                <div style={styles.knowledgeTopBar}>
+                  <div style={styles.knowledgeTabs}>
+                    {[
+                      { key: "forum", label: "Community", onClick: openForum },
+                      { key: "profile", label: "Profile", onClick: openProfileTab },
+                      { key: "saved", label: "My answers", onClick: openSavedPosts },
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={item.onClick}
+                        style={{
+                          ...styles.knowledgeTabBtn,
+                          ...(knowledgeView === item.key ? styles.knowledgeTabBtnActive : {}),
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={styles.knowledgeTools}>
+                    {[
+                      { key: "topic", label: "Topic", onClick: openSearch },
+                      { key: "sort", label: "Sort", onClick: openSearch },
+                      { key: "saved", label: "Bookmarks", onClick: openSavedPosts },
+                      { key: "search", label: "Search", onClick: openSearch, icon: true },
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={item.onClick}
+                        style={{
+                          ...styles.knowledgeToolBtn,
+                          ...(item.icon ? styles.knowledgeToolBtnIcon : {}),
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ ...styles.serviceShell, ...(isCompact ? styles.serviceShellCompact : {}) }}>
+                <div style={{ ...styles.centerColumn, ...(isCompact ? styles.centerColumnCompact : {}) }}>
+                  <main style={styles.main}>
               {selectedProfile ? (
                 <section>
                   <ProfilePanel
@@ -721,37 +839,89 @@ export default function ForumApp() {
                   </p>
                 </section>
               )}
-                </main>
-              </div>
+                  </main>
+                </div>
 
-            </div>
-            <div style={styles.bottomPillDock}>
-              <div style={styles.bottomPillBar}>
-                {[
-                  { key: "forum", label: "포럼", icon: Home, active: tab === "forum", onClick: openForum },
-                  { key: "discover", label: "탐색", icon: Search, active: tab === "discover", onClick: openSearch },
-                  { key: "saved", label: "저장글", icon: Bookmark, active: tab === "saved", onClick: openSavedPosts },
-                  { key: "profile", label: "프로필", icon: UserRound, active: tab === "profile" || Boolean(selectedProfile), onClick: openProfileTab },
-                ].map((pill) => {
-                  const Icon = pill.icon;
-                  return (
+                {!isCompact && (
+                  <aside style={styles.knowledgeSidebar}>
                     <button
-                      key={pill.key}
                       type="button"
-                      onClick={pill.onClick}
-                      aria-label={pill.label}
-                      title={pill.label}
-                      style={{
-                        ...styles.bottomPillBtn,
-                        ...(pill.active ? styles.bottomPillBtnActive : {}),
-                      }}
+                      style={styles.composeBtn}
+                      onClick={authUser ? toggleComposerOpen : () => setShowAuth(true)}
                     >
-                      <Icon size={18} strokeWidth={2.1} />
+                      + Start a New Thread
                     </button>
-                  );
-                })}
+
+                    <div style={styles.sideCard}>
+                      <div style={styles.sideCardTitle}>Top Users</div>
+                      <div style={styles.topUsersList}>
+                        {topAuthors.map((author, index) => (
+                          <button
+                            key={author.id}
+                            type="button"
+                            style={styles.userRow}
+                            onClick={() => openProfile({ id: author.id, type: author.type })}
+                          >
+                            <span style={{ ...styles.userAvatar, background: USER_AVATAR_PALETTE[index % USER_AVATAR_PALETTE.length] }}>
+                              {getInitials(author.id)}
+                            </span>
+                            <span style={styles.userName}>@{author.id}</span>
+                            <span style={styles.userCount}>{author.count}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={styles.sideCard}>
+                      <div style={styles.sideCardTitle}>Active Topics</div>
+                      <div style={styles.topicList}>
+                        {topTopics.map(([tag, count]) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            style={styles.topicRow}
+                            onClick={() => openTagFilter(tag)}
+                          >
+                            <span style={styles.topicHash}>#{tag}</span>
+                            <span style={styles.topicCount}>{count}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </aside>
+                )}
               </div>
             </div>
+
+            {showBottomNav && (
+              <div style={styles.bottomPillDock}>
+                <div style={styles.bottomPillBar}>
+                  {[
+                    { key: "forum", label: "포럼", icon: Home, active: tab === "forum", onClick: openForum },
+                    { key: "discover", label: "탐색", icon: Search, active: tab === "discover", onClick: openSearch },
+                    { key: "saved", label: "저장글", icon: Bookmark, active: tab === "saved", onClick: openSavedPosts },
+                    { key: "profile", label: "프로필", icon: UserRound, active: tab === "profile" || Boolean(selectedProfile), onClick: openProfileTab },
+                  ].map((pill) => {
+                    const Icon = pill.icon;
+                    return (
+                      <button
+                        key={pill.key}
+                        type="button"
+                        onClick={pill.onClick}
+                        aria-label={pill.label}
+                        title={pill.label}
+                        style={{
+                          ...styles.bottomPillBtn,
+                          ...(pill.active ? styles.bottomPillBtnActive : {}),
+                        }}
+                      >
+                        <Icon size={18} strokeWidth={2.1} />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -763,19 +933,79 @@ const styles = {
   root: {
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at top left, rgba(255,255,255,0.98) 0%, rgba(248,246,242,0.95) 42%, #f3f0ea 100%)",
+      "radial-gradient(circle at top left, rgba(217,231,255,0.72) 0%, rgba(255,255,255,0.98) 34%, rgba(232,240,255,0.88) 68%, #f7f8fc 100%)",
     fontFamily: "\"Apple SD Gothic Neo\", \"Noto Sans KR\", \"SF Pro Display\", \"Helvetica Neue\", Arial, sans-serif",
     color: "#111111",
   },
-  serviceShell: {
-    width: 1124,
-    maxWidth: "none",
+  knowledgePage: {
+    width: "100%",
+    maxWidth: 1320,
     margin: "0 auto",
-    padding: "18px 20px 40px",
+    padding: "20px 18px 92px",
+  },
+  knowledgeTopBar: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+    padding: "14px 16px",
+    marginBottom: 16,
+    borderRadius: 22,
+    background: "rgba(255,255,255,0.92)",
+    border: "1px solid rgba(17,17,17,0.06)",
+    boxShadow: "0 16px 34px rgba(17,17,17,0.05)",
+    backdropFilter: "blur(18px)",
+  },
+  knowledgeTabs: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  knowledgeTabBtn: {
+    border: "1px solid transparent",
+    background: "transparent",
+    color: "#6b7280",
+    borderRadius: 999,
+    padding: "8px 12px",
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  knowledgeTabBtnActive: {
+    background: "#111827",
+    color: "#fff",
+    boxShadow: "0 8px 18px rgba(17,24,39,0.12)",
+  },
+  knowledgeTools: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  knowledgeToolBtn: {
+    border: "1px solid rgba(17,17,17,0.08)",
+    background: "#fff",
+    color: "#111827",
+    borderRadius: 999,
+    padding: "8px 12px",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+    boxShadow: "0 8px 18px rgba(17,17,17,0.04)",
+  },
+  knowledgeToolBtnIcon: {
+    minWidth: 44,
+    padding: "8px 10px",
+  },
+  serviceShell: {
+    width: "100%",
+    maxWidth: 1320,
+    margin: "0 auto",
+    padding: "0 0 40px",
     display: "grid",
-    gridTemplateColumns: "760px 304px",
-    justifyContent: "center",
-    gap: 20,
+    gridTemplateColumns: "minmax(0, 1fr) 320px",
+    gap: 18,
     alignItems: "start",
   },
   serviceShellCompact: {
@@ -920,11 +1150,11 @@ const styles = {
     whiteSpace: "nowrap",
   },
   centerColumn: {
-    width: 760,
-    minWidth: 760,
+    width: "100%",
+    minWidth: 0,
     display: "flex",
     flexDirection: "column",
-    gap: 16,
+    gap: 14,
   },
   centerColumnCompact: {
     width: "100%",
@@ -1134,5 +1364,102 @@ const styles = {
     background: "linear-gradient(135deg, #d7e7ff 0%, #ebe7ff 48%, #d9effa 100%)",
     color: "#111827",
     boxShadow: "0 8px 18px rgba(76, 107, 255, 0.18)",
+  },
+  knowledgeSidebar: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+    position: "sticky",
+    top: 16,
+  },
+  composeBtn: {
+    width: "100%",
+    border: "1px solid rgba(17,17,17,0.08)",
+    background: "#3b82f6",
+    color: "#fff",
+    borderRadius: 18,
+    padding: "14px 16px",
+    fontSize: 15,
+    fontWeight: 700,
+    cursor: "pointer",
+    boxShadow: "0 16px 32px rgba(59,130,246,0.18)",
+  },
+  sideCard: {
+    background: "rgba(255,255,255,0.9)",
+    border: "1px solid rgba(17,17,17,0.06)",
+    borderRadius: 22,
+    padding: 16,
+    boxShadow: "0 14px 30px rgba(17,17,17,0.04)",
+    backdropFilter: "blur(16px)",
+  },
+  sideCardTitle: {
+    fontSize: 18,
+    fontWeight: 800,
+    color: "#111827",
+    marginBottom: 12,
+  },
+  topUsersList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  userRow: {
+    display: "grid",
+    gridTemplateColumns: "28px minmax(0, 1fr) auto",
+    alignItems: "center",
+    gap: 10,
+    width: "100%",
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    textAlign: "left",
+    cursor: "pointer",
+  },
+  userAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: "50%",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 11,
+    fontWeight: 800,
+    color: "#1f2937",
+  },
+  userName: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: "#111827",
+  },
+  userCount: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#16a34a",
+  },
+  topicList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  topicRow: {
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1fr) auto",
+    alignItems: "center",
+    gap: 10,
+    width: "100%",
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    textAlign: "left",
+    cursor: "pointer",
+  },
+  topicHash: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: "#111827",
+  },
+  topicCount: {
+    fontSize: 12,
+    color: "#6b7280",
   },
 };

@@ -20,6 +20,35 @@ function formatPostTime(value) {
   });
 }
 
+function formatPostedByLine(value) {
+  if (!value) return "Posted by someone";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Posted by someone";
+
+  const now = new Date();
+  const dayMs = 24 * 60 * 60 * 1000;
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfPostDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.max(0, Math.round((startOfToday.getTime() - startOfPostDay.getTime()) / dayMs));
+  const time = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+
+  if (diffDays <= 0) return `Posted by ${time}`;
+  if (diffDays === 1) return `Posted by yesterday at ${time}`;
+  return `Posted by ${diffDays} days ago at ${time}`;
+}
+
+function getPostTitle(post) {
+  const content = String(post?.content || "").trim();
+  if (!content) return "Untitled post";
+  const firstLine = content.split(/\r?\n/)[0].trim();
+  if (firstLine.length <= 72) return firstLine;
+  return `${firstLine.slice(0, 72).trim()}…`;
+}
+
 const AVATAR_COLORS = [
   ["#dbeafe", "#1d4ed8"],
   ["#fce7f3", "#be185d"],
@@ -48,10 +77,21 @@ function extractInitials(authorId, authorType) {
 function Avatar({ authorId, authorType }) {
   const initials = extractInitials(authorId, authorType);
   const [bg, fg] = getAvatarColor(authorId);
+  const avatarSvg = `data:image/svg+xml;utf8,${encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="${bg}" />
+          <stop offset="100%" stop-color="${fg}" />
+        </linearGradient>
+      </defs>
+      <rect width="96" height="96" rx="48" fill="url(#g)" />
+      <circle cx="48" cy="48" r="39" fill="rgba(255,255,255,0.26)" />
+      <text x="48" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#ffffff">${initials}</text>
+    </svg>
+  `)}`;
   return (
-    <div style={{ ...styles.avatar, background: bg }}>
-      <span style={{ ...styles.avatarText, color: fg }}>{initials}</span>
-    </div>
+    <img src={avatarSvg} alt={`${authorId || "user"} avatar`} style={styles.avatar} />
   );
 }
 
@@ -75,6 +115,8 @@ export default function PostCard({
   const commentCount = Number(post.commentCount || 0);
   const mediaUrl = Array.isArray(post.imageUrls) ? post.imageUrls[0] : post.imageUrls;
   const hasMedia = Boolean(mediaUrl);
+  const postTitle = getPostTitle(post);
+  const postedByLine = formatPostedByLine(post.createdAt);
   const commentButtonText = commentCount > 0
     ? `댓글 ${commentCount}개 ${showComments ? "닫기" : "보기"}`
     : `댓글 ${showComments ? "닫기" : "보기"}`;
@@ -151,11 +193,11 @@ export default function PostCard({
         >
           <Avatar authorId={post.authorId} authorType={post.authorType} />
           <div style={styles.authorMeta}>
-            <div style={styles.authorLine}>
-              <span style={styles.author}>{post.authorId}</span>
+            <div style={styles.postTitleRow}>
+              <span style={styles.postTitle}>{postTitle}</span>
               {post.authorType === "agent" && <span style={styles.authorBadge}>✓</span>}
             </div>
-            <span style={styles.time}>{formatPostTime(post.createdAt)}</span>
+            <span style={styles.postedBy}>{postedByLine}</span>
           </div>
         </button>
       </div>
@@ -284,31 +326,31 @@ export default function PostCard({
 
 const styles = {
   card: {
-    background: "transparent",
-    border: "none",
-    borderRadius: 0,
-    padding: "14px 0 20px",
-    boxShadow: "none",
+    background: "linear-gradient(180deg, rgba(248,250,255,0.96) 0%, rgba(239,245,255,0.92) 100%)",
+    border: "1px solid rgba(148,163,184,0.18)",
+    borderRadius: 28,
+    padding: 18,
+    boxShadow: "0 12px 30px rgba(15, 23, 42, 0.04)",
   },
   cardMedia: {
-    background: "linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(249,250,251,0.98) 100%)",
-    border: "1px solid #e5e7eb",
-    borderRadius: 26,
-    padding: 16,
-    boxShadow: "0 10px 30px rgba(15, 23, 42, 0.05)",
+    background: "linear-gradient(180deg, rgba(247,249,255,0.98) 0%, rgba(235,243,255,0.96) 100%)",
+    border: "1px solid rgba(148,163,184,0.18)",
+    borderRadius: 28,
+    padding: 18,
+    boxShadow: "0 12px 28px rgba(15, 23, 42, 0.04)",
   },
   cardText: {
-    background: "transparent",
-    border: "none",
-    borderRadius: 0,
-    padding: "14px 0 20px",
-    boxShadow: "none",
+    background: "linear-gradient(180deg, rgba(248,250,255,0.96) 0%, rgba(239,245,255,0.92) 100%)",
+    border: "1px solid rgba(148,163,184,0.18)",
+    borderRadius: 28,
+    padding: 18,
+    boxShadow: "0 12px 30px rgba(15, 23, 42, 0.04)",
   },
   header: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
+    alignItems: "flex-start",
+    marginBottom: 12,
   },
   authorBtn: {
     background: "none",
@@ -317,43 +359,44 @@ const styles = {
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
-    gap: 8,
+    gap: 12,
+    width: "100%",
+    textAlign: "left",
   },
   avatar: {
-    width: 36,
-    height: 36,
+    width: 42,
+    height: 42,
     borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
     flexShrink: 0,
-  },
-  avatarText: {
-    fontSize: 13,
-    fontWeight: 800,
-    lineHeight: 1,
-    letterSpacing: "-0.01em",
+    objectFit: "cover",
   },
   authorMeta: {
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
-    gap: 2,
+    gap: 4,
+    minWidth: 0,
+    flex: 1,
   },
-  authorLine: {
+  postTitleRow: {
     display: "flex",
     alignItems: "center",
-    gap: 6,
+    gap: 8,
+    minWidth: 0,
   },
-  author: {
-    fontSize: 14,
-    fontWeight: 750,
+  postTitle: {
+    fontSize: 17,
+    fontWeight: 800,
     color: "#111827",
-    lineHeight: 1.2,
+    lineHeight: 1.15,
+    letterSpacing: "-0.02em",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
   },
   authorBadge: {
-    width: 16,
-    height: 16,
+    width: 17,
+    height: 17,
     borderRadius: "999px",
     background: "#2563eb",
     color: "#fff",
@@ -364,26 +407,26 @@ const styles = {
     justifyContent: "center",
     lineHeight: 1,
   },
-  time: {
-    fontSize: 12,
-    color: "#94a3b8",
+  postedBy: {
+    fontSize: 12.5,
+    color: "#64748b",
     lineHeight: 1.2,
   },
   contentWrap: {
-    marginBottom: 12,
+    marginBottom: 14,
   },
   content: {
-    fontSize: 15,
-    color: "#111827",
+    fontSize: 16,
+    color: "#222a3a",
     margin: 0,
-    lineHeight: 1.7,
+    lineHeight: 1.75,
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
   },
   contentMedia: {
     fontSize: 16,
     lineHeight: 1.65,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   contentClamped: {
     display: "-webkit-box",
@@ -406,7 +449,7 @@ const styles = {
     display: "block",
     width: "100%",
     padding: 0,
-    margin: "0 0 14px",
+    margin: "0 0 16px",
     border: "none",
     background: "transparent",
     cursor: "pointer",
@@ -417,10 +460,10 @@ const styles = {
     width: "100%",
     aspectRatio: "1 / 1",
     objectFit: "cover",
-    borderRadius: 28,
+    borderRadius: 24,
     background: "#f3f4f6",
   },
-  tags: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 },
+  tags: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 },
   tagBtn: {
     fontSize: 11,
     color: "#4b5563",
