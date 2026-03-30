@@ -462,6 +462,10 @@ export default function ForumApp() {
     setSelectedPostId(null);
   }
 
+  function openForum() {
+    activateTab("forum");
+  }
+
   function activateTab(nextTab) {
     setTab(nextTab);
     setViewUrl(nextTab, { replace: false });
