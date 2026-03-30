@@ -76,10 +76,10 @@ const POST_FORMAT_LABEL = {
 };
 
 const POST_FORMAT_BADGE_STYLE = {
-  style_question: "border-zinc-700 bg-zinc-900 text-zinc-300",
-  daily_snapshot: "border-emerald-900/80 bg-emerald-950/70 text-emerald-200",
-  pet_episode: "border-amber-900/70 bg-amber-950/70 text-amber-200",
-  empathy_post: "border-rose-900/70 bg-rose-950/70 text-rose-200",
+  style_question: "border-slate-200 bg-white text-slate-600",
+  daily_snapshot: "border-sky-200 bg-sky-50 text-sky-700",
+  pet_episode: "border-amber-200 bg-amber-50 text-amber-700",
+  empathy_post: "border-rose-200 bg-rose-50 text-rose-700",
 };
 
 const TOPIC_TYPE_MAP = {
@@ -1016,15 +1016,15 @@ function ProductMentionCard({ binding, variant = "feed" }) {
         href={binding.url}
         target="_blank"
         rel="noreferrer"
-        className="group relative block h-24 overflow-hidden rounded-2xl border border-zinc-800 bg-black/40 text-left transition hover:border-zinc-700"
+        className="group relative block h-24 overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition hover:border-slate-300 hover:bg-slate-50"
       >
         <ResolvedProductThumbnail
           binding={binding}
           alt={binding.title}
-          className="h-full w-full bg-zinc-950 object-cover"
+          className="h-full w-full object-cover"
         />
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent px-2.5 pb-2 pt-6">
-          <p className="line-clamp-2 text-[11px] font-medium leading-4 text-zinc-100 transition group-hover:text-white">
+          <p className="line-clamp-2 text-[11px] font-medium leading-4 text-slate-900 transition group-hover:text-slate-950">
             {shortenTitle(binding.title)}
           </p>
         </div>
@@ -1037,20 +1037,20 @@ function ProductMentionCard({ binding, variant = "feed" }) {
       href={binding.url}
       target="_blank"
       rel="noreferrer"
-      className="group block overflow-hidden rounded-2xl border border-zinc-800 bg-black/40 text-left transition hover:border-zinc-700 hover:bg-zinc-900/80"
+      className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition hover:border-slate-300 hover:bg-slate-50"
     >
       <ResolvedProductThumbnail
         binding={binding}
         alt={binding.title}
-        className="h-36 w-full rounded-t-2xl bg-zinc-950 object-cover"
+        className="h-36 w-full rounded-t-2xl object-cover"
       />
       <div className="space-y-1 p-3">
-        <p className="text-sm font-medium leading-5 text-zinc-100 transition group-hover:text-white">
+        <p className="text-sm font-medium leading-5 text-slate-900 transition group-hover:text-slate-950">
           {binding.title}
         </p>
         <div className="flex items-center gap-2 text-xs">
-          <p className="truncate text-zinc-500">{binding.source}</p>
-          {binding.price && <p className="truncate text-zinc-400">{binding.price}</p>}
+          <p className="truncate text-slate-500">{binding.source}</p>
+          {binding.price && <p className="truncate text-slate-400">{binding.price}</p>}
         </div>
       </div>
     </a>
@@ -1714,12 +1714,12 @@ function buildComments(post) {
 const INITIAL_COMMENTS = Object.fromEntries(FEED_POSTS.map((post) => [post.id, buildComments(post)]));
 
 const typeStyle = {
-  Reactor: "text-zinc-400",
-  "Practical Reviewer": "text-zinc-300",
-  "Taste Commenter": "text-zinc-300",
-  Critic: "text-zinc-300",
-  "Experience Sharer": "text-zinc-300",
-  Recommender: "text-zinc-200",
+  Reactor: "text-slate-500",
+  "Practical Reviewer": "text-slate-500",
+  "Taste Commenter": "text-slate-500",
+  Critic: "text-slate-500",
+  "Experience Sharer": "text-slate-500",
+  Recommender: "text-slate-600",
 };
 
 function formatCount(value) {
@@ -1730,7 +1730,7 @@ function formatCount(value) {
 function Avatar({ initials, accent = "from-zinc-400 to-zinc-600" }) {
   return (
     <div
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${accent} text-xs font-semibold tracking-wide text-white`}
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${accent} text-xs font-semibold tracking-wide text-slate-900 shadow-[0_4px_12px_rgba(15,23,42,0.08)]`}
     >
       {initials}
     </div>
@@ -1809,17 +1809,17 @@ function PostImage({
           className={fallbackClassName}
         >
           <div className="space-y-2">
-            <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-zinc-300">
+            <span className="inline-flex rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-500">
               {fallback.label}
             </span>
-            <p className={`${compact ? "text-xs leading-5" : "text-sm leading-6"} font-medium text-zinc-100`}>
+            <p className={`${compact ? "text-xs leading-5" : "text-sm leading-6"} font-medium text-slate-900`}>
               {fallback.title}
             </p>
-            <p className={`${compact ? "text-[11px] leading-4" : "text-sm leading-6"} text-zinc-400`}>
+            <p className={`${compact ? "text-[11px] leading-4" : "text-sm leading-6"} text-slate-500`}>
               {fallback.body}
             </p>
             {!compact && (
-              <p className="text-sm font-medium leading-6 text-zinc-300">
+              <p className="text-sm font-medium leading-6 text-slate-600">
                 {title}
               </p>
             )}
@@ -1829,7 +1829,7 @@ function PostImage({
               {tags.slice(0, compact ? 2 : 4).map((tag) => (
                 <span
                   key={`${title}-${tag}`}
-                  className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] text-zinc-300"
+                  className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] text-slate-600"
                 >
                   {tag}
                 </span>
@@ -1853,7 +1853,7 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
   if (useAttachedReferenceTone) {
     return (
       <div className={`${compact ? "mt-2" : "mt-1 space-y-2"} ${className}`}>
-        {!compact && <p className="text-xs text-zinc-500">같이 본 제품</p>}
+        {!compact && <p className="text-xs text-slate-500">같이 본 제품</p>}
         <div className="flex flex-wrap gap-2">
           {visibleBindings.map((binding) => (
             <a
@@ -1861,7 +1861,7 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
               href={binding.url}
               target="_blank"
               rel="noreferrer"
-              className={`group inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950/80 transition hover:border-zinc-700 hover:bg-zinc-900 ${
+              className={`group inline-flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-white transition hover:border-slate-300 hover:bg-slate-50 ${
                 compact ? "pr-3" : "pr-3.5"
               }`}
             >
@@ -1870,7 +1870,7 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
                 alt={binding.title}
                 className={`${compact ? "h-8 w-8" : "h-9 w-9"} rounded-full object-cover`}
               />
-              <span className={`truncate text-zinc-300 transition group-hover:text-zinc-100 ${compact ? "max-w-[150px] text-[11px]" : "max-w-[260px] text-sm"}`}>
+              <span className={`truncate text-slate-700 transition group-hover:text-slate-900 ${compact ? "max-w-[150px] text-[11px]" : "max-w-[260px] text-sm"}`}>
                 {binding.title}
               </span>
             </a>
@@ -1891,14 +1891,14 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
           href={primaryBinding.url}
           target="_blank"
           rel="noreferrer"
-          className="group inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950/70 pr-3 transition hover:border-zinc-700 hover:bg-zinc-900"
+        className="group inline-flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-white pr-3 transition hover:border-slate-300 hover:bg-slate-50"
         >
           <ResolvedProductThumbnail
             binding={primaryBinding}
             alt={primaryBinding.title}
             className="h-8 w-8 rounded-full object-cover"
           />
-          <span className="max-w-[170px] truncate text-[11px] text-zinc-300 transition group-hover:text-zinc-100">
+          <span className="max-w-[170px] truncate text-[11px] text-slate-700 transition group-hover:text-slate-900">
             {primaryBinding.title}
           </span>
         </a>
@@ -1908,7 +1908,7 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <p className="text-xs text-zinc-500">참고한 제품</p>
+      <p className="text-xs text-slate-500">참고한 제품</p>
       <div className="space-y-2">
         {visibleBindings.map((binding) => (
           <a
@@ -1916,7 +1916,7 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
             href={binding.url}
             target="_blank"
             rel="noreferrer"
-            className="group flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/70 p-3 transition hover:border-zinc-700 hover:bg-zinc-900"
+            className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 transition hover:border-slate-300 hover:bg-slate-50"
           >
             <ResolvedProductThumbnail
               binding={binding}
@@ -1924,12 +1924,12 @@ function ProductEvidencePreview({ post, compact = false, detail = false, classNa
               className="h-12 w-12 rounded-xl object-cover"
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-zinc-200 transition group-hover:text-zinc-100">
+              <p className="truncate text-sm text-slate-800 transition group-hover:text-slate-950">
                 {binding.title}
               </p>
-              <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+              <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
                 <span className="truncate">{binding.source}</span>
-                {binding.price && <span className="truncate text-zinc-400">{binding.price}</span>}
+                {binding.price && <span className="truncate text-slate-400">{binding.price}</span>}
               </div>
             </div>
           </a>
@@ -1948,9 +1948,9 @@ function ThreadDetailBody({ post }) {
 
   return (
     <div className="mt-2 space-y-4">
-      <p className="text-[15px] leading-6 text-zinc-100">{paragraphs[0]}</p>
+      <p className="text-[15px] leading-6 text-slate-800">{paragraphs[0]}</p>
       {paragraphs.slice(1).map((paragraph) => (
-        <p key={`${post.id}-${paragraph.slice(0, 24)}`} className="text-[15px] leading-6 text-zinc-100">
+        <p key={`${post.id}-${paragraph.slice(0, 24)}`} className="text-[15px] leading-6 text-slate-800">
           {paragraph}
         </p>
       ))}
@@ -1969,7 +1969,7 @@ function ActionButton({ icon: Icon, label, active, onClick }) {
       onClick={onClick}
       type="button"
       className={`inline-flex items-center gap-2 px-2 py-1 text-sm transition ${
-        active ? "bg-zinc-900 text-white" : "text-zinc-400 hover:bg-zinc-950 hover:text-zinc-200"
+        active ? "border-slate-900 bg-slate-900 text-white shadow-[0_4px_12px_rgba(15,23,42,0.12)]" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
       }`}
     >
       <Icon className={`h-[18px] w-[18px] ${active ? "fill-current" : ""}`} />
@@ -1992,21 +1992,21 @@ function ThreadItem({
   const visibleReplies = hidden ? replies.slice(0, 1) : replies;
 
   return (
-    <div className={`${depth > 0 ? "ml-7 border-l border-zinc-800 pl-5" : ""}`}>
+    <div className={`${depth > 0 ? "ml-7 border-l border-slate-200 pl-5" : ""}`}>
       <div className="flex gap-3">
         <div className="relative flex flex-col items-center">
           <Avatar initials={comment.avatar} />
           {((replies.length > 0 && depth === 0) || depth > 0) && (
-            <div className="mt-2 h-full min-h-6 w-px bg-zinc-800" />
+            <div className="mt-2 h-full min-h-6 w-px bg-slate-200" />
           )}
         </div>
         <div className="min-w-0 flex-1 pb-6">
           <div className="flex items-center gap-2">
-            <span className="truncate text-sm font-semibold text-zinc-100">{comment.user}</span>
-            <span className="truncate text-sm text-zinc-500">{comment.handle}</span>
-            <span className="text-sm text-zinc-600">{comment.time}</span>
+            <span className="truncate text-sm font-semibold text-slate-900">{comment.user}</span>
+            <span className="truncate text-sm text-slate-500">{comment.handle}</span>
+            <span className="text-sm text-slate-400">{comment.time}</span>
           </div>
-          <p className="mt-1 text-[15px] leading-6 text-zinc-200">{comment.text}</p>
+          <p className="mt-1 text-[15px] leading-6 text-slate-700">{comment.text}</p>
           <p className={`mt-2 text-xs ${typeStyle[comment.type]}`}>{comment.type}</p>
 
           <div className="mt-3 flex items-center gap-1">
@@ -2034,10 +2034,10 @@ function ThreadItem({
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="mt-3 border border-zinc-800 bg-zinc-950/80 p-3">
+                <div className="mt-3 border border-slate-200 bg-white p-3 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
                   <div className="flex items-start gap-3">
                     <Avatar initials="ME" accent="from-zinc-700 to-zinc-900" />
-                    <div className="flex-1 border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-500">
+                    <div className="flex-1 border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
                       Reply to {comment.user}...
                     </div>
                   </div>
@@ -2068,9 +2068,9 @@ function ThreadItem({
             <button
               type="button"
               onClick={() => onToggleReplies(comment.id)}
-              className="mt-1 inline-flex items-center gap-2 text-sm text-zinc-500 transition hover:text-zinc-300"
+              className="mt-1 inline-flex items-center gap-2 text-sm text-slate-500 transition hover:text-slate-700"
             >
-              <span className="ml-1 h-px w-6 bg-zinc-700" />
+              <span className="ml-1 h-px w-6 bg-slate-300" />
               Show more replies ({replies.length - 1})
             </button>
           )}
@@ -2343,38 +2343,38 @@ export default function FashionThreadPage() {
   const openSearch = () => navigateTo("search");
 
   return (
-    <div className="min-h-screen bg-[#0f1012] text-white">
-      <div className="sticky top-0 z-20 border-b border-zinc-800 bg-[#111217]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-5">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#f8fbff,_#eff3f8_54%,_#eef2f7_100%)] text-slate-900">
+      <div className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-5">
           <div className="flex items-center gap-3">
             {view === "thread" || view === "search" || view === "profile" || view === "topic" || view === "sim" ? (
               <button
                 type="button"
                 onClick={goBack}
-                className="border border-zinc-800 bg-zinc-950 p-2 transition hover:bg-zinc-900"
+                className="border border-slate-200 bg-white p-2 transition hover:border-slate-300 hover:bg-slate-50"
               >
-                <ArrowLeft className="h-4 w-4 text-zinc-300" />
+                <ArrowLeft className="h-4 w-4 text-slate-500" />
               </button>
             ) : view === "search" ? (
               <button
                 type="button"
                 onClick={goBack}
-                className="border border-zinc-800 bg-zinc-950 p-2 transition hover:bg-zinc-900"
+                className="border border-slate-200 bg-white p-2 transition hover:border-slate-300 hover:bg-slate-50"
               >
-                <ArrowLeft className="h-4 w-4 text-zinc-300" />
+                <ArrowLeft className="h-4 w-4 text-slate-500" />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={openSearch}
-                className="border border-zinc-800 bg-zinc-950 p-2 transition hover:bg-zinc-900"
+                className="border border-slate-200 bg-white p-2 transition hover:border-slate-300 hover:bg-slate-50"
               >
-                <Search className="h-4 w-4 text-zinc-500" />
+                <Search className="h-4 w-4 text-slate-500" />
               </button>
             )}
             <div>
-              <p className="text-sm font-semibold tracking-tight text-zinc-100">fashion-forum</p>
-              <p className="text-xs text-zinc-500">
+              <p className="text-sm font-semibold tracking-tight text-slate-900">fashion-forum</p>
+              <p className="text-xs text-slate-500">
                 {view === "feed"
                   ? "channel / fashion-life"
                   : view === "search"
@@ -2389,7 +2389,7 @@ export default function FashionThreadPage() {
               </p>
             </div>
           </div>
-          <div className="border border-zinc-800 bg-zinc-950 px-3 py-1 text-xs text-zinc-400">
+          <div className="border border-slate-200 bg-white px-3 py-1 text-xs text-slate-500 shadow-[0_6px_20px_rgba(15,23,42,0.04)]">
             {view === "feed"
               ? "conversation mode"
               : view === "search"
@@ -2405,17 +2405,17 @@ export default function FashionThreadPage() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-5xl px-4 pb-16 pt-4 sm:px-5">
+      <main className="mx-auto max-w-6xl px-4 pb-16 pt-4 sm:px-5">
         {view === "feed" && (
           <motion.section
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="overflow-hidden rounded-[28px] border border-white/8 bg-[#111217] shadow-[0_18px_60px_rgba(15,23,42,0.18)]"
+            className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)]"
           >
-            <div className="border-b border-white/6 bg-[#151821] px-4 py-3 sm:px-5">
-              <p className="text-sm font-semibold text-zinc-100">fashion-life</p>
-              <p className="mt-1 text-sm text-zinc-500">패션 판단과 생활 기록이 섞인 메인 채널</p>
+            <div className="border-b border-slate-200/80 px-4 py-3 sm:px-5">
+              <p className="text-sm font-semibold text-slate-900">fashion-life</p>
+              <p className="mt-1 text-sm text-slate-500">패션 판단과 생활 기록이 섞인 메인 채널</p>
             </div>
             <div className="px-4 py-1 sm:px-5">
                 {FEED_POSTS.map((post, index) => (
@@ -2425,14 +2425,14 @@ export default function FashionThreadPage() {
                     whileHover={{ y: -1 }}
                     whileTap={{ scale: 0.995 }}
                     onClick={() => openPost(post.id)}
-                    className="flex w-full gap-3 border-b border-zinc-900 px-0 py-4 text-left transition hover:bg-zinc-950/40"
+                    className="flex w-full gap-3 border-b border-slate-100 px-0 py-4 text-left transition hover:bg-slate-50"
                   >
                     <div className="relative flex flex-col items-center">
                       <Avatar
                         initials={authorInitials(post.author)}
-                        accent={index % 2 === 0 ? "from-zinc-500 to-zinc-700" : "from-zinc-600 to-zinc-800"}
+                        accent={index % 2 === 0 ? "from-sky-300 to-indigo-300" : "from-emerald-300 to-teal-300"}
                       />
-                      {index !== FEED_POSTS.length - 1 && <div className="mt-2 h-full w-px bg-zinc-800" />}
+                      {index !== FEED_POSTS.length - 1 && <div className="mt-2 h-full w-px bg-slate-200" />}
                     </div>
 
                     <div className="min-w-0 flex-1 pb-1">
@@ -2443,13 +2443,13 @@ export default function FashionThreadPage() {
                             event.stopPropagation();
                             openProfile(post.author);
                           }}
-                          className="truncate text-sm font-semibold text-zinc-100 transition hover:text-white"
+                          className="truncate text-sm font-semibold text-slate-900 transition hover:text-slate-950"
                         >
                           {post.author}
                         </button>
                         {index < 3 && <BadgeCheck className="h-4 w-4 fill-sky-400 text-sky-300" />}
-                        <span className="truncate text-sm text-zinc-500">{post.handle}</span>
-                        <span className="text-sm text-zinc-600">{post.time}</span>
+                        <span className="truncate text-sm text-slate-500">{post.handle}</span>
+                        <span className="text-sm text-slate-400">{post.time}</span>
                       </div>
 
                       <div className="mt-3 flex items-start gap-3">
@@ -2462,19 +2462,19 @@ export default function FashionThreadPage() {
                                 event.stopPropagation();
                                 openTopic(post.alignment.topic_type);
                               }}
-                              className="border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200"
+                              className="border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
                             >
                               {TOPIC_CHANNEL_LABELS[post.alignment.topic_type]}
                             </button>
                           </div>
-                          <p className="text-[15px] font-medium leading-6 text-zinc-100">{post.title}</p>
-                          <p className="mt-1 text-[15px] leading-6 text-zinc-300">{post.hook}</p>
+                          <p className="text-[15px] font-medium leading-6 text-slate-900">{post.title}</p>
+                          <p className="mt-1 text-[15px] leading-6 text-slate-600">{post.hook}</p>
                           {post.productEvidence.has_named_product_refs && (
                             <ProductEvidencePreview post={post} compact />
                           )}
                         </div>
                       </div>
-                      <div className="mt-3 flex items-center gap-4 text-sm text-zinc-500">
+                      <div className="mt-3 flex items-center gap-4 text-sm text-slate-500">
                         <span>{formatCount(post.likes)} likes</span>
                         <span>{post.replies} replies</span>
                         <span>{post.reposts} reposts</span>
@@ -2491,18 +2491,18 @@ export default function FashionThreadPage() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="space-y-0 overflow-hidden rounded-[28px] border border-white/8 bg-[#111217] shadow-[0_18px_60px_rgba(15,23,42,0.18)]"
+            className="space-y-0 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)]"
           >
-            <div className="border-b border-white/6 bg-[#151821] px-4 py-4 sm:px-5">
-              <div className="border border-white/8 bg-zinc-950 px-4 py-3">
+            <div className="border-b border-slate-200/80 px-4 py-4 sm:px-5">
+              <div className="border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
                 <div className="flex items-center gap-3">
-                  <Search className="h-4 w-4 text-zinc-500" />
-                  <span className="text-sm text-zinc-200">{activeSearchQuery}</span>
+                  <Search className="h-4 w-4 text-slate-400" />
+                  <span className="text-sm text-slate-800">{activeSearchQuery}</span>
                 </div>
               </div>
 
               <div className="mt-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Recent searches</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Recent searches</p>
               <div className="mt-3 flex flex-wrap gap-2">
                   {SEARCH_RECENTS.map((query) => (
                     <button
@@ -2511,8 +2511,8 @@ export default function FashionThreadPage() {
                       onClick={() => setActiveSearchQuery(query)}
                       className={`rounded-full border px-3 py-1.5 text-xs transition ${
                         activeSearchQuery === query
-                          ? "border-zinc-600 bg-zinc-800 text-zinc-100"
-                          : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"
                       }`}
                     >
                       {query}
@@ -2522,33 +2522,33 @@ export default function FashionThreadPage() {
               </div>
 
               <div className="mt-5">
-                <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Trending now</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Trending now</p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {SEARCH_TRENDING.map((query, index) => (
                     <button
                       key={query}
                       type="button"
                       onClick={() => setActiveSearchQuery(query)}
-                      className="flex items-center justify-between rounded-2xl border border-white/8 bg-zinc-950 px-4 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                      className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
                     >
                       <div>
-                        <p className="text-sm text-zinc-100">{query}</p>
-                        <p className="mt-1 text-xs text-zinc-500">{24 + index * 7}분 전부터 반응 증가</p>
+                        <p className="text-sm text-slate-900">{query}</p>
+                        <p className="mt-1 text-xs text-slate-500">{24 + index * 7}분 전부터 반응 증가</p>
                       </div>
-                      <span className="text-xs text-zinc-500">{index + 1}</span>
+                      <span className="text-xs text-slate-400">{index + 1}</span>
                     </button>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="border-b border-zinc-900 px-4 py-4 sm:px-5">
+            <div className="border-b border-slate-200 px-4 py-4 sm:px-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-100">추천 브랜드</p>
-                  <p className="mt-1 text-sm text-zinc-500">요즘 검색이 많이 붙는 국내 여성 패션 키워드</p>
+                  <p className="text-sm font-semibold text-slate-900">추천 브랜드</p>
+                  <p className="mt-1 text-sm text-slate-500">요즘 검색이 많이 붙는 국내 여성 패션 키워드</p>
                 </div>
-                <span className="border border-zinc-800 px-3 py-1 text-xs text-zinc-400">Brands</span>
+                <span className="border border-slate-200 bg-white px-3 py-1 text-xs text-slate-500">Brands</span>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {SEARCH_SUGGESTED_BRANDS.map((brand) => (
@@ -2556,24 +2556,24 @@ export default function FashionThreadPage() {
                     key={brand.name}
                     type="button"
                     onClick={() => setActiveSearchQuery(brand.name)}
-                    className="rounded-2xl border border-white/8 bg-zinc-950 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                    className="rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-slate-300 hover:bg-slate-50"
                   >
-                    <p className="text-sm font-medium text-zinc-100">{brand.name}</p>
-                    <p className="mt-2 text-sm leading-6 text-zinc-500">{brand.note}</p>
+                    <p className="text-sm font-medium text-slate-900">{brand.name}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-500">{brand.note}</p>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="border-b border-zinc-900 px-4 py-4 sm:px-5">
+            <div className="border-b border-slate-200 px-4 py-4 sm:px-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-100">대화 목록</p>
-                  <p className="mt-1 text-sm text-zinc-500">
+                  <p className="text-sm font-semibold text-slate-900">대화 목록</p>
+                  <p className="mt-1 text-sm text-slate-500">
                     "{activeSearchQuery}" 관련 대화 {searchResults.length}개
                   </p>
                 </div>
-                <span className="border border-zinc-800 px-3 py-1 text-xs text-zinc-400">Top</span>
+                <span className="border border-slate-200 bg-white px-3 py-1 text-xs text-slate-500">Top</span>
               </div>
 
               <div className="mt-4 space-y-3">
@@ -2582,37 +2582,37 @@ export default function FashionThreadPage() {
                     key={item.id}
                     type="button"
                     onClick={() => openPost(item.postId)}
-                    className="flex w-full gap-3 border border-zinc-800 bg-zinc-950 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                    className="flex w-full gap-3 border border-slate-200 bg-white p-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate text-sm font-semibold text-zinc-100">{item.author}</span>
-                        <span className="truncate text-sm text-zinc-500">{item.handle}</span>
-                        <span className="text-xs text-zinc-600">{item.time}</span>
+                        <span className="truncate text-sm font-semibold text-slate-900">{item.author}</span>
+                        <span className="truncate text-sm text-slate-500">{item.handle}</span>
+                        <span className="text-xs text-slate-400">{item.time}</span>
                       </div>
                       <div className="mt-2">
                         <PostFormatBadge format={item.format} />
                       </div>
-                      <p className="mt-2 text-[15px] font-medium leading-6 text-zinc-100">{item.title}</p>
-                      <p className="mt-1 text-sm leading-6 text-zinc-400">{item.hook}</p>
+                      <p className="mt-2 text-[15px] font-medium leading-6 text-slate-900">{item.title}</p>
+                      <p className="mt-1 text-sm leading-6 text-slate-500">{item.hook}</p>
                       {item.productEvidence.has_named_product_refs && (
                         <ProductEvidencePreview
                           post={FEED_POSTS.find((post) => post.id === item.postId)}
                           compact
                         />
                       )}
-                      <p className="mt-2 text-xs text-zinc-500">{item.sourceLabel}</p>
+                      <p className="mt-2 text-xs text-slate-500">{item.sourceLabel}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {item.keywords.map((keyword) => (
                           <span
                             key={`${item.id}-${keyword}`}
-                            className="border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300"
+                            className="border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-600"
                           >
                             {keyword}
                           </span>
                         ))}
                       </div>
-                      <div className="mt-3 flex items-center gap-4 text-xs text-zinc-500">
+                      <div className="mt-3 flex items-center gap-4 text-xs text-slate-500">
                         <span>{formatCount(item.likes)} likes</span>
                         <span>{item.replies} replies</span>
                         <span>{item.saves} saves</span>
@@ -2624,12 +2624,12 @@ export default function FashionThreadPage() {
             </div>
 
             <div className="px-4 py-4 sm:px-5">
-              <p className="text-sm font-semibold text-zinc-100">컬렉션으로 보기</p>
+              <p className="text-sm font-semibold text-slate-900">컬렉션으로 보기</p>
               <div className="mt-4 grid gap-3">
                 {SEARCH_COLLECTIONS.map((collection) => (
-                  <div key={collection.title} className="rounded-2xl border border-white/8 bg-zinc-950 p-4">
-                    <p className="text-sm text-zinc-100">{collection.title}</p>
-                    <p className="mt-2 text-sm leading-6 text-zinc-500">{collection.subtitle}</p>
+                  <div key={collection.title} className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <p className="text-sm text-slate-900">{collection.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-500">{collection.subtitle}</p>
                   </div>
                 ))}
               </div>
@@ -2643,9 +2643,9 @@ export default function FashionThreadPage() {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
-              className="overflow-hidden rounded-[28px] border border-white/8 bg-[#111217] shadow-[0_18px_60px_rgba(15,23,42,0.18)]"
-            >
-              <div className="border-b border-white/6 bg-[#151821] px-4 py-4 sm:px-5">
+            className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)]"
+          >
+              <div className="border-b border-slate-200/80 px-4 py-4 sm:px-5">
                 <div className="flex items-start gap-3">
                   <Avatar initials={authorInitials(activePost.author)} accent="from-zinc-500 to-zinc-700" />
                   <div className="min-w-0 flex-1">
@@ -2653,13 +2653,13 @@ export default function FashionThreadPage() {
                       <button
                         type="button"
                         onClick={() => openProfile(activePost.author)}
-                        className="truncate text-sm font-semibold text-zinc-100 transition hover:text-white"
+                          className="truncate text-sm font-semibold text-slate-900 transition hover:text-slate-950"
                       >
                         {activePost.author}
                       </button>
                       <BadgeCheck className="h-4 w-4 fill-sky-400 text-sky-300" />
-                      <span className="truncate text-sm text-zinc-500">{activePost.handle}</span>
-                      <span className="text-sm text-zinc-600">{activePost.time}</span>
+                      <span className="truncate text-sm text-slate-500">{activePost.handle}</span>
+                      <span className="text-sm text-slate-400">{activePost.time}</span>
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -2667,18 +2667,18 @@ export default function FashionThreadPage() {
                       <button
                         type="button"
                         onClick={() => openTopic(activePost.alignment.topic_type)}
-                        className="border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200"
+                        className="border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
                       >
                         {TOPIC_CHANNEL_LABELS[activePost.alignment.topic_type]}
                       </button>
-                      <span className="border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
+                      <span className="border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-500">
                         {activePost.brands.join(" / ")}
                       </span>
                     </div>
 
-                    <p className="mt-3 text-lg font-semibold leading-7 text-zinc-100">{activePost.title}</p>
+                    <p className="mt-3 text-lg font-semibold leading-7 text-slate-900">{activePost.title}</p>
                     {postHasPrimaryOutfitShot(activePost) && hasRenderablePrimaryImage(activePost) && (
-                      <div className="mt-4 overflow-hidden rounded-[28px] border border-white/8 bg-zinc-900">
+                      <div className="mt-4 overflow-hidden rounded-[28px] border border-slate-200 bg-slate-50">
                         <PostImage
                           src={activePost.image}
                           alt={activePost.title}
@@ -2689,15 +2689,15 @@ export default function FashionThreadPage() {
                           imageClassName="h-[460px] w-full object-cover sm:h-[620px]"
                           fallbackClassName="flex min-h-[460px] w-full flex-col justify-end bg-[radial-gradient(circle_at_top,_rgba(82,82,91,0.28),_rgba(9,9,11,1)_58%)] p-5 sm:min-h-[620px]"
                         >
-                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/40 to-transparent p-4">
-                            <div className="flex flex-wrap gap-2">
-                              {activePost.description.split(",").map((tag) => (
-                                <span
-                                  key={tag.trim()}
-                                  className="rounded-full border border-white/10 bg-black/45 px-3 py-1 text-xs text-zinc-200 backdrop-blur-sm"
-                                >
-                                  {tag.trim()}
-                                </span>
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-4">
+                              <div className="flex flex-wrap gap-2">
+                                {activePost.description.split(",").map((tag) => (
+                                  <span
+                                    key={tag.trim()}
+                                    className="rounded-full border border-white/20 bg-black/35 px-3 py-1 text-xs text-white backdrop-blur-sm"
+                                  >
+                                    {tag.trim()}
+                                  </span>
                               ))}
                             </div>
                           </div>
@@ -2717,7 +2717,7 @@ export default function FashionThreadPage() {
                             href={source.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="group overflow-hidden rounded-2xl border border-white/8 bg-zinc-950/80 transition hover:border-zinc-700 hover:bg-zinc-900"
+                            className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:border-slate-300 hover:bg-slate-50"
                           >
                             <ResolvedProductThumbnail
                               binding={{ sourceKey: source.key, title: source.title, source: source.source }}
@@ -2725,10 +2725,10 @@ export default function FashionThreadPage() {
                               className="h-36 w-full object-cover"
                             />
                             <div className="space-y-1 p-4">
-                              <p className="text-sm font-medium leading-6 text-zinc-100 transition group-hover:text-white">{source.title}</p>
+                              <p className="text-sm font-medium leading-6 text-slate-900 transition group-hover:text-slate-950">{source.title}</p>
                               <div className="flex items-center gap-2 text-xs">
-                                <p className="truncate text-zinc-500">{source.source}</p>
-                                <p className="truncate text-zinc-400">{source.price}</p>
+                                <p className="truncate text-slate-500">{source.source}</p>
+                                <p className="truncate text-slate-400">{source.price}</p>
                               </div>
                             </div>
                           </a>
@@ -2759,11 +2759,11 @@ export default function FashionThreadPage() {
                       />
                     </div>
 
-                    <div className="mt-3 flex flex-wrap gap-3 text-sm text-zinc-500">
+                    <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-500">
                       <span>{activePost.likes} likes</span>
                       <span>{activePost.replies} replies</span>
                       <span>{activePost.reposts} reposts</span>
-                      <span className="text-zinc-600">{activePost.tone}</span>
+                      <span className="text-slate-400">{activePost.tone}</span>
                     </div>
 
                     <AnimatePresence initial={false}>
@@ -2774,10 +2774,10 @@ export default function FashionThreadPage() {
                           exit={{ opacity: 0, height: 0 }}
                           className="overflow-hidden"
                         >
-                          <div className="mt-4 rounded-2xl border border-white/8 bg-zinc-950 p-3">
+                          <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-3">
                             <div className="flex items-start gap-3">
                               <Avatar initials="ME" accent="from-zinc-700 to-zinc-900" />
-                              <div className="flex-1 border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-500">
+                              <div className="flex-1 border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
                                 Add a reply about 핏, 가격값, 실착 만족도...
                               </div>
                             </div>
@@ -2790,8 +2790,8 @@ export default function FashionThreadPage() {
               </div>
 
               <div className="px-4 py-2 sm:px-5">
-                <div className="border-b border-zinc-900 py-3">
-                  <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Conversation</p>
+                <div className="border-b border-slate-200 py-3">
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Conversation</p>
                 </div>
 
                 <motion.div
@@ -2823,14 +2823,14 @@ export default function FashionThreadPage() {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.12, duration: 0.35 }}
-              className="mt-4 overflow-hidden rounded-[28px] border border-white/8 bg-[#111217] px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.18)] sm:px-5"
-            >
+            className="mt-4 overflow-hidden rounded-[28px] border border-slate-200 bg-white px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-5"
+          >
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-100">같이 보는 글</p>
-                  <p className="text-sm text-zinc-500">비슷한 브랜드와 고민으로 저장된 스레드</p>
+                  <p className="text-sm font-semibold text-slate-900">같이 보는 글</p>
+                  <p className="text-sm text-slate-500">비슷한 브랜드와 고민으로 저장된 스레드</p>
                 </div>
-                <div className="border border-zinc-800 px-3 py-1 text-xs text-zinc-400">
+                <div className="border border-slate-200 bg-white px-3 py-1 text-xs text-slate-500">
                   {relatedThreads.length} threads
                 </div>
               </div>
@@ -2841,11 +2841,11 @@ export default function FashionThreadPage() {
                     key={post.id}
                     type="button"
                     onClick={() => openPost(post.id)}
-                    className="rounded-2xl border border-white/8 bg-zinc-950 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                    className="rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-slate-300 hover:bg-slate-50"
                   >
-                    <p className="text-sm font-medium text-zinc-100">{post.title}</p>
-                    <p className="mt-2 text-sm leading-6 text-zinc-400">{post.hook}</p>
-                    <p className="mt-2 text-xs text-zinc-500">{post.brands.join(" / ")} · {post.expected}</p>
+                    <p className="text-sm font-medium text-slate-900">{post.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-500">{post.hook}</p>
+                    <p className="mt-2 text-xs text-slate-400">{post.brands.join(" / ")} · {post.expected}</p>
                   </button>
                 ))}
               </div>
@@ -2855,23 +2855,23 @@ export default function FashionThreadPage() {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.16, duration: 0.35 }}
-              className="mt-4 overflow-hidden rounded-[28px] border border-white/8 bg-[#111217] px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.18)] sm:px-5"
-            >
+            className="mt-4 overflow-hidden rounded-[28px] border border-slate-200 bg-white px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-5"
+          >
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-100">읽는 포인트</p>
-                  <p className="text-sm text-zinc-500">댓글에서 반복되는 판단 기준</p>
+                  <p className="text-sm font-semibold text-slate-900">읽는 포인트</p>
+                  <p className="text-sm text-slate-500">댓글에서 반복되는 판단 기준</p>
                 </div>
-                <div className="border border-zinc-800 px-3 py-1 text-xs text-zinc-400">
+                <div className="border border-slate-200 bg-white px-3 py-1 text-xs text-slate-500">
                   {comments.length} comments
                 </div>
               </div>
 
               <div className="grid gap-3">
                 {summary.map((item) => (
-                  <div key={item.title} className="rounded-2xl border border-white/8 bg-zinc-950 p-4">
-                    <p className="text-sm font-medium text-zinc-100">{item.title}</p>
-                    <p className="mt-2 whitespace-pre-line text-sm leading-6 text-zinc-400">{item.content}</p>
+                  <div key={item.title} className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <p className="text-sm font-medium text-slate-900">{item.title}</p>
+                    <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-500">{item.content}</p>
                   </div>
                 ))}
               </div>
@@ -2884,38 +2884,38 @@ export default function FashionThreadPage() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="border-x border-zinc-900 bg-[#111217]"
+            className="rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)]"
           >
-            <div className="border-b border-zinc-800 bg-[#151821] px-4 py-5 sm:px-5">
+            <div className="border-b border-slate-200/80 px-4 py-5 sm:px-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                 <Avatar initials={activeProfile.initials} accent={activeProfile.accent} />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-lg font-semibold text-zinc-100">{activeProfile.author}</p>
-                    <span className="text-sm text-zinc-500">{activeProfile.handle}</span>
-                    <span className="border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] text-zinc-400">
+                    <p className="text-lg font-semibold text-slate-900">{activeProfile.author}</p>
+                    <span className="text-sm text-slate-500">{activeProfile.handle}</span>
+                    <span className="border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-500">
                       {activeProfile.role}
                     </span>
                   </div>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
                     생활형 패션 대화 안에서 반복적으로 남긴 스레드를 바탕으로 구성한 mock-backed agent profile입니다.
                   </p>
                   <div className="mt-4 grid gap-3 sm:grid-cols-4">
-                    <div className="border border-zinc-800 bg-zinc-950 p-3">
-                      <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Trust circle</p>
-                      <p className="mt-2 text-lg font-semibold text-zinc-100">{activeProfile.relationSummary.trustCircleSize}</p>
+                    <div className="border border-slate-200 bg-white p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Trust circle</p>
+                      <p className="mt-2 text-lg font-semibold text-slate-900">{activeProfile.relationSummary.trustCircleSize}</p>
                     </div>
-                    <div className="border border-zinc-800 bg-zinc-950 p-3">
-                      <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Repeat ties</p>
-                      <p className="mt-2 text-lg font-semibold text-zinc-100">{activeProfile.relationSummary.repeatedNeighbors}</p>
+                    <div className="border border-slate-200 bg-white p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Repeat ties</p>
+                      <p className="mt-2 text-lg font-semibold text-slate-900">{activeProfile.relationSummary.repeatedNeighbors}</p>
                     </div>
-                    <div className="border border-zinc-800 bg-zinc-950 p-3">
-                      <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Threads</p>
-                      <p className="mt-2 text-lg font-semibold text-zinc-100">{activeProfile.relationSummary.activeThreads}</p>
+                    <div className="border border-slate-200 bg-white p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Threads</p>
+                      <p className="mt-2 text-lg font-semibold text-slate-900">{activeProfile.relationSummary.activeThreads}</p>
                     </div>
-                    <div className="border border-zinc-800 bg-zinc-950 p-3">
-                      <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Replies</p>
-                      <p className="mt-2 text-lg font-semibold text-zinc-100">{activeProfile.relationSummary.repliesReceived}</p>
+                    <div className="border border-slate-200 bg-white p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Replies</p>
+                      <p className="mt-2 text-lg font-semibold text-slate-900">{activeProfile.relationSummary.repliesReceived}</p>
                     </div>
                   </div>
                 </div>
@@ -2924,33 +2924,33 @@ export default function FashionThreadPage() {
 
             <div className="grid gap-4 px-4 py-4 sm:grid-cols-[1.15fr_0.85fr] sm:px-5">
               <div className="space-y-4">
-                <div className="border border-zinc-900 bg-[#111217] p-4">
-                  <p className="text-sm font-semibold text-zinc-100">Interest areas</p>
+                <div className="border border-slate-200 bg-white p-4">
+                  <p className="text-sm font-semibold text-slate-900">Interest areas</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {activeProfile.interestAreas.map((area) => (
-                      <span key={`${activeProfile.id}-${area}`} className="border border-zinc-800 bg-zinc-950 px-3 py-1 text-xs text-zinc-300">
+                      <span key={`${activeProfile.id}-${area}`} className="border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
                         {area}
                       </span>
                     ))}
                   </div>
                 </div>
 
-                <div className="border border-zinc-900 bg-[#111217] p-4">
-                  <p className="text-sm font-semibold text-zinc-100">Self-narrative history</p>
+                <div className="border border-slate-200 bg-white p-4">
+                  <p className="text-sm font-semibold text-slate-900">Self-narrative history</p>
                   <div className="mt-4 space-y-3">
                     {activeProfile.selfNarrativeHistory.map((entry) => (
-                      <div key={entry.id} className="border border-zinc-800 bg-zinc-950 p-3">
-                        <p className="text-[11px] uppercase tracking-[0.2em] text-zinc-600">{entry.tickLabel}</p>
-                        <p className="mt-2 text-sm leading-6 text-zinc-300">{entry.text}</p>
+                      <div key={entry.id} className="border border-slate-200 bg-slate-50 p-3">
+                        <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">{entry.tickLabel}</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">{entry.text}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="border border-zinc-900 bg-[#111217] p-4">
+                <div className="border border-slate-200 bg-white p-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-zinc-100">Representative threads</p>
-                    <span className="text-xs text-zinc-500">{activeProfile.representativePosts.length} items</span>
+                    <p className="text-sm font-semibold text-slate-900">Representative threads</p>
+                    <span className="text-xs text-slate-500">{activeProfile.representativePosts.length} items</span>
                   </div>
                   <div className="mt-4 space-y-3">
                     {activeProfile.representativePosts.map((post) => (
@@ -2958,14 +2958,14 @@ export default function FashionThreadPage() {
                         key={`${activeProfile.id}-${post.id}`}
                         type="button"
                         onClick={() => openPost(post.id)}
-                        className="w-full border border-zinc-800 bg-zinc-950 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                        className="w-full border border-slate-200 bg-white p-4 text-left transition hover:border-slate-300 hover:bg-slate-50"
                       >
                         <div className="flex flex-wrap items-center gap-2">
                           <PostFormatBadge format={getPostFormat(post)} />
-                          <span className="text-xs text-zinc-500">{TOPIC_CHANNEL_LABELS[post.alignment.topic_type]}</span>
+                          <span className="text-xs text-slate-500">{TOPIC_CHANNEL_LABELS[post.alignment.topic_type]}</span>
                         </div>
-                        <p className="mt-2 text-sm font-medium text-zinc-100">{post.title}</p>
-                        <p className="mt-2 text-sm leading-6 text-zinc-400">{post.hook}</p>
+                        <p className="mt-2 text-sm font-medium text-slate-900">{post.title}</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-500">{post.hook}</p>
                       </button>
                     ))}
                   </div>
@@ -2973,28 +2973,28 @@ export default function FashionThreadPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="border border-zinc-900 bg-[#111217] p-4">
-                  <p className="text-sm font-semibold text-zinc-100">Related agents</p>
+                <div className="border border-slate-200 bg-white p-4">
+                  <p className="text-sm font-semibold text-slate-900">Related agents</p>
                   <div className="mt-4 space-y-2">
                     {activeProfile.relatedAgents.map((agent) => (
                       <button
                         key={`${activeProfile.id}-${agent.id}`}
                         type="button"
                         onClick={() => openProfile(agent.id)}
-                        className="flex w-full items-center justify-between border border-zinc-800 bg-zinc-950 px-3 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                        className="flex w-full items-center justify-between border border-slate-200 bg-white px-3 py-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
                       >
                         <div>
-                          <p className="text-sm text-zinc-100">{agent.author}</p>
-                          <p className="mt-1 text-xs text-zinc-500">shared thread overlap</p>
+                          <p className="text-sm text-slate-900">{agent.author}</p>
+                          <p className="mt-1 text-xs text-slate-500">shared thread overlap</p>
                         </div>
-                        <span className="text-sm text-zinc-300">{agent.score}</span>
+                        <span className="text-sm text-slate-600">{agent.score}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="border border-zinc-900 bg-[#111217] p-4">
-                  <p className="text-sm font-semibold text-zinc-100">Topic footprint</p>
+                <div className="border border-slate-200 bg-white p-4">
+                  <p className="text-sm font-semibold text-slate-900">Topic footprint</p>
                   <div className="mt-4 space-y-2">
                     {TOPIC_PAGES.filter((topic) =>
                       topic.representativePosts.some((post) => post.author === activeProfile.author),
@@ -3003,13 +3003,13 @@ export default function FashionThreadPage() {
                         key={`${activeProfile.id}-${topic.id}`}
                         type="button"
                         onClick={() => openTopic(topic.id)}
-                        className="flex w-full items-center justify-between border border-zinc-800 bg-zinc-950 px-3 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                        className="flex w-full items-center justify-between border border-slate-200 bg-white px-3 py-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
                       >
                         <div>
-                          <p className="text-sm text-zinc-100">{topic.title}</p>
-                          <p className="mt-1 text-xs text-zinc-500">{topic.spotlightTags.join(" / ")}</p>
+                          <p className="text-sm text-slate-900">{topic.title}</p>
+                          <p className="mt-1 text-xs text-slate-500">{topic.spotlightTags.join(" / ")}</p>
                         </div>
-                        <span className="text-xs text-zinc-400">{topic.representativePosts.filter((post) => post.author === activeProfile.author).length} threads</span>
+                        <span className="text-xs text-slate-500">{topic.representativePosts.filter((post) => post.author === activeProfile.author).length} threads</span>
                       </button>
                     ))}
                   </div>
@@ -3024,19 +3024,19 @@ export default function FashionThreadPage() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="border-x border-zinc-900 bg-[#111217]"
+            className="rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)]"
           >
-            <div className="border-b border-zinc-800 bg-[#151821] px-4 py-5 sm:px-5">
+            <div className="border-b border-slate-200/80 px-4 py-5 sm:px-5">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-zinc-500">
+                <span className="border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-slate-500">
                   topic hub
                 </span>
-                <p className="text-lg font-semibold text-zinc-100">{activeTopic.title}</p>
+                <p className="text-lg font-semibold text-slate-900">{activeTopic.title}</p>
               </div>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">{activeTopic.description}</p>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-500">{activeTopic.description}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {activeTopic.spotlightTags.map((tag) => (
-                  <span key={`${activeTopic.id}-${tag}`} className="border border-zinc-800 bg-zinc-950 px-3 py-1 text-xs text-zinc-300">
+                  <span key={`${activeTopic.id}-${tag}`} className="border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600">
                     {tag}
                   </span>
                 ))}
@@ -3046,24 +3046,24 @@ export default function FashionThreadPage() {
             <div className="grid gap-4 px-4 py-4 sm:grid-cols-[1.1fr_0.9fr] sm:px-5">
               <div className="space-y-4">
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="border border-zinc-800 bg-zinc-950 p-3">
-                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Likes</p>
-                    <p className="mt-2 text-lg font-semibold text-zinc-100">{formatCount(activeTopic.reactionSummary.likes)}</p>
+                  <div className="border border-slate-200 bg-white p-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Likes</p>
+                    <p className="mt-2 text-lg font-semibold text-slate-900">{formatCount(activeTopic.reactionSummary.likes)}</p>
                   </div>
-                  <div className="border border-zinc-800 bg-zinc-950 p-3">
-                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Replies</p>
-                    <p className="mt-2 text-lg font-semibold text-zinc-100">{formatCount(activeTopic.reactionSummary.replies)}</p>
+                  <div className="border border-slate-200 bg-white p-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Replies</p>
+                    <p className="mt-2 text-lg font-semibold text-slate-900">{formatCount(activeTopic.reactionSummary.replies)}</p>
                   </div>
-                  <div className="border border-zinc-800 bg-zinc-950 p-3">
-                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Reposts</p>
-                    <p className="mt-2 text-lg font-semibold text-zinc-100">{formatCount(activeTopic.reactionSummary.reposts)}</p>
+                  <div className="border border-slate-200 bg-white p-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Reposts</p>
+                    <p className="mt-2 text-lg font-semibold text-slate-900">{formatCount(activeTopic.reactionSummary.reposts)}</p>
                   </div>
                 </div>
 
-                <div className="border border-zinc-900 bg-[#111217] p-4">
+                <div className="border border-slate-200 bg-white p-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-zinc-100">Representative posts</p>
-                    <span className="text-xs text-zinc-500">{activeTopic.representativePosts.length} threads</span>
+                    <p className="text-sm font-semibold text-slate-900">Representative posts</p>
+                    <span className="text-xs text-slate-500">{activeTopic.representativePosts.length} threads</span>
                   </div>
                   <div className="mt-4 space-y-3">
                     {activeTopic.representativePosts.map((post) => (
@@ -3071,15 +3071,15 @@ export default function FashionThreadPage() {
                         key={`${activeTopic.id}-${post.id}`}
                         type="button"
                         onClick={() => openPost(post.id)}
-                        className="w-full border border-zinc-800 bg-zinc-950 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                        className="w-full border border-slate-200 bg-white p-4 text-left transition hover:border-slate-300 hover:bg-slate-50"
                       >
                         <div className="flex flex-wrap items-center gap-2">
                           <PostFormatBadge format={getPostFormat(post)} />
-                          <span className="text-xs text-zinc-500">{post.author}</span>
+                          <span className="text-xs text-slate-500">{post.author}</span>
                         </div>
-                        <p className="mt-2 text-sm font-medium text-zinc-100">{post.title}</p>
-                        <p className="mt-2 text-sm leading-6 text-zinc-400">{post.hook}</p>
-                        <div className="mt-3 flex items-center gap-4 text-xs text-zinc-500">
+                        <p className="mt-2 text-sm font-medium text-slate-900">{post.title}</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-500">{post.hook}</p>
+                        <div className="mt-3 flex items-center gap-4 text-xs text-slate-500">
                           <span>{formatCount(post.likes)} likes</span>
                           <span>{post.replies} replies</span>
                           <span>{post.reposts} reposts</span>
@@ -3091,28 +3091,28 @@ export default function FashionThreadPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="border border-zinc-900 bg-[#111217] p-4">
-                  <p className="text-sm font-semibold text-zinc-100">Related agents</p>
+                <div className="border border-slate-200 bg-white p-4">
+                  <p className="text-sm font-semibold text-slate-900">Related agents</p>
                   <div className="mt-4 space-y-2">
                     {activeTopic.relatedAgents.map((author) => (
                       <button
                         key={`${activeTopic.id}-${author}`}
                         type="button"
                         onClick={() => openProfile(author)}
-                        className="flex w-full items-center justify-between border border-zinc-800 bg-zinc-950 px-3 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                        className="flex w-full items-center justify-between border border-slate-200 bg-white px-3 py-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
                       >
                         <div>
-                          <p className="text-sm text-zinc-100">{author}</p>
-                          <p className="mt-1 text-xs text-zinc-500">active in this topic cluster</p>
+                          <p className="text-sm text-slate-900">{author}</p>
+                          <p className="mt-1 text-xs text-slate-500">active in this topic cluster</p>
                         </div>
-                        <span className="text-xs text-zinc-400">@{author}</span>
+                        <span className="text-xs text-slate-500">@{author}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="border border-zinc-900 bg-[#111217] p-4">
-                  <p className="text-sm font-semibold text-zinc-100">Cross-topic neighbors</p>
+                <div className="border border-slate-200 bg-white p-4">
+                  <p className="text-sm font-semibold text-slate-900">Cross-topic neighbors</p>
                   <div className="mt-4 space-y-2">
                     {TOPIC_PAGES.filter((topic) => topic.id !== activeTopic.id)
                       .slice(0, 4)
@@ -3121,13 +3121,13 @@ export default function FashionThreadPage() {
                           key={`${activeTopic.id}-${topic.id}`}
                           type="button"
                           onClick={() => openTopic(topic.id)}
-                          className="flex w-full items-center justify-between border border-zinc-800 bg-zinc-950 px-3 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                          className="flex w-full items-center justify-between border border-slate-200 bg-white px-3 py-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
                         >
                           <div>
-                            <p className="text-sm text-zinc-100">{topic.title}</p>
-                            <p className="mt-1 text-xs text-zinc-500">{topic.spotlightTags.join(" / ")}</p>
+                            <p className="text-sm text-slate-900">{topic.title}</p>
+                            <p className="mt-1 text-xs text-slate-500">{topic.spotlightTags.join(" / ")}</p>
                           </div>
-                          <span className="text-xs text-zinc-400">{topic.relatedAgents.length} agents</span>
+                          <span className="text-xs text-slate-500">{topic.relatedAgents.length} agents</span>
                         </button>
                       ))}
                   </div>
@@ -3142,32 +3142,32 @@ export default function FashionThreadPage() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="border-x border-zinc-900 bg-[#111217]"
+            className="rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)]"
           >
-            <div className="border-b border-zinc-800 bg-[#151821] px-4 py-5 sm:px-5">
+            <div className="border-b border-slate-200/80 px-4 py-5 sm:px-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-zinc-500">
+                    <span className="border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-slate-500">
                       operator surface
                     </span>
-                    <p className="text-lg font-semibold text-zinc-100">Simulation controls and replay timeline</p>
+                    <p className="text-lg font-semibold text-slate-900">Simulation controls and replay timeline</p>
                   </div>
-                  <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">
+                  <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-500">
                     deterministic local world를 브라우저에서 직접 실행하고, seed와 policy를 바꿔가며 identity divergence가 언제 생겼는지 북마크와 타임라인으로 다시 볼 수 있습니다.
                   </p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:w-[420px]">
-                  <div className="border border-zinc-800 bg-zinc-950 p-3">
-                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Seed</p>
+                  <div className="border border-slate-200 bg-white p-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Seed</p>
                     <input
                       value={simSeedInput}
                       onChange={(event) => setSimSeedInput(event.target.value)}
-                      className="mt-2 w-full border border-zinc-800 bg-black px-3 py-2 text-sm text-zinc-100 outline-none"
+                      className="mt-2 w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none"
                     />
                   </div>
-                  <div className="border border-zinc-800 bg-zinc-950 p-3">
-                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Policy</p>
+                  <div className="border border-slate-200 bg-white p-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Policy</p>
                     <select
                       value={simPolicyFlag}
                       onChange={(event) => {
@@ -3175,7 +3175,7 @@ export default function FashionThreadPage() {
                         setSimPolicyFlag(nextFlag);
                         setLiveRun((current) => ({ ...current, policyFlag: nextFlag }));
                       }}
-                      className="mt-2 w-full border border-zinc-800 bg-black px-3 py-2 text-sm text-zinc-100 outline-none"
+                      className="mt-2 w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none"
                     >
                       {SIM_POLICY_OPTIONS.map((flag) => (
                         <option key={flag} value={flag}>
@@ -3191,7 +3191,7 @@ export default function FashionThreadPage() {
                 <button
                   type="button"
                   onClick={() => resetSimulation()}
-                  className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 transition hover:bg-zinc-800"
+                  className="inline-flex items-center gap-2 border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                   Reset run
@@ -3199,7 +3199,7 @@ export default function FashionThreadPage() {
                 <button
                   type="button"
                   onClick={() => setIsSimRunning((current) => !current)}
-                  className="inline-flex items-center gap-2 border border-zinc-700 bg-white px-3 py-2 text-sm text-black transition hover:bg-zinc-200"
+                  className="inline-flex items-center gap-2 border border-slate-900 bg-slate-900 px-3 py-2 text-sm text-white transition hover:bg-slate-800"
                 >
                   {isSimRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   {isSimRunning ? "Pause" : "Start / Resume"}
@@ -3207,7 +3207,7 @@ export default function FashionThreadPage() {
                 <button
                   type="button"
                   onClick={() => stepSimulation(1)}
-                  className="inline-flex items-center gap-2 border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-900"
+                  className="inline-flex items-center gap-2 border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
                 >
                   <SkipForward className="h-4 w-4" />
                   Step tick
@@ -3215,7 +3215,7 @@ export default function FashionThreadPage() {
                 <button
                   type="button"
                   onClick={saveCurrentRun}
-                  className="inline-flex items-center gap-2 border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-900"
+                  className="inline-flex items-center gap-2 border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
                 >
                   <Bookmark className="h-4 w-4" />
                   Save run
@@ -3225,16 +3225,16 @@ export default function FashionThreadPage() {
 
             <div className="grid gap-4 px-4 py-4 lg:grid-cols-[1.15fr_0.85fr] sm:px-5">
               <div className="space-y-4">
-                <div className="border border-zinc-900 bg-[#111217] p-4">
+                <div className="border border-slate-200 bg-white p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-zinc-100">Replay timeline</p>
-                      <p className="mt-1 text-sm text-zinc-500">saved run도 같은 scrubber로 다시 볼 수 있습니다.</p>
+                      <p className="text-sm font-semibold text-slate-900">Replay timeline</p>
+                      <p className="mt-1 text-sm text-slate-500">saved run도 같은 scrubber로 다시 볼 수 있습니다.</p>
                     </div>
                     <select
                       value={selectedRunId}
                       onChange={(event) => setSelectedRunId(event.target.value)}
-                      className="border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none"
+                      className="border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none"
                     >
                       <option value="live">live run</option>
                       {savedRuns.map((run) => (
@@ -3245,10 +3245,10 @@ export default function FashionThreadPage() {
                     </select>
                   </div>
 
-                  <div className="mt-4 border border-zinc-800 bg-zinc-950 p-4">
+                  <div className="mt-4 border border-slate-200 bg-slate-50 p-4">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-zinc-400">tick cursor</span>
-                      <span className="text-zinc-100">{replayCursor} / {selectedRun.entries.length}</span>
+                      <span className="text-slate-500">tick cursor</span>
+                      <span className="text-slate-900">{replayCursor} / {selectedRun.entries.length}</span>
                     </div>
                     <input
                       type="range"
@@ -3256,35 +3256,35 @@ export default function FashionThreadPage() {
                       max={Math.max(selectedRun.entries.length, 0)}
                       value={Math.min(replayCursor, selectedRun.entries.length)}
                       onChange={(event) => setReplayCursor(Number(event.target.value))}
-                      className="mt-4 w-full accent-white"
+                      className="mt-4 w-full accent-slate-900"
                     />
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <div className="border border-zinc-800 bg-black p-3">
-                        <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Seed</p>
-                        <p className="mt-2 text-lg font-semibold text-zinc-100">{selectedRun.seed}</p>
+                      <div className="border border-slate-200 bg-white p-3">
+                        <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Seed</p>
+                        <p className="mt-2 text-lg font-semibold text-slate-900">{selectedRun.seed}</p>
                       </div>
-                      <div className="border border-zinc-800 bg-black p-3">
-                        <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Policy</p>
-                        <p className="mt-2 text-sm font-semibold text-zinc-100">{selectedRun.policyFlag}</p>
+                      <div className="border border-slate-200 bg-white p-3">
+                        <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Policy</p>
+                        <p className="mt-2 text-sm font-semibold text-slate-900">{selectedRun.policyFlag}</p>
                       </div>
-                      <div className="border border-zinc-800 bg-black p-3">
-                        <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Latest action</p>
-                        <p className="mt-2 text-sm font-semibold text-zinc-100">{selectedRun.latestEntry?.action || "none yet"}</p>
+                      <div className="border border-slate-200 bg-white p-3">
+                        <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Latest action</p>
+                        <p className="mt-2 text-sm font-semibold text-slate-900">{selectedRun.latestEntry?.action || "none yet"}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 border border-zinc-800 bg-zinc-950 p-4">
-                    <p className="text-sm font-semibold text-zinc-100">Snapshot at tick {replayCursor}</p>
+                  <div className="mt-4 border border-slate-200 bg-white p-4">
+                    <p className="text-sm font-semibold text-slate-900">Snapshot at tick {replayCursor}</p>
                     <div className="mt-4 space-y-2">
                       {replayAgents.map((agent) => (
-                        <div key={`${selectedRun.id}-${agent.id}-${replayCursor}`} className="border border-zinc-800 bg-black p-3">
+                        <div key={`${selectedRun.id}-${agent.id}-${replayCursor}`} className="border border-slate-200 bg-slate-50 p-3">
                           <div className="flex items-center justify-between gap-3">
-                            <p className="text-sm text-zinc-100">{agent.handle}</p>
-                            <span className="text-xs text-zinc-500">activity {agent.activity.toFixed(3)}</span>
+                            <p className="text-sm text-slate-900">{agent.handle}</p>
+                            <span className="text-xs text-slate-500">activity {agent.activity.toFixed(3)}</span>
                           </div>
-                          <p className="mt-2 text-xs text-zinc-500">repeated repliers {agent.repeatedRepliers}</p>
-                          <p className="mt-2 text-sm leading-6 text-zinc-300">{agent.narrative}</p>
+                          <p className="mt-2 text-xs text-slate-500">repeated repliers {agent.repeatedRepliers}</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-600">{agent.narrative}</p>
                         </div>
                       ))}
                     </div>
@@ -3293,60 +3293,60 @@ export default function FashionThreadPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="border border-zinc-900 bg-[#111217] p-4">
-                  <p className="text-sm font-semibold text-zinc-100">Bookmarked events</p>
+                <div className="border border-slate-200 bg-white p-4">
+                  <p className="text-sm font-semibold text-slate-900">Bookmarked events</p>
                   <div className="mt-4 space-y-2">
                     {selectedRun.bookmarks.length === 0 ? (
-                      <p className="text-sm text-zinc-500">북마크 가능한 큰 이벤트가 아직 없습니다.</p>
+                      <p className="text-sm text-slate-500">북마크 가능한 큰 이벤트가 아직 없습니다.</p>
                     ) : (
                       selectedRun.bookmarks.map((bookmark) => (
                         <button
                           key={bookmark.id}
                           type="button"
                           onClick={() => setReplayCursor(bookmark.tick)}
-                          className="w-full border border-zinc-800 bg-zinc-950 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                          className="w-full border border-slate-200 bg-white p-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
                         >
                           <div className="flex items-center justify-between gap-3">
-                            <p className="text-sm text-zinc-100">{bookmark.title}</p>
-                            <span className="text-xs text-zinc-500">jump</span>
+                            <p className="text-sm text-slate-900">{bookmark.title}</p>
+                            <span className="text-xs text-slate-500">jump</span>
                           </div>
-                          <p className="mt-2 text-sm leading-6 text-zinc-400">{bookmark.note}</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-500">{bookmark.note}</p>
                         </button>
                       ))
                     )}
                   </div>
                 </div>
 
-                <div className="border border-zinc-900 bg-[#111217] p-4">
-                  <p className="text-sm font-semibold text-zinc-100">Identity divergence checkpoints</p>
+                <div className="border border-slate-200 bg-white p-4">
+                  <p className="text-sm font-semibold text-slate-900">Identity divergence checkpoints</p>
                   <div className="mt-4 space-y-2">
                     {selectedRun.divergenceMoments.map((moment) => (
                       <button
                         key={moment.id}
                         type="button"
                         onClick={() => setReplayCursor(moment.tick)}
-                        className="w-full border border-zinc-800 bg-zinc-950 p-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                        className="w-full border border-slate-200 bg-white p-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
                       >
                         <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm text-zinc-100">{moment.title}</p>
-                          <span className="text-xs text-zinc-500">tick {moment.tick}</span>
+                          <p className="text-sm text-slate-900">{moment.title}</p>
+                          <span className="text-xs text-slate-500">tick {moment.tick}</span>
                         </div>
-                        <p className="mt-2 text-sm leading-6 text-zinc-400">{moment.note}</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-500">{moment.note}</p>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="border border-zinc-900 bg-[#111217] p-4">
-                  <p className="text-sm font-semibold text-zinc-100">Action log</p>
+                <div className="border border-slate-200 bg-white p-4">
+                  <p className="text-sm font-semibold text-slate-900">Action log</p>
                   <div className="mt-4 space-y-2">
                     {selectedRun.entries.slice().reverse().slice(0, 8).map((entry) => (
-                      <div key={`${selectedRun.id}-${entry.tick}`} className="border border-zinc-800 bg-zinc-950 p-3">
+                      <div key={`${selectedRun.id}-${entry.tick}`} className="border border-slate-200 bg-slate-50 p-3">
                         <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm text-zinc-100">Tick {entry.tick + 1} · {entry.action}</p>
-                          <span className="text-xs text-zinc-500">{entry.actor_id}</span>
+                          <p className="text-sm text-slate-900">Tick {entry.tick + 1} · {entry.action}</p>
+                          <span className="text-xs text-slate-500">{entry.actor_id}</span>
                         </div>
-                        <p className="mt-2 text-sm leading-6 text-zinc-400">{entry.reason}</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-500">{entry.reason}</p>
                       </div>
                     ))}
                   </div>
@@ -3357,43 +3357,43 @@ export default function FashionThreadPage() {
         )}
       </main>
 
-      <div className="sticky bottom-0 z-20 border-t border-zinc-800 bg-[#111217]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-5">
+      <div className="sticky bottom-0 z-20 border-t border-slate-200/80 bg-white/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-5">
           <button
             type="button"
             onClick={openFeed}
-            className={`border px-3 py-2 text-sm transition ${view === "feed" ? "border-zinc-700 bg-zinc-900 text-white" : "border-zinc-900 text-zinc-500 hover:border-zinc-800 hover:text-zinc-200"}`}
+            className={`border px-3 py-2 text-sm transition ${view === "feed" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"}`}
           >
             <span className="inline-flex items-center gap-2"><Home className="h-4 w-4" />채널</span>
           </button>
           <button
             type="button"
             onClick={openSearch}
-            className={`border px-3 py-2 text-sm transition ${view === "search" ? "border-zinc-700 bg-zinc-900 text-white" : "border-zinc-900 text-zinc-500 hover:border-zinc-800 hover:text-zinc-200"}`}
+            className={`border px-3 py-2 text-sm transition ${view === "search" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"}`}
           >
             <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" />탐색</span>
           </button>
           <button
             type="button"
             onClick={() => navigateTo("sim")}
-            className={`border px-3 py-2 text-sm transition ${view === "sim" ? "border-zinc-700 bg-zinc-900 text-white" : "border-zinc-900 text-zinc-500 hover:border-zinc-800 hover:text-zinc-200"}`}
+            className={`border px-3 py-2 text-sm transition ${view === "sim" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"}`}
           >
             <span className="inline-flex items-center gap-2"><SlidersHorizontal className="h-4 w-4" />시뮬</span>
           </button>
           <button
             type="button"
             onClick={() => openTopic(activePost?.alignment?.topic_type || TOPIC_PAGES[0]?.id)}
-            className={`border px-3 py-2 text-sm transition ${view === "topic" ? "border-zinc-700 bg-zinc-900 text-white" : "border-zinc-900 text-zinc-500 hover:border-zinc-800 hover:text-zinc-200"}`}
+            className={`border px-3 py-2 text-sm transition ${view === "topic" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"}`}
           >
             <span className="inline-flex items-center gap-2"><Hash className="h-4 w-4" />주제</span>
           </button>
-          <button type="button" className="border border-zinc-700 bg-white px-3 py-2 text-sm text-black transition hover:bg-zinc-200">
+          <button type="button" className="border border-slate-900 bg-slate-900 px-3 py-2 text-sm text-white transition hover:bg-slate-800">
             <span className="inline-flex items-center gap-2"><PenSquare className="h-4 w-4" />새 글</span>
           </button>
           <button
             type="button"
             onClick={() => openProfile(activePost?.author || AUTHOR_PROFILES[0]?.id)}
-            className={`border px-3 py-2 text-sm transition ${view === "profile" ? "border-zinc-700 bg-zinc-900 text-white" : "border-zinc-900 text-zinc-500 hover:border-zinc-800 hover:text-zinc-200"}`}
+            className={`border px-3 py-2 text-sm transition ${view === "profile" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"}`}
           >
             <span className="inline-flex items-center gap-2"><User className="h-4 w-4" />프로필</span>
           </button>
