@@ -289,7 +289,7 @@ export default function PostDetail({
       </article>
 
       <section style={styles.commentsSection}>
-        <h3 style={styles.commentsTitle}>대화 ({post.commentCount || 0})</h3>
+        <h3 style={styles.commentsTitle}>댓글 스레드 ({post.commentCount || 0})</h3>
         <CommentSection
           postId={postId}
           currentUser={currentUser}
