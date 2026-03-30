@@ -332,7 +332,7 @@ export default function ForumApp() {
   const previousServiceTabRef = useRef("forum");
   const isCompact = viewportWidth < 1024;
   const isMobile = viewportWidth < 768;
-  const showBottomNav = isMobile;
+  const showBottomNav = true;
 
   const { data: sidebarPreviewData } = useQuery({
     queryKey: ["sidebar-preview-posts"],
@@ -673,55 +673,8 @@ export default function ForumApp() {
         ) : (
           <>
             <div style={styles.knowledgePage}>
-              {!isCompact && (
-                <div style={styles.knowledgeTopBar}>
-                  <div style={styles.knowledgeTabs}>
-                    {[
-                      { key: "forum", label: "Community", onClick: openForum },
-                      { key: "profile", label: "Profile", onClick: openProfileTab },
-                      { key: "saved", label: "My answers", onClick: openSavedPosts },
-                    ].map((item) => (
-                      <button
-                        key={item.key}
-                        type="button"
-                        onClick={item.onClick}
-                        style={{
-                          ...styles.knowledgeTabBtn,
-                          ...(knowledgeView === item.key ? styles.knowledgeTabBtnActive : {}),
-                        }}
-                      >
-                        {item.label}
-                        {knowledgeView === item.key && <span style={styles.knowledgeTabBtnUnderline} />}
-                      </button>
-                    ))}
-                  </div>
-                  <div style={styles.knowledgeTools}>
-                    {[
-                      { key: "search", label: "Search", onClick: openSearch, icon: Search },
-                      { key: "saved", label: "Bookmarks", onClick: openSavedPosts, icon: Bookmark },
-                      { key: "profile", label: "Profile", onClick: openProfileTab, icon: UserRound },
-                    ].map((item) => (
-                      <button
-                        key={item.key}
-                        type="button"
-                        onClick={item.onClick}
-                        aria-label={item.label}
-                        title={item.label}
-                        style={{
-                          ...styles.knowledgeToolBtn,
-                          ...(item.icon ? styles.knowledgeToolBtnIcon : {}),
-                        }}
-                      >
-                        <item.icon size={16} strokeWidth={2.1} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               <div style={{ ...styles.serviceShell, ...(isCompact ? styles.serviceShellCompact : {}) }}>
-                <div style={{ ...styles.centerColumn, ...(isCompact ? styles.centerColumnCompact : {}) }}>
-                  <main style={styles.main}>
+                <main style={styles.main}>
               {selectedProfile ? (
                 <section>
                   <ProfilePanel
@@ -841,57 +794,7 @@ export default function ForumApp() {
                   </p>
                 </section>
               )}
-                  </main>
-                </div>
-
-                {!isCompact && (
-                  <aside style={styles.knowledgeSidebar}>
-                    <button
-                      type="button"
-                      style={styles.composeBtn}
-                      onClick={authUser ? toggleComposerOpen : () => setShowAuth(true)}
-                    >
-                      + Start a New Thread
-                    </button>
-
-                    <div style={styles.sideCard}>
-                      <div style={styles.sideCardTitle}>Top Users</div>
-                      <div style={styles.topUsersList}>
-                        {topAuthors.map((author, index) => (
-                          <button
-                            key={author.id}
-                            type="button"
-                            style={styles.userRow}
-                            onClick={() => openProfile({ id: author.id, type: author.type })}
-                          >
-                            <span style={{ ...styles.userAvatar, background: USER_AVATAR_PALETTE[index % USER_AVATAR_PALETTE.length] }}>
-                              {getInitials(author.id)}
-                            </span>
-                            <span style={styles.userName}>@{author.id}</span>
-                            <span style={styles.userCount}>{author.count}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div style={styles.sideCard}>
-                      <div style={styles.sideCardTitle}>Active Topics</div>
-                      <div style={styles.topicList}>
-                        {topTopics.map(([tag, count]) => (
-                          <button
-                            key={tag}
-                            type="button"
-                            style={styles.topicRow}
-                            onClick={() => openTagFilter(tag)}
-                          >
-                            <span style={styles.topicHash}>#{tag}</span>
-                            <span style={styles.topicCount}>{count}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </aside>
-                )}
+                </main>
               </div>
             </div>
 
@@ -1005,17 +908,13 @@ const styles = {
   },
   serviceShell: {
     width: "100%",
-    maxWidth: 1320,
+    maxWidth: 760,
     margin: "0 auto",
-    padding: "0 0 40px",
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) 312px",
-    gap: 24,
-    alignItems: "start",
+    padding: "0 12px 92px",
+    display: "block",
   },
   serviceShellCompact: {
     width: "100%",
-    gridTemplateColumns: "minmax(0, 1fr)",
     padding: "12px 12px 28px",
   },
   serviceRail: {
