@@ -4,6 +4,7 @@ import { deletePost, savePost, toggleLike, unsavePost } from "../api/client.js";
 import CommentSection from "./CommentSection.jsx";
 import { localizeLabel } from "../lib/localized-labels.js";
 import { sharePostLink } from "../lib/post-sharing.js";
+import AvatarImage from "./AvatarImage.jsx";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
@@ -57,56 +58,6 @@ function getPostTitle(post) {
   const firstLine = content.split(/\r?\n/)[0].trim();
   if (firstLine.length <= 72) return firstLine;
   return `${firstLine.slice(0, 72).trim()}…`;
-}
-
-const AVATAR_COLORS = [
-  ["#dbeafe", "#1d4ed8"],
-  ["#fce7f3", "#be185d"],
-  ["#d1fae5", "#065f46"],
-  ["#fef3c7", "#92400e"],
-  ["#ede9fe", "#5b21b6"],
-  ["#fee2e2", "#991b1b"],
-  ["#e0f2fe", "#0369a1"],
-  ["#f0fdf4", "#166534"],
-];
-
-function getAvatarColor(id = "") {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
-}
-
-function extractInitials(authorId, authorType) {
-  if (authorType === "agent") {
-    const num = (authorId || "").replace(/\D/g, "");
-    return num || (authorId || "?").slice(0, 2).toUpperCase();
-  }
-  return (authorId || "?").slice(0, 2).toUpperCase();
-}
-
-function Avatar({ authorId, authorType, size = 42 }) {
-  const initials = extractInitials(authorId, authorType);
-  const [bg, fg] = getAvatarColor(authorId);
-  const avatarSvg = `data:image/svg+xml;utf8,${encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
-      <defs>
-        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="${bg}" />
-          <stop offset="100%" stop-color="${fg}" />
-        </linearGradient>
-      </defs>
-      <rect width="96" height="96" rx="48" fill="url(#g)" />
-      <circle cx="48" cy="48" r="39" fill="rgba(255,255,255,0.26)" />
-      <text x="48" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#ffffff">${initials}</text>
-    </svg>
-  `)}`;
-  return (
-    <img
-      src={avatarSvg}
-      alt={`${authorId || "user"} avatar`}
-      style={{ ...styles.avatar, width: size, height: size }}
-    />
-  );
 }
 
 export default function PostCard({
@@ -214,7 +165,7 @@ export default function PostCard({
         >
           <div style={styles.feedHeader}>
             <div style={styles.feedAuthorGroup}>
-              <Avatar authorId={post.authorId} authorType={post.authorType} size={48} />
+              <AvatarImage authorId={post.authorId} authorType={post.authorType} size={48} />
               <div style={styles.feedAuthorMeta}>
                 <div style={styles.feedTitleRow}>
                   <span style={styles.feedTitle}>{postTitle}</span>
@@ -241,7 +192,7 @@ export default function PostCard({
 
           <div style={styles.feedFooter}>
             <div style={styles.feedFooterMeta}>
-              <Avatar authorId={post.authorId} authorType={post.authorType} size={24} />
+              <AvatarImage authorId={post.authorId} authorType={post.authorType} size={24} />
               <span style={styles.feedFooterText}>
                 {commentCount > 0 ? `${commentCount} answers` : "0 answers"}
                 {feedDateLabel ? `, ${feedDateLabel}` : ""}
@@ -262,7 +213,7 @@ export default function PostCard({
           style={styles.authorBtn}
           onClick={() => { onUserActivity(); onAuthorClick({ id: post.authorId, type: post.authorType }); }}
         >
-          <Avatar authorId={post.authorId} authorType={post.authorType} />
+          <AvatarImage authorId={post.authorId} authorType={post.authorType} />
           <div style={styles.authorMeta}>
             <div style={styles.postTitleRow}>
               <span style={styles.postTitle}>{postTitle}</span>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchComments, createComment, deleteComment } from "../api/client.js";
+import AvatarImage from "./AvatarImage.jsx";
 
 const DEFAULT_USER = { id: "user-guest", type: "user" };
 
@@ -97,7 +98,7 @@ export default function CommentSection({
           >
             <div style={styles.commentHeader}>
               <div style={styles.commentAuthorRow}>
-                <span style={styles.avatar}>{c.authorType === "agent" ? "🤖" : "👤"}</span>
+                <AvatarImage authorId={c.authorId} authorType={c.authorType} size={28} />
                 <div style={styles.author}>{c.authorId}</div>
               </div>
               {c.replyTargetType && (
@@ -207,16 +208,6 @@ const styles = {
     alignItems: "center",
     gap: 10,
     minWidth: 0,
-  },
-  avatar: {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 28,
-    height: 28,
-    borderRadius: 12,
-    background: "#f3f4f6",
-    fontSize: 13,
   },
   author: { fontSize: 13, fontWeight: 700, color: "#111827" },
   replyMeta: { marginTop: 4, fontSize: 11, color: "#9ca3af" },
