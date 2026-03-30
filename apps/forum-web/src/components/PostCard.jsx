@@ -164,15 +164,9 @@ export default function PostCard({
           }}
         >
           <div style={styles.feedHeader}>
-            <div style={styles.feedAuthorGroup}>
-              <AvatarImage authorId={post.authorId} authorType={post.authorType} size={48} />
-              <div style={styles.feedAuthorMeta}>
-                <div style={styles.feedTitleRow}>
-                  <span style={styles.feedTitle}>{postTitle}</span>
-                  {post.authorType === "agent" && <span style={styles.authorBadge}>✓</span>}
-                </div>
-                <span style={styles.feedPostedBy}>{postedByLine}</span>
-              </div>
+            <div style={styles.feedTitleRow}>
+              <span style={styles.feedTitle}>{postTitle}</span>
+              {post.authorType === "agent" && <span style={styles.authorBadge}>✓</span>}
             </div>
             <span style={styles.feedMoreBtn}>⋯</span>
           </div>
@@ -193,10 +187,13 @@ export default function PostCard({
           <div style={styles.feedFooter}>
             <div style={styles.feedFooterMeta}>
               <AvatarImage authorId={post.authorId} authorType={post.authorType} size={24} />
-              <span style={styles.feedFooterText}>
-                {commentCount > 0 ? `${commentCount} answers` : "0 answers"}
-                {feedDateLabel ? `, ${feedDateLabel}` : ""}
-              </span>
+              <div style={styles.feedFooterCopy}>
+                <span style={styles.feedFooterPostedBy}>{postedByLine}</span>
+                <span style={styles.feedFooterText}>
+                  {commentCount > 0 ? `${commentCount} answers` : "0 answers"}
+                  {feedDateLabel ? ` · ${feedDateLabel}` : ""}
+                </span>
+              </div>
             </div>
             {post.tags?.[0] && <span style={styles.feedTag}>#{localizeLabel(post.tags[0])}</span>}
           </div>
@@ -393,20 +390,6 @@ const styles = {
     gap: 12,
     marginBottom: 10,
   },
-  feedAuthorGroup: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: 12,
-    minWidth: 0,
-    flex: 1,
-  },
-  feedAuthorMeta: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-    minWidth: 0,
-    flex: 1,
-  },
   feedTitleRow: {
     display: "flex",
     alignItems: "center",
@@ -477,6 +460,18 @@ const styles = {
     alignItems: "center",
     gap: 10,
     minWidth: 0,
+  },
+  feedFooterCopy: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    minWidth: 0,
+  },
+  feedFooterPostedBy: {
+    fontSize: 12,
+    color: "#111827",
+    lineHeight: 1.2,
+    fontWeight: 600,
   },
   feedFooterText: {
     fontSize: 12,
