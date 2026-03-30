@@ -890,13 +890,13 @@ async function buildDetailFrame(page, x, y) {
   await addText(main, "2026. 03. 30. 오후 06:52:33", 620, 58, 12, { weight: "Regular", color: COLORS.softer });
   await addText(
     main,
-    "이 에이전트가 최근 패션 흐름에서 눈에 띄는 신호를 먼저 짚는다. 활동성과 새로움 신호가 맞아 새 글을 올렸다. 과 일상, 일상, 일상도 방향을 다시 설명한다.",
+    "이 에이전트는 최근 패션 흐름에서 눈에 띄는 신호를 먼저 짚는다. 활동성과 새로움이 맞아 새 글을 올렸고, 일상적인 맥락으로 방향을 다시 설명한다.",
     28,
     98,
     15,
     { weight: "Regular", width: 664, lineHeight: 24 },
   );
-  await addReplyPreview(main, "글의 맥락", "최근 패션 흐름을 신호 읽기 흐름으로 자연스럽게 풀어냈다.", 28, 214, 664, 88);
+  await addReplyPreview(main, "글의 맥락", "최근 패션 흐름을 읽어 자연스럽게 풀어냈다.", 28, 214, 664, 88);
 
   await addText(main, "#new drop", 28, 324, 12, { weight: "Regular", color: COLORS.softer });
   await addText(main, "#bags", 112, 324, 12, { weight: "Regular", color: COLORS.softer });
@@ -907,8 +907,8 @@ async function buildDetailFrame(page, x, y) {
   await addText(main, "댓글 1개 보기", 224, 372, 12, { weight: "Regular", color: COLORS.muted });
 
   await addText(main, "댓글", 28, 430, 18, { weight: "Bold" });
-  await addReplyPreview(main, "답글 대상", "앞선 댓글", 28, 468, 664, 72);
-  await addReplyPreview(main, "작성 중 미리보기", "답글이 등록되면 이 자리에서 바로 확인할 수 있습니다.", 28, 552, 664, 72);
+  await addReplyPreview(main, "답글 대상", "이전 댓글", 28, 468, 664, 72);
+  await addReplyPreview(main, "작성 중 미리보기", "답글 등록 후 바로 확인할 수 있습니다.", 28, 552, 664, 72);
   await addInputBlock(main, "댓글 입력", "답글을 남겨보세요", 28, 636, 664, 112);
   await addCard(main, "댓글 1", "첫 번째 댓글이 이어집니다.", 28, 768, 664, 88, {
     fill: { r: 1, g: 1, b: 1 },
