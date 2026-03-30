@@ -59,10 +59,10 @@ export default function DiscoveryPanel({
     <div style={styles.layout}>
       <section style={styles.hero}>
         <div style={styles.heroCopy}>
-          <p style={styles.kicker}>발견 허브</p>
-          <h2 style={styles.title}>Threads와 Reddit 사이의 핵심 탐색 흐름을 모아둔 곳</h2>
+          <p style={styles.kicker}>탐색</p>
+          <h2 style={styles.title}>읽을 글을 찾아보세요</h2>
           <p style={styles.description}>
-            검색하고, 인기 글을 훑고, 저장한 글을 다시 보고, 작성자 프로필에서 연속된 대화를 확인할 수 있습니다.
+            최신 글, 인기 글, 태그 검색을 한 화면에서 볼 수 있습니다.
           </p>
         </div>
 
@@ -169,7 +169,7 @@ const styles = {
   layout: {
     display: "flex",
     flexDirection: "column",
-    gap: 16,
+    gap: 14,
   },
   hero: {
     display: "grid",
@@ -177,19 +177,19 @@ const styles = {
     gap: 16,
     background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
     border: "1px solid #e5e7eb",
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 18,
+    padding: 18,
     boxShadow: "0 14px 40px rgba(15, 23, 42, 0.05)",
   },
   heroCopy: { display: "flex", flexDirection: "column", justifyContent: "center" },
   kicker: { margin: 0, fontSize: 12, fontWeight: 800, letterSpacing: "0.12em", color: "#2563eb" },
-  title: { margin: "8px 0 10px", fontSize: 32, lineHeight: 1.15, color: "#111827" },
-  description: { margin: 0, color: "#4b5563", fontSize: 15, lineHeight: 1.7, maxWidth: 640 },
-  modeGrid: { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 },
+  title: { margin: "8px 0 10px", fontSize: 28, lineHeight: 1.15, color: "#111827" },
+  description: { margin: 0, color: "#4b5563", fontSize: 14, lineHeight: 1.65, maxWidth: 640 },
+  modeGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 },
   modeCard: {
     textAlign: "left",
-    padding: 14,
-    borderRadius: 16,
+    padding: 16,
+    borderRadius: 18,
     border: "1px solid #dbe3f1",
     background: "#fff",
     cursor: "pointer",
@@ -198,16 +198,16 @@ const styles = {
     borderColor: "#111827",
     boxShadow: "0 10px 20px rgba(17, 24, 39, 0.08)",
   },
-  modeLabel: { fontSize: 18, fontWeight: 800, color: "#111827", marginBottom: 6 },
-  modeDescription: { fontSize: 13, color: "#6b7280", lineHeight: 1.5 },
+  modeLabel: { fontSize: 16, fontWeight: 800, color: "#111827", marginBottom: 6 },
+  modeDescription: { fontSize: 12, color: "#6b7280", lineHeight: 1.5 },
   controls: {
     display: "flex",
     alignItems: "center",
     gap: 8,
     background: "#fff",
     border: "1px solid #e5e7eb",
-    borderRadius: 16,
-    padding: 12,
+    borderRadius: 14,
+    padding: 10,
   },
   searchInput: {
     flex: 1,
@@ -231,11 +231,11 @@ const styles = {
     gap: 10,
     background: "#fff",
     border: "1px solid #e5e7eb",
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 14,
+    padding: 14,
   },
-  sectionLabel: { fontSize: 13, fontWeight: 800, color: "#6b7280" },
-  topicHint: { fontSize: 13, color: "#4b5563", lineHeight: 1.5 },
+  sectionLabel: { fontSize: 12, fontWeight: 800, color: "#6b7280" },
+  topicHint: { fontSize: 12, color: "#4b5563", lineHeight: 1.5 },
   topicChips: { display: "flex", flexWrap: "wrap", gap: 8 },
   topicChip: {
     display: "inline-flex",

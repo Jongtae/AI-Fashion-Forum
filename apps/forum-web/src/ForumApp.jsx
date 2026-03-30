@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { UsersRound } from "lucide-react";
 import { triggerAgentTick } from "./api/client.js";
 import PostForm from "./components/PostForm.jsx";
 import PostList from "./components/PostList.jsx";
@@ -64,6 +65,11 @@ function getInitialDiscoveryQuery() {
 function getInitialDiscoveryMode() {
   const params = new URLSearchParams(window.location.search);
   return ["recent", "popular", "search"].includes(params.get("mode")) ? params.get("mode") : "recent";
+}
+
+function getInitialCaptureMode() {
+  const params = new URLSearchParams(window.location.search);
+  return ["figma", "compact", "capture"].includes(params.get("capture"));
 }
 
 function ServiceContextSummary({
@@ -133,26 +139,26 @@ function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
     {
       id: "forum",
       title: "포럼 읽기",
-      description: "최신 글을 보고, 글쓰기와 댓글 흐름을 이어갑니다.",
-      buttonLabel: "포럼으로",
+      description: "최신 글을 읽고 바로 반응합니다.",
+      buttonLabel: "열기",
     },
     {
       id: "discover",
       title: "탐색하기",
-      description: "인기 글, 검색, 태그로 주제를 빠르게 찾습니다.",
-      buttonLabel: "탐색 열기",
+      description: "인기 글, 검색, 태그로 읽을 글을 찾습니다.",
+      buttonLabel: "보기",
     },
     {
       id: "feed",
       title: "맞춤 피드",
-      description: "내 반응에 맞춰 정렬된 글을 한 번에 봅니다.",
-      buttonLabel: "피드 보기",
+      description: "내 반응에 맞춘 글만 모아 봅니다.",
+      buttonLabel: "보기",
     },
     {
       id: "saved",
       title: "저장글",
       description: "나중에 다시 읽을 글을 모아둡니다.",
-      buttonLabel: "저장글 열기",
+      buttonLabel: "보기",
     },
   ];
 
@@ -216,7 +222,9 @@ function ServiceRail({
 }) {
   return (
     <aside style={styles.rail}>
-      <div style={styles.railBrand}>@</div>
+      <div style={styles.railBrand}>
+        <UsersRound size={20} strokeWidth={2.5} />
+      </div>
       <div style={styles.railNav}>
         {SERVICE_TABS.map((tabItem) => {
           const isActive = currentTab === tabItem.id;
@@ -253,7 +261,7 @@ function ServiceRail({
       </button>
       <div style={styles.railFooter}>
         <span style={styles.railFooterLine}>{authUser ? "로그인됨" : "게스트"}</span>
-        <span style={styles.railFooterLine}>service</span>
+        <span style={styles.railFooterLine}>포럼</span>
       </div>
     </aside>
   );
@@ -270,7 +278,6 @@ function ServiceSupportPanel({
   onShowAuth,
   onLogout,
   onActivateTab,
-  onOpenSavedPosts,
   onClearTab,
   onClearMode,
   onClearTag,
@@ -280,12 +287,12 @@ function ServiceSupportPanel({
     <aside style={styles.supportPanel}>
       <div style={styles.supportCard}>
         <div style={styles.supportTitle}>
-          {authUser ? `${authUser.displayName || authUser.username}님으로 참여 중` : "Threads형 포럼에 참여하기"}
+          {authUser ? `${authUser.displayName || authUser.username}님이 참여 중` : "포럼에 참여해 보세요"}
         </div>
         <p style={styles.supportText}>
           {authUser
-            ? "글을 읽고 저장하고, 에이전트 흐름과 함께 대화에 참여할 수 있습니다."
-            : "사람과 에이전트가 섞인 피드를 보고, 로그인 후 저장과 반응 흐름을 이어갈 수 있습니다."}
+            ? "글을 읽고 저장하고, 댓글과 공유로 이어갈 수 있습니다."
+            : "읽기, 찾기, 저장, 댓글 흐름을 바로 이어갈 수 있습니다."}
         </p>
         <button
           type="button"
@@ -298,7 +305,7 @@ function ServiceSupportPanel({
 
       <div style={styles.supportCard}>
         <div style={styles.supportMetaRow}>
-          <span style={styles.supportMetaLabel}>시뮬레이션</span>
+          <span style={styles.supportMetaLabel}>현재 진행</span>
           <span style={styles.supportMetaValue}>{isAutoRunning ? "자동 진행 중" : "일시정지"}</span>
         </div>
         <div style={styles.supportMetaRow}>
@@ -317,8 +324,6 @@ function ServiceSupportPanel({
         onClearTag={onClearTag}
         onClearSearch={onClearSearch}
       />
-
-      <ServiceQuickActions onActivateTab={onActivateTab} onOpenSavedPosts={onOpenSavedPosts} />
     </aside>
   );
 }
@@ -466,13 +471,14 @@ export default function ForumApp() {
   const [timeSpeed, setTimeSpeed] = useState(1);
   const [isAutoRunning, setIsAutoRunning] = useState(true);
   const [pendingTab, setPendingTab] = useState(null);
+  const [captureMode] = useState(getInitialCaptureMode);
   const [viewportWidth, setViewportWidth] = useState(
     typeof window === "undefined" ? 1280 : window.innerWidth
   );
   const autoTickInFlightRef = useRef(false);
   const prevSelectedPostIdRef = useRef(null);
   const previousServiceTabRef = useRef("forum");
-  const isCompact = viewportWidth < 1024;
+  const isCompact = captureMode || viewportWidth < 1024;
   const isMobile = viewportWidth < 768;
 
   useEffect(() => {
@@ -768,8 +774,10 @@ export default function ForumApp() {
           <>
             <div style={styles.serviceTopBar}>
               <div style={styles.serviceTopBrandWrap}>
-                <div style={styles.serviceTopBrand}>@</div>
-                <div style={styles.serviceTopBrandTitle}>threads-style forum</div>
+                <div style={styles.serviceTopBrand}>
+                  <UsersRound size={18} strokeWidth={2.5} />
+                </div>
+                <div style={styles.serviceTopBrandTitle}>포럼</div>
               </div>
               <div style={styles.userRow}>
                 <label style={styles.speedControl}>
@@ -889,14 +897,20 @@ export default function ForumApp() {
                   />
                 ) : (
                   <>
+                    <section style={styles.homeIntroSection}>
+                      <ServiceQuickActions
+                        onActivateTab={activateTab}
+                        onOpenSavedPosts={openSavedPosts}
+                      />
+                    </section>
                     <section style={styles.formSection}>
                       <div style={styles.composerGate}>
                         <div>
                           <p style={styles.composerTitle}>글쓰기</p>
                           <p style={styles.composerHint}>
                             {hasForumActivity || authUser
-                              ? "포럼 상호작용 이후 열리는 compact 진입점입니다."
-                              : "댓글·반응·로그인 이후에 활성화됩니다."}
+                              ? "글을 읽고 반응한 뒤 바로 열 수 있습니다."
+                              : "댓글·반응·로그인 이후에 열립니다."}
                           </p>
                         </div>
                         <button
@@ -1026,7 +1040,6 @@ export default function ForumApp() {
                   onShowAuth={() => setShowAuth(true)}
                   onLogout={handleLogout}
                   onActivateTab={activateTab}
-                  onOpenSavedPosts={openSavedPosts}
                   onClearTab={clearTabContext}
                   onClearMode={clearModeContext}
                   onClearTag={clearTagContext}
@@ -1046,7 +1059,7 @@ const styles = {
     minHeight: "100vh",
     background:
       "radial-gradient(circle at top left, rgba(255,255,255,0.98) 0%, rgba(246,246,246,0.96) 42%, #f1f1f1 100%)",
-    fontFamily: "\"SF Pro Display\", \"Helvetica Neue\", Arial, sans-serif",
+    fontFamily: "\"Apple SD Gothic Neo\", \"Noto Sans KR\", \"SF Pro Display\", \"Helvetica Neue\", Arial, sans-serif",
     color: "#111111",
   },
   serviceTopBar: {
@@ -1057,7 +1070,7 @@ const styles = {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 16,
-    padding: "18px 28px 14px",
+    padding: "14px 24px 12px",
     backdropFilter: "blur(18px)",
     background: "rgba(250,250,250,0.88)",
     borderBottom: "1px solid rgba(17,17,17,0.08)",
@@ -1075,36 +1088,36 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     border: "2px solid #111",
-    fontSize: 20,
-    fontWeight: 900,
+    color: "#111",
+    background: "#fff",
   },
   serviceTopBrandTitle: {
     fontSize: 15,
     fontWeight: 700,
     letterSpacing: "-0.02em",
-    textTransform: "lowercase",
+    textTransform: "none",
   },
   serviceShell: {
-    maxWidth: 1480,
+    maxWidth: 1440,
     margin: "0 auto",
-    padding: "18px 20px 32px",
+    padding: "16px 20px 32px",
     display: "grid",
     gridTemplateColumns: "120px minmax(0, 680px) 360px",
     justifyContent: "center",
-    gap: 28,
+    gap: 24,
     alignItems: "start",
   },
   serviceShellCompact: {
     gridTemplateColumns: "minmax(0, 1fr)",
-    padding: "14px 12px 28px",
+    padding: "12px 12px 28px",
   },
   rail: {
     position: "sticky",
-    top: 96,
+    top: 88,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: 22,
+    gap: 18,
     minHeight: "calc(100vh - 140px)",
   },
   railBrand: {
@@ -1115,8 +1128,7 @@ const styles = {
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 30,
-    fontWeight: 900,
+    color: "#111",
     background: "#fff",
   },
   railNav: {
@@ -1185,13 +1197,13 @@ const styles = {
   },
   railFooterLine: {
     fontSize: 11,
-    textTransform: "lowercase",
+    textTransform: "none",
   },
   centerColumn: {
     minWidth: 0,
     display: "flex",
     flexDirection: "column",
-    gap: 16,
+    gap: 12,
   },
   adminHeader: {
     display: "flex",
@@ -1330,7 +1342,7 @@ const styles = {
     padding: 0,
     display: "flex",
     flexDirection: "column",
-    gap: 20,
+    gap: 18,
   },
   adminMain: {
     maxWidth: 1120,
@@ -1358,20 +1370,21 @@ const styles = {
   },
   quickActionsTitle: {
     margin: 0,
-    fontSize: 20,
+    fontSize: 18,
     lineHeight: 1.2,
     color: "#111827",
   },
   quickActionsText: {
     margin: 0,
-    fontSize: 14,
-    lineHeight: 1.6,
+    fontSize: 13,
+    lineHeight: 1.55,
     color: "#4b5563",
+    maxWidth: 540,
   },
   quickActionsGrid: {
     display: "grid",
     gridTemplateColumns: "1fr",
-    gap: 10,
+    gap: 12,
   },
   quickActionCard: {
     textAlign: "left",
@@ -1383,11 +1396,16 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: 8,
-    minHeight: 104,
+    minHeight: 96,
     boxShadow: "0 10px 24px rgba(17,17,17,0.05)",
   },
-  quickActionTitle: { fontSize: 16, fontWeight: 800, color: "#111827" },
-  quickActionDescription: { fontSize: 13, lineHeight: 1.5, color: "#6b7280" },
+  quickActionTitle: { fontSize: 15, fontWeight: 800, color: "#111827" },
+  quickActionDescription: { fontSize: 12, lineHeight: 1.5, color: "#6b7280" },
+  homeIntroSection: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+  },
   quickActionButton: {
     alignSelf: "flex-start",
     marginTop: "auto",
@@ -1608,34 +1626,34 @@ const styles = {
     top: 96,
     display: "flex",
     flexDirection: "column",
-    gap: 16,
+    gap: 12,
   },
   supportCard: {
     background: "rgba(255,255,255,0.92)",
     border: "1px solid rgba(17,17,17,0.08)",
     borderRadius: 28,
-    padding: 24,
+    padding: 20,
     boxShadow: "0 18px 40px rgba(17,17,17,0.06)",
   },
   supportTitle: {
-    fontSize: 19,
+    fontSize: 17,
     fontWeight: 800,
     lineHeight: 1.3,
     color: "#111",
-    marginBottom: 10,
+    marginBottom: 8,
   },
   supportText: {
     margin: 0,
     color: "#6b7280",
-    fontSize: 14,
-    lineHeight: 1.65,
+    fontSize: 13,
+    lineHeight: 1.55,
   },
   supportPrimaryButton: {
-    marginTop: 20,
+    marginTop: 16,
     width: "100%",
     border: "none",
     borderRadius: 20,
-    padding: "16px 18px",
+    padding: "14px 16px",
     background: "#fff",
     boxShadow: "inset 0 0 0 1px rgba(17,17,17,0.08)",
     color: "#111",
@@ -1647,13 +1665,14 @@ const styles = {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
+    marginBottom: 8,
   },
   supportMetaLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#6b7280",
   },
   supportMetaValue: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 700,
     color: "#111",
   },

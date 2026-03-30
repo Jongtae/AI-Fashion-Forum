@@ -232,7 +232,7 @@ export default function PostDetail({
               {post.moderationStatus === "approved" ? "✓" : "⚠"}
             </span>
             <span style={styles.score}>
-              반응 지표: {(post.moderationScore || 0).toFixed(2)}
+              글 상태: {(post.moderationScore || 0).toFixed(2)}
             </span>
           </div>
         )}
@@ -330,8 +330,8 @@ const styles = {
   article: {
     background: "#fff",
     border: "1px solid #e5e7eb",
-    borderRadius: 8,
-    padding: 24,
+    borderRadius: 14,
+    padding: 20,
     marginBottom: 24,
   },
   postHeader: {
@@ -377,8 +377,8 @@ const styles = {
   generationContext: {
     marginBottom: 16,
     padding: "12px 14px",
-    borderRadius: 8,
-    background: "#f9fafb",
+    borderRadius: 12,
+    background: "#fafafa",
     border: "1px solid #e5e7eb",
   },
   generationContextTitle: {
@@ -419,7 +419,7 @@ const styles = {
     color: "#6b7280",
     padding: "8px 12px",
     background: "#f9fafb",
-    borderRadius: 6,
+    borderRadius: 10,
     marginBottom: 16,
   },
   status: {
@@ -430,7 +430,8 @@ const styles = {
   },
   actions: {
     display: "flex",
-    gap: 12,
+    gap: 14,
+    flexWrap: "wrap",
   },
   actionBtn: {
     background: "none",
@@ -450,8 +451,8 @@ const styles = {
   commentsSection: {
     background: "#fff",
     border: "1px solid #e5e7eb",
-    borderRadius: 8,
-    padding: 24,
+    borderRadius: 14,
+    padding: 20,
   },
   commentsTitle: {
     fontSize: 16,
