@@ -12,15 +12,7 @@ export default function CommentSection({
   onJumpToTarget = () => {},
 }) {
   const [text, setText] = useState("");
-  const [statusMessage, setStatusMessage] = useState("");
   const queryClient = useQueryClient();
-  const replyTargetLabel = replyTarget?.type === "comment" ? "댓글" : "글";
-  const submitHint = replyTarget?.preview
-    ? `이 답글은 ${replyTargetLabel}에 연결됩니다. 제출 전 대상과 내용을 한 번 더 확인해 주세요.`
-    : "";
-  const draftPreview = replyTarget?.preview && text.trim()
-    ? text.trim()
-    : "";
 
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ["comments", postId],
@@ -37,7 +29,6 @@ export default function CommentSection({
       queryClient.invalidateQueries({ queryKey: ["operator-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["latest-report"] });
       setText("");
-      setStatusMessage("댓글이 등록됐어요.");
     },
   });
 
@@ -53,16 +44,6 @@ export default function CommentSection({
     },
   });
 
-  useEffect(() => {
-    if (!statusMessage) return undefined;
-
-    const timerId = window.setTimeout(() => {
-      setStatusMessage("");
-    }, 2200);
-
-    return () => window.clearTimeout(timerId);
-  }, [statusMessage]);
-
   function handleSubmit(e) {
     e.preventDefault();
     if (!text.trim()) return;
@@ -77,47 +58,15 @@ export default function CommentSection({
   return (
     <div style={styles.container}>
       {isLoading && <p style={styles.loading}>댓글을 불러오는 중…</p>}
-      <div style={styles.threadIntro}>
-        <div style={styles.threadIntroTitle}>댓글 스레드</div>
-        <div style={styles.threadIntroText}>
-          글 아래에서 대화를 이어가며 답글 대상과 작성 흐름을 함께 볼 수 있습니다.
-        </div>
-      </div>
       {replyTarget?.preview && (
-        <div style={styles.replyTargetCard}>
-          <div style={styles.replyTargetHeader}>
-            <span style={styles.replyTargetLabel}>답글 대상</span>
-            <span style={styles.replyTargetType}>
-              {replyTarget.type === "comment" ? "댓글" : "글"}
-            </span>
-          </div>
-          <div style={styles.replyTargetAuthor}>
-            {replyTarget.type === "comment"
-              ? `@${replyTarget.authorId || "comment"}`
-              : `@${replyTarget.authorId || "post"}`}
-          </div>
-          <div style={styles.replyTargetPreview}>{replyTarget.preview}</div>
+        <div style={styles.replyTargetStrip}>
+          답글 대상 · {replyTarget.type === "comment" ? "댓글" : "글"} · @
+          {replyTarget.authorId || (replyTarget.type === "comment" ? "comment" : "post")}
         </div>
       )}
       {!isLoading && comments.length === 0 && (
         <div style={styles.emptyState}>
-          <div style={styles.emptyStateTitle}>첫 댓글을 남겨보세요!</div>
-          <div style={styles.emptyStateText}>
-            이 대화의 시작을 먼저 남기면 다른 사람도 이어서 반응하기 쉬워집니다.
-          </div>
-        </div>
-      )}
-      {statusMessage && <div style={styles.statusMessage}>{statusMessage}</div>}
-      {submitHint && <div style={styles.submitHint}>{submitHint}</div>}
-      {draftPreview && (
-        <div style={styles.draftPreview}>
-          <div style={styles.draftPreviewHeader}>작성 중 미리보기</div>
-          <div style={styles.draftPreviewBody}>
-            <div style={styles.draftPreviewTarget}>
-              {replyTargetLabel} · @{replyTarget.authorId || "post"}
-            </div>
-            <div style={styles.draftPreviewText}>{draftPreview}</div>
-          </div>
+          <div style={styles.emptyStateTitle}>댓글이 아직 없습니다.</div>
         </div>
       )}
       <form onSubmit={handleSubmit} style={styles.form}>
@@ -149,18 +98,7 @@ export default function CommentSection({
             <div style={styles.commentHeader}>
               <div style={styles.commentAuthorRow}>
                 <span style={styles.avatar}>{c.authorType === "agent" ? "🤖" : "👤"}</span>
-                <div>
-                  <div style={styles.author}>
-                    {c.authorId}
-                  </div>
-                  <div style={styles.commentMeta}>
-                    {c.replyTargetType
-                      ? c.replyTargetType === "comment"
-                        ? `댓글에 답글`
-                        : `글에 답글`
-                      : "새 댓글"}
-                  </div>
-                </div>
+                <div style={styles.author}>{c.authorId}</div>
               </div>
               {c.replyTargetType && (
                 <button
@@ -182,12 +120,6 @@ export default function CommentSection({
               )}
             </div>
             <p style={styles.text}>{c.content}</p>
-            {c.generationContext?.summary && (
-              <div style={styles.generationContext}>
-                <div style={styles.generationContextTitle}>댓글의 맥락</div>
-                <div style={styles.generationContextSummary}>{c.generationContext.summary}</div>
-              </div>
-            )}
             <div style={styles.commentFooter}>
               {c.authorId === currentUser.id && (
                 <button
@@ -212,24 +144,6 @@ export default function CommentSection({
 const styles = {
   container: { paddingTop: 12 },
   loading: { fontSize: 13, color: "#9ca3af" },
-  threadIntro: {
-    marginBottom: 12,
-    padding: "12px 14px",
-    borderRadius: 16,
-    border: "1px solid rgba(17,17,17,0.06)",
-    background: "#fff",
-  },
-  threadIntroTitle: {
-    fontSize: 13,
-    fontWeight: 800,
-    color: "#111827",
-    marginBottom: 4,
-  },
-  threadIntroText: {
-    fontSize: 12,
-    lineHeight: 1.5,
-    color: "#64748b",
-  },
   emptyState: {
     marginBottom: 12,
     padding: 12,
@@ -241,60 +155,19 @@ const styles = {
     fontSize: 13,
     fontWeight: 700,
     color: "#334155",
-    marginBottom: 4,
+    marginBottom: 0,
   },
-  emptyStateText: {
-    fontSize: 12,
-    lineHeight: 1.5,
-    color: "#64748b",
-  },
-  statusMessage: {
+  replyTargetStrip: {
     marginBottom: 10,
-    padding: "8px 10px",
-    borderRadius: 12,
-    background: "#eff6ff",
-    border: "1px solid #bfdbfe",
-    color: "#1d4ed8",
-    fontSize: 12,
-    fontWeight: 600,
-  },
-  replyTargetCard: {
-    marginBottom: 12,
-    padding: 14,
-    borderRadius: 16,
-    border: "1px solid rgba(17,17,17,0.06)",
-    background: "#fff",
-  },
-  replyTargetHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-    marginBottom: 6,
-  },
-  replyTargetLabel: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#374151",
-  },
-  replyTargetType: {
-    fontSize: 11,
-    fontWeight: 700,
-    color: "#374151",
-    background: "#e5e7eb",
+    padding: "8px 12px",
     borderRadius: 999,
-    padding: "2px 8px",
-  },
-  replyTargetAuthor: {
+    background: "#f3f4f6",
+    color: "#374151",
     fontSize: 12,
     fontWeight: 600,
-    color: "#374151",
-    marginBottom: 4,
-  },
-  replyTargetPreview: {
-    fontSize: 13,
-    lineHeight: 1.5,
-    color: "#111827",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
   },
   replyMetaBtn: {
     marginTop: 4,
@@ -305,40 +178,6 @@ const styles = {
     color: "#2563eb",
     cursor: "pointer",
     textAlign: "left",
-  },
-  submitHint: {
-    marginBottom: 10,
-    fontSize: 12,
-    lineHeight: 1.5,
-    color: "#4b5563",
-  },
-  draftPreview: {
-    marginBottom: 12,
-    padding: 14,
-    borderRadius: 16,
-    border: "1px solid rgba(17,17,17,0.06)",
-    background: "#faf7f2",
-  },
-  draftPreviewHeader: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#374151",
-    marginBottom: 8,
-  },
-  draftPreviewBody: {
-    display: "grid",
-    gap: 6,
-  },
-  draftPreviewTarget: {
-    fontSize: 11,
-    fontWeight: 700,
-    color: "#6b7280",
-  },
-  draftPreviewText: {
-    fontSize: 13,
-    lineHeight: 1.5,
-    color: "#111827",
-    whiteSpace: "pre-wrap",
   },
   commentList: {
     display: "flex",
@@ -380,28 +219,8 @@ const styles = {
     fontSize: 13,
   },
   author: { fontSize: 13, fontWeight: 700, color: "#111827" },
-  commentMeta: { fontSize: 11, color: "#94a3b8", marginTop: 2 },
   replyMeta: { marginTop: 4, fontSize: 11, color: "#9ca3af" },
   text: { margin: 0, fontSize: 14, color: "#374151", lineHeight: 1.65 },
-  generationContext: {
-    marginTop: 8,
-    padding: "10px 12px",
-    borderRadius: 14,
-    background: "#faf7f2",
-    border: "1px solid rgba(17,17,17,0.06)",
-  },
-  generationContextTitle: {
-    fontSize: 11,
-    fontWeight: 700,
-    color: "#374151",
-    marginBottom: 3,
-  },
-  generationContextSummary: {
-    fontSize: 12,
-    color: "#4b5563",
-    lineHeight: 1.5,
-    marginBottom: 2,
-  },
   commentFooter: {
     display: "flex",
     justifyContent: "flex-end",
