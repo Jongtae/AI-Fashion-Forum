@@ -25,29 +25,32 @@ function loadStoredUser() {
   return null;
 }
 
+function getPathSegments() {
+  return window.location.pathname.split("/").filter(Boolean);
+}
+
 function getInitialTab() {
-  const params = new URLSearchParams(window.location.search);
-  const view = params.get("view");
-  const path = window.location.pathname;
-  if (path.startsWith("/admin") || path.startsWith("/operator")) {
+  const [first] = getPathSegments();
+  if (first === "admin" || first === "operator") {
     return "admin";
   }
-
-  return ["forum", "discover", "saved"].includes(view) ? view : "forum";
+  if (first === "discover") return "discover";
+  if (first === "saved") return "saved";
+  return "forum";
 }
 
 function getInitialSelectedPostId() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("postId") || null;
+  const [first, second] = getPathSegments();
+  return first === "post" && second ? second : null;
 }
 
 function getInitialSelectedProfile() {
-  const params = new URLSearchParams(window.location.search);
-  const profileId = params.get("profileId");
+  const [first, second, third] = getPathSegments();
+  const profileId = first === "profile" ? (third || second) : null;
   if (!profileId) return null;
   return {
     id: profileId,
-    type: params.get("profileType") || "user",
+    type: first === "profile" && third ? second : "user",
   };
 }
 
@@ -194,16 +197,14 @@ const SERVICE_TABS = [
   { id: "saved", label: "저장글" },
 ];
 
-function setPostUrl(postId, { replace = true } = {}) {
-  const params = new URLSearchParams(window.location.search);
-  if (postId) {
-    params.set("postId", postId);
-  } else {
-    params.delete("postId");
-  }
+function buildNextUrl(pathname, { preserveSearch = true } = {}) {
+  const search = preserveSearch ? window.location.search : "";
+  return search ? `${pathname}${search}` : pathname;
+}
 
-  const search = params.toString();
-  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+function setPostUrl(postId, { replace = true } = {}) {
+  const nextPath = postId ? `/post/${postId}` : "/forum";
+  const nextUrl = buildNextUrl(nextPath);
   if (replace) {
     window.history.replaceState({}, "", nextUrl);
   } else {
@@ -212,17 +213,12 @@ function setPostUrl(postId, { replace = true } = {}) {
 }
 
 function setProfileUrl(profile, { replace = true } = {}) {
-  const params = new URLSearchParams(window.location.search);
+  let nextPath = "/forum";
   if (profile?.id) {
-    params.set("profileId", profile.id);
-    params.set("profileType", profile.type || "user");
-  } else {
-    params.delete("profileId");
-    params.delete("profileType");
+    nextPath = `/profile/${profile.type || "user"}/${profile.id}`;
   }
 
-  const search = params.toString();
-  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+  const nextUrl = buildNextUrl(nextPath);
   if (replace) {
     window.history.replaceState({}, "", nextUrl);
   } else {
@@ -282,15 +278,11 @@ function setDiscoveryModeUrl(mode, { replace = true } = {}) {
 }
 
 function setViewUrl(view, { replace = true } = {}) {
-  const params = new URLSearchParams(window.location.search);
-  if (view) {
-    params.set("view", view);
-  } else {
-    params.delete("view");
-  }
-
-  const search = params.toString();
-  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+  let nextPath = "/forum";
+  if (view === "discover") nextPath = "/discover";
+  if (view === "saved") nextPath = "/saved";
+  if (view === "admin") nextPath = "/admin";
+  const nextUrl = buildNextUrl(nextPath);
   if (replace) {
     window.history.replaceState({}, "", nextUrl);
   } else {
@@ -399,13 +391,12 @@ export default function ForumApp() {
   useEffect(() => {
     const syncSelectedPostFromLocation = () => {
       const params = new URLSearchParams(window.location.search);
-      const view = params.get("view");
-      setTab(["forum", "discover", "saved"].includes(view) ? view : "forum");
-      setSelectedPostId(params.get("postId") || null);
-      const profileId = params.get("profileId");
+      const [first, second, third] = getPathSegments();
+      setTab(first === "admin" || first === "operator" ? "admin" : first === "discover" ? "discover" : first === "saved" ? "saved" : "forum");
+      setSelectedPostId(first === "post" && second ? second : null);
       setSelectedProfile(
-        profileId
-          ? { id: profileId, type: params.get("profileType") || "user" }
+        first === "profile" && second
+          ? { id: third || second, type: third ? second : "user" }
           : null
       );
       setActiveTagFilter(params.get("tag") || "");
