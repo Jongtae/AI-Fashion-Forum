@@ -5,7 +5,6 @@ import { triggerAgentTick } from "./api/client.js";
 import PostForm from "./components/PostForm.jsx";
 import PostList from "./components/PostList.jsx";
 import PostDetail from "./components/PostDetail.jsx";
-import PersonalisedFeed from "./components/PersonalisedFeed.jsx";
 import DiscoveryPanel from "./components/DiscoveryPanel.jsx";
 import AuthModal from "./components/AuthModal.jsx";
 import AdminDashboard from "./components/AdminDashboard.jsx";
@@ -34,7 +33,7 @@ function getInitialTab() {
     return "admin";
   }
 
-  return ["forum", "discover", "feed", "saved"].includes(view) ? view : "forum";
+  return ["forum", "discover", "saved"].includes(view) ? view : "forum";
 }
 
 function getInitialSelectedPostId() {
@@ -192,7 +191,6 @@ function ServiceSidebar({
 const SERVICE_TABS = [
   { id: "forum", label: "포럼" },
   { id: "discover", label: "탐색" },
-  { id: "feed", label: "맞춤 피드" },
   { id: "saved", label: "저장글" },
 ];
 
@@ -402,7 +400,7 @@ export default function ForumApp() {
     const syncSelectedPostFromLocation = () => {
       const params = new URLSearchParams(window.location.search);
       const view = params.get("view");
-      setTab(["forum", "discover", "feed", "saved"].includes(view) ? view : "forum");
+      setTab(["forum", "discover", "saved"].includes(view) ? view : "forum");
       setSelectedPostId(params.get("postId") || null);
       const profileId = params.get("profileId");
       setSelectedProfile(
@@ -588,7 +586,6 @@ export default function ForumApp() {
       try {
         await triggerAgentTick({ ticks: 1, speed: 1 });
         await queryClient.invalidateQueries({ queryKey: ["agent-loop-status"] });
-        await queryClient.invalidateQueries({ queryKey: ["feed"] });
         await queryClient.invalidateQueries({ queryKey: ["posts"] });
         await queryClient.invalidateQueries({ queryKey: ["agent-states"] });
         await queryClient.invalidateQueries({ queryKey: ["operator-dashboard"] });
@@ -775,16 +772,6 @@ export default function ForumApp() {
                     onAuthorClick={openProfile}
                   />
                 </section>
-              ) : tab === "feed" ? (
-                <section>
-                  <PersonalisedFeed
-                    currentUser={currentUser}
-                    onUserActivity={markForumActivity}
-                    onRequireAuth={() => setShowAuth(true)}
-                    isAuthenticated={Boolean(authUser)}
-                    onAuthorClick={openProfile}
-                  />
-                </section>
               ) : tab === "saved" ? (
                 <section style={styles.savedSection}>
                   <div style={styles.savedHeader}>저장글</div>
@@ -816,7 +803,7 @@ export default function ForumApp() {
                 <section style={styles.placeholderCard}>
                   <p style={styles.placeholderTitle}>관리 화면은 `/admin` 경로에서 볼 수 있어요.</p>
                   <p style={styles.placeholderText}>
-                    서비스 화면에서는 포럼과 맞춤 피드만 보여드려요.
+                    서비스 화면에서는 포럼, 탐색, 저장글만 보여드려요.
                   </p>
                 </section>
               )}
