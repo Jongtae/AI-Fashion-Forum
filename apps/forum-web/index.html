@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Fashion Forum</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      html,
+      body {
+        min-height: 100%;
+        background: radial-gradient(circle at top left, rgba(217,231,255,0.72) 0%, rgba(255,255,255,0.98) 34%, rgba(232,240,255,0.88) 68%, #f7f8fc 100%);
+      }
+
+      body {
+        margin: 0;
+      }
+
+      #root {
+        min-height: 100vh;
+      }
+    </style>
     <script>
       tailwind.config = {
         darkMode: "class",
@@ -18,7 +33,7 @@
       };
     </script>
   </head>
-  <body class="bg-[#f7f8fc] text-[#111827] antialiased">
+  <body class="text-[#111827] antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
