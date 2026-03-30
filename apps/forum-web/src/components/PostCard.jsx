@@ -73,6 +73,8 @@ export default function PostCard({
   const [shareButtonLabel, setShareButtonLabel] = useState("공유");
   const queryClient = useQueryClient();
   const commentCount = Number(post.commentCount || 0);
+  const mediaUrl = Array.isArray(post.imageUrls) ? post.imageUrls[0] : post.imageUrls;
+  const hasMedia = Boolean(mediaUrl);
   const commentButtonText = commentCount > 0
     ? `댓글 ${commentCount}개 ${showComments ? "닫기" : "보기"}`
     : `댓글 ${showComments ? "닫기" : "보기"}`;
@@ -137,9 +139,10 @@ export default function PostCard({
   const canDelete = post.authorId === currentUser.id;
   const CLAMP_LINES = 3;
   const needsClamp = !expanded && (post.content || "").split("\n").length > CLAMP_LINES || (post.content || "").length > 200;
+  const contentLines = hasMedia ? 2 : 3;
 
   return (
-    <div style={styles.card} data-post-card={post._id}>
+    <div style={{ ...styles.card, ...(hasMedia ? styles.cardMedia : styles.cardText) }} data-post-card={post._id}>
       <div style={styles.header}>
         <button
           type="button"
@@ -148,7 +151,10 @@ export default function PostCard({
         >
           <Avatar authorId={post.authorId} authorType={post.authorType} />
           <div style={styles.authorMeta}>
-            <span style={styles.author}>{post.authorId}</span>
+            <div style={styles.authorLine}>
+              <span style={styles.author}>{post.authorId}</span>
+              {post.authorType === "agent" && <span style={styles.authorBadge}>✓</span>}
+            </div>
             <span style={styles.time}>{formatPostTime(post.createdAt)}</span>
           </div>
         </button>
@@ -158,6 +164,7 @@ export default function PostCard({
         <p
           style={{
             ...styles.content,
+            ...(hasMedia ? styles.contentMedia : {}),
             ...(needsClamp ? styles.contentClamped : {}),
             cursor: !readOnly && onSelectPost ? "pointer" : "default",
           }}
@@ -172,7 +179,26 @@ export default function PostCard({
         )}
       </div>
 
-      {post.tags?.length > 0 && (
+      {hasMedia && (
+        <button
+          type="button"
+          style={styles.mediaButton}
+          onClick={() => {
+            if (readOnly) return;
+            onUserActivity();
+            onSelectPost?.(post._id);
+          }}
+        >
+          <img
+            src={mediaUrl}
+            alt={post.content?.slice(0, 80) || "게시글 이미지"}
+            style={styles.media}
+            loading="lazy"
+          />
+        </button>
+      )}
+
+      {!hasMedia && post.tags?.length > 0 && (
         <div style={styles.tags}>
           {post.tags.map((t) =>
             readOnly ? (
@@ -261,14 +287,28 @@ const styles = {
     background: "transparent",
     border: "none",
     borderRadius: 0,
-    padding: "16px 0 18px",
+    padding: "14px 0 20px",
+    boxShadow: "none",
+  },
+  cardMedia: {
+    background: "linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(249,250,251,0.98) 100%)",
+    border: "1px solid #e5e7eb",
+    borderRadius: 26,
+    padding: 16,
+    boxShadow: "0 10px 30px rgba(15, 23, 42, 0.05)",
+  },
+  cardText: {
+    background: "transparent",
+    border: "none",
+    borderRadius: 0,
+    padding: "14px 0 20px",
     boxShadow: "none",
   },
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 10,
   },
   authorBtn: {
     background: "none",
@@ -300,14 +340,32 @@ const styles = {
     alignItems: "flex-start",
     gap: 2,
   },
+  authorLine: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+  },
   author: {
-    fontSize: 13,
-    fontWeight: 700,
+    fontSize: 14,
+    fontWeight: 750,
     color: "#111827",
     lineHeight: 1.2,
   },
+  authorBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: "999px",
+    background: "#2563eb",
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: 800,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    lineHeight: 1,
+  },
   time: {
-    fontSize: 11,
+    fontSize: 12,
     color: "#94a3b8",
     lineHeight: 1.2,
   },
@@ -318,9 +376,14 @@ const styles = {
     fontSize: 15,
     color: "#111827",
     margin: 0,
-    lineHeight: 1.75,
+    lineHeight: 1.7,
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
+  },
+  contentMedia: {
+    fontSize: 16,
+    lineHeight: 1.65,
+    marginBottom: 12,
   },
   contentClamped: {
     display: "-webkit-box",
@@ -339,37 +402,58 @@ const styles = {
     cursor: "pointer",
     display: "block",
   },
+  mediaButton: {
+    display: "block",
+    width: "100%",
+    padding: 0,
+    margin: "0 0 14px",
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    textAlign: "left",
+  },
+  media: {
+    display: "block",
+    width: "100%",
+    aspectRatio: "1 / 1",
+    objectFit: "cover",
+    borderRadius: 28,
+    background: "#f3f4f6",
+  },
   tags: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 },
   tagBtn: {
     fontSize: 11,
-    color: "#6b7280",
-    background: "transparent",
-    padding: 0,
-    borderRadius: 0,
-    border: "none",
+    color: "#4b5563",
+    background: "#f8fafc",
+    padding: "5px 8px",
+    borderRadius: 999,
+    border: "1px solid #e5e7eb",
     cursor: "pointer",
     appearance: "none",
     fontFamily: "inherit",
     lineHeight: 1.4,
   },
-  actions: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 2 },
+  actions: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 2, alignItems: "center" },
   actionBtn: {
-    background: "transparent",
-    border: "none",
+    background: "#ffffff",
+    border: "1px solid #e5e7eb",
     fontSize: 12,
-    color: "#6b7280",
+    color: "#374151",
     cursor: "pointer",
-    padding: "2px 0",
-    borderRadius: 0,
+    padding: "7px 10px",
+    borderRadius: 999,
     fontFamily: "inherit",
     lineHeight: 1.2,
-    minHeight: 24,
+    minHeight: 30,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 5,
   },
-  actionBtnLiked: { color: "#dc2626" },
-  actionBtnSaved: { color: "#0f766e" },
-  actionBtnActive: { color: "#1d4ed8" },
+  actionBtnLiked: { color: "#dc2626", borderColor: "#fecaca", background: "#fff7f7" },
+  actionBtnSaved: { color: "#0f766e", borderColor: "#99f6e4", background: "#f0fdfa" },
+  actionBtnActive: { color: "#1d4ed8", borderColor: "#bfdbfe", background: "#eff6ff" },
   actionBtnDelete: { color: "#dc2626", marginLeft: "auto" },
-  shareState: { marginTop: 6, fontSize: 11, lineHeight: 1.4 },
+  shareState: { marginTop: 8, fontSize: 11, lineHeight: 1.4 },
   shareStateSuccess: { color: "#0f766e" },
   shareStateError: { color: "#dc2626" },
 };
