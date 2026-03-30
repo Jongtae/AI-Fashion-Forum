@@ -41,20 +41,22 @@ export default function PersonalisedFeed({
   const feed = data?.feed ?? [];
 
   return (
-    <div>
-      {/* Agent status banner */}
+    <div style={styles.layout}>
       {agentStatus && (
-        <div style={styles.banner}>
-          <div style={styles.bannerCopy}>
-            <span style={styles.bannerKicker}>맞춤 피드</span>
-            <span style={styles.bannerText}>
+        <section style={styles.headerCard}>
+          <div style={styles.headerCopy}>
+            <div style={styles.kickerRow}>
+              <span style={styles.bannerKicker}>맞춤 피드</span>
+              {agentStatus.growth?.ticksUntilNextSpawn != null && (
+                <span style={styles.badge}>다음 합류까지 {agentStatus.growth.ticksUntilNextSpawn}틱</span>
+              )}
+            </div>
+            <div style={styles.bannerText}>
               현재 흐름 {agentStatus.currentRound}회 · 참여자 {agentStatus.agentCount ?? 0}명 · 글 {agentStatus.db?.agentPostCount ?? 0}개
-            </span>
-            {agentStatus.growth?.ticksUntilNextSpawn != null && (
-              <span style={styles.bannerSubtext}>
-                다음 합류까지 {agentStatus.growth.ticksUntilNextSpawn}틱
-              </span>
-            )}
+            </div>
+            <div style={styles.bannerSubtext}>
+              글 흐름을 따라가며 반응이 쌓이는 커뮤니티 피드입니다.
+            </div>
           </div>
           <button
             style={styles.tickBtn}
@@ -66,27 +68,30 @@ export default function PersonalisedFeed({
           >
             {tickMutation.isPending ? "진행 중…" : `+ 3틱 (${timeSpeed}x)`}
           </button>
-        </div>
+        </section>
       )}
 
-      {/* Experiment flag selector */}
-      <div style={styles.flagRow}>
-        <span style={styles.flagLabel}>피드 방식</span>
-        {FLAGS.map((f) => (
-          <button
-            key={f}
-            style={{ ...styles.flagBtn, ...(flag === f ? styles.flagActive : {}) }}
-            onClick={() => setFlag(f)}
-          >
-            {f}
+      <section style={styles.controlsCard}>
+        <div style={styles.controlsHeader}>
+          <span style={styles.flagLabel}>피드 방식</span>
+          <button style={styles.refreshBtn} onClick={() => refetch()}>
+            ↻ 새로고침
           </button>
-        ))}
-        <button style={styles.refreshBtn} onClick={() => refetch()}>
-          ↻
-        </button>
-      </div>
+        </div>
+        <div style={styles.flagRow}>
+          {FLAGS.map((f) => (
+            <button
+              key={f}
+              style={{ ...styles.flagBtn, ...(flag === f ? styles.flagActive : {}) }}
+              onClick={() => setFlag(f)}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </section>
 
-        {isLoading && <p style={styles.msg}>피드 계산 중…</p>}
+      {isLoading && <p style={styles.msg}>피드 계산 중…</p>}
       {isError && <p style={styles.err}>{error?.message || "피드 로딩 실패"}</p>}
       {!isLoading && feed.length === 0 && (
         <p style={styles.msg}>
@@ -126,24 +131,34 @@ export default function PersonalisedFeed({
 }
 
 const styles = {
-  banner: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 16,
-    background: "#fff",
-    color: "#111827",
-    padding: "16px 18px",
-    borderRadius: 20,
-    border: "1px solid rgba(17,17,17,0.06)",
-    boxShadow: "0 10px 20px rgba(17,17,17,0.04)",
-    marginBottom: 12,
-  },
-  bannerCopy: {
+  layout: {
     display: "flex",
     flexDirection: "column",
-    gap: 4,
+    gap: 14,
+  },
+  headerCard: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 18,
+    background: "#fff",
+    color: "#111827",
+    padding: "18px 20px",
+    borderRadius: 24,
+    border: "1px solid rgba(17,17,17,0.06)",
+    boxShadow: "0 10px 20px rgba(17,17,17,0.04)",
+  },
+  headerCopy: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
     minWidth: 0,
+  },
+  kickerRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
   },
   bannerKicker: {
     fontSize: 12,
@@ -151,10 +166,21 @@ const styles = {
     color: "#2563eb",
     letterSpacing: "0.08em",
   },
-  bannerText: {
-    fontSize: 14,
+  badge: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "4px 8px",
+    borderRadius: 999,
+    background: "#f8fafc",
+    border: "1px solid #e5e7eb",
+    color: "#475569",
+    fontSize: 11,
     fontWeight: 700,
-    lineHeight: 1.4,
+  },
+  bannerText: {
+    fontSize: 15,
+    fontWeight: 700,
+    lineHeight: 1.5,
     color: "#111827",
   },
   bannerSubtext: {
@@ -167,24 +193,35 @@ const styles = {
     color: "#fff",
     border: "1px solid #111827",
     borderRadius: 999,
-    padding: "8px 14px",
-    fontSize: 12,
+    padding: "10px 16px",
+    fontSize: 13,
     cursor: "pointer",
+  },
+  controlsCard: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    background: "#fff",
+    border: "1px solid rgba(17,17,17,0.06)",
+    borderRadius: 24,
+    padding: 16,
+    boxShadow: "0 10px 20px rgba(17,17,17,0.03)",
+  },
+  controlsHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
   },
   flagRow: {
     display: "flex",
     gap: 6,
     alignItems: "center",
-    marginBottom: 14,
     flexWrap: "wrap",
-    background: "#fff",
-    border: "1px solid rgba(17,17,17,0.06)",
-    borderRadius: 20,
-    padding: 10,
   },
   flagLabel: { fontSize: 12, color: "#6b7280", marginRight: 4, fontWeight: 700 },
   flagBtn: {
-    padding: "5px 10px",
+    padding: "6px 10px",
     border: "1px solid #e5e7eb",
     borderRadius: 999,
     fontSize: 12,
@@ -194,18 +231,18 @@ const styles = {
   },
   flagActive: { background: "#111827", color: "#fff", borderColor: "#111827" },
   refreshBtn: {
-    padding: "5px 8px",
-    border: "1px solid #d1d5db",
+    padding: "6px 10px",
+    border: "1px solid #e5e7eb",
     borderRadius: 999,
-    fontSize: 14,
+    fontSize: 12,
     background: "#fff",
     cursor: "pointer",
   },
-  list: { display: "flex", flexDirection: "column", gap: 12 },
-  feedItem: {},
-  score: { fontSize: 11, color: "#9ca3af", marginBottom: 2 },
-  msg: { textAlign: "center", color: "#9ca3af", fontSize: 14, padding: "24px 0" },
-  err: { textAlign: "center", color: "#dc2626", fontSize: 14 },
+  list: { display: "flex", flexDirection: "column", gap: 14 },
+  feedItem: { display: "flex", flexDirection: "column", gap: 4 },
+  score: { fontSize: 11, color: "#94a3b8", marginBottom: 2, paddingLeft: 2 },
+  msg: { textAlign: "center", color: "#9ca3af", fontSize: 14, padding: "22px 0" },
+  err: { textAlign: "center", color: "#dc2626", fontSize: 14, padding: "12px 0" },
   inlineBtn: {
     background: "none",
     border: "none",
