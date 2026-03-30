@@ -187,16 +187,14 @@ const styles = {
     marginTop: 14,
   },
   commentCard: {
-    padding: "14px 0",
+    padding: "12px 0 6px",
     borderRadius: 0,
     border: "none",
     background: "transparent",
-    borderBottom: "1px solid rgba(17,17,17,0.08)",
   },
   commentCardReply: {
     marginLeft: 12,
     paddingLeft: 12,
-    borderBottom: "1px solid rgba(17,17,17,0.08)",
     borderLeft: "1px solid rgba(17,17,17,0.08)",
     background: "transparent",
   },
