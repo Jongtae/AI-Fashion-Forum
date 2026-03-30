@@ -2405,15 +2405,15 @@ export default function FashionThreadPage() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-5xl px-0 pb-16 pt-0 sm:px-0">
+      <main className="mx-auto max-w-5xl px-4 pb-16 pt-4 sm:px-5">
         {view === "feed" && (
           <motion.section
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="border-x border-zinc-900 bg-[#111217]"
+            className="overflow-hidden rounded-[28px] border border-white/8 bg-[#111217] shadow-[0_18px_60px_rgba(15,23,42,0.18)]"
           >
-            <div className="border-b border-zinc-800 bg-[#151821] px-4 py-3 sm:px-5">
+            <div className="border-b border-white/6 bg-[#151821] px-4 py-3 sm:px-5">
               <p className="text-sm font-semibold text-zinc-100">fashion-life</p>
               <p className="mt-1 text-sm text-zinc-500">패션 판단과 생활 기록이 섞인 메인 채널</p>
             </div>
@@ -2491,10 +2491,10 @@ export default function FashionThreadPage() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="space-y-0 border-x border-zinc-900 bg-[#111217]"
+            className="space-y-0 overflow-hidden rounded-[28px] border border-white/8 bg-[#111217] shadow-[0_18px_60px_rgba(15,23,42,0.18)]"
           >
-            <div className="border-b border-zinc-800 bg-[#151821] px-4 py-4 sm:px-5">
-              <div className="border border-zinc-800 bg-zinc-950 px-4 py-3">
+            <div className="border-b border-white/6 bg-[#151821] px-4 py-4 sm:px-5">
+              <div className="border border-white/8 bg-zinc-950 px-4 py-3">
                 <div className="flex items-center gap-3">
                   <Search className="h-4 w-4 text-zinc-500" />
                   <span className="text-sm text-zinc-200">{activeSearchQuery}</span>
@@ -2503,13 +2503,13 @@ export default function FashionThreadPage() {
 
               <div className="mt-4">
                 <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">Recent searches</p>
-                <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                   {SEARCH_RECENTS.map((query) => (
                     <button
                       key={query}
                       type="button"
                       onClick={() => setActiveSearchQuery(query)}
-                    className={`border px-3 py-1.5 text-xs transition ${
+                      className={`rounded-full border px-3 py-1.5 text-xs transition ${
                         activeSearchQuery === query
                           ? "border-zinc-600 bg-zinc-800 text-zinc-100"
                           : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
@@ -2529,7 +2529,7 @@ export default function FashionThreadPage() {
                       key={query}
                       type="button"
                       onClick={() => setActiveSearchQuery(query)}
-                      className="flex items-center justify-between border border-zinc-800 bg-zinc-950 px-4 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                      className="flex items-center justify-between rounded-2xl border border-white/8 bg-zinc-950 px-4 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
                     >
                       <div>
                         <p className="text-sm text-zinc-100">{query}</p>
@@ -2556,7 +2556,7 @@ export default function FashionThreadPage() {
                     key={brand.name}
                     type="button"
                     onClick={() => setActiveSearchQuery(brand.name)}
-                    className="border border-zinc-800 bg-zinc-950 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                    className="rounded-2xl border border-white/8 bg-zinc-950 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
                   >
                     <p className="text-sm font-medium text-zinc-100">{brand.name}</p>
                     <p className="mt-2 text-sm leading-6 text-zinc-500">{brand.note}</p>
@@ -2627,7 +2627,7 @@ export default function FashionThreadPage() {
               <p className="text-sm font-semibold text-zinc-100">컬렉션으로 보기</p>
               <div className="mt-4 grid gap-3">
                 {SEARCH_COLLECTIONS.map((collection) => (
-                  <div key={collection.title} className="border border-zinc-800 bg-zinc-950 p-4">
+                  <div key={collection.title} className="rounded-2xl border border-white/8 bg-zinc-950 p-4">
                     <p className="text-sm text-zinc-100">{collection.title}</p>
                     <p className="mt-2 text-sm leading-6 text-zinc-500">{collection.subtitle}</p>
                   </div>
@@ -2643,9 +2643,9 @@ export default function FashionThreadPage() {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
-              className="overflow-hidden border-x border-zinc-900 bg-[#111217]"
+              className="overflow-hidden rounded-[28px] border border-white/8 bg-[#111217] shadow-[0_18px_60px_rgba(15,23,42,0.18)]"
             >
-              <div className="border-b border-zinc-800 bg-[#151821] px-4 py-4 sm:px-5">
+              <div className="border-b border-white/6 bg-[#151821] px-4 py-4 sm:px-5">
                 <div className="flex items-start gap-3">
                   <Avatar initials={authorInitials(activePost.author)} accent="from-zinc-500 to-zinc-700" />
                   <div className="min-w-0 flex-1">
@@ -2678,7 +2678,7 @@ export default function FashionThreadPage() {
 
                     <p className="mt-3 text-lg font-semibold leading-7 text-zinc-100">{activePost.title}</p>
                     {postHasPrimaryOutfitShot(activePost) && hasRenderablePrimaryImage(activePost) && (
-                      <div className="mt-4 overflow-hidden border border-zinc-800 bg-zinc-900">
+                      <div className="mt-4 overflow-hidden rounded-[28px] border border-white/8 bg-zinc-900">
                         <PostImage
                           src={activePost.image}
                           alt={activePost.title}
@@ -2717,7 +2717,7 @@ export default function FashionThreadPage() {
                             href={source.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="group overflow-hidden border border-zinc-800 bg-zinc-950/80 transition hover:border-zinc-700 hover:bg-zinc-900"
+                            className="group overflow-hidden rounded-2xl border border-white/8 bg-zinc-950/80 transition hover:border-zinc-700 hover:bg-zinc-900"
                           >
                             <ResolvedProductThumbnail
                               binding={{ sourceKey: source.key, title: source.title, source: source.source }}
@@ -2774,7 +2774,7 @@ export default function FashionThreadPage() {
                           exit={{ opacity: 0, height: 0 }}
                           className="overflow-hidden"
                         >
-                          <div className="mt-4 border border-zinc-800 bg-zinc-950 p-3">
+                          <div className="mt-4 rounded-2xl border border-white/8 bg-zinc-950 p-3">
                             <div className="flex items-start gap-3">
                               <Avatar initials="ME" accent="from-zinc-700 to-zinc-900" />
                               <div className="flex-1 border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-500">
@@ -2823,7 +2823,7 @@ export default function FashionThreadPage() {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.12, duration: 0.35 }}
-              className="mt-4 border-x border-y border-zinc-900 bg-[#111217] px-4 py-5 sm:px-5"
+              className="mt-4 overflow-hidden rounded-[28px] border border-white/8 bg-[#111217] px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.18)] sm:px-5"
             >
               <div className="mb-4 flex items-center justify-between">
                 <div>
@@ -2841,7 +2841,7 @@ export default function FashionThreadPage() {
                     key={post.id}
                     type="button"
                     onClick={() => openPost(post.id)}
-                    className="border border-zinc-800 bg-zinc-950 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
+                    className="rounded-2xl border border-white/8 bg-zinc-950 p-4 text-left transition hover:border-zinc-700 hover:bg-zinc-900"
                   >
                     <p className="text-sm font-medium text-zinc-100">{post.title}</p>
                     <p className="mt-2 text-sm leading-6 text-zinc-400">{post.hook}</p>
@@ -2855,7 +2855,7 @@ export default function FashionThreadPage() {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.16, duration: 0.35 }}
-              className="mt-4 border-x border-y border-zinc-900 bg-[#111217] px-4 py-5 sm:px-5"
+              className="mt-4 overflow-hidden rounded-[28px] border border-white/8 bg-[#111217] px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.18)] sm:px-5"
             >
               <div className="mb-4 flex items-center justify-between">
                 <div>
@@ -2869,7 +2869,7 @@ export default function FashionThreadPage() {
 
               <div className="grid gap-3">
                 {summary.map((item) => (
-                  <div key={item.title} className="border border-zinc-800 bg-zinc-950 p-4">
+                  <div key={item.title} className="rounded-2xl border border-white/8 bg-zinc-950 p-4">
                     <p className="text-sm font-medium text-zinc-100">{item.title}</p>
                     <p className="mt-2 whitespace-pre-line text-sm leading-6 text-zinc-400">{item.content}</p>
                   </div>
