@@ -134,67 +134,6 @@ function ServiceContextSummary({
   );
 }
 
-function ServiceQuickActions({ onActivateTab, onOpenSavedPosts }) {
-  const actions = [
-    {
-      id: "forum",
-      title: "포럼 읽기",
-      description: "최신 글을 읽고 바로 반응합니다.",
-      buttonLabel: "열기",
-    },
-    {
-      id: "discover",
-      title: "탐색하기",
-      description: "인기 글, 검색, 태그로 읽을 글을 찾습니다.",
-      buttonLabel: "보기",
-    },
-    {
-      id: "feed",
-      title: "맞춤 피드",
-      description: "내 반응에 맞춘 글만 모아 봅니다.",
-      buttonLabel: "보기",
-    },
-    {
-      id: "saved",
-      title: "저장글",
-      description: "나중에 다시 읽을 글을 모아둡니다.",
-      buttonLabel: "보기",
-    },
-  ];
-
-  return (
-    <section style={styles.quickActions}>
-      <div style={styles.quickActionsHeader}>
-        <p style={styles.quickActionsKicker}>처음 보셨다면</p>
-        <h2 style={styles.quickActionsTitle}>이렇게 이용해 보세요</h2>
-        <p style={styles.quickActionsText}>
-          읽기, 찾기, 반응, 저장을 바로 시작할 수 있습니다.
-        </p>
-      </div>
-      <div style={styles.quickActionsGrid}>
-        {actions.map((action) => (
-          <button
-            key={action.id}
-            type="button"
-            style={styles.quickActionCard}
-            onClick={() => {
-              if (action.id === "saved") {
-                onOpenSavedPosts();
-                return;
-              }
-
-              onActivateTab(action.id);
-            }}
-          >
-            <div style={styles.quickActionTitle}>{action.title}</div>
-            <div style={styles.quickActionDescription}>{action.description}</div>
-            <span style={styles.quickActionButton}>{action.buttonLabel}</span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 function getTabIcon(tabId) {
   switch (tabId) {
@@ -219,6 +158,8 @@ function ServiceRail({
   onActivateTab,
   onOpenSavedPosts,
   onOpenComposer,
+  onShowAuth,
+  onLogout,
 }) {
   return (
     <aside style={styles.rail}>
@@ -260,8 +201,14 @@ function ServiceRail({
         <span style={styles.railComposerPlus}>{composerOpen ? "–" : "+"}</span>
       </button>
       <div style={styles.railFooter}>
-        <span style={styles.railFooterLine}>{authUser ? "로그인됨" : "게스트"}</span>
-        <span style={styles.railFooterLine}>포럼</span>
+        {authUser ? (
+          <>
+            <span style={styles.railFooterLine}>{authUser.displayName || authUser.username}</span>
+            <button type="button" style={styles.railAuthButton} onClick={onLogout}>로그아웃</button>
+          </>
+        ) : (
+          <button type="button" style={styles.railAuthButton} onClick={onShowAuth}>로그인</button>
+        )}
       </div>
     </aside>
   );
@@ -275,8 +222,6 @@ function ServiceSupportPanel({
   discoverySearchText,
   isAutoRunning,
   timeSpeed,
-  onShowAuth,
-  onLogout,
   onActivateTab,
   onClearTab,
   onClearMode,
@@ -285,24 +230,6 @@ function ServiceSupportPanel({
 }) {
   return (
     <aside style={styles.supportPanel}>
-      <div style={styles.supportCard}>
-        <div style={styles.supportTitle}>
-          {authUser ? `${authUser.displayName || authUser.username}님이 참여 중` : "포럼에 참여해 보세요"}
-        </div>
-        <p style={styles.supportText}>
-          {authUser
-            ? "글을 읽고 저장하고, 댓글과 공유로 이어갈 수 있습니다."
-            : "읽기, 찾기, 저장, 댓글 흐름을 바로 이어갈 수 있습니다."}
-        </p>
-        <button
-          type="button"
-          style={styles.supportPrimaryButton}
-          onClick={authUser ? onLogout : onShowAuth}
-        >
-          {authUser ? "로그아웃" : "로그인 또는 가입하기"}
-        </button>
-      </div>
-
       <div style={styles.supportCard}>
         <div style={styles.supportMetaRow}>
           <span style={styles.supportMetaLabel}>현재 진행</span>
@@ -329,10 +256,10 @@ function ServiceSupportPanel({
 }
 
 const SERVICE_TABS = [
-  { id: "forum", label: "포럼", description: "글을 읽고 댓글을 남깁니다." },
-  { id: "discover", label: "탐색", description: "태그, 검색, 인기글을 찾습니다." },
-  { id: "feed", label: "맞춤 피드", description: "내 반응에 맞는 글을 봅니다." },
-  { id: "saved", label: "저장글", description: "나중에 읽을 글을 보관합니다." },
+  { id: "forum", label: "포럼" },
+  { id: "discover", label: "탐색" },
+  { id: "feed", label: "맞춤 피드" },
+  { id: "saved", label: "저장글" },
 ];
 
 function setPostUrl(postId, { replace = true } = {}) {
@@ -772,7 +699,7 @@ export default function ForumApp() {
           renderAdminShell()
         ) : (
           <>
-            <div style={styles.serviceTopBar}>
+            <div style={{ ...styles.serviceTopBar, ...(isMobile ? styles.serviceTopBarMobile : {}) }}>
               <div style={styles.serviceTopBrandWrap}>
                 <div style={styles.serviceTopBrand}>
                   <UsersRound size={18} strokeWidth={2.5} />
@@ -780,28 +707,42 @@ export default function ForumApp() {
                 <div style={styles.serviceTopBrandTitle}>포럼</div>
               </div>
               <div style={styles.userRow}>
-                <label style={styles.speedControl}>
-                  <span style={styles.speedLabel}>속도</span>
-                  <select
-                    style={styles.speedSelect}
-                    value={timeSpeed}
-                    onChange={(e) => setTimeSpeed(Number(e.target.value))}
-                  >
-                    <option value={1}>1x</option>
-                    <option value={2}>2x</option>
-                    <option value={5}>5x</option>
-                    <option value={10}>10x</option>
-                  </select>
-                </label>
-                <button
-                  style={{
-                    ...styles.autoBtn,
-                    ...(isAutoRunning ? styles.autoBtnOn : styles.autoBtnOff),
-                  }}
-                  onClick={() => setIsAutoRunning((prev) => !prev)}
-                >
-                  {isAutoRunning ? "자동 진행 중" : "자동 일시정지"}
-                </button>
+                {!isMobile && (
+                  <>
+                    <label style={styles.speedControl}>
+                      <span style={styles.speedLabel}>속도</span>
+                      <select
+                        style={styles.speedSelect}
+                        value={timeSpeed}
+                        onChange={(e) => setTimeSpeed(Number(e.target.value))}
+                      >
+                        <option value={1}>1x</option>
+                        <option value={2}>2x</option>
+                        <option value={5}>5x</option>
+                        <option value={10}>10x</option>
+                      </select>
+                    </label>
+                    <button
+                      style={{
+                        ...styles.autoBtn,
+                        ...(isAutoRunning ? styles.autoBtnOn : styles.autoBtnOff),
+                      }}
+                      onClick={() => setIsAutoRunning((prev) => !prev)}
+                    >
+                      {isAutoRunning ? "자동 진행 중" : "자동 일시정지"}
+                    </button>
+                  </>
+                )}
+                {isMobile && !authUser && (
+                  <button type="button" style={styles.mobileAuthBtn} onClick={() => setShowAuth(true)}>
+                    로그인
+                  </button>
+                )}
+                {isMobile && authUser && (
+                  <button type="button" style={styles.mobileAuthBtn} onClick={handleLogout}>
+                    {authUser.displayName || authUser.username}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -815,6 +756,8 @@ export default function ForumApp() {
                   onActivateTab={activateTab}
                   onOpenSavedPosts={openSavedPosts}
                   onOpenComposer={toggleComposerOpen}
+                  onShowAuth={() => setShowAuth(true)}
+                  onLogout={handleLogout}
                 />
               )}
 
@@ -897,12 +840,7 @@ export default function ForumApp() {
                   />
                 ) : (
                   <>
-                    <section style={styles.homeIntroSection}>
-                      <ServiceQuickActions
-                        onActivateTab={activateTab}
-                        onOpenSavedPosts={openSavedPosts}
-                      />
-                    </section>
+
                     <section style={styles.formSection}>
                       <div style={styles.composerGate}>
                         <div>
@@ -1037,8 +975,6 @@ export default function ForumApp() {
                   discoverySearchText={discoverySearchText}
                   isAutoRunning={isAutoRunning}
                   timeSpeed={timeSpeed}
-                  onShowAuth={() => setShowAuth(true)}
-                  onLogout={handleLogout}
                   onActivateTab={activateTab}
                   onClearTab={clearTabContext}
                   onClearMode={clearModeContext}
@@ -1199,6 +1135,17 @@ const styles = {
     fontSize: 11,
     textTransform: "none",
   },
+  railAuthButton: {
+    border: "1px solid rgba(17,17,17,0.12)",
+    borderRadius: 999,
+    padding: "5px 10px",
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#111",
+    background: "#fff",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
   centerColumn: {
     minWidth: 0,
     display: "flex",
@@ -1348,73 +1295,6 @@ const styles = {
     maxWidth: 1120,
     margin: "0 auto",
     padding: "24px 16px",
-  },
-  quickActions: {
-    margin: 0,
-    padding: 0,
-    display: "flex",
-    flexDirection: "column",
-    gap: 14,
-  },
-  quickActionsHeader: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-  },
-  quickActionsKicker: {
-    margin: 0,
-    fontSize: 12,
-    fontWeight: 800,
-    letterSpacing: "0.08em",
-    color: "#2563eb",
-  },
-  quickActionsTitle: {
-    margin: 0,
-    fontSize: 18,
-    lineHeight: 1.2,
-    color: "#111827",
-  },
-  quickActionsText: {
-    margin: 0,
-    fontSize: 13,
-    lineHeight: 1.55,
-    color: "#4b5563",
-    maxWidth: 540,
-  },
-  quickActionsGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: 12,
-  },
-  quickActionCard: {
-    textAlign: "left",
-    padding: 14,
-    borderRadius: 18,
-    border: "1px solid rgba(17,17,17,0.08)",
-    background: "#fff",
-    cursor: "pointer",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    minHeight: 96,
-    boxShadow: "0 10px 24px rgba(17,17,17,0.05)",
-  },
-  quickActionTitle: { fontSize: 15, fontWeight: 800, color: "#111827" },
-  quickActionDescription: { fontSize: 12, lineHeight: 1.5, color: "#6b7280" },
-  homeIntroSection: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 14,
-  },
-  quickActionButton: {
-    alignSelf: "flex-start",
-    marginTop: "auto",
-    fontSize: 12,
-    fontWeight: 800,
-    color: "#111",
-    background: "#f3f4f6",
-    borderRadius: 999,
-    padding: "6px 10px",
   },
   formSection: {
     display: "flex",
@@ -1634,31 +1514,6 @@ const styles = {
     borderRadius: 28,
     padding: 20,
     boxShadow: "0 18px 40px rgba(17,17,17,0.06)",
-  },
-  supportTitle: {
-    fontSize: 17,
-    fontWeight: 800,
-    lineHeight: 1.3,
-    color: "#111",
-    marginBottom: 8,
-  },
-  supportText: {
-    margin: 0,
-    color: "#6b7280",
-    fontSize: 13,
-    lineHeight: 1.55,
-  },
-  supportPrimaryButton: {
-    marginTop: 16,
-    width: "100%",
-    border: "none",
-    borderRadius: 20,
-    padding: "14px 16px",
-    background: "#fff",
-    boxShadow: "inset 0 0 0 1px rgba(17,17,17,0.08)",
-    color: "#111",
-    fontWeight: 700,
-    cursor: "pointer",
   },
   supportMetaRow: {
     display: "flex",
