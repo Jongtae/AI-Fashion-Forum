@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { UsersRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import { triggerAgentTick } from "./api/client.js";
 import PostForm from "./components/PostForm.jsx";
 import PostList from "./components/PostList.jsx";
@@ -623,27 +623,6 @@ export default function ForumApp() {
           renderAdminShell()
         ) : (
           <>
-            <div style={{ ...styles.serviceTopBar, ...(isMobile ? styles.serviceTopBarMobile : {}) }}>
-              <div style={styles.serviceTopBrandWrap}>
-                <div style={styles.serviceTopBrand}>
-                  <UsersRound size={18} strokeWidth={2.5} />
-                </div>
-                <div style={styles.serviceTopBrandTitle}>포럼</div>
-              </div>
-              <div style={styles.userRow}>
-                {isMobile && !authUser && (
-                  <button type="button" style={styles.mobileAuthBtn} onClick={() => setShowAuth(true)}>
-                    로그인
-                  </button>
-                )}
-                {isMobile && authUser && (
-                  <button type="button" style={styles.mobileAuthBtn} onClick={handleLogout}>
-                    {authUser.displayName || authUser.username}
-                  </button>
-                )}
-              </div>
-            </div>
-
             <nav style={{ ...styles.topNav, ...(isMobile ? styles.navMobile : {}) }}>
               {SERVICE_TABS.map((tabItem) => {
                 const isActive = tab === tabItem.id;
@@ -671,6 +650,15 @@ export default function ForumApp() {
                   </button>
                 );
               })}
+              <button
+                type="button"
+                style={styles.topNavToolBtn}
+                onClick={authUser ? handleLogout : () => setShowAuth(true)}
+                aria-label={authUser ? "로그아웃" : "로그인"}
+                title={authUser ? "로그아웃" : "로그인"}
+              >
+                <UserRound size={16} strokeWidth={2.2} />
+              </button>
             </nav>
 
             <div style={{ ...styles.serviceShell, ...(isCompact ? styles.serviceShellCompact : {}) }}>
@@ -844,41 +832,6 @@ const styles = {
       "radial-gradient(circle at top left, rgba(255,255,255,0.98) 0%, rgba(248,246,242,0.95) 42%, #f3f0ea 100%)",
     fontFamily: "\"Apple SD Gothic Neo\", \"Noto Sans KR\", \"SF Pro Display\", \"Helvetica Neue\", Arial, sans-serif",
     color: "#111111",
-  },
-  serviceTopBar: {
-    position: "sticky",
-    top: 0,
-    zIndex: 12,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 16,
-    padding: "14px 24px 12px",
-    backdropFilter: "blur(18px)",
-    background: "rgba(255,255,255,0.9)",
-    borderBottom: "1px solid rgba(17,17,17,0.06)",
-  },
-  serviceTopBrandWrap: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-  },
-  serviceTopBrand: {
-    width: 34,
-    height: 34,
-    borderRadius: 999,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    border: "2px solid #111",
-    color: "#111",
-    background: "#fff",
-  },
-  serviceTopBrandTitle: {
-    fontSize: 15,
-    fontWeight: 700,
-    letterSpacing: "-0.02em",
-    textTransform: "none",
   },
   serviceShell: {
     width: 1124,
@@ -1144,40 +1097,6 @@ const styles = {
     fontSize: 13,
     cursor: "pointer",
   },
-  userRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    flexWrap: "wrap",
-    justifyContent: "flex-end",
-  },
-  userId: { fontSize: 13, color: "#4b5563" },
-  editBtn: {
-    fontSize: 12,
-    background: "#fff",
-    border: "1px solid #d1d5db",
-    color: "#111",
-    borderRadius: 999,
-    padding: "6px 10px",
-    cursor: "pointer",
-  },
-  userInput: {
-    padding: "4px 8px",
-    fontSize: 13,
-    borderRadius: 4,
-    border: "1px solid #4b5563",
-    background: "#1f2937",
-    color: "#fff",
-  },
-  saveBtn: {
-    fontSize: 12,
-    background: "#3b82f6",
-    border: "none",
-    color: "#fff",
-    borderRadius: 4,
-    padding: "4px 10px",
-    cursor: "pointer",
-  },
   main: {
     width: "100%",
     margin: 0,
@@ -1262,6 +1181,9 @@ const styles = {
     marginBottom: 2,
   },
   topNav: {
+    position: "sticky",
+    top: 0,
+    zIndex: 12,
     background: "#fff",
     padding: 8,
     display: "flex",
@@ -1269,9 +1191,11 @@ const styles = {
     alignItems: "stretch",
     borderRadius: 12,
     border: "1px solid rgba(17,17,17,0.06)",
+    margin: "0 20px",
   },
   navMobile: {
     overflowX: "auto",
+    margin: "0 12px",
   },
   contextSummary: {
     margin: 0,
@@ -1382,6 +1306,19 @@ const styles = {
   },
   tabDescriptionActive: {
     color: "rgba(255,255,255,0.78)",
+  },
+  topNavToolBtn: {
+    width: 44,
+    minWidth: 44,
+    borderRadius: 12,
+    border: "1px solid rgba(17,17,17,0.08)",
+    background: "#fff",
+    color: "#111827",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    marginLeft: "auto",
   },
   supportPanel: {
     position: "sticky",
