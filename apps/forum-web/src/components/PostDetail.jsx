@@ -305,10 +305,10 @@ const styles = {
   },
   title: {
     margin: 0,
-    fontSize: 34,
-    lineHeight: 1.08,
+    fontSize: 28,
+    lineHeight: 1.18,
     color: "#111827",
-    letterSpacing: "-0.03em",
+    letterSpacing: "-0.02em",
     fontWeight: 800,
   },
   deleteBtn: {
