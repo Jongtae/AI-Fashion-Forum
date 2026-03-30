@@ -819,19 +819,10 @@ async function buildServiceFrame(page, config) {
   main.cornerRadius = 24;
   frame.appendChild(main);
 
-  await addText(main, config.heroEyebrow, 28, 24, 12, { weight: "Bold", color: COLORS.blue });
-  await addText(main, config.heroTitle, 28, 44, 24, { weight: "Bold" });
-  await addText(main, config.heroSubtitle, 28, 82, 13, { weight: "Regular", color: COLORS.muted });
-
-  if (config.quickActions) {
-    await addButton(main, "포럼 읽기", 28, 126, 120, false);
-    await addButton(main, "탐색하기", 156, 126, 120, false);
-    await addButton(main, "맞춤 피드", 284, 126, 120, false);
-    await addButton(main, "저장글", 412, 126, 120, false);
-  } else if (config.modeButtons) {
+  if (config.modeButtons) {
     let x = 28;
     for (const mode of config.modeButtons) {
-      await addButton(main, mode.label, x, 126, mode.width || 118, mode.active || false);
+      await addButton(main, mode.label, x, 24, mode.width || 118, mode.active || false);
       x += (mode.width || 118) + 10;
     }
   }
@@ -1004,10 +995,6 @@ async function main() {
     height: 1400,
     topSubtitle: "Threads 스타일의 서비스 셸",
     speedLabel: "+ 3틱",
-    heroEyebrow: "처음 보셨다면",
-    heroTitle: "이렇게 이용해 보세요",
-    heroSubtitle: "읽기, 찾기, 반응, 저장을 바로 시작할 수 있습니다.",
-    quickActions: true,
     mainCards: [
       {
         title: "읽기",
@@ -1061,9 +1048,6 @@ async function main() {
     height: 1520,
     topSubtitle: "읽을 글을 찾아보세요",
     speedLabel: "+ 3틱",
-    heroEyebrow: "탐색",
-    heroTitle: "읽을 글을 찾아보세요",
-    heroSubtitle: "주제와 흐름을 빠르게 찾아볼 수 있습니다.",
     modeButtons: [
       { label: "최신", width: 102, active: true },
       { label: "인기", width: 102 },
@@ -1112,10 +1096,6 @@ async function main() {
     height: 1400,
     topSubtitle: "저장한 글",
     speedLabel: "+ 3틱",
-    heroEyebrow: "저장한 글",
-    heroTitle: "다시 보고 싶은 글",
-    heroSubtitle: "읽다 다시 보고 싶은 글을 모아둔 곳입니다.",
-    quickActions: false,
     modeButtons: [
       { label: "저장", width: 110, active: true },
       { label: "최근 저장", width: 110 },
