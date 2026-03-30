@@ -130,113 +130,6 @@ function ServiceContextSummary({
 }
 
 
-function getTabIcon(tabId) {
-  switch (tabId) {
-    case "forum":
-      return "⌂";
-    case "discover":
-      return "⌕";
-    case "feed":
-      return "♡";
-    case "saved":
-      return "⌁";
-    default:
-      return "•";
-  }
-}
-
-function ServiceRail({
-  currentTab,
-  authUser,
-  hasForumActivity,
-  composerOpen,
-  onActivateTab,
-  onOpenSavedPosts,
-  onOpenComposer,
-  onShowAuth,
-  onLogout,
-}) {
-  return (
-    <aside style={styles.rail}>
-      <div style={styles.railBrand}>
-        <UsersRound size={20} strokeWidth={2.5} />
-      </div>
-      <div style={styles.railNav}>
-        {SERVICE_TABS.map((tabItem) => {
-          const isActive = currentTab === tabItem.id;
-          const handleClick =
-            tabItem.id === "saved" ? onOpenSavedPosts : () => onActivateTab(tabItem.id);
-
-          return (
-            <button
-              key={tabItem.id}
-              type="button"
-              style={{
-                ...styles.railButton,
-                ...(isActive ? styles.railButtonActive : {}),
-              }}
-              title={tabItem.label}
-              onClick={handleClick}
-            >
-              <span style={styles.railIcon}>{getTabIcon(tabItem.id)}</span>
-              <span style={styles.railButtonLabel}>{tabItem.label}</span>
-            </button>
-          );
-        })}
-      </div>
-      <button
-        type="button"
-        style={{
-          ...styles.railComposerButton,
-          ...(!(hasForumActivity || authUser) ? styles.railComposerButtonDisabled : {}),
-        }}
-        onClick={onOpenComposer}
-        disabled={!(hasForumActivity || authUser)}
-      >
-        <span style={styles.railComposerPlus}>{composerOpen ? "–" : "+"}</span>
-      </button>
-      <div style={styles.railFooter}>
-        {authUser ? (
-          <>
-            <span style={styles.railFooterLine}>{authUser.displayName || authUser.username}</span>
-            <button type="button" style={styles.railAuthButton} onClick={onLogout}>로그아웃</button>
-          </>
-        ) : (
-          <button type="button" style={styles.railAuthButton} onClick={onShowAuth}>로그인</button>
-        )}
-      </div>
-    </aside>
-  );
-}
-
-function ServiceSupportPanel({
-  authUser,
-  tab,
-  discoveryMode,
-  activeTagFilter,
-  discoverySearchText,
-  onActivateTab,
-  onClearTab,
-  onClearMode,
-  onClearTag,
-  onClearSearch,
-}) {
-  return (
-    <aside style={styles.supportPanel}>
-      <ServiceContextSummary
-        tab={tab}
-        discoveryMode={discoveryMode}
-        activeTagFilter={activeTagFilter}
-        discoverySearchText={discoverySearchText}
-        onClearTab={onClearTab}
-        onClearMode={onClearMode}
-        onClearTag={onClearTag}
-        onClearSearch={onClearSearch}
-      />
-    </aside>
-  );
-}
-
 const SERVICE_TABS = [
   { id: "forum", label: "포럼" },
   { id: "discover", label: "탐색" },
@@ -695,65 +588,47 @@ export default function ForumApp() {
               </div>
             </div>
 
+            <nav style={{ ...styles.topNav, ...(isMobile ? styles.navMobile : {}) }}>
+              {SERVICE_TABS.map((tabItem) => {
+                const isActive = tab === tabItem.id;
+                const handleClick =
+                  tabItem.id === "saved" ? openSavedPosts : () => activateTab(tabItem.id);
+
+                return (
+                  <button
+                    key={tabItem.id}
+                    type="button"
+                    style={{ ...styles.tabBtn, ...(isActive ? styles.tabActive : {}) }}
+                    onClick={handleClick}
+                  >
+                    <span style={styles.tabLabel}>{tabItem.label}</span>
+                    {!isMobile && (
+                      <span
+                        style={{
+                          ...styles.tabDescription,
+                          ...(isActive ? styles.tabDescriptionActive : {}),
+                        }}
+                      >
+                        {tabItem.description}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+
             <div style={{ ...styles.serviceShell, ...(isCompact ? styles.serviceShellCompact : {}) }}>
-              {!isCompact && (
-                <ServiceRail
-                  currentTab={tab}
-                  authUser={authUser}
-                  hasForumActivity={hasForumActivity}
-                  composerOpen={composerOpen}
-                  onActivateTab={activateTab}
-                  onOpenSavedPosts={openSavedPosts}
-                  onOpenComposer={toggleComposerOpen}
-                  onShowAuth={() => setShowAuth(true)}
-                  onLogout={handleLogout}
-                />
-              )}
-
               <div style={styles.centerColumn}>
-                {isCompact && (
-                  <>
-                    <ServiceContextSummary
-                      tab={tab}
-                      discoveryMode={discoveryMode}
-                      activeTagFilter={activeTagFilter}
-                      discoverySearchText={discoverySearchText}
-                      onClearTab={clearTabContext}
-                      onClearMode={clearModeContext}
-                      onClearTag={clearTagContext}
-                      onClearSearch={clearSearchContext}
-                    />
-
-                    <nav style={{ ...styles.nav, ...(isMobile ? styles.navMobile : {}) }}>
-                      {SERVICE_TABS.map((tabItem) => {
-                        const isActive = tab === tabItem.id;
-                        const handleClick =
-                          tabItem.id === "saved" ? openSavedPosts : () => activateTab(tabItem.id);
-
-                        return (
-                          <button
-                            key={tabItem.id}
-                            type="button"
-                            style={{ ...styles.tabBtn, ...(isActive ? styles.tabActive : {}) }}
-                            onClick={handleClick}
-                          >
-                            <span style={styles.tabLabel}>{tabItem.label}</span>
-                            {!isMobile && (
-                              <span
-                                style={{
-                                  ...styles.tabDescription,
-                                  ...(isActive ? styles.tabDescriptionActive : {}),
-                                }}
-                              >
-                                {tabItem.description}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </nav>
-                  </>
-                )}
+                <ServiceContextSummary
+                  tab={tab}
+                  discoveryMode={discoveryMode}
+                  activeTagFilter={activeTagFilter}
+                  discoverySearchText={discoverySearchText}
+                  onClearTab={clearTabContext}
+                  onClearMode={clearModeContext}
+                  onClearTag={clearTagContext}
+                  onClearSearch={clearSearchContext}
+                />
 
                 <main style={styles.main}>
               {selectedProfile ? (
@@ -962,7 +837,7 @@ const styles = {
     margin: "0 auto",
     padding: "18px 20px 40px",
     display: "grid",
-    gridTemplateColumns: "92px minmax(0, 1fr)",
+    gridTemplateColumns: "minmax(0, 1fr)",
     justifyContent: "center",
     gap: 20,
     alignItems: "start",
@@ -1263,15 +1138,14 @@ const styles = {
     color: "#111827",
     marginBottom: 2,
   },
-  nav: {
+  topNav: {
     background: "#fff",
-    padding: 10,
+    padding: 8,
     display: "flex",
     gap: 6,
     alignItems: "stretch",
-    borderRadius: 28,
+    borderRadius: 12,
     border: "1px solid rgba(17,17,17,0.06)",
-    boxShadow: "0 10px 22px rgba(17,17,17,0.04)",
   },
   navMobile: {
     overflowX: "auto",
@@ -1279,13 +1153,12 @@ const styles = {
   contextSummary: {
     margin: 0,
     padding: "12px 14px",
-    borderRadius: 24,
+    borderRadius: 12,
     border: "1px solid rgba(17,17,17,0.06)",
     background: "rgba(255,255,255,0.94)",
     display: "flex",
     flexDirection: "column",
     gap: 8,
-    boxShadow: "0 10px 24px rgba(17,17,17,0.04)",
   },
   contextSummaryHeader: {
     display: "flex",
@@ -1338,10 +1211,9 @@ const styles = {
   placeholderCard: {
     marginTop: 8,
     padding: "20px 22px",
-    borderRadius: 28,
+    borderRadius: 12,
     border: "1px solid rgba(17,17,17,0.06)",
     background: "#fff",
-    boxShadow: "0 14px 28px rgba(17,17,17,0.04)",
   },
   placeholderTitle: {
     margin: 0,
