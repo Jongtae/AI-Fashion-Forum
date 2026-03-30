@@ -385,11 +385,11 @@ async function buildAdminFrame(page, x, y) {
 
 async function main() {
   await figma.loadAllPagesAsync();
-  const page = figma.createPage();
-  page.name = "Service Shell";
-  figma.currentPage = page;
+  const servicePage = figma.createPage();
+  servicePage.name = "Service Shell";
+  figma.currentPage = servicePage;
 
-  const home = await buildServiceFrame(page, {
+  const home = await buildServiceFrame(servicePage, {
     name: "Service Shell / Home",
     x: 0,
     y: 0,
@@ -444,7 +444,7 @@ async function main() {
     ],
   });
 
-  const discover = await buildServiceFrame(page, {
+  const discover = await buildServiceFrame(servicePage, {
     name: "Service Shell / Discover",
     x: 0,
     y: 1480,
@@ -489,9 +489,9 @@ async function main() {
     ],
   });
 
-  const detail = await buildDetailFrame(page, 0, 3040);
+  const detail = await buildDetailFrame(servicePage, 0, 3040);
 
-  const saved = await buildServiceFrame(page, {
+  const saved = await buildServiceFrame(servicePage, {
     name: "Service Shell / Saved",
     x: 0,
     y: 4900,
@@ -537,7 +537,9 @@ async function main() {
     ],
   });
 
-  const admin = await buildAdminFrame(page, 0, 6420);
+  const adminPage = figma.createPage();
+  adminPage.name = "Admin Shell";
+  const admin = await buildAdminFrame(adminPage, 0, 0);
 
   figma.viewport.scrollAndZoomIntoView([home, discover, detail, saved, admin]);
   figma.closePlugin("Service shell frames created for Figma.");

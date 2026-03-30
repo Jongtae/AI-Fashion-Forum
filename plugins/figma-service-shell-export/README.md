@@ -13,7 +13,7 @@ This local Figma plugin creates a set of frames that mirror the current service 
 1. Open Figma Desktop in Dev Mode.
 2. Import the plugin from this folder using the `manifest.json` at the plugin root.
 3. Run the plugin on any Figma page.
-4. The plugin creates a new page named `Service Shell` and places the frames vertically.
+4. The plugin creates a new page named `Service Shell` for user-facing screens and a second page named `Admin Shell` for admin-only screens.
 
 ## Files
 
