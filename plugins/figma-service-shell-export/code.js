@@ -294,6 +294,21 @@ async function addReplyPreview(parent, title, preview, x, y, width, height) {
   return frame;
 }
 
+async function addInputBlock(parent, title, preview, x, y, width, height) {
+  const frame = createFrame(title, x, y, width, height, COLORS.mutedCard);
+  frame.cornerRadius = 14;
+  frame.strokes = [{ type: "SOLID", color: COLORS.border }];
+  frame.strokeWeight = 1;
+  await addText(frame, title, 14, 12, 13, { weight: "Bold" });
+  await addText(frame, preview, 14, 36, 12, {
+    weight: "Regular",
+    color: COLORS.muted,
+    width: width - 28,
+  });
+  parent.appendChild(frame);
+  return frame;
+}
+
 async function buildComponentsPage() {
   const page = figma.createPage();
   page.name = "Components";
@@ -654,13 +669,13 @@ async function buildDetailFrame(page, x, y) {
   await addText(main, "댓글", 28, 430, 18, { weight: "Bold" });
   await addReplyPreview(main, "답글 대상", "앞선 댓글", 28, 468, 664, 72);
   await addReplyPreview(main, "작성 중 미리보기", "답글이 등록되면 이 자리에서 바로 확인할 수 있습니다.", 28, 552, 664, 72);
-  await addCard(main, "댓글 입력", "답글을 남겨보세요", 28, 636, 664, 92, { fill: COLORS.mutedCard });
-  await addCard(main, "댓글 1", "첫 번째 댓글이 이어집니다.", 28, 744, 664, 88, {
+  await addInputBlock(main, "댓글 입력", "답글을 남겨보세요", 28, 636, 664, 112);
+  await addCard(main, "댓글 1", "첫 번째 댓글이 이어집니다.", 28, 768, 664, 88, {
     fill: { r: 1, g: 1, b: 1 },
     titleSize: 14,
     subtitleSize: 12,
   });
-  await addCard(main, "댓글 2", "두 번째 댓글이 이어집니다.", 28, 844, 664, 88, {
+  await addCard(main, "댓글 2", "두 번째 댓글이 이어집니다.", 28, 868, 664, 88, {
     fill: { r: 1, g: 1, b: 1 },
     titleSize: 14,
     subtitleSize: 12,
