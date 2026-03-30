@@ -2352,45 +2352,7 @@ export default function FashionThreadPage() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#f8fbff,_#eff3f8_54%,_#eef2f7_100%)] text-slate-900">
-      <div className="z-20 px-3 pt-3 sm:px-5">
-        <div className="mx-auto max-w-6xl rounded-[24px] border border-slate-200/80 bg-white/90 px-3 py-2.5 shadow-[0_14px_42px_rgba(15,23,42,0.08)] backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={openSearch}
-              aria-label="search"
-              className="inline-flex h-10 w-10 items-center justify-center border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
-            >
-              <Search className="h-4 w-4" />
-            </button>
-
-            <div className="min-w-0 flex-1 text-center">
-              <p className="truncate text-sm font-medium text-slate-500">
-                {view === "feed"
-                  ? "feed / postcard"
-                  : view === "search"
-                    ? "search / live index"
-                    : view === "profile"
-                      ? `profile / ${activeProfile.author}`
-                      : view === "topic"
-                        ? `topic / ${activeTopic.title}`
-                        : activePost.title}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={openProfileTab}
-              aria-label="profile"
-              className="inline-flex h-10 w-10 items-center justify-center border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
-            >
-              <User className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <main className="mx-auto max-w-6xl px-4 pb-28 pt-4 sm:px-5">
+      <main className="mx-auto max-w-6xl px-4 pb-28 pt-3 sm:px-5">
         {view === "feed" && (
           <motion.section
             initial={{ opacity: 0, y: 18 }}
