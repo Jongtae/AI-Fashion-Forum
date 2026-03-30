@@ -85,6 +85,32 @@ function addShadow(node) {
   ];
 }
 
+function cloneShadowStyle(node) {
+  addShadow(node);
+}
+
+function makeAutoLayoutFrame(name, width, height, fill = COLORS.card) {
+  const frame = figma.createFrame();
+  frame.name = name;
+  frame.resize(width, height);
+  frame.fills = [{ type: "SOLID", color: fill }];
+  frame.strokes = [{ type: "SOLID", color: COLORS.border }];
+  frame.strokeWeight = 1;
+  frame.cornerRadius = 18;
+  frame.layoutMode = "VERTICAL";
+  frame.primaryAxisSizingMode = "AUTO";
+  frame.counterAxisSizingMode = "FIXED";
+  frame.primaryAxisAlignItems = "CENTER";
+  frame.counterAxisAlignItems = "CENTER";
+  frame.paddingLeft = 14;
+  frame.paddingRight = 14;
+  frame.paddingTop = 10;
+  frame.paddingBottom = 10;
+  frame.itemSpacing = 0;
+  frame.clipsContent = false;
+  return frame;
+}
+
 async function addChip(parent, label, x, y, active = false) {
   const chip = figma.createFrame();
   chip.name = label;
@@ -122,6 +148,52 @@ async function addButton(parent, label, x, y, width, active = false) {
   });
   parent.appendChild(btn);
   return btn;
+}
+
+async function createButtonComponent(name, label, active = false, width = 120) {
+  const component = createComponent(name, 0, 0, width, 40, active ? COLORS.accent : COLORS.mutedCard);
+  component.layoutMode = "HORIZONTAL";
+  component.primaryAxisSizingMode = "FIXED";
+  component.counterAxisSizingMode = "FIXED";
+  component.primaryAxisAlignItems = "CENTER";
+  component.counterAxisAlignItems = "CENTER";
+  component.paddingLeft = 14;
+  component.paddingRight = 14;
+  component.paddingTop = 10;
+  component.paddingBottom = 10;
+  component.itemSpacing = 0;
+  component.cornerRadius = 14;
+  component.strokes = [{ type: "SOLID", color: active ? COLORS.accent : COLORS.border }];
+  component.strokeWeight = 1;
+  component.clipsContent = false;
+  await addText(component, label, 14, 10, 13, {
+    weight: "Bold",
+    color: active ? COLORS.accentText : COLORS.text,
+  });
+  return component;
+}
+
+async function createChipComponent(name, label, active = false) {
+  const component = createComponent(name, 0, 0, 120, 34, active ? COLORS.accent : { r: 1, g: 1, b: 1 });
+  component.layoutMode = "HORIZONTAL";
+  component.primaryAxisSizingMode = "AUTO";
+  component.counterAxisSizingMode = "AUTO";
+  component.primaryAxisAlignItems = "CENTER";
+  component.counterAxisAlignItems = "CENTER";
+  component.paddingLeft = 14;
+  component.paddingRight = 14;
+  component.paddingTop = 7;
+  component.paddingBottom = 7;
+  component.itemSpacing = 0;
+  component.cornerRadius = 999;
+  component.strokes = [{ type: "SOLID", color: COLORS.border }];
+  component.strokeWeight = 1;
+  component.clipsContent = false;
+  await addText(component, label, 14, 8, 12, {
+    weight: "Regular",
+    color: active ? COLORS.accentText : COLORS.text,
+  });
+  return component;
 }
 
 async function addCard(parent, title, subtitle, x, y, width, height, options = {}) {
@@ -228,6 +300,26 @@ async function buildComponentsPage() {
     weight: "Regular",
     color: COLORS.muted,
   });
+
+  const buttonPrimary = await createButtonComponent("Button / Primary", "탐색하기", true, 120);
+  buttonPrimary.x = 24;
+  buttonPrimary.y = 96;
+  canvas.appendChild(buttonPrimary);
+
+  const buttonSecondary = await createButtonComponent("Button / Secondary", "포럼 읽기", false, 120);
+  buttonSecondary.x = 160;
+  buttonSecondary.y = 96;
+  canvas.appendChild(buttonSecondary);
+
+  const chipActive = await createChipComponent("Chip / Active", "포럼", true);
+  chipActive.x = 296;
+  chipActive.y = 96;
+  canvas.appendChild(chipActive);
+
+  const chipDefault = await createChipComponent("Chip / Default", "탐색", false);
+  chipDefault.x = 420;
+  chipDefault.y = 96;
+  canvas.appendChild(chipDefault);
 
   const postCard = createComponent("Post Card", 24, 108, 420, 320, COLORS.card);
   addShadow(postCard);
