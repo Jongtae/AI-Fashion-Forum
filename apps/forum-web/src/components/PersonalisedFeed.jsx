@@ -13,9 +13,6 @@ export default function PersonalisedFeed({
   onAuthorClick = () => {},
   isAuthenticated = false,
 }) {
-  const isCaptureMode = ["figma", "compact", "capture"].includes(
-    new URLSearchParams(window.location.search).get("capture")
-  );
   const [flag, setFlag] = useState("baseline");
   const queryClient = useQueryClient();
 
@@ -41,7 +38,7 @@ export default function PersonalisedFeed({
     },
   });
 
-  const feed = (data?.feed ?? []).slice(0, isCaptureMode ? 3 : undefined);
+  const feed = data?.feed ?? [];
 
   return (
     <div>
