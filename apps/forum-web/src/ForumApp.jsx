@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { UserRound } from "lucide-react";
+import { Bookmark, Home, PenSquare, Search, UserRound } from "lucide-react";
 import { triggerAgentTick } from "./api/client.js";
 import PostForm from "./components/PostForm.jsx";
 import PostList from "./components/PostList.jsx";
@@ -25,29 +25,32 @@ function loadStoredUser() {
   return null;
 }
 
+function getPathSegments() {
+  return window.location.pathname.split("/").filter(Boolean);
+}
+
 function getInitialTab() {
-  const params = new URLSearchParams(window.location.search);
-  const view = params.get("view");
-  const path = window.location.pathname;
-  if (path.startsWith("/admin") || path.startsWith("/operator")) {
+  const [first] = getPathSegments();
+  if (first === "admin" || first === "operator") {
     return "admin";
   }
-
-  return ["forum", "discover", "saved"].includes(view) ? view : "forum";
+  if (first === "discover") return "discover";
+  if (first === "saved") return "saved";
+  return "forum";
 }
 
 function getInitialSelectedPostId() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("postId") || null;
+  const [first, second] = getPathSegments();
+  return first === "post" && second ? second : null;
 }
 
 function getInitialSelectedProfile() {
-  const params = new URLSearchParams(window.location.search);
-  const profileId = params.get("profileId");
+  const [first, second, third] = getPathSegments();
+  const profileId = first === "profile" ? (third || second) : null;
   if (!profileId) return null;
   return {
     id: profileId,
-    type: params.get("profileType") || "user",
+    type: first === "profile" && third ? second : "user",
   };
 }
 
@@ -130,57 +133,31 @@ function ServiceContextSummary({
 
 function ServiceSidebar({
   authUser,
-  hasForumActivity,
   composerOpen,
   onToggleComposer,
   onShowAuth,
   onLogout,
-  tab,
-  discoveryMode,
-  activeTagFilter,
-  discoverySearchText,
-  onClearTab,
-  onClearMode,
-  onClearTag,
-  onClearSearch,
 }) {
-  const canWrite = Boolean(hasForumActivity || authUser);
-
   return (
-    <aside style={styles.serviceSidebar}>
-      <div style={styles.sidebarCard}>
-        <div style={styles.sidebarKicker}>빠른 동작</div>
-        <div style={styles.sidebarTitle}>글쓰기</div>
-        <div style={styles.sidebarText}>{canWrite ? "새 글을 바로 열 수 있습니다." : "먼저 글을 읽거나 로그인하세요."}</div>
+    <aside style={styles.serviceRail}>
+      <div style={styles.railPillStack}>
         <button
           type="button"
-          style={{
-            ...styles.sidebarPrimaryBtn,
-            ...(canWrite ? styles.sidebarPrimaryBtnActive : styles.sidebarPrimaryBtnPrompt),
-          }}
-          onClick={canWrite ? onToggleComposer : onShowAuth}
+          style={styles.railIconBtn}
+          onClick={authUser ? onToggleComposer : onShowAuth}
+          aria-label={composerOpen ? "글쓰기 닫기" : "글쓰기 열기"}
+          title={composerOpen ? "글쓰기 닫기" : "글쓰기 열기"}
         >
-          {composerOpen ? "글쓰기 닫기" : "글쓰기 열기"}
+          <PenSquare size={18} strokeWidth={2.1} />
         </button>
-      </div>
-
-      <ServiceContextSummary
-        tab={tab}
-        discoveryMode={discoveryMode}
-        activeTagFilter={activeTagFilter}
-        discoverySearchText={discoverySearchText}
-        onClearTab={onClearTab}
-        onClearMode={onClearMode}
-        onClearTag={onClearTag}
-        onClearSearch={onClearSearch}
-      />
-
-      <div style={styles.sidebarCard}>
-        <div style={styles.sidebarKicker}>계정</div>
-        <div style={styles.sidebarTitle}>{authUser ? authUser.displayName || authUser.username : "게스트"}</div>
-        <div style={styles.sidebarText}>{authUser ? "로그인된 상태입니다." : "로그인하면 저장과 글쓰기가 쉬워집니다."}</div>
-        <button type="button" style={styles.sidebarSecondaryBtn} onClick={authUser ? onLogout : onShowAuth}>
-          {authUser ? "로그아웃" : "로그인"}
+        <button
+          type="button"
+          style={styles.railIconBtn}
+          onClick={authUser ? onLogout : onShowAuth}
+          aria-label={authUser ? "로그아웃" : "로그인"}
+          title={authUser ? "로그아웃" : "로그인"}
+        >
+          <UserRound size={18} strokeWidth={2.1} />
         </button>
       </div>
     </aside>
@@ -194,16 +171,14 @@ const SERVICE_TABS = [
   { id: "saved", label: "저장글" },
 ];
 
-function setPostUrl(postId, { replace = true } = {}) {
-  const params = new URLSearchParams(window.location.search);
-  if (postId) {
-    params.set("postId", postId);
-  } else {
-    params.delete("postId");
-  }
+function buildNextUrl(pathname, { preserveSearch = true } = {}) {
+  const search = preserveSearch ? window.location.search : "";
+  return search ? `${pathname}${search}` : pathname;
+}
 
-  const search = params.toString();
-  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+function setPostUrl(postId, { replace = true } = {}) {
+  const nextPath = postId ? `/post/${postId}` : "/forum";
+  const nextUrl = buildNextUrl(nextPath);
   if (replace) {
     window.history.replaceState({}, "", nextUrl);
   } else {
@@ -212,17 +187,12 @@ function setPostUrl(postId, { replace = true } = {}) {
 }
 
 function setProfileUrl(profile, { replace = true } = {}) {
-  const params = new URLSearchParams(window.location.search);
+  let nextPath = "/forum";
   if (profile?.id) {
-    params.set("profileId", profile.id);
-    params.set("profileType", profile.type || "user");
-  } else {
-    params.delete("profileId");
-    params.delete("profileType");
+    nextPath = `/profile/${profile.type || "user"}/${profile.id}`;
   }
 
-  const search = params.toString();
-  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+  const nextUrl = buildNextUrl(nextPath);
   if (replace) {
     window.history.replaceState({}, "", nextUrl);
   } else {
@@ -282,15 +252,11 @@ function setDiscoveryModeUrl(mode, { replace = true } = {}) {
 }
 
 function setViewUrl(view, { replace = true } = {}) {
-  const params = new URLSearchParams(window.location.search);
-  if (view) {
-    params.set("view", view);
-  } else {
-    params.delete("view");
-  }
-
-  const search = params.toString();
-  const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+  let nextPath = "/forum";
+  if (view === "discover") nextPath = "/discover";
+  if (view === "saved") nextPath = "/saved";
+  if (view === "admin") nextPath = "/admin";
+  const nextUrl = buildNextUrl(nextPath);
   if (replace) {
     window.history.replaceState({}, "", nextUrl);
   } else {
@@ -399,13 +365,12 @@ export default function ForumApp() {
   useEffect(() => {
     const syncSelectedPostFromLocation = () => {
       const params = new URLSearchParams(window.location.search);
-      const view = params.get("view");
-      setTab(["forum", "discover", "saved"].includes(view) ? view : "forum");
-      setSelectedPostId(params.get("postId") || null);
-      const profileId = params.get("profileId");
+      const [first, second, third] = getPathSegments();
+      setTab(first === "admin" || first === "operator" ? "admin" : first === "discover" ? "discover" : first === "saved" ? "saved" : "forum");
+      setSelectedPostId(first === "post" && second ? second : null);
       setSelectedProfile(
-        profileId
-          ? { id: profileId, type: params.get("profileType") || "user" }
+        first === "profile" && second
+          ? { id: third || second, type: third ? second : "user" }
           : null
       );
       setActiveTagFilter(params.get("tag") || "");
@@ -623,59 +588,8 @@ export default function ForumApp() {
           renderAdminShell()
         ) : (
           <>
-            <nav style={{ ...styles.topNav, ...(isMobile ? styles.navMobile : {}) }}>
-              {SERVICE_TABS.map((tabItem) => {
-                const isActive = tab === tabItem.id;
-                const handleClick =
-                  tabItem.id === "saved" ? openSavedPosts : () => activateTab(tabItem.id);
-
-                return (
-                  <button
-                    key={tabItem.id}
-                    type="button"
-                    style={{ ...styles.tabBtn, ...(isActive ? styles.tabActive : {}) }}
-                    onClick={handleClick}
-                  >
-                    <span style={styles.tabLabel}>{tabItem.label}</span>
-                    {!isMobile && (
-                      <span
-                        style={{
-                          ...styles.tabDescription,
-                          ...(isActive ? styles.tabDescriptionActive : {}),
-                        }}
-                      >
-                        {tabItem.description}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-              <button
-                type="button"
-                style={styles.topNavToolBtn}
-                onClick={authUser ? handleLogout : () => setShowAuth(true)}
-                aria-label={authUser ? "로그아웃" : "로그인"}
-                title={authUser ? "로그아웃" : "로그인"}
-              >
-                <UserRound size={16} strokeWidth={2.2} />
-              </button>
-            </nav>
-
             <div style={{ ...styles.serviceShell, ...(isCompact ? styles.serviceShellCompact : {}) }}>
               <div style={{ ...styles.centerColumn, ...(isCompact ? styles.centerColumnCompact : {}) }}>
-                {isCompact && (
-                  <ServiceContextSummary
-                    tab={tab}
-                    discoveryMode={discoveryMode}
-                    activeTagFilter={activeTagFilter}
-                    discoverySearchText={discoverySearchText}
-                    onClearTab={clearTabContext}
-                    onClearMode={clearModeContext}
-                    onClearTag={clearTagContext}
-                    onClearSearch={clearSearchContext}
-                  />
-                )}
-
                 <main style={styles.main}>
               {selectedProfile ? (
                 <section>
@@ -798,25 +712,33 @@ export default function ForumApp() {
                 </main>
               </div>
 
-              {!isCompact && (
-                <ServiceSidebar
-                  authUser={authUser}
-                  hasForumActivity={hasForumActivity}
-                  composerOpen={composerOpen}
-                  onToggleComposer={toggleComposerOpen}
-                  onShowAuth={() => setShowAuth(true)}
-                  onLogout={handleLogout}
-                  tab={tab}
-                  discoveryMode={discoveryMode}
-                  activeTagFilter={activeTagFilter}
-                  discoverySearchText={discoverySearchText}
-                  onClearTab={clearTabContext}
-                  onClearMode={clearModeContext}
-                  onClearTag={clearTagContext}
-                  onClearSearch={clearSearchContext}
-                />
-              )}
-
+            </div>
+            <div style={styles.bottomPillDock}>
+              <div style={styles.bottomPillBar}>
+                {[
+                  { key: "forum", label: "포럼", icon: Home, active: tab === "forum", onClick: openForum },
+                  { key: "discover", label: "탐색", icon: Search, active: tab === "discover", onClick: openSearch },
+                  { key: "saved", label: "저장글", icon: Bookmark, active: tab === "saved", onClick: openSavedPosts },
+                  { key: "profile", label: "프로필", icon: UserRound, active: tab === "profile" || Boolean(selectedProfile), onClick: openProfileTab },
+                ].map((pill) => {
+                  const Icon = pill.icon;
+                  return (
+                    <button
+                      key={pill.key}
+                      type="button"
+                      onClick={pill.onClick}
+                      aria-label={pill.label}
+                      title={pill.label}
+                      style={{
+                        ...styles.bottomPillBtn,
+                        ...(pill.active ? styles.bottomPillBtnActive : {}),
+                      }}
+                    >
+                      <Icon size={18} strokeWidth={2.1} />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </>
         )}
@@ -849,73 +771,37 @@ const styles = {
     gridTemplateColumns: "minmax(0, 1fr)",
     padding: "12px 12px 28px",
   },
-  serviceSidebar: {
+  serviceRail: {
     position: "sticky",
-    top: 96,
+    top: 24,
     display: "flex",
     flexDirection: "column",
-    gap: 12,
+    alignItems: "center",
+    justifySelf: "end",
     alignSelf: "start",
   },
-  sidebarCard: {
-    background: "#fff",
-    border: "1px solid rgba(17,17,17,0.06)",
-    borderRadius: 12,
-    padding: 16,
+  railPillStack: {
     display: "flex",
     flexDirection: "column",
     gap: 10,
+    padding: 10,
+    borderRadius: 28,
+    background: "rgba(255,255,255,0.84)",
+    border: "1px solid rgba(17,17,17,0.06)",
+    boxShadow: "0 18px 40px rgba(17,17,17,0.06)",
   },
-  sidebarKicker: {
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
-    color: "#6b7280",
-  },
-  sidebarTitle: {
-    fontSize: 16,
-    fontWeight: 800,
-    color: "#111827",
-    lineHeight: 1.25,
-  },
-  sidebarText: {
-    fontSize: 12,
-    color: "#6b7280",
-    lineHeight: 1.5,
-  },
-  sidebarPrimaryBtn: {
-    border: "1px solid transparent",
-    borderRadius: 10,
-    padding: "10px 12px",
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: "pointer",
-    width: "100%",
-  },
-  sidebarPrimaryBtnActive: {
-    background: "#111",
-    color: "#fff",
-  },
-  sidebarPrimaryBtnDisabled: {
-    background: "#f3f4f6",
-    color: "#9ca3af",
-  },
-  sidebarPrimaryBtnPrompt: {
+  railIconBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: "50%",
+    border: "1px solid rgba(17,17,17,0.06)",
     background: "#fff",
     color: "#111827",
-    borderColor: "#d1d5db",
-  },
-  sidebarSecondaryBtn: {
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    color: "#111827",
-    borderRadius: 10,
-    padding: "9px 12px",
-    fontSize: 13,
-    fontWeight: 700,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
     cursor: "pointer",
-    width: "100%",
+    boxShadow: "0 10px 26px rgba(17,17,17,0.06)",
   },
   rail: {
     position: "sticky",
@@ -1180,81 +1066,6 @@ const styles = {
     color: "#111827",
     marginBottom: 2,
   },
-  topNav: {
-    position: "sticky",
-    top: 0,
-    zIndex: 12,
-    background: "#fff",
-    padding: 8,
-    display: "flex",
-    gap: 6,
-    alignItems: "stretch",
-    borderRadius: 12,
-    border: "1px solid rgba(17,17,17,0.06)",
-    margin: "0 20px",
-  },
-  navMobile: {
-    overflowX: "auto",
-    margin: "0 12px",
-  },
-  contextSummary: {
-    margin: 0,
-    padding: "12px 14px",
-    borderRadius: 12,
-    border: "1px solid rgba(17,17,17,0.06)",
-    background: "rgba(255,255,255,0.94)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  contextSummaryHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
-  },
-  contextSummaryLabel: {
-    fontSize: 12,
-    fontWeight: 800,
-    color: "#6b7280",
-    letterSpacing: "0.06em",
-  },
-  contextClearBtn: {
-    border: "1px solid #d1d5db",
-    background: "#f9fafb",
-    color: "#374151",
-    borderRadius: 999,
-    padding: "4px 10px",
-    fontSize: 12,
-    cursor: "pointer",
-  },
-  contextChipRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  contextChip: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "6px 10px",
-    borderRadius: 999,
-    background: "#f8fafc",
-    border: "1px solid #e5e7eb",
-    color: "#111827",
-    fontSize: 12,
-  },
-  contextChipRemoveBtn: {
-    width: 20,
-    height: 20,
-    borderRadius: 999,
-    border: "none",
-    background: "#e5e7eb",
-    color: "#374151",
-    cursor: "pointer",
-    lineHeight: 1,
-    padding: 0,
-  },
   placeholderCard: {
     marginTop: 8,
     padding: "20px 22px",
@@ -1274,80 +1085,42 @@ const styles = {
     color: "#6b7280",
     lineHeight: 1.6,
   },
-  tabBtn: {
-    padding: "12px 14px",
-    background: "transparent",
-    border: "none",
-    color: "#6b7280",
-    fontSize: 14,
-    cursor: "pointer",
-    borderRadius: 18,
+  bottomPillDock: {
+    position: "fixed",
+    insetInline: 0,
+    bottom: 16,
+    zIndex: 30,
     display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    gap: 3,
-    minWidth: 120,
-    flex: 1,
+    justifyContent: "center",
+    pointerEvents: "none",
   },
-  tabActive: {
-    color: "#fff",
-    background: "#111",
+  bottomPillBar: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    padding: 10,
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.92)",
+    border: "1px solid rgba(17,17,17,0.06)",
+    boxShadow: "0 18px 42px rgba(17,17,17,0.08)",
+    backdropFilter: "blur(18px)",
+    pointerEvents: "auto",
   },
-  tabLabel: {
-    fontSize: 14,
-    fontWeight: 700,
-    lineHeight: 1.2,
-  },
-  tabDescription: {
-    fontSize: 11,
-    lineHeight: 1.35,
-    color: "#6b7280",
-    textAlign: "left",
-  },
-  tabDescriptionActive: {
-    color: "rgba(255,255,255,0.78)",
-  },
-  topNavToolBtn: {
-    width: 44,
-    minWidth: 44,
-    borderRadius: 12,
-    border: "1px solid rgba(17,17,17,0.08)",
-    background: "#fff",
-    color: "#111827",
+  bottomPillBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: "50%",
+    border: "none",
+    background: "#eef1f6",
+    color: "#5b6475",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
-    marginLeft: "auto",
   },
-  supportPanel: {
-    position: "sticky",
-    top: 96,
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  supportCard: {
-    background: "rgba(255,255,255,0.94)",
-    border: "1px solid rgba(17,17,17,0.06)",
-    borderRadius: 24,
-    padding: 18,
-    boxShadow: "0 14px 28px rgba(17,17,17,0.04)",
-  },
-  supportMetaRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 8,
-  },
-  supportMetaLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  supportMetaValue: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#111",
+  bottomPillBtnActive: {
+    background: "linear-gradient(135deg, #d7e7ff 0%, #ebe7ff 48%, #d9effa 100%)",
+    color: "#111827",
+    boxShadow: "0 8px 18px rgba(76, 107, 255, 0.18)",
   },
 };
