@@ -2341,66 +2341,55 @@ export default function FashionThreadPage() {
 
   const openFeed = () => navigateTo("feed");
   const openSearch = () => navigateTo("search");
+  const openTopicTab = () => openTopic(activePost?.alignment?.topic_type || TOPIC_PAGES[0]?.id);
+  const openProfileTab = () => openProfile(activePost?.author || AUTHOR_PROFILES[0]?.id);
+  const topTabs = [
+    { key: "feed", label: "피드", active: view === "feed", onClick: openFeed },
+    { key: "search", label: "탐색", active: view === "search", onClick: openSearch },
+    { key: "topic", label: "주제", active: view === "topic", onClick: openTopicTab },
+    { key: "profile", label: "프로필", active: view === "profile", onClick: openProfileTab },
+    { key: "sim", label: "시뮬", active: view === "sim", onClick: () => navigateTo("sim") },
+  ];
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#f8fbff,_#eff3f8_54%,_#eef2f7_100%)] text-slate-900">
-      <div className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-5">
+      <div className="sticky top-3 z-20 px-3 sm:px-5">
+        <div className="mx-auto max-w-6xl rounded-[28px] border border-slate-200/80 bg-white/92 px-3 py-3 shadow-[0_16px_50px_rgba(15,23,42,0.08)] backdrop-blur-md">
           <div className="flex items-center gap-3">
-            {view === "thread" || view === "search" || view === "profile" || view === "topic" || view === "sim" ? (
-              <button
-                type="button"
-                onClick={goBack}
-                className="border border-slate-200 bg-white p-2 transition hover:border-slate-300 hover:bg-slate-50"
-              >
-                <ArrowLeft className="h-4 w-4 text-slate-500" />
-              </button>
-            ) : view === "search" ? (
-              <button
-                type="button"
-                onClick={goBack}
-                className="border border-slate-200 bg-white p-2 transition hover:border-slate-300 hover:bg-slate-50"
-              >
-                <ArrowLeft className="h-4 w-4 text-slate-500" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={openSearch}
-                className="border border-slate-200 bg-white p-2 transition hover:border-slate-300 hover:bg-slate-50"
-              >
-                <Search className="h-4 w-4 text-slate-500" />
-              </button>
-            )}
-            <div>
-              <p className="text-sm font-semibold tracking-tight text-slate-900">fashion-forum</p>
-              <p className="text-xs text-slate-500">
-                {view === "feed"
-                  ? "channel / fashion-life"
-                  : view === "search"
-                    ? "search / live index"
-                    : view === "profile"
-                      ? `profile / ${activeProfile.author}`
-                      : view === "topic"
-                        ? `topic / ${activeTopic.title}`
-                        : view === "sim"
-                          ? `sim / seed ${selectedRun.seed}`
-                        : activePost.title}
-              </p>
+            <button
+              type="button"
+              onClick={openSearch}
+              aria-label="search"
+              className="inline-flex h-10 w-10 items-center justify-center border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+
+            <div className="flex min-w-0 flex-1 items-center justify-center gap-2 overflow-x-auto px-1">
+              {topTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={tab.onClick}
+                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
+                    tab.active
+                      ? "border border-slate-900 bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.14)]"
+                      : "border border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
-          </div>
-          <div className="border border-slate-200 bg-white px-3 py-1 text-xs text-slate-500 shadow-[0_6px_20px_rgba(15,23,42,0.04)]">
-            {view === "feed"
-              ? "conversation mode"
-              : view === "search"
-                ? "live search"
-                : view === "profile"
-                  ? `${activeProfile.representativePosts.length} threads`
-                  : view === "topic"
-                    ? `${activeTopic.reactionSummary.replies} replies`
-                    : view === "sim"
-                      ? `tick ${selectedRun.tick}`
-                    : `${activePost.replies} replies`}
+
+            <button
+              type="button"
+              onClick={openProfileTab}
+              aria-label="profile"
+              className="inline-flex h-10 w-10 items-center justify-center border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
+            >
+              <User className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -3357,48 +3346,6 @@ export default function FashionThreadPage() {
         )}
       </main>
 
-      <div className="sticky bottom-0 z-20 border-t border-slate-200/80 bg-white/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-5">
-          <button
-            type="button"
-            onClick={openFeed}
-            className={`border px-3 py-2 text-sm transition ${view === "feed" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"}`}
-          >
-            <span className="inline-flex items-center gap-2"><Home className="h-4 w-4" />채널</span>
-          </button>
-          <button
-            type="button"
-            onClick={openSearch}
-            className={`border px-3 py-2 text-sm transition ${view === "search" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"}`}
-          >
-            <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" />탐색</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => navigateTo("sim")}
-            className={`border px-3 py-2 text-sm transition ${view === "sim" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"}`}
-          >
-            <span className="inline-flex items-center gap-2"><SlidersHorizontal className="h-4 w-4" />시뮬</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => openTopic(activePost?.alignment?.topic_type || TOPIC_PAGES[0]?.id)}
-            className={`border px-3 py-2 text-sm transition ${view === "topic" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"}`}
-          >
-            <span className="inline-flex items-center gap-2"><Hash className="h-4 w-4" />주제</span>
-          </button>
-          <button type="button" className="border border-slate-900 bg-slate-900 px-3 py-2 text-sm text-white transition hover:bg-slate-800">
-            <span className="inline-flex items-center gap-2"><PenSquare className="h-4 w-4" />새 글</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => openProfile(activePost?.author || AUTHOR_PROFILES[0]?.id)}
-            className={`border px-3 py-2 text-sm transition ${view === "profile" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-800"}`}
-          >
-            <span className="inline-flex items-center gap-2"><User className="h-4 w-4" />프로필</span>
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
