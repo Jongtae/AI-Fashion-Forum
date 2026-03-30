@@ -462,6 +462,18 @@ export default function ForumApp() {
     setSelectedPostId(null);
   }
 
+  function openForum() {
+    activateTab("forum");
+  }
+
+  function openSearch() {
+    activateTab("discover");
+  }
+
+  function openProfileTab() {
+    openProfile(currentUser);
+  }
+
   function activateTab(nextTab) {
     setTab(nextTab);
     setViewUrl(nextTab, { replace: false });

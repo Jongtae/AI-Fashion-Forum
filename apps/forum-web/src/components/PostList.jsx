@@ -3,7 +3,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { fetchPosts } from "../api/client.js";
 import PostCard from "./PostCard.jsx";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 4;
 
 export default function PostList({
   currentUser,
