@@ -1016,14 +1016,14 @@ function ProductMentionCard({ binding, variant = "feed" }) {
         href={binding.url}
         target="_blank"
         rel="noreferrer"
-        className="group relative block h-24 overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition hover:border-slate-300 hover:bg-slate-50"
+        className="group relative block h-24 overflow-hidden rounded-[24px] border border-slate-200 bg-white text-left shadow-[0_14px_28px_rgba(15,23,42,0.06)] transition hover:border-slate-300 hover:bg-slate-50"
       >
         <ResolvedProductThumbnail
           binding={binding}
           alt={binding.title}
           className="h-full w-full object-cover"
         />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent px-2.5 pb-2 pt-6">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-white/92 via-white/72 to-transparent px-2.5 pb-2 pt-6">
           <p className="line-clamp-2 text-[11px] font-medium leading-4 text-slate-900 transition group-hover:text-slate-950">
             {shortenTitle(binding.title)}
           </p>
@@ -1037,12 +1037,12 @@ function ProductMentionCard({ binding, variant = "feed" }) {
       href={binding.url}
       target="_blank"
       rel="noreferrer"
-      className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition hover:border-slate-300 hover:bg-slate-50"
+      className="group block overflow-hidden rounded-[24px] border border-slate-200 bg-white text-left shadow-[0_14px_28px_rgba(15,23,42,0.06)] transition hover:border-slate-300 hover:bg-slate-50"
     >
       <ResolvedProductThumbnail
         binding={binding}
         alt={binding.title}
-        className="h-36 w-full rounded-t-2xl object-cover"
+        className="h-36 w-full rounded-t-[24px] object-cover"
       />
       <div className="space-y-1 p-3">
         <p className="text-sm font-medium leading-5 text-slate-900 transition group-hover:text-slate-950">
@@ -1192,7 +1192,7 @@ function buildAuthorProfiles(posts) {
       role: ["fit analyst", "community regular", "quiet observer", "taste logger", "repeat contributor"][
         index % 5
       ],
-      accent: index % 2 === 0 ? "from-zinc-500 to-zinc-700" : "from-zinc-700 to-zinc-900",
+      accent: index % 2 === 0 ? "from-sky-300 to-indigo-400" : "from-emerald-300 to-teal-400",
       interestAreas: topEntries(
         authoredPosts.flatMap((post) => [
           ...post.brands,
@@ -1727,7 +1727,7 @@ function formatCount(value) {
   return `${value}`;
 }
 
-function Avatar({ initials, accent = "from-zinc-400 to-zinc-600" }) {
+function Avatar({ initials, accent = "from-sky-300 to-indigo-400" }) {
   return (
     <div
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${accent} text-xs font-semibold tracking-wide text-slate-900 shadow-[0_4px_12px_rgba(15,23,42,0.08)]`}
@@ -2036,7 +2036,7 @@ function ThreadItem({
               >
                 <div className="mt-3 border border-slate-200 bg-white p-3 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
                   <div className="flex items-start gap-3">
-                    <Avatar initials="ME" accent="from-zinc-700 to-zinc-900" />
+                    <Avatar initials="ME" accent="from-sky-300 to-indigo-400" />
                     <div className="flex-1 border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
                       Reply to {comment.user}...
                     </div>
@@ -2647,7 +2647,7 @@ export default function FashionThreadPage() {
           >
               <div className="border-b border-slate-200/80 px-4 py-4 sm:px-5">
                 <div className="flex items-start gap-3">
-                  <Avatar initials={authorInitials(activePost.author)} accent="from-zinc-500 to-zinc-700" />
+                  <Avatar initials={authorInitials(activePost.author)} accent="from-sky-300 to-indigo-400" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <button
@@ -2687,14 +2687,14 @@ export default function FashionThreadPage() {
                           tags={activePost.description.split(",").map((tag) => tag.trim())}
                           wrapperClassName="relative"
                           imageClassName="h-[460px] w-full object-cover sm:h-[620px]"
-                          fallbackClassName="flex min-h-[460px] w-full flex-col justify-end bg-[radial-gradient(circle_at_top,_rgba(82,82,91,0.28),_rgba(9,9,11,1)_58%)] p-5 sm:min-h-[620px]"
+                          fallbackClassName="flex min-h-[460px] w-full flex-col justify-end bg-[radial-gradient(circle_at_top,_rgba(241,245,249,0.98),_rgba(226,232,240,0.95)_58%)] p-5 sm:min-h-[620px]"
                         >
-                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-4">
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-white/92 via-white/60 to-transparent p-4">
                               <div className="flex flex-wrap gap-2">
                                 {activePost.description.split(",").map((tag) => (
                                   <span
                                     key={tag.trim()}
-                                    className="rounded-full border border-white/20 bg-black/35 px-3 py-1 text-xs text-white backdrop-blur-sm"
+                                    className="rounded-full border border-slate-200 bg-white/85 px-3 py-1 text-xs text-slate-700 backdrop-blur-sm"
                                   >
                                     {tag.trim()}
                                   </span>
@@ -2776,7 +2776,7 @@ export default function FashionThreadPage() {
                         >
                           <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-3">
                             <div className="flex items-start gap-3">
-                              <Avatar initials="ME" accent="from-zinc-700 to-zinc-900" />
+                              <Avatar initials="ME" accent="from-sky-300 to-indigo-400" />
                               <div className="flex-1 border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
                                 Add a reply about 핏, 가격값, 실착 만족도...
                               </div>
