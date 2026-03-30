@@ -183,25 +183,29 @@ const styles = {
   commentList: {
     display: "flex",
     flexDirection: "column",
-    gap: 12,
+    gap: 0,
     marginTop: 14,
   },
   commentCard: {
-    padding: 14,
-    borderRadius: 12,
-    border: "1px solid rgba(17,17,17,0.06)",
-    background: "#fff",
+    padding: "14px 0",
+    borderRadius: 0,
+    border: "none",
+    background: "transparent",
+    borderBottom: "1px solid rgba(17,17,17,0.08)",
   },
   commentCardReply: {
-    marginLeft: 16,
-    background: "#faf7f2",
+    marginLeft: 12,
+    paddingLeft: 12,
+    borderBottom: "1px solid rgba(17,17,17,0.08)",
+    borderLeft: "1px solid rgba(17,17,17,0.08)",
+    background: "transparent",
   },
   commentHeader: {
     display: "flex",
     alignItems: "flex-start",
     justifyContent: "space-between",
     gap: 12,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   commentAuthorRow: {
     display: "flex",
@@ -215,7 +219,7 @@ const styles = {
   commentFooter: {
     display: "flex",
     justifyContent: "flex-end",
-    marginTop: 8,
+    marginTop: 6,
   },
   deleteBtn: {
     fontSize: 11,
