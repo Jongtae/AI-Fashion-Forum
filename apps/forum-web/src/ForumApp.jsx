@@ -677,7 +677,7 @@ export default function ForumApp() {
             </nav>
 
             <div style={{ ...styles.serviceShell, ...(isCompact ? styles.serviceShellCompact : {}) }}>
-              <div style={styles.centerColumn}>
+              <div style={{ ...styles.centerColumn, ...(isCompact ? styles.centerColumnCompact : {}) }}>
                 {isCompact && (
                   <ServiceContextSummary
                     tab={tab}
@@ -894,16 +894,18 @@ const styles = {
     textTransform: "none",
   },
   serviceShell: {
-    maxWidth: 1360,
+    width: 1124,
+    maxWidth: "none",
     margin: "0 auto",
     padding: "18px 20px 40px",
     display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) 304px",
+    gridTemplateColumns: "760px 304px",
     justifyContent: "center",
     gap: 20,
     alignItems: "start",
   },
   serviceShellCompact: {
+    width: "100%",
     gridTemplateColumns: "minmax(0, 1fr)",
     padding: "12px 12px 28px",
   },
@@ -1080,10 +1082,15 @@ const styles = {
     whiteSpace: "nowrap",
   },
   centerColumn: {
-    minWidth: 0,
+    width: 760,
+    minWidth: 760,
     display: "flex",
     flexDirection: "column",
     gap: 16,
+  },
+  centerColumnCompact: {
+    width: "100%",
+    minWidth: 0,
   },
   adminHeader: {
     display: "flex",
