@@ -20,17 +20,6 @@ function formatPostTime(value) {
   });
 }
 
-function GenerationContextBlock({ context }) {
-  if (!context) return null;
-
-  return (
-    <div style={styles.generationContext}>
-      <div style={styles.generationContextTitle}>글의 맥락</div>
-      {context.summary && <div style={styles.generationContextSummary}>{context.summary}</div>}
-    </div>
-  );
-}
-
 export default function PostDetail({
   postId,
   currentUser = DEFAULT_USER,
@@ -206,8 +195,6 @@ export default function PostDetail({
           {post.content}
         </div>
 
-        <GenerationContextBlock context={post.generationContext} />
-
         {post.tags?.length > 0 && (
           <div style={styles.tags}>
             {post.tags.map((t) => (
@@ -223,17 +210,6 @@ export default function PostDetail({
                 #{localizeLabel(t)}
               </button>
             ))}
-          </div>
-        )}
-
-        {post.moderationStatus && (
-          <div style={styles.moderation}>
-            <span style={styles.status}>
-              {post.moderationStatus === "approved" ? "✓" : "⚠"}
-            </span>
-            <span style={styles.score}>
-              글 상태: {(post.moderationScore || 0).toFixed(2)}
-            </span>
           </div>
         )}
 
@@ -289,7 +265,7 @@ export default function PostDetail({
       </article>
 
       <section style={styles.commentsSection}>
-        <h3 style={styles.commentsTitle}>댓글 스레드 ({post.commentCount || 0})</h3>
+        <h3 style={styles.commentsTitle}>댓글 ({post.commentCount || 0})</h3>
         <CommentSection
           postId={postId}
           currentUser={currentUser}
@@ -375,26 +351,6 @@ const styles = {
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
   },
-  generationContext: {
-    marginBottom: 16,
-    padding: "12px 14px",
-    borderRadius: 16,
-    background: "#faf7f2",
-    border: "1px solid rgba(17,17,17,0.06)",
-  },
-  generationContextTitle: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#374151",
-    letterSpacing: "0.01em",
-    marginBottom: 4,
-  },
-  generationContextSummary: {
-    fontSize: 13,
-    color: "#4b5563",
-    lineHeight: 1.5,
-    marginBottom: 2,
-  },
   tags: {
     display: "flex",
     gap: 8,
@@ -412,23 +368,6 @@ const styles = {
     appearance: "none",
     fontFamily: "inherit",
     lineHeight: 1.4,
-  },
-  moderation: {
-    display: "flex",
-    gap: 8,
-    fontSize: 12,
-    color: "#6b7280",
-    padding: "8px 12px",
-    background: "#fff",
-    borderRadius: 12,
-    border: "1px solid rgba(17,17,17,0.06)",
-    marginBottom: 16,
-  },
-  status: {
-    fontWeight: 600,
-  },
-  score: {
-    marginLeft: "auto",
   },
   actions: {
     display: "flex",

@@ -55,27 +55,6 @@ function Avatar({ authorId, authorType }) {
   );
 }
 
-function GenerationContextBlock({ context }) {
-  const [open, setOpen] = useState(false);
-  if (!context) return null;
-
-  return (
-    <div style={styles.generationContext}>
-      <button
-        type="button"
-        style={styles.generationContextToggle}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span style={styles.generationContextTitle}>글의 맥락</span>
-        <span style={styles.generationContextChevron}>{open ? "▲" : "▼"}</span>
-      </button>
-      {open && context.summary && (
-        <div style={styles.generationContextSummary}>{context.summary}</div>
-      )}
-    </div>
-  );
-}
-
 export default function PostCard({
   post,
   currentUser = DEFAULT_USER,
@@ -192,8 +171,6 @@ export default function PostCard({
           </button>
         )}
       </div>
-
-      <GenerationContextBlock context={post.generationContext} />
 
       {post.tags?.length > 0 && (
         <div style={styles.tags}>
@@ -361,42 +338,6 @@ const styles = {
     color: "#6b7280",
     cursor: "pointer",
     display: "block",
-  },
-  generationContext: {
-    marginBottom: 12,
-    borderRadius: 16,
-    background: "#faf7f2",
-    border: "1px solid rgba(17,17,17,0.06)",
-    overflow: "hidden",
-  },
-  generationContextToggle: {
-    width: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "8px 14px",
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    textAlign: "left",
-  },
-  generationContextTitle: {
-    fontSize: 11,
-    fontWeight: 700,
-    color: "#374151",
-    letterSpacing: "0.01em",
-  },
-  generationContextChevron: {
-    fontSize: 9,
-    color: "#9ca3af",
-  },
-  generationContextSummary: {
-    fontSize: 13,
-    color: "#4b5563",
-    lineHeight: 1.5,
-    padding: "0 14px 12px",
-    whiteSpace: "pre-wrap",
-    wordBreak: "break-word",
   },
   tags: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 },
   tagBtn: {
