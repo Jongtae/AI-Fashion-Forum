@@ -916,31 +916,29 @@ export default function ForumApp() {
                 </section>
               ) : tab === "saved" ? (
                 <section style={styles.savedSection}>
-                  <div style={styles.savedHero}>
-                    <h2 style={styles.savedTitle}>저장글</h2>
-                  </div>
-                    <PostList
-                      currentUser={currentUser}
-                      onUserActivity={markForumActivity}
-                      onSelectPost={(postId) => {
-                        markForumActivity();
-                        openPost(postId);
-                      }}
-                      onTagClick={openTagFilter}
-                      onRequireAuth={() => setShowAuth(true)}
-                      isAuthenticated={Boolean(authUser)}
-                      activeTagFilter={activeTagFilter}
-                      onTagFilterChange={(value) => {
-                        setActiveTagFilter(value);
-                        setTagUrl(value, { replace: false });
-                      }}
-                      queryParams={{ saved: "true" }}
-                      requiresAuth
-                      onAuthorClick={openProfile}
-                      onEmptyStateAction={() => {
-                        activateTab("forum");
-                      }}
-                      emptyStateActionLabel="포럼으로 돌아가기"
+                  <div style={styles.savedHeader}>저장글</div>
+                  <PostList
+                    currentUser={currentUser}
+                    onUserActivity={markForumActivity}
+                    onSelectPost={(postId) => {
+                      markForumActivity();
+                      openPost(postId);
+                    }}
+                    onTagClick={openTagFilter}
+                    onRequireAuth={() => setShowAuth(true)}
+                    isAuthenticated={Boolean(authUser)}
+                    activeTagFilter={activeTagFilter}
+                    onTagFilterChange={(value) => {
+                      setActiveTagFilter(value);
+                      setTagUrl(value, { replace: false });
+                    }}
+                    queryParams={{ saved: "true" }}
+                    requiresAuth
+                    onAuthorClick={openProfile}
+                    onEmptyStateAction={() => {
+                      activateTab("forum");
+                    }}
+                    emptyStateActionLabel="포럼으로 돌아가기"
                   />
                 </section>
               ) : (
@@ -1353,31 +1351,11 @@ const styles = {
     flexDirection: "column",
     gap: 14,
   },
-  savedHero: {
-    padding: 20,
-    borderRadius: 28,
-    border: "1px solid rgba(17,17,17,0.06)",
-    background: "#fff",
-    boxShadow: "0 14px 28px rgba(17,17,17,0.04)",
-  },
-  savedKicker: {
-    margin: 0,
-    fontSize: 12,
-    fontWeight: 800,
-    color: "#2563eb",
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
-  },
-  savedTitle: {
-    margin: "8px 0 8px",
-    fontSize: 20,
-    color: "#111827",
-  },
-  savedText: {
-    margin: 0,
+  savedHeader: {
     fontSize: 14,
-    lineHeight: 1.7,
-    color: "#6b7280",
+    fontWeight: 700,
+    color: "#111827",
+    marginBottom: 2,
   },
   nav: {
     background: "#fff",
