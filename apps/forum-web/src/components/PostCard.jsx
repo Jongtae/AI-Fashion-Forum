@@ -20,10 +20,11 @@ function formatPostTime(value) {
   });
 }
 
-function formatPostedByLine(value) {
-  if (!value) return "Posted by someone";
+function formatPostedByLine(authorId, value) {
+  const authorLabel = authorId ? `@${authorId}` : "someone";
+  if (!value) return `Posted by ${authorLabel}`;
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Posted by someone";
+  if (Number.isNaN(date.getTime())) return `Posted by ${authorLabel}`;
 
   const now = new Date();
   const dayMs = 24 * 60 * 60 * 1000;
@@ -36,9 +37,9 @@ function formatPostedByLine(value) {
     hour12: false,
   }).format(date);
 
-  if (diffDays <= 0) return `Posted by ${time}`;
-  if (diffDays === 1) return `Posted by yesterday at ${time}`;
-  return `Posted by ${diffDays} days ago at ${time}`;
+  if (diffDays <= 0) return `Posted by ${authorLabel} at ${time}`;
+  if (diffDays === 1) return `Posted by ${authorLabel} yesterday at ${time}`;
+  return `Posted by ${authorLabel} ${diffDays} days ago at ${time}`;
 }
 
 function getPostTitle(post) {
@@ -116,7 +117,7 @@ export default function PostCard({
   const mediaUrl = Array.isArray(post.imageUrls) ? post.imageUrls[0] : post.imageUrls;
   const hasMedia = Boolean(mediaUrl);
   const postTitle = getPostTitle(post);
-  const postedByLine = formatPostedByLine(post.createdAt);
+  const postedByLine = formatPostedByLine(post.authorId, post.createdAt);
   const commentButtonText = commentCount > 0
     ? `댓글 ${commentCount}개 ${showComments ? "닫기" : "보기"}`
     : `댓글 ${showComments ? "닫기" : "보기"}`;
