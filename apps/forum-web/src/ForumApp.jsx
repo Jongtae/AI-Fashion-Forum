@@ -10,7 +10,7 @@ import AuthModal from "./components/AuthModal.jsx";
 import AdminDashboard from "./components/AdminDashboard.jsx";
 import ProfilePanel from "./components/ProfilePanel.jsx";
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     // 실시간 업데이트: 30초마다 자동 갱신
     queries: { retry: 1, staleTime: 10_000, refetchInterval: 30_000 },
@@ -657,17 +657,16 @@ export default function ForumApp() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div style={styles.root}>
-        {showAuth && (
-          <AuthModal
-            onSuccess={handleAuthSuccess}
-            onClose={() => {
-              setPendingTab(null);
-              setShowAuth(false);
-            }}
-          />
-        )}
+    <div style={styles.root}>
+      {showAuth && (
+        <AuthModal
+          onSuccess={handleAuthSuccess}
+          onClose={() => {
+            setPendingTab(null);
+            setShowAuth(false);
+          }}
+        />
+      )}
 
         {tab === "admin" ? (
           renderAdminShell()
@@ -924,8 +923,7 @@ export default function ForumApp() {
             )}
           </>
         )}
-      </div>
-    </QueryClientProvider>
+    </div>
   );
 }
 
