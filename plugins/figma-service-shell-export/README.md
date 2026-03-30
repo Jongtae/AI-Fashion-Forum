@@ -15,6 +15,7 @@ This local Figma plugin creates a set of frames that mirror the current service 
 3. Run the plugin on any Figma page.
 4. The plugin creates three pages:
    - `Components` for reusable UI parts
+   - `Flow Map` for navigation and page separation
    - `Service Shell` for user-facing screens
    - `Admin Shell` for admin-only screens
 

@@ -196,6 +196,14 @@ async function createChipComponent(name, label, active = false) {
   return component;
 }
 
+function addComponentInstance(parent, component, x, y) {
+  const instance = component.createInstance();
+  instance.x = x;
+  instance.y = y;
+  parent.appendChild(instance);
+  return instance;
+}
+
 async function addCard(parent, title, subtitle, x, y, width, height, options = {}) {
   const card = createFrame(title, x, y, width, height, options.fill || COLORS.card);
   card.cornerRadius = 18;
@@ -378,7 +386,75 @@ async function buildComponentsPage() {
   });
   canvas.appendChild(replyPreview);
 
-  return page;
+  return {
+    page,
+    canvas,
+    components: {
+      buttonPrimary,
+      buttonSecondary,
+      chipActive,
+      chipDefault,
+      postCard,
+      sideCard,
+      actionChip,
+      commentCard,
+      replyPreview,
+    },
+  };
+}
+
+async function buildFlowPage() {
+  const page = figma.createPage();
+  page.name = "Flow Map";
+
+  const canvas = createFrame("AI Fashion Forum / Flow Map", 0, 0, 1440, 980, COLORS.canvas);
+  canvas.cornerRadius = 0;
+  canvas.strokes = [];
+  page.appendChild(canvas);
+
+  await addText(canvas, "Flow Map", 24, 24, 24, { weight: "Bold" });
+  await addText(canvas, "서비스와 관리 화면의 구조를 한눈에 보는 안내 페이지", 24, 58, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+
+  const group = createFrame("Service Flow", 24, 108, 1392, 332, COLORS.shell);
+  group.cornerRadius = 24;
+  addShadow(group);
+  canvas.appendChild(group);
+  await addText(group, "Service", 24, 20, 18, { weight: "Bold" });
+  await addText(group, "사용자가 실제로 이용하는 화면", 94, 22, 12, { weight: "Regular", color: COLORS.muted });
+  await addCard(group, "Home", "읽기와 빠른 행동이 시작됩니다.", 24, 62, 252, 144);
+  await addCard(group, "Discover", "최신 / 인기 / 검색으로 찾습니다.", 300, 62, 252, 144);
+  await addCard(group, "Detail", "글, 맥락, 댓글, 답글을 봅니다.", 576, 62, 252, 144);
+  await addCard(group, "Saved", "저장한 글을 다시 봅니다.", 852, 62, 252, 144);
+  await addCard(group, "Feed", "맞춤 흐름을 따라 봅니다.", 1128, 62, 252, 144);
+
+  const admin = createFrame("Admin Flow", 24, 464, 1392, 240, COLORS.shell);
+  admin.cornerRadius = 24;
+  addShadow(admin);
+  canvas.appendChild(admin);
+  await addText(admin, "Admin", 24, 20, 18, { weight: "Bold" });
+  await addText(admin, "운영자가 보는 별도 공간", 94, 22, 12, { weight: "Regular", color: COLORS.muted });
+  await addCard(admin, "operator", "운영 지표와 상태를 봅니다.", 24, 62, 252, 124);
+  await addCard(admin, "replay", "다시보기를 점검합니다.", 300, 62, 252, 124);
+  await addCard(admin, "sprint1", "과거 스프린트 화면을 봅니다.", 576, 62, 252, 124);
+  await addCard(admin, "settings", "운영 설정을 다룹니다.", 852, 62, 252, 124);
+
+  const note = createFrame("Guidance", 24, 728, 1392, 184, { r: 0.985, g: 0.986, b: 0.99 });
+  note.cornerRadius = 24;
+  canvas.appendChild(note);
+  await addText(note, "정리 원칙", 24, 24, 18, { weight: "Bold" });
+  await addText(note, "서비스 화면에는 사용자 행동만 남기고, 관리 기능은 admin 페이지로 분리합니다.", 24, 58, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+  await addText(note, "Home → Discover → Detail → Saved / Admin → operator → replay → sprint1", 24, 96, 14, {
+    weight: "Bold",
+    color: COLORS.text,
+  });
+
+  return canvas;
 }
 
 async function buildServiceFrame(page, config) {
@@ -566,7 +642,9 @@ async function buildAdminFrame(page, x, y) {
 
 async function main() {
   await figma.loadAllPagesAsync();
-  const componentsPage = await buildComponentsPage();
+  const flowCanvas = await buildFlowPage();
+  const componentsResult = await buildComponentsPage();
+  const componentsCanvas = componentsResult.canvas;
   const servicePage = figma.createPage();
   servicePage.name = "Service Shell";
   figma.currentPage = servicePage;
@@ -723,7 +801,7 @@ async function main() {
   adminPage.name = "Admin Shell";
   const admin = await buildAdminFrame(adminPage, 0, 0);
 
-  figma.viewport.scrollAndZoomIntoView([home, discover, detail, saved, admin, componentsPage]);
+  figma.viewport.scrollAndZoomIntoView([flowCanvas, componentsCanvas, home, discover, detail, saved, admin]);
   figma.closePlugin("Service shell frames created for Figma.");
 }
 
