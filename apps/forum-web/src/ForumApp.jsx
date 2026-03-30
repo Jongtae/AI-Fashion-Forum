@@ -917,13 +917,9 @@ export default function ForumApp() {
                   />
                 </section>
               ) : tab === "saved" ? (
-                    <section style={styles.savedSection}>
+                <section style={styles.savedSection}>
                   <div style={styles.savedHero}>
-                    <p style={styles.savedKicker}>저장한 글</p>
-                    <h2 style={styles.savedTitle}>나중에 다시 볼 글을 모아두는 공간</h2>
-                    <p style={styles.savedText}>
-                      마음에 든 글을 저장해 두고, 다시 돌아와서 이어 읽을 수 있습니다.
-                    </p>
+                    <h2 style={styles.savedTitle}>저장글</h2>
                   </div>
                     <PostList
                       currentUser={currentUser}
