@@ -57,6 +57,20 @@ function createFrame(name, x, y, width, height, fill = COLORS.card) {
   return frame;
 }
 
+function createComponent(name, x, y, width, height, fill = COLORS.card) {
+  const component = figma.createComponent();
+  component.name = name;
+  component.x = x;
+  component.y = y;
+  component.resize(width, height);
+  component.fills = [{ type: "SOLID", color: fill }];
+  component.strokes = [{ type: "SOLID", color: COLORS.border }];
+  component.strokeWeight = 1;
+  component.cornerRadius = 18;
+  component.clipsContent = false;
+  return component;
+}
+
 function addShadow(node) {
   node.effects = [
     {
@@ -198,6 +212,81 @@ async function addReplyPreview(parent, title, preview, x, y, width, height) {
   });
   parent.appendChild(frame);
   return frame;
+}
+
+async function buildComponentsPage() {
+  const page = figma.createPage();
+  page.name = "Components";
+
+  const canvas = createFrame("AI Fashion Forum / Components", 0, 0, 1440, 1200, COLORS.canvas);
+  canvas.cornerRadius = 0;
+  canvas.strokes = [];
+  page.appendChild(canvas);
+
+  await addText(canvas, "Components", 24, 24, 24, { weight: "Bold" });
+  await addText(canvas, "Service shell에서 재사용할 카드와 보조 블록", 24, 58, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+  });
+
+  const postCard = createComponent("Post Card", 24, 108, 420, 320, COLORS.card);
+  addShadow(postCard);
+  await addText(postCard, "A08", 20, 18, 16, { weight: "Bold" });
+  await addText(postCard, "2026. 03. 30. 오후 06:52:33", 292, 20, 12, {
+    weight: "Regular",
+    color: COLORS.softer,
+  });
+  await addText(postCard, "포럼 카드 본문 예시입니다. 여기에 긴 글이 들어갑니다.", 20, 58, 15, {
+    weight: "Regular",
+    width: 380,
+    lineHeight: 24,
+  });
+  await addReplyPreview(postCard, "글의 맥락", "최근 패션 흐름을 자연스럽게 풀어낸 카드.", 20, 116, 380, 72);
+  await addText(postCard, "#new drop", 20, 208, 12, { weight: "Regular", color: COLORS.softer });
+  await addText(postCard, "#bags", 104, 208, 12, { weight: "Regular", color: COLORS.softer });
+  await addText(postCard, "#silhouettes", 162, 208, 12, { weight: "Regular", color: COLORS.softer });
+  await addText(postCard, "♡ 0", 20, 278, 12, { weight: "Regular", color: COLORS.muted });
+  await addText(postCard, "핀 저장", 68, 278, 12, { weight: "Regular", color: COLORS.muted });
+  await addText(postCard, "공유", 144, 278, 12, { weight: "Regular", color: COLORS.muted });
+  await addText(postCard, "댓글 1개 보기", 204, 278, 12, { weight: "Regular", color: COLORS.muted });
+  canvas.appendChild(postCard);
+
+  const sideCard = createComponent("Side Card", 468, 108, 320, 160, COLORS.card);
+  addShadow(sideCard);
+  await addText(sideCard, "현재 상태", 18, 18, 18, { weight: "Bold" });
+  await addText(sideCard, "탭, 모드, 태그, 검색 상태를 한눈에 봅니다.", 18, 52, 13, {
+    weight: "Regular",
+    color: COLORS.muted,
+    width: 284,
+  });
+  canvas.appendChild(sideCard);
+
+  const actionChip = createComponent("Action Chip", 468, 292, 160, 40, COLORS.mutedCard);
+  actionChip.cornerRadius = 14;
+  await addText(actionChip, "포럼 읽기", 16, 10, 13, { weight: "Bold" });
+  canvas.appendChild(actionChip);
+
+  const commentCard = createComponent("Comment Card", 24, 456, 420, 120, COLORS.card);
+  addShadow(commentCard);
+  await addText(commentCard, "댓글 1", 18, 18, 14, { weight: "Bold" });
+  await addText(commentCard, "답글은 입력창 위에 표시되고, 작성 중 미리보기도 같이 보입니다.", 18, 44, 12, {
+    weight: "Regular",
+    color: COLORS.muted,
+    width: 384,
+  });
+  canvas.appendChild(commentCard);
+
+  const replyPreview = createComponent("Reply Preview", 468, 456, 420, 92, COLORS.mutedCard);
+  replyPreview.cornerRadius = 14;
+  await addText(replyPreview, "답글 대상", 14, 12, 13, { weight: "Bold" });
+  await addText(replyPreview, "글 / 댓글 대상 미리보기", 14, 36, 12, {
+    weight: "Regular",
+    color: COLORS.muted,
+    width: 392,
+  });
+  canvas.appendChild(replyPreview);
+
+  return page;
 }
 
 async function buildServiceFrame(page, config) {
@@ -385,6 +474,7 @@ async function buildAdminFrame(page, x, y) {
 
 async function main() {
   await figma.loadAllPagesAsync();
+  const componentsPage = await buildComponentsPage();
   const servicePage = figma.createPage();
   servicePage.name = "Service Shell";
   figma.currentPage = servicePage;
@@ -541,7 +631,7 @@ async function main() {
   adminPage.name = "Admin Shell";
   const admin = await buildAdminFrame(adminPage, 0, 0);
 
-  figma.viewport.scrollAndZoomIntoView([home, discover, detail, saved, admin]);
+  figma.viewport.scrollAndZoomIntoView([home, discover, detail, saved, admin, componentsPage]);
   figma.closePlugin("Service shell frames created for Figma.");
 }
 
