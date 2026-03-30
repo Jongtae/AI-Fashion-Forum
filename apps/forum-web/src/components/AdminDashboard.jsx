@@ -139,23 +139,16 @@ export default function AdminDashboard({ timeSpeed = 1 }) {
       <div style={styles.homeGrid}>
         <div style={styles.homeHero}>
           <p style={styles.homeKicker}>운영 허브</p>
-          <h2 style={styles.homeTitle}>지금 무엇을 보고, 무엇이 바뀌었는지 알려주는 화면</h2>
-          <p style={styles.homeText}>
-            서비스와 분리된 운영 화면입니다. 여기서는 시뮬레이션이 살아 있는지 확인하고, 선택과 반응이 어떻게 정체성으로 쌓였는지 바로 봅니다.
-          </p>
-          <div style={styles.homeChecklist}>
-            <span style={styles.checkItem}>• 노출, 선택, 반응, writeback을 확인합니다.</span>
-            <span style={styles.checkItem}>• 최근 실행 기록과 정체성 변화를 봅니다.</span>
-            <span style={styles.checkItem}>• 흐름, 기록, Sprint 1으로 이동합니다.</span>
-          </div>
+          <h2 style={styles.homeTitle}>운영 화면</h2>
+          <p style={styles.homeText}>흐름과 기록을 확인합니다.</p>
           <IdentityLoopSummary
             kicker="operator view"
-            title="운영 화면도 소비와 반응의 흐름을 읽어야 합니다"
-            subtitle="관리자는 글 수만 보는 사람이 아니라, 어떤 콘텐츠가 선택되고 어떤 반응이 정체성으로 기록됐는지 해석하는 사람입니다."
+            title="운영 요약"
+            subtitle="흐름과 기록만 간단히 봅니다."
             cards={summaryCards}
             notes={[
-              "운영자의 기본 질문은 '얼마나 많이 썼나'보다 '무엇이 선택되고 어떻게 바뀌었나'여야 합니다.",
-              "이 화면은 서비스 사용자의 행동을 바깥에서 읽는 관측자 공간입니다.",
+              "흐름 확인",
+              "기록 확인",
             ]}
           />
           <div style={styles.quickActions}>
@@ -262,10 +255,9 @@ const styles = {
     justifyContent: "space-between",
     gap: 16,
     padding: 20,
-    borderRadius: 16,
+    borderRadius: 12,
     border: "1px solid #e5e7eb",
-    background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+    background: "#fff",
   },
   kicker: {
     margin: 0,
@@ -298,7 +290,7 @@ const styles = {
   menuCard: {
     textAlign: "left",
     padding: 14,
-    borderRadius: 12,
+    borderRadius: 10,
     border: "1px solid #e5e7eb",
     background: "#fff",
     cursor: "pointer",
@@ -340,10 +332,9 @@ const styles = {
   },
   homeHero: {
     padding: 20,
-    borderRadius: 16,
+    borderRadius: 12,
     border: "1px solid #e5e7eb",
-    background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+    background: "#fff",
     display: "flex",
     flexDirection: "column",
     gap: 10,
@@ -358,28 +349,15 @@ const styles = {
   },
   homeTitle: {
     margin: 0,
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: 800,
     color: "#111827",
   },
   homeText: {
     margin: 0,
     fontSize: 14,
-    lineHeight: 1.7,
+    lineHeight: 1.6,
     color: "#475569",
-  },
-  homeChecklist: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    marginTop: 4,
-  },
-  checkItem: {
-    fontSize: 13,
-    color: "#334155",
-    paddingLeft: 18,
-    position: "relative",
-    lineHeight: 1.5,
   },
   quickActions: {
     display: "grid",
@@ -390,10 +368,9 @@ const styles = {
   quickAction: {
     textAlign: "left",
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 10,
     border: "1px solid #dbe4f0",
-    background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
-    boxShadow: "0 4px 16px rgba(15, 23, 42, 0.03)",
+    background: "#fff",
     cursor: "pointer",
     display: "flex",
     flexDirection: "column",
@@ -415,18 +392,17 @@ const styles = {
     alignContent: "start",
   },
   statusCard: {
-    borderRadius: 16,
+    borderRadius: 10,
     border: "1px solid #e5e7eb",
     padding: 18,
     background: "#fff",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
     display: "flex",
     flexDirection: "column",
     gap: 8,
   },
   statusCardWarn: {
     borderColor: "#fecaca",
-    background: "linear-gradient(180deg, #fff 0%, #fff7f7 100%)",
+    background: "#fff",
   },
   statusLabel: {
     fontSize: 11,
@@ -494,7 +470,6 @@ const styles = {
     flexDirection: "column",
     gap: 6,
     cursor: "pointer",
-    boxShadow: "0 4px 16px rgba(15, 23, 42, 0.03)",
   },
   homeCardCategory: {
     fontSize: 10,
