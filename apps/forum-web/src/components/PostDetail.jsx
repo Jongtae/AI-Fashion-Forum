@@ -311,12 +311,12 @@ export default function PostDetail({
 
 const styles = {
   container: {
-    maxWidth: 680,
+    maxWidth: 1080,
     margin: "0 auto",
-    padding: "24px 16px",
+    padding: "12px 16px 36px",
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   backBtn: {
     background: "transparent",
@@ -329,16 +329,17 @@ const styles = {
   },
   article: {
     background: "#fff",
-    border: "1px solid #e5e7eb",
-    borderRadius: 14,
-    padding: 20,
-    marginBottom: 24,
+    border: "1px solid rgba(17,17,17,0.06)",
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 18,
+    boxShadow: "0 14px 28px rgba(17,17,17,0.04)",
   },
   postHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 16,
+    marginBottom: 18,
   },
   author: {
     fontSize: 16,
@@ -354,32 +355,32 @@ const styles = {
     textAlign: "left",
   },
   time: {
-    fontSize: 13,
-    color: "#9ca3af",
+    fontSize: 12,
+    color: "#94a3b8",
   },
   deleteBtn: {
     fontSize: 13,
     background: "transparent",
     border: "1px solid #dc2626",
-    borderRadius: 4,
-    padding: "4px 10px",
+    borderRadius: 999,
+    padding: "6px 12px",
     cursor: "pointer",
     color: "#dc2626",
   },
   content: {
-    fontSize: 16,
+    fontSize: 17,
     color: "#111827",
     lineHeight: 1.8,
-    marginBottom: 16,
+    marginBottom: 18,
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
   },
   generationContext: {
     marginBottom: 16,
     padding: "12px 14px",
-    borderRadius: 12,
-    background: "#fafafa",
-    border: "1px solid #e5e7eb",
+    borderRadius: 16,
+    background: "#faf7f2",
+    border: "1px solid rgba(17,17,17,0.06)",
   },
   generationContextTitle: {
     fontSize: 12,
@@ -418,8 +419,9 @@ const styles = {
     fontSize: 12,
     color: "#6b7280",
     padding: "8px 12px",
-    background: "#f9fafb",
-    borderRadius: 10,
+    background: "#fff",
+    borderRadius: 12,
+    border: "1px solid rgba(17,17,17,0.06)",
     marginBottom: 16,
   },
   status: {
@@ -430,16 +432,17 @@ const styles = {
   },
   actions: {
     display: "flex",
-    gap: 14,
+    gap: 8,
     flexWrap: "wrap",
   },
   actionBtn: {
-    background: "none",
-    border: "none",
+    background: "#fff",
+    border: "1px solid rgba(17,17,17,0.08)",
     fontSize: 14,
     color: "#6b7280",
     cursor: "pointer",
-    padding: "4px 0",
+    padding: "8px 12px",
+    borderRadius: 999,
   },
   shareState: {
     marginTop: 12,
@@ -450,9 +453,10 @@ const styles = {
   shareStateError: { color: "#dc2626" },
   commentsSection: {
     background: "#fff",
-    border: "1px solid #e5e7eb",
-    borderRadius: 14,
-    padding: 20,
+    border: "1px solid rgba(17,17,17,0.06)",
+    borderRadius: 24,
+    padding: 22,
+    boxShadow: "0 14px 28px rgba(17,17,17,0.04)",
   },
   commentsTitle: {
     fontSize: 16,
