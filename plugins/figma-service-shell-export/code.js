@@ -204,6 +204,10 @@ function addComponentInstance(parent, component, x, y) {
   return instance;
 }
 
+function notify(message) {
+  figma.notify(message, { timeout: 1200 });
+}
+
 async function addCard(parent, title, subtitle, x, y, width, height, options = {}) {
   const card = createFrame(title, x, y, width, height, options.fill || COLORS.card);
   card.cornerRadius = 18;
@@ -972,17 +976,26 @@ async function buildAdminFrame(page, x, y) {
 
 async function main() {
   await figma.loadAllPagesAsync();
+  notify("플러그인 시작");
   const flowCanvas = await buildFlowPage();
+  notify("Flow Map 완료");
   const feedCanvas = await buildFeedPreviewPage();
+  notify("Feed Preview 완료");
   const discoverCanvas = await buildDiscoverPreviewPage();
+  notify("Discover Preview 완료");
   const savedCanvas = await buildSavedPreviewPage();
+  notify("Saved Preview 완료");
   const profileCanvas = await buildProfilePreviewPage();
+  notify("Profile Preview 완료");
   const componentsResult = await buildComponentsPage();
+  notify("Components 완료");
   const componentsCanvas = componentsResult.canvas;
   const servicePage = figma.createPage();
   servicePage.name = "Service Shell";
   figma.currentPage = servicePage;
+  notify("Service Shell 생성 중");
 
+  notify("Home 생성 중");
   const home = await buildServiceFrame(servicePage, {
     name: "Service Shell / Home",
     x: 0,
@@ -1037,7 +1050,9 @@ async function main() {
       },
     ],
   });
+  notify("Home 완료");
 
+  notify("Discover 생성 중");
   const discover = await buildServiceFrame(servicePage, {
     name: "Service Shell / Discover",
     x: 0,
@@ -1082,9 +1097,13 @@ async function main() {
       { title: "지금 많이 보는 주제", subtitle: "커뮤니티 흐름을 짧게 보여줍니다.", height: 180, y: 424 },
     ],
   });
+  notify("Discover 완료");
 
+  notify("Detail 생성 중");
   const detail = await buildDetailFrame(servicePage, 0, 3040);
+  notify("Detail 완료");
 
+  notify("Saved 생성 중");
   const saved = await buildServiceFrame(servicePage, {
     name: "Service Shell / Saved",
     x: 0,
@@ -1130,12 +1149,16 @@ async function main() {
       { title: "포럼으로 이동", subtitle: "저장글에서 다시 포럼으로 돌아갈 수 있습니다.", height: 180, y: 424 },
     ],
   });
+  notify("Saved 완료");
 
+  notify("Admin Shell 생성 중");
   const adminPage = figma.createPage();
   adminPage.name = "Admin Shell";
   const admin = await buildAdminFrame(adminPage, 0, 0);
+  notify("Admin 완료");
 
   figma.viewport.scrollAndZoomIntoView([flowCanvas, feedCanvas, discoverCanvas, savedCanvas, profileCanvas, componentsCanvas, home, discover, detail, saved, admin]);
+  notify("모든 페이지 생성 완료");
   figma.closePlugin("Service shell frames created for Figma.");
 }
 
