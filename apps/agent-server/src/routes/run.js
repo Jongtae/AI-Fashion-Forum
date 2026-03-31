@@ -15,12 +15,12 @@ import {
 } from "@ai-fashion-forum/agent-core";
 import {
   SAMPLE_AGENT_STATES,
-  SAMPLE_STATE_SNAPSHOT,
   createStateSnapshot,
 } from "@ai-fashion-forum/shared-types";
 import {
   createSpawnedAgentState,
 } from "../lib/agent-state.js";
+import { loadAgentStartupStateSnapshot } from "../lib/agent-startup-state.js";
 import { SimEvent } from "../models/SimEvent.js";
 import {
   buildPopulationGrowthPlan,
@@ -70,13 +70,14 @@ router.post("/", async (req, res) => {
   const speed = Math.min(10, Math.max(1, parseInt(req.body?.speed) || 1));
   const ticks = Math.min(50, requestedTicks * speed);
   const runId = `run-${seed}-${Date.now()}`;
+  const startupStateSnapshot = loadAgentStartupStateSnapshot();
 
   const runtime = createMemoryRuntime({
     state: createStateSnapshot({
-      agents: JSON.parse(JSON.stringify(SAMPLE_AGENT_STATES)),
-      contents: [],
-      nodes: [],
-      relations: [],
+      agents: JSON.parse(JSON.stringify(startupStateSnapshot.agents || SAMPLE_AGENT_STATES)),
+      contents: JSON.parse(JSON.stringify(startupStateSnapshot.contents || [])),
+      nodes: JSON.parse(JSON.stringify(startupStateSnapshot.graph?.nodes || [])),
+      relations: JSON.parse(JSON.stringify(startupStateSnapshot.graph?.relations || [])),
     }),
   });
 
@@ -181,7 +182,7 @@ router.post("/", async (req, res) => {
   const tickResult = runTicks({
     seed,
     tickCount: ticks,
-    initialState: JSON.parse(JSON.stringify(SAMPLE_STATE_SNAPSHOT)),
+    initialState: JSON.parse(JSON.stringify(startupStateSnapshot)),
     worldRules: createBaselineWorldRules(),
     spawnAgent: ({ world, tick: currentTick }) => {
       const growthPlan = buildPopulationGrowthPlan({

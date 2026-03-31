@@ -1,6 +1,10 @@
 import { SAMPLE_STATE_SNAPSHOT } from "@ai-fashion-forum/shared-types";
+import { loadAgentStartupStateSnapshot } from "./agent-startup-state.js";
 
-export const DEFAULT_INITIAL_AGENT_COUNT = SAMPLE_STATE_SNAPSHOT.agents.length;
+const STARTUP_STATE_SNAPSHOT = loadAgentStartupStateSnapshot();
+
+export const DEFAULT_INITIAL_AGENT_COUNT =
+  STARTUP_STATE_SNAPSHOT.agents.length || SAMPLE_STATE_SNAPSHOT.agents.length;
 export const DEFAULT_AGENT_GROWTH_INTERVAL = 4;
 export const DEFAULT_AGENT_MAX_COUNT = 10;
 
@@ -49,4 +53,3 @@ export function buildPopulationGrowthPlan({
     grownCount: Math.max(0, safeCurrentCount - safeInitialCount),
   };
 }
-
