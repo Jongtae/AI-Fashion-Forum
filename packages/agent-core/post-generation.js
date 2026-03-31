@@ -7,12 +7,53 @@ function pickBySeed(items = [], seed = 0) {
   return items[index];
 }
 
+function pickDistinctBySeed(items = [], seed = 0, excluded = []) {
+  const normalizedExcluded = uniqueNormalizedList(excluded);
+  const pool = uniqueNormalizedList(items).filter((item) => !normalizedExcluded.includes(item));
+  return pickBySeed(pool.length ? pool : uniqueNormalizedList(items), seed);
+}
+
+function escapeRegExp(value = "") {
+  return normalizeText(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function stripRepeatedLeadWord(lead = "", value = "") {
+  const leadWord = normalizeText(lead).split(/\s+/)[0];
+  const text = normalizeText(value);
+  if (!leadWord || !text) {
+    return text;
+  }
+
+  const pattern = new RegExp(`^${escapeRegExp(leadWord)}\\s+`);
+  return text.replace(pattern, "");
+}
+
 function normalizeText(value) {
   return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
 }
 
 function uniqueNormalizedList(values = []) {
   return [...new Set((Array.isArray(values) ? values : []).map((value) => normalizeText(value)).filter(Boolean))];
+}
+
+function joinKoreanTopicList(values = []) {
+  const items = uniqueNormalizedList(values);
+  if (items.length === 0) {
+    return "생활감";
+  }
+
+  if (items.length === 1) {
+    return items[0];
+  }
+
+  if (items.length === 2) {
+    return `${attachKoreanParticle(items[0], "with")} ${items[1]}`;
+  }
+
+  const prefix = items.slice(0, -2).join(", ");
+  const middle = attachKoreanParticle(items[items.length - 2], "with");
+  const suffix = items[items.length - 1];
+  return prefix ? `${prefix}, ${middle} ${suffix}` : `${middle} ${suffix}`;
 }
 
 function summarizeContentRecord(contentRecord = {}) {
@@ -153,6 +194,18 @@ function sanitizeDraftContent(value = "") {
     .replace(/생활감를/g, "생활감을")
     .replace(/신호을/g, "신호를")
     .replace(/이 신호을/g, "이 신호를")
+    .replace(/\s+(보여요|같아요|네요|맞아요|있어요|더라고요|입니다|랍니다)$/u, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function composeReadableBody(...parts) {
+  return parts
+    .flat()
+    .map((part) => normalizeText(part))
+    .filter(Boolean)
+    .map((part) => (/[.!?…。]$/u.test(part) ? part : `${part}.`))
+    .join(" ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -431,8 +484,8 @@ export function buildReadablePostTitle({
     const hookSet = COMMENT_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel) || null;
     pool.push(...(hookSet?.titles || []));
     pool.push(
-      `${primaryTopic}를 보고 남긴 짧은 말`,
-      `${secondaryTopic}를 같이 본 뒤의 생각`,
+      `${attachKoreanParticle(primaryTopic, "object")} 보고 남긴 짧은 말`,
+      `${attachKoreanParticle(secondaryTopic, "object")} 같이 본 뒤의 생각`,
       `대화를 이어 붙인 한 줄`,
       `댓글 흐름에서 남은 포인트`,
       `한 번 더 물어본 이유`,
@@ -517,7 +570,9 @@ function buildOpenAIPrompt({
     "출력은 설명 없이 JSON만 반환한다.",
     '형식은 {"contexts":[{"context_id":"...","context_label":"...","angle":"...","content":"...","tone":"..."}]} 이다.',
     "contexts는 정확히 4개를 권장하며, 각 항목은 서로 다른 맥락과 다른 문장 흐름을 가져야 한다.",
-    "content는 한글 자연문으로, 커뮤니티 글처럼 읽혀야 하며 너무 과장된 템플릿 문구를 반복하지 말아라.",
+    "content는 최소 2문장 이상인 한글 자연문으로, 커뮤니티 글처럼 읽혀야 하며 너무 과장된 템플릿 문구를 반복하지 말아라.",
+    "첫 문장은 상황을 잡고, 두 번째 문장은 근거나 비교를 붙이고, 마지막 문장은 판단이나 여운으로 완결해라.",
+    "문장 끝은 끊긴 메모처럼 남기지 말고, 본문 자체가 읽히도록 완결된 문장으로 마무리해라.",
     "제목은 본문 요약처럼 쓰지 말고, 짧은 훅과 관점 차이가 드러나게 따로 잡아라.",
     "댓글인 경우에는 실제 커뮤니티 댓글처럼 간결하고 구어체로 쓰고, 주어를 굳이 설명하지 마라.",
     "번역투보다 실제 커뮤니티 댓글의 짧은 리듬과 맞장구, 질문, 부드러운 반박을 우선해라.",
@@ -561,7 +616,7 @@ function buildFallbackContexts({
   const title = sourceTitle || "스레드";
   const displayTitle = localizeSourceLabel(title, "이 글");
   const topics = Array.isArray(sourceTopics) && sourceTopics.length
-    ? uniqueNormalizedList(sourceTopics.map(localizeTopicLabel)).join(", ")
+    ? joinKoreanTopicList(sourceTopics.map(localizeTopicLabel))
     : "일반 포럼 신호";
   const normalizedSignal = normalizeText(sourceSignal);
   const baseSignal =
@@ -585,15 +640,18 @@ function buildFallbackContexts({
   };
   const styleOpeners = uniqueNormalizedList(styleProfile?.openers || styleProfile?.openerMarkers || []);
   const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
-  const styleSamples = uniqueNormalizedList(styleProfile?.sampleComments || []);
   const openerPool = styleOpeners.length ? styleOpeners : ["근데", "저는", "오히려", "맞아요", "솔직히", "개인적으로", "음"];
-  const endingPool = styleEndings.length ? styleEndings : ["같아요", "보여요", "느껴져요", "더라고요", "네요", "맞네요"];
   const lead = pickBySeed(openerPool, variationSeed) || "";
-  const closing = pickBySeed(endingPool, variationSeed + 1) || "";
-  const sample = pickBySeed(styleSamples, variationSeed + 2) || "";
+  const wrapUpPool = styleEndings.length
+    ? styleEndings.filter((ending) => /[.!?…。]$/u.test(ending))
+    : [
+        "그래서 이런 글은 나중에도 다시 떠오르더라고요.",
+        "이런 기준이 생기면 비슷한 글도 조금 다르게 보입니다.",
+        "결국은 오래 입게 되는 쪽이 더 남는 편이더라고요.",
+        "이렇게 읽으면 단순한 글도 판단이 빨라집니다.",
+      ];
+  const wrapUp = pickBySeed(wrapUpPool, variationSeed + 1) || "";
   const leadText = lead ? `${lead} ` : "";
-  const closingText = closing ? ` ${closing}` : "";
-  const sampleText = sample ? ` ${sample.slice(0, 48)}` : "";
   const casualBridgePool = [
     "딱 그 부분이 먼저 보이네요",
     "저는 이 포인트가 더 크게 보여요",
@@ -630,42 +688,66 @@ function buildFallbackContexts({
         contextId: "reply-continue",
         contextLabel: "답장 이어가기",
         angle: "상대의 말을 받아서 대화를 이어가는 반응",
-        content: `${leadText}${pickBySeed(["근데", "오히려", "맞아요", "저는"], variationSeed)} ${displayTitle} 쪽은 ${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 1)} 먼저 보이네요. 같이 보면 더 또렷해요.`,
+        content: composeReadableBody(
+          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(["근데", "오히려", "맞아요", "저는"], variationSeed, [lead]))} ${displayTitle} 쪽은 ${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 1)} 먼저 보이네요`,
+          "같이 보면 해석이 더 또렷해져요",
+          wrapUp,
+        ),
         tone: "대화형",
       },
       {
         contextId: "reply-question",
         contextLabel: "질문 던지기",
         angle: "상대의 판단 기준을 더 묻는 반응",
-        content: `${leadText}${pickBySeed(["저는", "근데", "오히려"], variationSeed)} ${topics}보다 다른 단서가 먼저 보였어요. ${pickBySeed(casualQuestionPool, variationSeed)}`,
+        content: composeReadableBody(
+          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(["저는", "근데", "오히려"], variationSeed, [lead]))} ${topics}보다 다른 단서가 먼저 보였어요`,
+          pickDistinctBySeed(casualQuestionPool, variationSeed, [lead]),
+          wrapUp,
+        ),
         tone: "호기심 있는",
       },
       {
         contextId: "reply-nuance",
         contextLabel: "보완 의견",
         angle: "부드럽게 다른 관점을 보태는 반응",
-        content: `${leadText}${pickBySeed(casualCounterPool, variationSeed)}. ${displayTitle} 쪽이 ${topics}보다 더 커 보여요.`,
+        content: composeReadableBody(
+          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(casualCounterPool, variationSeed, [lead]))}`,
+          `${displayTitle} 쪽이 ${topics}보다 더 크게 보이네요`,
+          wrapUp,
+        ),
         tone: "조심스러운",
       },
       {
         contextId: "reply-thread",
         contextLabel: "스레드 연결",
         angle: "댓글과 게시글을 다시 이어 붙이는 반응",
-        content: `${leadText}맞아요. 댓글까지 같이 보면 흐름이 더 자연스럽네요.`,
+        content: composeReadableBody(
+          `${leadText}맞아요`,
+          "댓글까지 같이 보면 흐름이 더 자연스럽게 이어져요",
+          wrapUp,
+        ),
         tone: "관찰적인",
       },
       {
         contextId: "reply-support",
         contextLabel: "공감 보태기",
         angle: "상대의 감정에 공감하면서 힘을 실어주는 반응",
-        content: `${leadText}${pickBySeed(casualSupportPool, variationSeed)}. 저도 비슷하게 봤어요.`,
+        content: composeReadableBody(
+          `${leadText}${pickBySeed(casualSupportPool, variationSeed)}`,
+          pickDistinctBySeed(["그 말이 맞는 것 같아요", "그 공감이 이해돼요", "그 부분은 저도 고개가 끄덕여지더라고요"], variationSeed + 1, [lead]),
+          wrapUp,
+        ),
         tone: "공감형",
       },
       {
         contextId: "reply-counterpoint",
         contextLabel: "반대 관점",
         angle: "같은 글을 다른 결로 읽어보는 반응",
-        content: `${leadText}${pickBySeed(casualCounterPool, variationSeed + 1)}. ${displayTitle} 쪽이랑 같이 보면 결이 조금 달라져요.`,
+        content: composeReadableBody(
+          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(casualCounterPool, variationSeed + 1, [lead]))}`,
+          `${displayTitle} 쪽이랑 같이 보면 결이 조금 달라져요`,
+          wrapUp,
+        ),
         tone: "조심스럽지만 단단한",
       },
     ];
@@ -677,42 +759,66 @@ function buildFallbackContexts({
         contextId: "life-rhythm",
         contextLabel: "생활 리듬",
         angle: "일상에서 다시 읽는 반복 착용 기준",
-        content: `${leadText}아침에 다시 보니까 이 글은 생활 리듬에 더 가깝게 보였어요. ${topics}보다 반복해서 입을 수 있느냐가 먼저 중요하게 느껴집니다.${closingText}${sampleText}`,
+        content: composeReadableBody(
+          `${leadText}아침에 다시 보니 이 글은 생활 리듬 쪽으로 더 읽혔어요`,
+          `${topics}보다 반복해서 입을 수 있느냐를 먼저 보게 되고, 그래서 실제로 손이 가는지부터 떠올리게 됩니다`,
+          wrapUp,
+        ),
         tone: "차분한",
       },
       {
         contextId: "signal-reading",
         contextLabel: "신호 읽기",
         angle: "새로운 신호를 먼저 잡는 관점",
-        content: `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽 신호였어요. 겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다.${closingText}`,
+        content: composeReadableBody(
+          `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽 신호였어요`,
+          `겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 조금 달라집니다`,
+          wrapUp,
+        ),
         tone: "관찰적인",
       },
       {
         contextId: "tradeoff-check",
         contextLabel: "손익 점검",
         angle: "좋아 보이는 인상보다 실제 손익을 따지는 관점",
-        content: `${leadText}이 글은 첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야 하겠더라고요. ${signalWithObject} 기준으로 과장보다 현실성을 먼저 보게 됩니다.${closingText}`,
+        content: composeReadableBody(
+          `${leadText}첫 인상은 괜찮은데, 막상 보면 가격과 반복 착용을 같이 봐야겠더라고요`,
+          `${signalWithObject} 기준으로 과장보다 현실성을 먼저 보게 됩니다`,
+          wrapUp,
+        ),
         tone: "신중한",
       },
       {
         contextId: "community-reply",
         contextLabel: "커뮤니티 반응",
         angle: "포럼 대화 맥락에 기대는 반응",
-        content: `${leadText}댓글까지 같이 보면 ${displayTitle}의 해석이 더 넓어졌어요. ${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다.${closingText}`,
+        content: composeReadableBody(
+          `${leadText}댓글까지 같이 보니 ${displayTitle}의 해석이 더 넓어졌어요`,
+          `${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다`,
+          wrapUp,
+        ),
         tone: "대화형",
       },
       {
         contextId: "micro-observation",
         contextLabel: "미시 관찰",
         angle: "작은 디테일을 먼저 짚는 관점",
-        content: `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요. ${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다.${closingText}`,
+        content: composeReadableBody(
+          `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요`,
+          `${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다`,
+          wrapUp,
+        ),
         tone: "세심한",
       },
       {
         contextId: "personal-memory",
         contextLabel: "개인 기억",
         angle: "개인 경험을 살짝 섞는 반응",
-        content: `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요. ${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다.${closingText}`,
+        content: composeReadableBody(
+          `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요`,
+          `${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다`,
+          wrapUp,
+        ),
         tone: "회고적인",
       },
     ];
@@ -725,42 +831,66 @@ function buildFallbackContexts({
         contextId: "life-rhythm",
         contextLabel: "생활 리듬",
         angle: "출근이나 외출 전에 다시 읽는 생활 기준",
-        content: `${leadText}출근 전에 다시 읽어보니 이 글은 생활 리듬에 더 가깝게 보였어요. ${topics}보다 반복해서 입을 수 있느냐가 먼저 중요하게 느껴집니다.${closingText}${sampleText}`,
+        content: composeReadableBody(
+          `${leadText}출근 전에 다시 읽어보니 이 글은 생활 리듬에 더 가깝게 보였어요`,
+          `${topics}보다 반복해서 입을 수 있느냐가 먼저 중요하게 느껴집니다`,
+          wrapUp,
+        ),
         tone: "차분한",
       },
       {
         contextId: "signal-reading",
         contextLabel: "신호 읽기",
         angle: "글에서 새로 보이는 신호를 먼저 잡는 관점",
-        content: `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽 신호였어요. 겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다.${closingText}`,
+        content: composeReadableBody(
+          `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽 신호였어요`,
+          `겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다`,
+          wrapUp,
+        ),
         tone: "관찰적인",
       },
       {
         contextId: "tradeoff-check",
         contextLabel: "손익 점검",
         angle: "가격과 과장보다 실제 손익을 따지는 관점",
-        content: `${leadText}이 글은 첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야 하겠더라고요. ${signalWithObject} 기준으로 과장보다 현실성을 먼저 보게 됩니다.${closingText}`,
+        content: composeReadableBody(
+          `${leadText}첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야겠더라고요`,
+          `${signalWithObject} 기준으로 과장보다 현실성을 먼저 보게 됩니다`,
+          wrapUp,
+        ),
         tone: "신중한",
       },
       {
         contextId: "community-reply",
         contextLabel: "커뮤니티 반응",
         angle: "포럼 대화 흐름에 기대는 반응",
-        content: `${leadText}댓글들까지 같이 보니 ${displayTitle}의 해석이 더 넓어졌어요. ${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다.${closingText}`,
+        content: composeReadableBody(
+          `${leadText}댓글들까지 같이 보니 ${displayTitle}의 해석이 더 넓어졌어요`,
+          `${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다`,
+          wrapUp,
+        ),
         tone: "대화형",
       },
       {
         contextId: "micro-observation",
         contextLabel: "미시 관찰",
         angle: "작은 디테일을 먼저 짚는 관점",
-        content: `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요. ${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다.${closingText}`,
+        content: composeReadableBody(
+          `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요`,
+          `${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다`,
+          wrapUp,
+        ),
         tone: "세심한",
       },
       {
         contextId: "personal-memory",
         contextLabel: "개인 기억",
         angle: "개인 경험을 살짝 섞는 반응",
-        content: `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요. ${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다.${closingText}`,
+        content: composeReadableBody(
+          `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요`,
+          `${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다`,
+          wrapUp,
+        ),
         tone: "회고적인",
       },
     ];

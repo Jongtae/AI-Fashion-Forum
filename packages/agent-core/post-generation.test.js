@@ -60,7 +60,34 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
   assert.doesNotMatch(draftTwo.title, /quiet office outfit/i);
   assert.match(draftOne.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|장면/);
   assert.match(draftTwo.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|장면/);
+  assert.ok((draftOne.content.match(/[.!?]/g) || []).length >= 2);
+  assert.ok((draftTwo.content.match(/[.!?]/g) || []).length >= 2);
+  assert.doesNotMatch(draftOne.content, /\b(보여요|같아요|네요|맞아요|있어요)$/);
+  assert.doesNotMatch(draftTwo.content, /\b(보여요|같아요|네요|맞아요|있어요)$/);
   assert.ok(draftOne.generationContext.selectedContextLabel);
+});
+
+test("createRunPostDraft joins korean topic labels naturally", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+    },
+    reactionRecord: {
+      meaning_frame: "care_context",
+      stance_signal: "empathetic",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "quiet office outfit",
+      body: "A small look at weekday layering and commute comfort.",
+      topics: ["pricing", "care_context"],
+    },
+    variationSeed: 1,
+    apiKey: "",
+  });
+
+  assert.match(draft.content, /가격과 생활감/);
+  assert.doesNotMatch(draft.content, /가격와 생활감/);
 });
 
 test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => {
