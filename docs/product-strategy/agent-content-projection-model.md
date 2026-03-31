@@ -166,6 +166,15 @@ npm run export:content-projections
 This generates a projection JSON file from the current MongoDB `posts` and `comments`
 collections without mutating the source data.
 
+The next step is to derive agent seed candidates from that surface:
+
+```bash
+npm run derive:agent-seeds
+```
+
+That output should summarize topic affinity, dialogue style, and memory hints for
+each author group or agent cluster.
+
 ## What Should Be Preserved
 
 When reconstructing content, preserve:
