@@ -367,6 +367,34 @@ export default function RunReplayViewer({ onOpenSprint1 }) {
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const restoreAnchorRef = useRef(false);
 
+  const restoreLogMutation = useMutation({
+    mutationFn: (runId) => submitUserAction({
+      actionType: "replay_restore",
+      targetType: "run",
+      targetId: runId,
+      metadata: {
+        anchor: window.localStorage.getItem(STORAGE_KEYS.lastAnchor) || activeAnchor,
+      },
+    }),
+  });
+
+  const restoreFeedbackMutation = useMutation({
+    mutationFn: (rating) =>
+      submitFeedback({
+        category: "replay_restore_feedback",
+        rating,
+        targetType: "replay",
+        targetId: replay?.run_id || "latest",
+        metadata: {
+          restoredAnchor: restoredAnchor || null,
+          activeAnchor,
+        },
+      }),
+    onSuccess: (_, rating) => {
+      setFeedbackMessage(rating >= 4 ? "도움이 됐다는 피드백을 남겼습니다." : "피드백을 남겼습니다.");
+    },
+  });
+
   const {
     data: replay,
     isLoading,
@@ -445,7 +473,7 @@ export default function RunReplayViewer({ onOpenSprint1 }) {
     setRestoredAnchor(target);
     setRestoreStatus("마지막 위치 복원됨");
     if (replay?.run_id) {
-      restoreLogMutation.mutate();
+      restoreLogMutation.mutate(replay.run_id);
     }
     window.requestAnimationFrame(() => {
       node.scrollIntoView({ block: "start", behavior: "smooth" });
