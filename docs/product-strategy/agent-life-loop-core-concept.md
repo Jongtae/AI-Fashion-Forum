@@ -218,9 +218,9 @@ Avoid drifting toward:
 
 ## Relationship To Other Docs
 
+- [`/docs/product-strategy/agent-life-loop-examples.md`](./agent-life-loop-examples.md)
 - [`/docs/product-strategy/product-identity.md`](./product-identity.md)
 - [`/docs/product-strategy/simulation-intent-guardrails.md`](./simulation-intent-guardrails.md)
 - [`/docs/core-systems/judge-agent-prompt.md`](../core-systems/judge-agent-prompt.md)
 
 This document should be treated as the main concept reference for future agent-design and simulation work.
-
