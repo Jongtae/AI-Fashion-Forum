@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAgentLoopStatus, fetchLatestReport } from "../api/client.js";
 import OperatorDashboard from "./OperatorDashboard.jsx";
@@ -86,8 +86,7 @@ function StatusCard({ label, title, summary, detail, tone = "neutral" }) {
   );
 }
 
-export default function AdminDashboard() {
-  const [activeSection, setActiveSection] = useState("home");
+export default function AdminDashboard({ activeSection = "home", onSectionChange = () => {} }) {
   const { data: loopStatus, isLoading: loopLoading, error: loopError } = useQuery({
     queryKey: ["admin-loop-status"],
     queryFn: fetchAgentLoopStatus,
@@ -153,10 +152,10 @@ export default function AdminDashboard() {
           />
           <div style={styles.quickActions}>
             {ACTIONS.map((action) => (
-              <button key={action.id} type="button" style={styles.quickAction} onClick={() => setActiveSection(action.id)}>
-                <span style={styles.quickActionLabel}>{action.label}</span>
-                <span style={styles.quickActionDesc}>{action.description}</span>
-              </button>
+                <button key={action.id} type="button" style={styles.quickAction} onClick={() => onSectionChange(action.id)}>
+                  <span style={styles.quickActionLabel}>{action.label}</span>
+                  <span style={styles.quickActionDesc}>{action.description}</span>
+                </button>
             ))}
           </div>
         </div>
@@ -199,7 +198,7 @@ export default function AdminDashboard() {
           <button
             type="button"
             style={{ ...styles.tabButton, ...(activeSection === "home" ? styles.tabButtonActive : {}) }}
-            onClick={() => setActiveSection("home")}
+            onClick={() => onSectionChange("home")}
           >
             첫 화면
           </button>
@@ -208,7 +207,7 @@ export default function AdminDashboard() {
               key={section.id}
               type="button"
               style={{ ...styles.tabButton, ...(activeSection === section.id ? styles.tabButtonActive : {}) }}
-              onClick={() => setActiveSection(section.id)}
+              onClick={() => onSectionChange(section.id)}
             >
               {section.label}
             </button>
