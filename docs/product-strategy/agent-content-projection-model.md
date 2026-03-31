@@ -157,6 +157,15 @@ If we reconstruct the data later, the preferred path is:
 
 The visible collections should become the presentation layer of the life loop, not the only place where meaning lives.
 
+For the existing database, the first practical step is a read-only export:
+
+```bash
+npm run export:content-projections
+```
+
+This generates a projection JSON file from the current MongoDB `posts` and `comments`
+collections without mutating the source data.
+
 ## What Should Be Preserved
 
 When reconstructing content, preserve:
@@ -209,4 +218,3 @@ The aim is to align meaning, schema, and behavior over time.
 - [`/docs/product-strategy/simulation-intent-guardrails.md`](./simulation-intent-guardrails.md)
 
 This document should be used when planning any future content reconstruction, seed import, or migration work.
-
