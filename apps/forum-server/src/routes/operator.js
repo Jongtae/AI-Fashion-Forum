@@ -225,60 +225,103 @@ router.post("/moderation/recheck/:postId", async (req, res) => {
 //           low-engagement posts, engagement summary.
 
 router.get("/dashboard", async (req, res) => {
-  const { AgentState } = await import("../models/AgentState.js");
+  try {
+    const { AgentState } = await import("../models/AgentState.js");
+    const safe = async (label, fn, fallback) => {
+      try {
+        return await fn();
+      } catch (error) {
+        console.warn(`[operator/dashboard] ${label} failed`, error);
+        return fallback;
+      }
+    };
 
-  const [
-    totalPosts,
-    flaggedCount,
-    highConflictPosts,
-    moderationQueue,
-    lowEngagementPosts,
-    recentFeedbackCounts,
-    agentStates,
-    appealStats,
-  ] = await Promise.all([
-    Post.countDocuments(),
+    const [
+      totalPosts,
+      flaggedCount,
+      highConflictPosts,
+      moderationQueue,
+      lowEngagementPosts,
+      recentFeedbackCounts,
+      agentStates,
+      appealStats,
+    ] = await Promise.all([
+      safe("totalPosts", () => Post.countDocuments(), 0),
 
-    Post.countDocuments({ moderationStatus: "flagged" }),
+      safe("flaggedCount", () => Post.countDocuments({ moderationStatus: "flagged" }), 0),
 
-    // 논쟁성 높은 스레드 Top 5: reportCount DESC, then moderationScore DESC
-    Post.find({ reportCount: { $gt: 0 } })
-      .sort({ reportCount: -1, moderationScore: -1 })
-      .limit(5)
-      .select("content tags reportCount moderationScore moderationLabel createdAt authorId authorType")
-      .lean(),
+      // 논쟁성 높은 스레드 Top 5: reportCount DESC, then moderationScore DESC
+      safe(
+        "highConflictPosts",
+        () =>
+          Post.find({ reportCount: { $gt: 0 } })
+            .sort({ reportCount: -1, moderationScore: -1 })
+            .limit(5)
+            .select("content tags reportCount moderationScore moderationLabel createdAt authorId authorType")
+            .lean(),
+        []
+      ),
 
-    // 규칙 위반 후보 (moderation queue) — flagged posts, up to 10
-    Post.find({ moderationStatus: "flagged" })
-      .sort({ moderationScore: -1, createdAt: -1 })
-      .limit(10)
-      .select("content tags moderationScore moderationLabel moderationReasons moderationStatus createdAt authorId authorType")
-      .lean(),
+      // 규칙 위반 후보 (moderation queue) — flagged posts, up to 10
+      safe(
+        "moderationQueue",
+        () =>
+          Post.find({ moderationStatus: "flagged" })
+            .sort({ moderationScore: -1, createdAt: -1 })
+            .limit(10)
+            .select("content tags moderationScore moderationLabel moderationReasons moderationStatus createdAt authorId authorType")
+            .lean(),
+        []
+      ),
 
-    // 유저 반응 저하 포스트: likes=0, commentCount=0, not agent
-    Post.find({ likes: 0, commentCount: 0 })
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .select("content tags likes commentCount createdAt authorId authorType")
-      .lean(),
+      // 유저 반응 저하 포스트: likes=0, commentCount=0, not agent
+      safe(
+        "lowEngagementPosts",
+        () =>
+          Post.find({ likes: 0, commentCount: 0 })
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select("content tags likes commentCount createdAt authorId authorType")
+            .lean(),
+        []
+      ),
 
-    // Feedback 요약 (최근 7일)
-    Feedback.aggregate([
-      { $match: { createdAt: { $gte: new Date(Date.now() - 7 * 24 * 3600 * 1000) } } },
-      { $group: { _id: "$category", count: { $sum: 1 }, avgRating: { $avg: "$rating" } } },
-      { $sort: { count: -1 } },
-    ]),
+      // Feedback 요약 (최근 7일)
+      safe(
+        "recentFeedbackCounts",
+        () =>
+          Feedback.aggregate([
+            { $match: { createdAt: { $gte: new Date(Date.now() - 7 * 24 * 3600 * 1000) } } },
+            { $group: { _id: "$category", count: { $sum: 1 }, avgRating: { $avg: "$rating" } } },
+            { $sort: { count: -1 } },
+          ]),
+        []
+      ),
 
-    // 급격한 정체성 변화 에이전트 — 마지막 두 라운드 비교
-    AgentState.aggregate([
-      { $sort: { agentId: 1, round: -1 } },
-      { $group: { _id: "$agentId", states: { $push: "$$ROOT" } } },
-      { $limit: 100 },
-    ]),
+      // 급격한 정체성 변화 에이전트 — 마지막 두 라운드 비교
+      safe(
+        "agentStates",
+        () =>
+          AgentState.aggregate([
+            { $sort: { agentId: 1, round: -1 } },
+            { $group: { _id: "$agentId", states: { $push: "$$ROOT" } } },
+            { $limit: 100 },
+          ]),
+        []
+      ),
 
-    // Appeal statistics
-    getAppealStatistics(),
-  ]);
+      // Appeal statistics
+      safe(
+        "appealStats",
+        () => getAppealStatistics(),
+        {
+          totalAppeals: 0,
+          pendingAppeals: 0,
+          overturnedAppeals: 0,
+          overturnRatePercent: "0.0",
+        }
+      ),
+    ]);
 
   // Identity shift 계산: 각 에이전트의 마지막 두 라운드 비교
   const identityShiftThreshold = 0.3;
@@ -358,70 +401,103 @@ router.get("/dashboard", async (req, res) => {
       ? null
       : Math.max(0, (Math.floor(latestRound / growthInterval) + 1) * growthInterval - latestRound);
 
-  res.json({
-    computed_at: new Date().toISOString(),
-    summary: {
-      total_posts: totalPosts,
-      flagged_posts: flaggedCount,
-      flag_rate: flagRate,
-    },
-    agent_growth: {
-      initial_count: initialAgentCount,
-      current_count: agentStates.length,
-      desired_count: desiredAgentCount,
-      growth_interval: growthInterval,
-      max_count: maxAgentCount,
-      growth_stage:
-        agentStates.length >= maxAgentCount
-          ? "saturated"
-          : latestRound < growthInterval
-            ? "seed"
-            : agentStates.length < desiredAgentCount
-              ? "catching_up"
-              : "expanding",
-      latest_round: latestRound,
-      ticks_until_next_spawn: ticksUntilNextSpawn,
-    },
-    high_conflict_threads: highConflictPosts.map((p) => ({
-      id: p._id,
-      content_preview: p.content?.slice(0, 120),
-      report_count: p.reportCount,
-      moderation_score: p.moderationScore,
-      moderation_label: p.moderationLabel,
-      author_type: p.authorType,
-      created_at: p.createdAt,
-    })),
-    identity_shift_agents: identityShiftAgents.slice(0, 5),
-    agent_evolution: agentEvolution,
-    moderation_queue: moderationQueue.map((p) => ({
-      id: p._id,
-      content_preview: p.content?.slice(0, 120),
-      moderation_score: p.moderationScore,
-      moderation_label: p.moderationLabel,
-      moderation_reasons: p.moderationReasons ?? [],
-      author_type: p.authorType,
-      created_at: p.createdAt,
-    })),
-    low_engagement_posts: lowEngagementPosts.map((p) => ({
-      id: p._id,
-      content_preview: p.content?.slice(0, 80),
-      likes: p.likes,
-      comment_count: p.commentCount,
-      author_type: p.authorType,
-      created_at: p.createdAt,
-    })),
-    feedback_summary: recentFeedbackCounts.map((f) => ({
-      category: f._id,
-      count: f.count,
-      avg_rating: f.avgRating ? Number(f.avgRating.toFixed(2)) : null,
-    })),
-    appeal_metrics: {
-      totalAppeals: appealStats.totalAppeals,
-      pendingAppeals: appealStats.pendingAppeals,
-      overturnedAppeals: appealStats.overturnedAppeals,
-      overturnRatePercent: Number(appealStats.overturnRatePercent),
-    },
-  });
+    res.json({
+      computed_at: new Date().toISOString(),
+      summary: {
+        total_posts: totalPosts,
+        flagged_posts: flaggedCount,
+        flag_rate: flagRate,
+      },
+      agent_growth: {
+        initial_count: initialAgentCount,
+        current_count: agentStates.length,
+        desired_count: desiredAgentCount,
+        growth_interval: growthInterval,
+        max_count: maxAgentCount,
+        growth_stage:
+          agentStates.length >= maxAgentCount
+            ? "saturated"
+            : latestRound < growthInterval
+              ? "seed"
+              : agentStates.length < desiredAgentCount
+                ? "catching_up"
+                : "expanding",
+        latest_round: latestRound,
+        ticks_until_next_spawn: ticksUntilNextSpawn,
+      },
+      high_conflict_threads: highConflictPosts.map((p) => ({
+        id: p._id,
+        content_preview: p.content?.slice(0, 120),
+        report_count: p.reportCount,
+        moderation_score: p.moderationScore,
+        moderation_label: p.moderationLabel,
+        author_type: p.authorType,
+        created_at: p.createdAt,
+      })),
+      identity_shift_agents: identityShiftAgents.slice(0, 5),
+      agent_evolution: agentEvolution,
+      moderation_queue: moderationQueue.map((p) => ({
+        id: p._id,
+        content_preview: p.content?.slice(0, 120),
+        moderation_score: p.moderationScore,
+        moderation_label: p.moderationLabel,
+        moderation_reasons: p.moderationReasons ?? [],
+        author_type: p.authorType,
+        created_at: p.createdAt,
+      })),
+      low_engagement_posts: lowEngagementPosts.map((p) => ({
+        id: p._id,
+        content_preview: p.content?.slice(0, 80),
+        likes: p.likes,
+        comment_count: p.commentCount,
+        author_type: p.authorType,
+        created_at: p.createdAt,
+      })),
+      feedback_summary: recentFeedbackCounts.map((f) => ({
+        category: f._id,
+        count: f.count,
+        avg_rating: f.avgRating ? Number(f.avgRating.toFixed(2)) : null,
+      })),
+      appeal_metrics: {
+        totalAppeals: appealStats.totalAppeals,
+        pendingAppeals: appealStats.pendingAppeals,
+        overturnedAppeals: appealStats.overturnedAppeals,
+        overturnRatePercent: Number(appealStats.overturnRatePercent),
+      },
+    });
+  } catch (error) {
+    console.error("[operator/dashboard] failed", error);
+    return res.json({
+      computed_at: new Date().toISOString(),
+      summary: {
+        total_posts: 0,
+        flagged_posts: 0,
+        flag_rate: 0,
+      },
+      agent_growth: {
+        initial_count: SAMPLE_STATE_SNAPSHOT.agents.length,
+        current_count: 0,
+        desired_count: SAMPLE_STATE_SNAPSHOT.agents.length,
+        growth_interval: 4,
+        max_count: 10,
+        growth_stage: "seed",
+        latest_round: 0,
+        ticks_until_next_spawn: null,
+      },
+      high_conflict_threads: [],
+      identity_shift_agents: [],
+      agent_evolution: [],
+      moderation_queue: [],
+      low_engagement_posts: [],
+      feedback_summary: [],
+      appeal_metrics: {
+        totalAppeals: 0,
+        pendingAppeals: 0,
+        overturnedAppeals: 0,
+        overturnRatePercent: 0,
+      },
+    });
+  }
 });
 
 // ── PATCH /api/operator/moderation/review/:postId ─────────────────────────────

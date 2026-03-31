@@ -110,6 +110,15 @@ export default function AdminDashboard({ activeSection = "home", onSectionChange
     retry: 1,
   });
 
+  const statusNotice = loopError || reportError ? (
+    <div style={styles.noticeCard}>
+      <div style={styles.noticeTitle}>일부 데이터를 아직 불러오지 못했습니다</div>
+      <div style={styles.noticeText}>
+        연결이 불안정해도 화면은 계속 사용할 수 있습니다. 잠시 뒤 새로고침하면 다시 확인됩니다.
+      </div>
+    </div>
+  ) : null;
+
   function renderHome() {
     const summaryCards = [
       {
@@ -140,6 +149,7 @@ export default function AdminDashboard({ activeSection = "home", onSectionChange
           <p style={styles.homeKicker}>운영 허브</p>
           <h2 style={styles.homeTitle}>운영 화면</h2>
           <p style={styles.homeText}>흐름과 기록을 확인합니다.</p>
+          {statusNotice}
           <IdentityLoopSummary
             kicker="operator view"
             title="운영 요약"
@@ -277,7 +287,9 @@ const styles = {
     textAlign: "left",
     padding: "8px 12px",
     borderRadius: 8,
-    border: "1px solid #e5e7eb",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#e5e7eb",
     background: "#fff",
     cursor: "pointer",
     display: "flex",
@@ -366,7 +378,9 @@ const styles = {
   },
   statusCard: {
     borderRadius: 10,
-    border: "1px solid #e5e7eb",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#e5e7eb",
     padding: 18,
     background: "#fff",
     display: "flex",
@@ -376,6 +390,29 @@ const styles = {
   statusCardWarn: {
     borderColor: "#fecaca",
     background: "#fff",
+  },
+  noticeCard: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#fde68a",
+    background: "#fffbeb",
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  },
+  noticeTitle: {
+    margin: 0,
+    fontSize: 13,
+    fontWeight: 800,
+    color: "#92400e",
+  },
+  noticeText: {
+    margin: 0,
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: "#a16207",
   },
   statusLabel: {
     fontSize: 11,

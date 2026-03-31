@@ -135,7 +135,16 @@ export default function OperatorDashboard() {
 
   const { data: latestReport } = useQuery({
     queryKey: ["latest-report"],
-    queryFn: fetchLatestReport,
+    queryFn: async () => {
+      try {
+        return await fetchLatestReport();
+      } catch (error) {
+        if (error?.status === 404) {
+          return null;
+        }
+        throw error;
+      }
+    },
     staleTime: 30_000,
     retry: 1,
   });
@@ -149,16 +158,16 @@ export default function OperatorDashboard() {
     return <div style={styles.loading}>흐름 지표를 불러오는 중...</div>;
   }
 
-  if (error) {
-    return (
-      <div style={styles.errorBox}>
-        <div style={styles.errorTitle}>forum-server에 연결할 수 없습니다</div>
-        <div style={styles.errorMsg}>
-          <code>npm run dev:forum-server</code> (port 4000)와 MongoDB가 실행 중인지 확인하세요.
-        </div>
+  const dashboardErrorNotice = error ? (
+    <div style={styles.errorNotice}>
+      <div style={styles.errorTitle}>운영 데이터를 아직 모두 불러오지 못했습니다</div>
+      <div style={styles.errorMsg}>
+        {error?.status === 500
+          ? "서버 집계 일부가 잠시 비어 있습니다. 화면은 계속 사용할 수 있습니다."
+          : "forum-server 연결을 다시 확인해 주세요."}
       </div>
-    );
-  }
+    </div>
+  ) : null;
 
   const s = dashboard?.summary ?? {};
   const queue = dashboard?.moderation_queue ?? [];
@@ -192,6 +201,7 @@ export default function OperatorDashboard() {
 
   return (
     <div style={styles.root}>
+      {dashboardErrorNotice}
       <IdentityLoopSummary
         kicker="operator lens"
         title="운영은 콘텐츠 선택과 반응이 어떻게 정체성을 바꾸는지 읽는 일입니다"
@@ -332,6 +342,17 @@ const styles = {
   errorBox: { padding: 20, background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8 },
   errorTitle: { fontWeight: 600, color: "#dc2626", marginBottom: 4 },
   errorMsg: { fontSize: 13, color: "#6b7280" },
+  errorNotice: {
+    padding: 16,
+    background: "#fffbeb",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#fde68a",
+    borderRadius: 10,
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  },
 
   sectionCard: { background: "#fff", border: "1px solid #e5e7eb", borderRadius: 8, padding: 14, display: "flex", flexDirection: "column", gap: 10 },
   sectionHeader: { display: "flex", alignItems: "center", gap: 8 },
