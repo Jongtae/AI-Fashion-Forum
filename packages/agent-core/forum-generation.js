@@ -149,6 +149,10 @@ function summarizeContentRecord(contentRecord = {}) {
 
 function summarizeCommentRecord(commentRecord = {}) {
   const authorId = commentRecord?.authorId || "someone";
+  const authorDisplayName =
+    commentRecord?.authorDisplayName ||
+    commentRecord?.authorHandle ||
+    authorId;
   const text = typeof commentRecord?.content === "string" ? commentRecord.content.trim() : "";
   const snippet = text && isKoreanDominant(text)
     ? text.split(/(?<=[.!?])\s+/)[0].slice(0, 160)
@@ -156,6 +160,7 @@ function summarizeCommentRecord(commentRecord = {}) {
 
   return {
     authorId,
+    authorDisplayName,
     text,
     snippet,
   };
@@ -226,7 +231,7 @@ export function buildForumGenerationContext({
       : "기타 작성 흐름";
 
   const trigger = targetComment
-    ? `댓글 ${targetComment.authorId}를 따라 대화가 이어졌다.`
+    ? `댓글 ${targetComment.authorDisplayName || targetComment.authorHandle || targetComment.authorId}를 따라 대화가 이어졌다.`
     : `글 ${targetTitle}을/를 읽고 반응이 이어졌다.`;
 
   return {
@@ -307,9 +312,9 @@ export function generateForumArtifact({
 
   const replyVariants = targetComment
     ? [
-        `${author.handle}가 @${commentSummary.authorId}의 말을 받아 ${getToneLabel(tone)} 톤으로 답글을 남기며 ${identityAnchorFocus}을 다시 중심에 둔다.`,
-        `@${commentSummary.authorId}의 요점을 이어받아 ${author.handle}가 ${getToneLabel(tone)} 톤으로 응답하고, 대화를 ${identityAnchor} 쪽으로 다시 묶는다.`,
-        `${author.handle}가 @${commentSummary.authorId}의 댓글을 따라 ${getToneLabel(tone)} 톤으로 덧답을 남기고, "${commentSummary.snippet}"를 다시 꺼낸다.`,
+        `${author.handle}가 ${commentSummary.authorDisplayName}의 말을 받아 ${getToneLabel(tone)} 톤으로 답글을 남기며 ${identityAnchorFocus}을 다시 중심에 둔다.`,
+        `${commentSummary.authorDisplayName}의 요점을 이어받아 ${author.handle}가 ${getToneLabel(tone)} 톤으로 응답하고, 대화를 ${identityAnchor} 쪽으로 다시 묶는다.`,
+        `${author.handle}가 ${commentSummary.authorDisplayName}의 댓글을 따라 ${getToneLabel(tone)} 톤으로 덧답을 남기고, "${commentSummary.snippet}"를 다시 꺼낸다.`,
       ]
     : [
         `게시글을 따라 ${author.handle}가 ${getToneLabel(tone)} 톤으로 답글을 남기며 ${identityAnchorFocus}을 중심에 둔다.`,

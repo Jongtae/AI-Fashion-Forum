@@ -7,6 +7,7 @@ import {
   createAgentMutableState,
   createAgentState,
   createStateSnapshot,
+  resolveAuthorIdentity,
 } from "@ai-fashion-forum/shared-types";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -107,6 +108,14 @@ function normalizeAgentArchetype(candidate = {}, sourceProfile = {}) {
 }
 
 function deriveSeedProfile(candidate = {}, sourceProfile = {}) {
+  const identity = resolveAuthorIdentity({
+    authorId: candidate.agent_id || candidate.source_author_id || candidate.sourceAuthorId || sourceProfile.sourceAuthorId || sourceProfile.seedProfileId || "agent",
+    authorType: candidate.source_author_type || sourceProfile.sourceAuthorType || "agent",
+    displayName: candidate.display_name || candidate.displayLabel || sourceProfile.displayName || sourceProfile.displayLabel || "",
+    handle: candidate.handle || sourceProfile.handle || "",
+    avatarUrl: candidate.avatar_url || sourceProfile.avatarUrl || "",
+    localeHint: candidate.avatar_locale || sourceProfile.avatarLocale || sourceProfile.localeHint || "",
+  });
   const seedId = sourceProfile.seedProfileId || candidate.source_seed_profile_id || `seed:${candidate.agent_id}`;
   const behaviorHints = sourceProfile.behaviorHints || {};
   const topicalMemory = sourceProfile.topicalMemory || {};
@@ -124,6 +133,8 @@ function deriveSeedProfile(candidate = {}, sourceProfile = {}) {
       dominant_mood: sourceProfile.dominantMood || null,
       total_posts: topicalMemory.totalPosts || candidate.exposureSummary?.source_post_count || 0,
       total_comments: topicalMemory.totalComments || candidate.exposureSummary?.source_comment_count || 0,
+      display_name: identity.displayName,
+      handle: identity.handle,
     },
     interest_seeds: deriveTopicInterestVector(candidate, sourceProfile),
     value_seeds: {
@@ -148,6 +159,10 @@ function deriveSeedProfile(candidate = {}, sourceProfile = {}) {
       : Array.isArray(candidate.selfNarratives)
         ? [...candidate.selfNarratives]
         : [],
+    display_name: identity.displayName,
+    handle: identity.handle,
+    avatar_url: identity.avatarUrl,
+    avatar_locale: identity.avatarLocale,
   };
 }
 
@@ -203,6 +218,20 @@ function candidateToAgentState(candidate = {}, index = 0) {
   const beliefVector = {
     ...(candidate.belief_vector || {}),
   };
+  const identity = resolveAuthorIdentity({
+    authorId:
+      candidate.agent_id ||
+      candidate.source_author_id ||
+      candidate.sourceAuthorId ||
+      sourceProfile.sourceAuthorId ||
+      sourceProfile.seedProfileId ||
+      `A${String(index + 1).padStart(2, "0")}`,
+    authorType: candidate.source_author_type || sourceProfile.sourceAuthorType || "agent",
+    displayName: candidate.display_name || candidate.displayLabel || sourceProfile.displayName || "",
+    handle: candidate.handle || sourceProfile.handle || "",
+    avatarUrl: candidate.avatar_url || sourceProfile.avatarUrl || "",
+    localeHint: candidate.avatar_locale || sourceProfile.avatarLocale || sourceProfile.localeHint || "",
+  });
 
   return createAgentState({
     agent_id:
@@ -210,21 +239,10 @@ function candidateToAgentState(candidate = {}, index = 0) {
       candidate.source_author_id ||
       candidate.sourceAuthorId ||
       `A${String(index + 1).padStart(2, "0")}`,
-    handle:
-      candidate.handle ||
-      candidate.displayLabel ||
-      candidate.display_label ||
-      candidate.source_author_id ||
-      candidate.sourceAuthorId ||
-      `agent_${index + 1}`,
-    display_name:
-      candidate.display_name ||
-      candidate.displayLabel ||
-      candidate.display_label ||
-      candidate.source_author_id ||
-      candidate.sourceAuthorId ||
-      candidate.agent_id ||
-      `Agent ${index + 1}`,
+    handle: identity.handle || candidate.handle || candidate.displayLabel || candidate.source_author_id || candidate.sourceAuthorId || `agent_${index + 1}`,
+    display_name: identity.displayName || candidate.display_name || candidate.displayLabel || candidate.display_label || candidate.source_author_id || candidate.sourceAuthorId || candidate.agent_id || `Agent ${index + 1}`,
+    avatar_url: identity.avatarUrl || candidate.avatar_url || sourceProfile.avatarUrl || "",
+    avatar_locale: identity.avatarLocale || candidate.avatar_locale || sourceProfile.avatarLocale || "",
     archetype: normalizeAgentArchetype(candidate, sourceProfile),
     joined_tick: candidate.tick ?? candidate.round ?? 0,
     activity_level:

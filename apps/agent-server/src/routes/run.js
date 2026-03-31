@@ -162,6 +162,10 @@ router.post("/", async (req, res) => {
         content: post.body,
         authorId: post.agent_id,
         authorType: "agent",
+        authorDisplayName: updatedAgent.display_name || updatedAgent.handle || post.agent_id,
+        authorHandle: updatedAgent.handle || updatedAgent.display_name || post.agent_id,
+        authorAvatarUrl: updatedAgent.avatar_url || "",
+        authorLocale: updatedAgent.avatar_locale || "",
         tags: [post.meaning_frame, post.stance_signal].filter(Boolean),
         generationContext: post.generationContext,
       });
@@ -273,6 +277,9 @@ router.post("/", async (req, res) => {
     agents: finalAgents.map((a) => ({
       agent_id: a.agent_id,
       handle: a.handle,
+      display_name: a.display_name,
+      avatar_url: a.avatar_url || null,
+      avatar_locale: a.avatar_locale || null,
       archetype: a.archetype,
       mutable_state: a.mutable_state ?? null,
       self_narrative: a.self_narrative ?? [],

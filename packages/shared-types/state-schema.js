@@ -100,6 +100,10 @@ export function createAgentSeedProfile(input) {
     value_seeds = {},
     emotional_bias = {},
     voice_notes = [],
+    display_name = "",
+    handle = "",
+    avatar_url = "",
+    avatar_locale = "",
   } = input;
 
   assertString("seed_id", seed_id);
@@ -118,6 +122,10 @@ export function createAgentSeedProfile(input) {
     value_seeds,
     emotional_bias,
     voice_notes,
+    display_name,
+    handle,
+    avatar_url,
+    avatar_locale,
   };
 }
 
@@ -182,6 +190,8 @@ export function createAgentState(input) {
     self_narrative = [],
     seed_profile = null,
     mutable_state = null,
+    avatar_url = "",
+    avatar_locale = "",
   } = input;
 
   assertString("agent_id", agent_id);
@@ -212,6 +222,8 @@ export function createAgentState(input) {
     self_narrative,
     seed_profile,
     mutable_state,
+    avatar_url,
+    avatar_locale,
   };
 }
 

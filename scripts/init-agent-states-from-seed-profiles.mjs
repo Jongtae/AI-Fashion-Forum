@@ -22,6 +22,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { resolveAuthorIdentity } from "@ai-fashion-forum/shared-types";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -143,6 +145,14 @@ async function main() {
   const candidates = profiles.map((profile, index) => {
     const seedProfileId = stableString(profile.seedProfileId || profile.sourceAuthorId || `seed-${index + 1}`);
     const topicSummary = profile.topicalMemory?.dominantTopics?.map((topic) => topic.key) || [];
+    const identity = resolveAuthorIdentity({
+      authorId: profile.sourceAuthorId || seedProfileId,
+      authorType: profile.sourceAuthorType || "agent",
+      displayName: profile.displayName || profile.displayLabel || "",
+      handle: profile.handle || "",
+      avatarUrl: profile.avatarUrl || "",
+      localeHint: profile.avatarLocale || profile.localeHint || "",
+    });
 
     return {
       snapshot_id: `init:${seedProfileId}`,
@@ -152,8 +162,10 @@ async function main() {
       source_seed_profile_id: seedProfileId,
       source_author_type: stableString(profile.sourceAuthorType || "agent"),
       archetype: deriveArchetype(profile),
-      handle: stableString(profile.displayLabel || profile.sourceAuthorId || seedProfileId),
-      display_name: stableString(profile.displayLabel || profile.sourceAuthorId || seedProfileId),
+      handle: stableString(identity.handle || profile.displayLabel || profile.sourceAuthorId || seedProfileId),
+      display_name: stableString(identity.displayName || profile.displayLabel || profile.sourceAuthorId || seedProfileId),
+      avatar_url: stableString(identity.avatarUrl || ""),
+      avatar_locale: stableString(identity.avatarLocale || ""),
       seed_axes: profile.seedAxes || {},
       mutable_axes: deriveMutableAxes(profile),
       interest_vector: deriveInterestVector(profile),

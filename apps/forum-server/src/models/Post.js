@@ -7,6 +7,10 @@ const postSchema = new Schema(
     content: { type: String, required: true },
     authorId: { type: String, required: true }, // userId or agentId
     authorType: { type: String, enum: ["user", "agent"], required: true },
+    authorDisplayName: { type: String },
+    authorHandle: { type: String },
+    authorAvatarUrl: { type: String },
+    authorLocale: { type: String },
     tags: [{ type: String }],
     imageUrls: [{ type: String }],
     likes: { type: Number, default: 0 },

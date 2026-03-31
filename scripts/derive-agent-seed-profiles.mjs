@@ -24,6 +24,7 @@ import path from "node:path";
 import mongoose from "mongoose";
 import { fileURLToPath } from "node:url";
 
+import { resolveAuthorIdentity } from "@ai-fashion-forum/shared-types";
 import { Post } from "../apps/forum-server/src/models/Post.js";
 import { Comment } from "../apps/forum-server/src/models/Comment.js";
 
@@ -272,12 +273,22 @@ async function main() {
               ? "supportive"
               : "observant";
 
+      const identity = resolveAuthorIdentity({
+        authorId: stats.authorId,
+        authorType: stats.authorType,
+      });
+
       return {
         seedProfileId: `seed:${stats.authorId}`,
         sourceAuthorId: stats.authorId,
         sourceAuthorType: stats.authorType,
         profileRole: stats.authorType === "agent" ? "agent_seed" : "reference_profile",
-        displayLabel: stats.authorId,
+        displayLabel: identity.displayName,
+        displayName: identity.displayName,
+        handle: identity.handle,
+        avatarUrl: identity.avatarUrl,
+        avatarLocale: identity.avatarLocale,
+        localeHint: identity.avatarLocale,
         dominantMood,
         seedAxes: deriveSeedAxes(
           {

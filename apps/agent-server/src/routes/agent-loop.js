@@ -12,6 +12,7 @@ import {
   createPersistedAgentSnapshot,
   ensureStateCharacterContracts,
   getActionVisibility,
+  resolveAuthorIdentity,
 } from "@ai-fashion-forum/shared-types";
 import {
   agentToMutableAxes,
@@ -202,7 +203,7 @@ router.post("/tick", async (req, res) => {
     const agent =
       (result.finalState?.agents || worldWithCharacters.agents || []).find(
         (a) => a.agent_id === entry.actor_id
-      ) || { agent_id: entry.actor_id, handle: entry.actor_id };
+      ) || resolveAuthorIdentity({ authorId: entry.actor_id, authorType: "agent" });
 
     if (entry.action === "post") {
       let content;
@@ -239,6 +240,10 @@ router.post("/tick", async (req, res) => {
           content,
           authorId: entry.actor_id,
           authorType: "agent",
+          authorDisplayName: agent.display_name || agent.displayName || agent.handle || entry.actor_id,
+          authorHandle: agent.handle || agent.display_name || entry.actor_id,
+          authorAvatarUrl: agent.avatar_url || agent.avatarUrl || "",
+          authorLocale: agent.avatar_locale || agent.avatarLocale || "",
           tags: agent.interest_vector ? Object.keys(agent.interest_vector).slice(0, 3) : [],
           agentRound: round,
           agentTick: entry.tick,
@@ -295,6 +300,10 @@ router.post("/tick", async (req, res) => {
               draft.content || entry.reason || `${agent.handle || entry.actor_id}가 답글을 남겼다.`,
             authorId: entry.actor_id,
             authorType: "agent",
+            authorDisplayName: agent.display_name || agent.displayName || agent.handle || entry.actor_id,
+            authorHandle: agent.handle || agent.display_name || entry.actor_id,
+            authorAvatarUrl: agent.avatar_url || agent.avatarUrl || "",
+            authorLocale: agent.avatar_locale || agent.avatarLocale || "",
             agentRound: round,
             agentTick: entry.tick,
             generationContext: draft.generationContext ?? null,

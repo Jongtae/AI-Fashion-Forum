@@ -2,6 +2,7 @@ import { Router } from "express";
 import mongoose from "mongoose";
 import { Post } from "../models/Post.js";
 import { Comment } from "../models/Comment.js";
+import { User } from "../models/User.js";
 import { Interaction } from "../models/Interaction.js";
 import { Report } from "../models/Report.js";
 import { normalizeInteractionPayload } from "../lib/engagement.js";
@@ -10,6 +11,7 @@ import { recordModerationDecision } from "../lib/moderation-decision.js";
 import { publishForumPostCreated, publishForumCommentCreated } from "../lib/redis.js";
 import { checkAgentWriteRateLimit } from "../lib/write-rate-limit.js";
 import { verifyToken } from "../middleware/auth.js";
+import { resolveAuthorIdentity } from "@ai-fashion-forum/shared-types";
 
 const router = Router();
 
@@ -95,6 +97,55 @@ async function loadSavedBookmarkMap(actorId, targetIds = []) {
   }
 
   return bookmarkMap;
+}
+
+async function loadUserDisplayNameMap(usernames = []) {
+  const filtered = [...new Set(usernames.filter(Boolean))];
+  if (!filtered.length) {
+    return new Map();
+  }
+
+  const users = await User.find({ username: { $in: filtered } }, { username: 1, displayName: 1 }).lean();
+  return new Map(users.map((user) => [user.username, user.displayName || user.username]));
+}
+
+function collectUserAuthorIds(records = []) {
+  return records
+    .filter((record) => record?.authorType === "user" && record?.authorId)
+    .map((record) => record.authorId);
+}
+
+function decorateAuthorIdentity(record = {}, userDisplayNameMap = new Map()) {
+  const identity = resolveAuthorIdentity({
+    authorId: record.authorId,
+    authorType: record.authorType,
+    displayName:
+      record.authorDisplayName ||
+      userDisplayNameMap.get(record.authorId) ||
+      record.displayName ||
+      "",
+    handle: record.authorHandle || record.handle || "",
+    avatarUrl: record.authorAvatarUrl || record.avatarUrl || "",
+    localeHint: record.authorLocale || record.locale || "",
+  });
+
+  return {
+    ...record,
+    authorDisplayName: identity.displayName,
+    authorHandle: identity.handle,
+    authorAvatarUrl: identity.avatarUrl,
+    authorLocale: identity.avatarLocale,
+  };
+}
+
+async function decoratePosts(posts = []) {
+  const userDisplayNameMap = await loadUserDisplayNameMap(collectUserAuthorIds(posts));
+  return posts.map((post) => decorateAuthorIdentity(post, userDisplayNameMap));
+}
+
+async function decorateComments(comments = []) {
+  const userDisplayNameMap = await loadUserDisplayNameMap(collectUserAuthorIds(comments));
+  return comments.map((comment) => decorateAuthorIdentity(comment, userDisplayNameMap));
 }
 
 function attachSavedState(post, savedBookmarkMap = new Map()) {
@@ -189,6 +240,10 @@ router.post("/", async (req, res) => {
     content: req.body.content.trim(),
     authorId: req.body.authorId,
     authorType: req.body.authorType,
+    authorDisplayName: req.body.authorDisplayName || null,
+    authorHandle: req.body.authorHandle || null,
+    authorAvatarUrl: req.body.authorAvatarUrl || null,
+    authorLocale: req.body.authorLocale || null,
     tags: req.body.tags ?? [],
     imageUrls: req.body.imageUrls ?? [],
     format: req.body.format,
@@ -197,6 +252,8 @@ router.post("/", async (req, res) => {
   });
 
   await post.save();
+
+  const decoratedPost = decorateAuthorIdentity(post.toObject(), new Map());
 
   const publishedAt = post.createdAt ? new Date(post.createdAt) : new Date();
 
@@ -237,6 +294,10 @@ router.post("/", async (req, res) => {
         content: post.content,
         authorId: post.authorId,
         authorType: post.authorType,
+        authorDisplayName: decoratedPost.authorDisplayName,
+        authorHandle: decoratedPost.authorHandle,
+        authorAvatarUrl: decoratedPost.authorAvatarUrl,
+        authorLocale: decoratedPost.authorLocale,
         tags: post.tags ?? [],
         likes: post.likes ?? 0,
         format: post.format || "forum_post",
@@ -248,7 +309,7 @@ router.post("/", async (req, res) => {
     console.warn("[forum-server] failed to publish post.created:", err.message);
   }
 
-  res.status(201).json(post);
+  res.status(201).json(decoratedPost);
 });
 
 // ── GET /api/posts ────────────────────────────────────────────────────────────
@@ -316,9 +377,10 @@ router.get("/", async (req, res) => {
   }
 
   const savedBookmarkMap = viewerId ? await loadSavedBookmarkMap(viewerId, posts.map((post) => post._id)) : new Map();
+  const decoratedPosts = await decoratePosts(posts.map((post) => attachSavedState(post, savedBookmarkMap)));
 
   res.json({
-    posts: posts.map((post) => attachSavedState(post, savedBookmarkMap)),
+    posts: decoratedPosts,
     pagination: {
       page,
       limit,
@@ -356,11 +418,11 @@ router.get("/:postId", async (req, res) => {
 
   const viewerId = getAuthedUsername(req);
   if (!viewerId) {
-    return res.json(post);
+    return res.json((await decoratePosts([post]))[0]);
   }
 
   const savedBookmarkMap = await loadSavedBookmarkMap(viewerId, [post._id]);
-  res.json(attachSavedState(post, savedBookmarkMap));
+  res.json((await decoratePosts([attachSavedState(post, savedBookmarkMap)]))[0]);
 });
 
 // ── PUT /api/posts/:postId ────────────────────────────────────────────────────
@@ -554,6 +616,10 @@ router.post("/:postId/comments", async (req, res) => {
     postId: req.params.postId,
     authorId: req.body.authorId,
     authorType: req.body.authorType,
+    authorDisplayName: req.body.authorDisplayName || null,
+    authorHandle: req.body.authorHandle || null,
+    authorAvatarUrl: req.body.authorAvatarUrl || null,
+    authorLocale: req.body.authorLocale || null,
     content: req.body.content.trim(),
     generationContext: req.body.generationContext ?? null,
     replyToCommentId,
@@ -568,6 +634,8 @@ router.post("/:postId/comments", async (req, res) => {
   await comment.save();
   post.commentCount = (post.commentCount || 0) + 1;
   await post.save();
+
+  const decoratedComment = decorateAuthorIdentity(comment.toObject(), new Map());
 
   const createdAt = comment.createdAt ? new Date(comment.createdAt) : new Date();
 
@@ -590,6 +658,10 @@ router.post("/:postId/comments", async (req, res) => {
         content: comment.content,
         authorId: comment.authorId,
         authorType: comment.authorType,
+        authorDisplayName: decoratedComment.authorDisplayName,
+        authorHandle: decoratedComment.authorHandle,
+        authorAvatarUrl: decoratedComment.authorAvatarUrl,
+        authorLocale: decoratedComment.authorLocale,
         generationContext: comment.generationContext ?? null,
         replyToCommentId: comment.replyToCommentId ? comment.replyToCommentId.toString() : null,
         replyTargetType: comment.replyTargetType,
@@ -616,7 +688,7 @@ router.post("/:postId/comments", async (req, res) => {
     })).save();
   }
 
-  res.status(201).json(comment);
+  res.status(201).json(decoratedComment);
 });
 
 // ── GET /api/posts/:postId/comments ──────────────────────────────────────────
@@ -629,7 +701,7 @@ router.get("/:postId/comments", async (req, res) => {
     .sort({ createdAt: 1 })
     .lean();
 
-  res.json(comments);
+  res.json(await decorateComments(comments));
 });
 
 // ── DELETE /api/posts/:postId/comments/:commentId ────────────────────────────

@@ -7,7 +7,8 @@ import { chatTheme } from "../lib/chat-ui-theme.js";
 
 function formatProfileTitle(profile) {
   if (!profile) return "프로필";
-  return profile.type === "agent" ? `🤖 ${profile.id}` : `👤 ${profile.id}`;
+  const label = profile.displayName || profile.display_name || profile.handle || profile.id;
+  return profile.type === "agent" ? `🤖 ${label}` : `👤 ${label}`;
 }
 
 function AgentSummary({ agentState }) {
