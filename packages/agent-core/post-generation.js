@@ -33,6 +33,27 @@ function summarizeContentRecord(contentRecord = {}) {
   };
 }
 
+function shortenHookTitle(value = "", maxLength = 28) {
+  const text = normalizeText(value).replace(/[.?!…:|]+$/g, "").trim();
+  if (!text) {
+    return "";
+  }
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength - 1).trim()}…`;
+}
+
+function stringSeed(...parts) {
+  return parts
+    .filter(Boolean)
+    .join(":")
+    .split("")
+    .reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
+}
+
 function countHangul(text) {
   return (text.match(/[가-힣]/g) || []).length;
 }
@@ -264,6 +285,202 @@ function parseJsonFromResponseText(text) {
   }
 }
 
+const RUN_TITLE_HOOKS = [
+  {
+    contextLabel: "생활 리듬",
+    titles: [
+      "출근 전에 먼저 보인 기준",
+      "생활 리듬으로 다시 읽은 포인트",
+      "평소 기준으로 먼저 걸린 이유",
+      "오늘 다시 보게 된 기준",
+    ],
+  },
+  {
+    contextLabel: "신호 읽기",
+    titles: [
+      "새 신호가 먼저 걸린 이유",
+      "처음 보인 신호 하나",
+      "먼저 읽힌 단서",
+      "신호가 바꾼 해석",
+    ],
+  },
+  {
+    contextLabel: "손익 점검",
+    titles: [
+      "가격보다 오래 남는 쪽",
+      "손익을 먼저 따져본 이유",
+      "입는 횟수부터 본 메모",
+      "좋아 보여도 다시 보는 기준",
+    ],
+  },
+  {
+    contextLabel: "커뮤니티 반응",
+    titles: [
+      "댓글이 넓힌 해석",
+      "반응이 바꾼 읽기",
+      "대화가 먼저 살아난 글",
+      "스레드가 넓혀준 시선",
+    ],
+  },
+  {
+    contextLabel: "미시 관찰",
+    titles: [
+      "작은 차이가 더 크게 보인 이유",
+      "디테일 하나가 남긴 인상",
+      "미세한 차이를 먼저 본 글",
+      "작은 디테일이 바꾼 판단",
+    ],
+  },
+  {
+    contextLabel: "개인 기억",
+    titles: [
+      "비슷한 장면이 오래 남는 이유",
+      "먼저 떠오른 기억 한 조각",
+      "이전에 본 장면과 닮은 지점",
+      "기억이 먼저 걸린 부분",
+    ],
+  },
+];
+
+const COMMENT_TITLE_HOOKS = [
+  {
+    contextLabel: "답장 이어가기",
+    titles: [
+      "대화를 다시 잇는 말",
+      "답을 이어 붙인 자리",
+      "흐름을 놓치지 않은 답",
+      "이야기를 계속 잇는 댓글",
+    ],
+  },
+  {
+    contextLabel: "질문 던지기",
+    titles: [
+      "한 번 더 묻게 된 지점",
+      "기준이 궁금해진 부분",
+      "다시 물어보고 싶은 이유",
+      "질문이 남은 포인트",
+    ],
+  },
+  {
+    contextLabel: "보완 의견",
+    titles: [
+      "다른 시선이 붙은 이유",
+      "조금 더 보태고 싶은 말",
+      "부드럽게 다른 쪽을 본 답",
+      "보완해서 읽은 댓글",
+    ],
+  },
+  {
+    contextLabel: "스레드 연결",
+    titles: [
+      "댓글까지 봐야 보이는 결",
+      "글과 댓글을 다시 잇는 쪽",
+      "대화 흐름을 묶은 메모",
+      "스레드 전체를 다시 읽은 말",
+    ],
+  },
+  {
+    contextLabel: "공감 보태기",
+    titles: [
+      "먼저 공감이 간 부분",
+      "고개가 먼저 끄덕여진 말",
+      "비슷하게 느낀 지점",
+      "공감부터 남긴 댓글",
+    ],
+  },
+  {
+    contextLabel: "반대 관점",
+    titles: [
+      "같은 글을 다르게 읽은 이유",
+      "조금 다른 쪽에서 본 답",
+      "반대로 보인 한 지점",
+      "다른 결로 읽은 댓글",
+    ],
+  },
+];
+
+export function buildReadablePostTitle({
+  mode,
+  sourceTitle,
+  sourceTopics,
+  sourceSignal,
+  sourceSnippet,
+  sourceBody,
+  selectedContext,
+  selectedContextLabel,
+  variationSeed = 0,
+} = {}) {
+  const normalizedTopics = uniqueNormalizedList((Array.isArray(sourceTopics) ? sourceTopics : []).map(localizeTopicLabel));
+  const primaryTopic = normalizedTopics[0] || localizeTopicLabel(selectedContext?.contextLabel || selectedContextLabel || "");
+  const secondaryTopic = normalizedTopics[1] || primaryTopic;
+  const contextLabel = normalizeText(selectedContext?.contextLabel || selectedContextLabel);
+  const signal = normalizeText(sourceSignal);
+  const referenceText = [
+    normalizeText(sourceTitle),
+    normalizeText(sourceSnippet),
+    normalizeText(sourceBody),
+    normalizeText(selectedContext?.content),
+    signal,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const pool = [];
+
+  if (mode === "comment") {
+    const hookSet = COMMENT_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel) || null;
+    pool.push(...(hookSet?.titles || []));
+    pool.push(
+      `${primaryTopic}를 보고 남긴 짧은 말`,
+      `${secondaryTopic}를 같이 본 뒤의 생각`,
+      `대화를 이어 붙인 한 줄`,
+      `댓글 흐름에서 남은 포인트`,
+      `한 번 더 물어본 이유`,
+    );
+  } else {
+    const hookSet = RUN_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel) || null;
+    pool.push(...(hookSet?.titles || []));
+    pool.push(
+      `${attachKoreanParticle(primaryTopic, "object")} 먼저 보게 된 이유`,
+      `${secondaryTopic}까지 같이 본 기준`,
+      `오늘 다시 읽은 포인트`,
+      `이 글이 오래 남는 이유`,
+      `한 번 더 보게 된 장면`,
+    );
+  }
+
+  const candidates = uniqueNormalizedList(pool)
+    .map((candidate) => shortenHookTitle(candidate, 28))
+    .filter(Boolean)
+    .filter((candidate) => {
+      if (!referenceText) {
+        return true;
+      }
+      return jaccardSimilarity(candidate, referenceText) < 0.7;
+    });
+
+  if (!candidates.length) {
+    return shortenHookTitle(
+      mode === "comment"
+        ? "댓글이 남긴 작은 포인트"
+        : "오늘 다시 읽은 기준",
+      28,
+    );
+  }
+
+  const selectionSeed = stringSeed(
+    variationSeed,
+    sourceTitle,
+    sourceSnippet,
+    sourceBody,
+    signal,
+    contextLabel,
+    normalizedTopics.join(","),
+  );
+  const index = Math.abs(selectionSeed) % candidates.length;
+  return candidates[index];
+}
+
 function buildOpenAIPrompt({
   mode,
   agentHandle,
@@ -301,6 +518,7 @@ function buildOpenAIPrompt({
     '형식은 {"contexts":[{"context_id":"...","context_label":"...","angle":"...","content":"...","tone":"..."}]} 이다.',
     "contexts는 정확히 4개를 권장하며, 각 항목은 서로 다른 맥락과 다른 문장 흐름을 가져야 한다.",
     "content는 한글 자연문으로, 커뮤니티 글처럼 읽혀야 하며 너무 과장된 템플릿 문구를 반복하지 말아라.",
+    "제목은 본문 요약처럼 쓰지 말고, 짧은 훅과 관점 차이가 드러나게 따로 잡아라.",
     "댓글인 경우에는 실제 커뮤니티 댓글처럼 간결하고 구어체로 쓰고, 주어를 굳이 설명하지 마라.",
     "번역투보다 실제 커뮤니티 댓글의 짧은 리듬과 맞장구, 질문, 부드러운 반박을 우선해라.",
     "같은 제목 구조나 같은 문장 시작을 반복하지 말고, 생활 리듬, 가격/손익, 신호 읽기, 관계/정체성 같은 서로 다른 관점으로 분기해라.",
@@ -578,6 +796,7 @@ function buildGenerationContext({
     selectedContextAngle: selectedContext?.angle || null,
     selectedTone: selectedContext?.tone || null,
     selectedStyle: styleProfile?.register || null,
+    titleStrategy: "hook_not_summary",
     model: model || null,
     summary: selectedContext
       ? `${sourceTitle}를 ${selectedContext.contextLabel} 흐름으로 자연스럽게 풀어냈다.`
@@ -708,6 +927,19 @@ async function resolvePostDraft({
     styleProfile,
   });
 
+  const generatedTitle = buildReadablePostTitle({
+    mode,
+    sourceTitle,
+    sourceTopics,
+    sourceSignal,
+    sourceSnippet,
+    sourceBody,
+    sourceCommentPreview,
+    selectedContext: null,
+    selectedContextLabel: null,
+    variationSeed,
+  });
+
   if (!apiKey) {
     const selectedFallback =
       selectDiverseContext(fallbackPool, variationSeed, comparisonTexts) ||
@@ -715,6 +947,7 @@ async function resolvePostDraft({
       fallbackPool[0];
     const sanitizedContent = sanitizeDraftContent(selectedFallback?.content || "");
     return {
+      title: generatedTitle,
       content: sanitizedContent || selectedFallback?.content || "",
       generationContext: buildGenerationContext({
         source: "fallback",
@@ -762,6 +995,17 @@ async function resolvePostDraft({
         selectContext(contexts, variationSeed);
       const sanitizedContent = sanitizeDraftContent(selected?.content || "");
       return {
+        title: buildReadablePostTitle({
+          mode,
+          sourceTitle,
+          sourceTopics,
+          sourceSignal,
+          sourceSnippet,
+          sourceBody,
+          sourceCommentPreview,
+          selectedContext: selected,
+          variationSeed,
+        }),
         content: sanitizedContent || selected?.content || fallbackPool[0]?.content || "",
         generationContext: buildGenerationContext({
           source: "openai",
@@ -790,6 +1034,17 @@ async function resolvePostDraft({
     fallbackPool[0];
   const sanitizedContent = sanitizeDraftContent(selectedFallback?.content || "");
   return {
+    title: buildReadablePostTitle({
+      mode,
+      sourceTitle,
+      sourceTopics,
+      sourceSignal,
+      sourceSnippet,
+      sourceBody,
+      sourceCommentPreview,
+      selectedContext: selectedFallback,
+      variationSeed,
+    }),
     content: sanitizedContent || selectedFallback?.content || "",
     generationContext: buildGenerationContext({
       source: "fallback",

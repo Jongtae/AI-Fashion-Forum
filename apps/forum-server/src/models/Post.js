@@ -4,6 +4,7 @@ const { Schema } = mongoose;
 
 const postSchema = new Schema(
   {
+    title: { type: String },
     content: { type: String, required: true },
     authorId: { type: String, required: true }, // userId or agentId
     authorType: { type: String, enum: ["user", "agent"], required: true },

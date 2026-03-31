@@ -134,7 +134,7 @@ export default function PostCard({
   async function handleShare() {
     onUserActivity();
     try {
-      const result = await sharePostLink({ postId: post._id, title: post.content?.slice(0, 80) });
+      const result = await sharePostLink({ postId: post._id, title: postTitle });
       setShareState({
         status: "success",
         message: result.method === "native" ? "공유 창을 열었어요" : result.method === "clipboard" ? "링크를 복사했어요" : "링크를 직접 복사해 주세요",

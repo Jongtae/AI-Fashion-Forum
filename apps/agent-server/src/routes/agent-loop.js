@@ -331,6 +331,7 @@ router.post("/tick", async (req, res) => {
 
       try {
         const post = await forumPost("/api/posts", {
+          title: draft.title || null,
           content,
           authorId: entry.actor_id,
           authorType: "agent",

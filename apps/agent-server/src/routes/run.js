@@ -146,7 +146,7 @@ router.post("/", async (req, res) => {
       source_reaction_id: selectedReaction.reaction_id,
       meaning_frame: selectedReaction.meaning_frame,
       stance_signal: selectedReaction.stance_signal,
-      title: null,
+      title: draft.title || null,
       body: draft.content,
       generationContext: draft.generationContext,
       contextPool: draft.contextPool,
@@ -178,6 +178,7 @@ router.post("/", async (req, res) => {
 
     try {
       const result = await postToForum("/api/posts", {
+        title: post.title || null,
         content: post.body,
         authorId: post.agent_id,
         authorType: "agent",

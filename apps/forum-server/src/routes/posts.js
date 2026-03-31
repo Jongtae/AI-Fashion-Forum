@@ -11,6 +11,7 @@ import { recordModerationDecision } from "../lib/moderation-decision.js";
 import { publishForumPostCreated, publishForumCommentCreated } from "../lib/redis.js";
 import { checkAgentWriteRateLimit } from "../lib/write-rate-limit.js";
 import { verifyToken } from "../middleware/auth.js";
+import { buildReadablePostTitle } from "@ai-fashion-forum/agent-core";
 import { resolveAuthorIdentity } from "@ai-fashion-forum/shared-types";
 
 const router = Router();
@@ -135,7 +136,26 @@ function decorateAuthorIdentity(record = {}, userDisplayNameMap = new Map()) {
     authorHandle: identity.handle,
     authorAvatarUrl: identity.avatarUrl,
     authorLocale: identity.avatarLocale,
+    title: ensureReadablePostTitle(record),
   };
+}
+
+function ensureReadablePostTitle(record = {}) {
+  const explicitTitle = typeof record.title === "string" ? record.title.trim() : "";
+  if (explicitTitle) {
+    return explicitTitle;
+  }
+
+  return buildReadablePostTitle({
+    mode: "run",
+    sourceTitle: record.generationContext?.selectedContextLabel || record.tags?.[0] || "포럼 글",
+    sourceTopics: Array.isArray(record.tags) ? record.tags : [],
+    sourceSignal: record.generationContext?.selectedContextLabel || record.generationContext?.selectedTone || "",
+    sourceSnippet: record.content || "",
+    sourceBody: record.content || "",
+    selectedContextLabel: record.generationContext?.selectedContextLabel || null,
+    variationSeed: String(record._id || record.authorId || "").length,
+  });
 }
 
 async function decoratePosts(posts = []) {
@@ -237,6 +257,7 @@ router.post("/", async (req, res) => {
   });
 
   const post = new Post({
+    title: typeof req.body.title === "string" && req.body.title.trim() ? req.body.title.trim() : null,
     content: req.body.content.trim(),
     authorId: req.body.authorId,
     authorType: req.body.authorType,
@@ -291,6 +312,7 @@ router.post("/", async (req, res) => {
       occurredAt: publishedAt.toISOString(),
       post: {
         _id: post._id.toString(),
+        title: decoratedPost.title || post.title || null,
         content: post.content,
         authorId: post.authorId,
         authorType: post.authorType,
@@ -352,6 +374,7 @@ router.get("/", async (req, res) => {
   if (search) {
     const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     filter.$or = [
+      { title: { $regex: escaped, $options: "i" } },
       { content: { $regex: escaped, $options: "i" } },
       { authorId: { $regex: escaped, $options: "i" } },
       { tags: { $regex: escaped, $options: "i" } },
@@ -438,6 +461,10 @@ router.put("/:postId", async (req, res) => {
 
   const { content, tags, imageUrls, format } = req.body;
   if (content !== undefined) post.content = content.trim();
+  if (req.body.title !== undefined) {
+    const nextTitle = typeof req.body.title === "string" ? req.body.title.trim() : "";
+    post.title = nextTitle || null;
+  }
   if (tags !== undefined) post.tags = tags;
   if (imageUrls !== undefined) post.imageUrls = imageUrls;
   if (format !== undefined) post.format = format;

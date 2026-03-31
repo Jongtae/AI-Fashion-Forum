@@ -95,7 +95,7 @@ export default function PostDetail({
     try {
       const result = await sharePostLink({
         postId,
-        title: post?.content?.slice(0, 80),
+        title: postTitle,
       });
       setShareState({
         status: "success",

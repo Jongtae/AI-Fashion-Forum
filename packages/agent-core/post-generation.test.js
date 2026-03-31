@@ -52,6 +52,14 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
   assert.doesNotMatch(draftOne.content, /officemirror/i);
   assert.doesNotMatch(draftTwo.content, /officemirror/i);
   assert.notStrictEqual(draftOne.content, draftTwo.content);
+  assert.ok(draftOne.title);
+  assert.ok(draftTwo.title);
+  assert.notStrictEqual(draftOne.title, draftOne.content);
+  assert.notStrictEqual(draftTwo.title, draftTwo.content);
+  assert.doesNotMatch(draftOne.title, /quiet office outfit/i);
+  assert.doesNotMatch(draftTwo.title, /quiet office outfit/i);
+  assert.match(draftOne.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|장면/);
+  assert.match(draftTwo.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|장면/);
   assert.ok(draftOne.generationContext.selectedContextLabel);
 });
 
@@ -124,6 +132,9 @@ test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => 
   assert.strictEqual(draft.generationContext.contextPoolSize, 4);
   assert.strictEqual(draft.generationContext.selectedContextLabel, "커뮤니티 반응");
   assert.match(draft.content, /대화형 톤의 한국어 글입니다/);
+  assert.ok(draft.title);
+  assert.notStrictEqual(draft.title, draft.content);
+  assert.doesNotMatch(draft.title, /quiet office outfit/i);
   assert.strictEqual(requestBody?.model, "gpt-4o");
 });
 
@@ -192,6 +203,8 @@ test("createRunPostDraft avoids overly similar contexts when comparison texts ar
   assert.strictEqual(draft.generationContext.source, "openai");
   assert.notStrictEqual(draft.generationContext.selectedContextLabel, "커뮤니티 반응");
   assert.doesNotMatch(draft.content, /대화형 톤의 한국어 글입니다/);
+  assert.ok(draft.title);
+  assert.notStrictEqual(draft.title, draft.content);
 });
 
 test("createLiveCommentDraft uses local OpenAI mock contexts and targets comments", async () => {
@@ -335,4 +348,6 @@ test("createLivePostDraft falls back to Korean live contexts", async () => {
   assert.strictEqual(draft.generationContext.source, "fallback");
   assert.strictEqual(draft.generationContext.mode, "live");
   assert.match(draft.content, /brandreceipt|최근 패션 흐름|생활|신호|손익|커뮤니티/);
+  assert.ok(draft.title);
+  assert.notStrictEqual(draft.title, draft.content);
 });

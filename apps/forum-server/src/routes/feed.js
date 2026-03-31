@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { RANKING_EXPERIMENT_FLAGS } from "@ai-fashion-forum/agent-core";
+import { RANKING_EXPERIMENT_FLAGS, buildReadablePostTitle } from "@ai-fashion-forum/agent-core";
 import { SAMPLE_AGENT_STATES } from "@ai-fashion-forum/shared-types";
 import { Post } from "../models/Post.js";
 import { Interaction } from "../models/Interaction.js";
@@ -12,7 +12,7 @@ const router = Router();
 function postToContentRecord(post) {
   return {
     content_id: post._id.toString(),
-    title: post.content.slice(0, 60),
+    title: ensureReadablePostTitle(post),
     format: post.format || "forum_post",
     topics: post.tags ?? [],
     emotions: [],            // enrichment hook — left empty for now
@@ -52,6 +52,24 @@ function computeScore({ agentState, contentRecord, weights, recencyMs }) {
     0 * weights.controversy +
     recencySignal * weights.recency
   );
+}
+
+function ensureReadablePostTitle(post = {}) {
+  const explicitTitle = typeof post.title === "string" ? post.title.trim() : "";
+  if (explicitTitle) {
+    return explicitTitle;
+  }
+
+  return buildReadablePostTitle({
+    mode: "run",
+    sourceTitle: post.generationContext?.selectedContextLabel || post.tags?.[0] || "포럼 글",
+    sourceTopics: Array.isArray(post.tags) ? post.tags : [],
+    sourceSignal: post.generationContext?.selectedContextLabel || post.generationContext?.selectedTone || "",
+    sourceSnippet: post.content || "",
+    sourceBody: post.content || "",
+    selectedContextLabel: post.generationContext?.selectedContextLabel || null,
+    variationSeed: String(post._id || post.authorId || "").length,
+  });
 }
 
 const WEIGHTS_BY_FLAG = {
@@ -134,7 +152,7 @@ router.get("/", async (req, res) => {
   Interaction.insertMany(interactions).catch(() => {});
 
   res.json({
-    feed: ranked.map((r) => ({ ...r.post, _score: r.score })),
+    feed: ranked.map((r) => ({ ...r.post, title: ensureReadablePostTitle(r.post), _score: r.score })),
     ranked: true,
     userId,
     experimentFlag: flag,
