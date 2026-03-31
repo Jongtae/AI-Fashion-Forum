@@ -135,18 +135,11 @@ export default function OperatorDashboard() {
 
   const { data: latestReport } = useQuery({
     queryKey: ["latest-report"],
-    queryFn: async () => {
-      try {
-        return await fetchLatestReport();
-      } catch (error) {
-        if (error?.status === 404) {
-          return null;
-        }
-        throw error;
-      }
-    },
+    queryFn: fetchLatestReport,
     staleTime: 30_000,
-    retry: 1,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
   });
 
   const reviewMutation = useMutation({

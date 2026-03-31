@@ -338,7 +338,7 @@ router.post("/", async (req, res) => {
 
 router.get("/report/latest", (_req, res) => {
   if (!fs.existsSync(REPLAY_DIR)) {
-    return res.status(404).json({ error: "no_reports_yet" });
+    return res.json(null);
   }
 
   const files = fs
@@ -348,7 +348,7 @@ router.get("/report/latest", (_req, res) => {
     .sort((a, b) => b.mtime - a.mtime);
 
   if (files.length === 0) {
-    return res.status(404).json({ error: "no_reports_yet" });
+    return res.json(null);
   }
 
   const content = JSON.parse(fs.readFileSync(path.join(REPLAY_DIR, files[0].name), "utf8"));
@@ -360,7 +360,7 @@ router.get("/report/latest", (_req, res) => {
 
 router.get("/replay/latest", (_req, res) => {
   if (!fs.existsSync(REPLAY_DIR)) {
-    return res.status(404).json({ error: "no_replays_yet" });
+    return res.json(null);
   }
 
   const files = fs
@@ -370,7 +370,7 @@ router.get("/replay/latest", (_req, res) => {
     .sort((a, b) => b.mtime - a.mtime);
 
   if (files.length === 0) {
-    return res.status(404).json({ error: "no_replays_yet" });
+    return res.json(null);
   }
 
   const content = JSON.parse(fs.readFileSync(path.join(REPLAY_DIR, files[0].name), "utf8"));
