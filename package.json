@@ -16,6 +16,7 @@
     "boot:local:with-infra": "node scripts/bootstrap-local.mjs",
     "export:content-projections": "node scripts/export-content-projections.mjs",
     "derive:agent-seeds": "node scripts/derive-agent-seed-profiles.mjs",
+    "init:agent-states": "node scripts/init-agent-states-from-seed-profiles.mjs",
     "build": "npm run build --workspace @ai-fashion-forum/forum-web",
     "preview": "npm run preview --workspace @ai-fashion-forum/forum-web",
     "crawl:images": "npm run crawl:images --workspace @ai-fashion-forum/forum-web",

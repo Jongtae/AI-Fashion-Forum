@@ -175,6 +175,15 @@ npm run derive:agent-seeds
 That output should summarize topic affinity, dialogue style, and memory hints for
 each author group or agent cluster.
 
+After that, the seed profiles can be converted into initial agent-state candidates:
+
+```bash
+npm run init:agent-states
+```
+
+This gives us a read-only bridge from projection export to simulation startup
+without mutating the source collections.
+
 ## What Should Be Preserved
 
 When reconstructing content, preserve:
