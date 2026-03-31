@@ -199,7 +199,7 @@ const SERVICE_TABS = [
   { id: "saved", label: "저장글" },
 ];
 
-function buildNextUrl(pathname, { preserveSearch = true } = {}) {
+function buildNextUrl(pathname, { preserveSearch = false } = {}) {
   const search = preserveSearch ? window.location.search : "";
   return search ? `${pathname}${search}` : pathname;
 }
@@ -517,7 +517,6 @@ export default function ForumApp() {
     setPostUrl(null);
     setSelectedProfile(profile);
     setProfileUrl(profile, { replace: false });
-    setViewUrl(tab, { replace: false });
   }
 
   function openSavedPosts() {
