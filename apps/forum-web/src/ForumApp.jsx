@@ -838,6 +838,9 @@ const styles = {
     minHeight: "100vh",
     background:
       "radial-gradient(circle at top left, rgba(217,231,255,0.72) 0%, rgba(255,255,255,0.98) 34%, rgba(232,240,255,0.88) 68%, #f7f8fc 100%)",
+    backgroundAttachment: "fixed",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "cover",
     fontFamily: "\"Apple SD Gothic Neo\", \"Noto Sans KR\", \"SF Pro Display\", \"Helvetica Neue\", Arial, sans-serif",
     color: "#111111",
   },
