@@ -1,10 +1,10 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAgentLoopStatus, fetchLatestReport } from "../api/client.js";
+import PostList from "./PostList.jsx";
 import OperatorDashboard from "./OperatorDashboard.jsx";
 import RunReplayViewer from "./RunReplayViewer.jsx";
 import Sprint1ReplayPanel from "./Sprint1ReplayPanel.jsx";
-import IdentityLoopSummary from "./IdentityLoopSummary.jsx";
 
 const SECTIONS = [
   {
@@ -87,6 +87,7 @@ function StatusCard({ label, title, summary, detail, tone = "neutral" }) {
 }
 
 export default function AdminDashboard({ activeSection = "home", onSectionChange = () => {} }) {
+  const operatorUser = { id: "operator-view", type: "user" };
   const { data: loopStatus, isLoading: loopLoading, error: loopError } = useQuery({
     queryKey: ["admin-loop-status"],
     queryFn: fetchAgentLoopStatus,
@@ -120,53 +121,26 @@ export default function AdminDashboard({ activeSection = "home", onSectionChange
   ) : null;
 
   function renderHome() {
-    const summaryCards = [
-      {
-        label: "현재 라운드",
-        value: loopStatus?.currentRound ?? 0,
-        description: "시뮬레이션이 지금 어디까지 왔는지 보여줍니다.",
-      },
-      {
-        label: "에이전트",
-        value: loopStatus?.agentCount ?? 0,
-        description: "같은 콘텐츠를 소비하고 반응하는 참여자 수입니다.",
-      },
-      {
-        label: "최근 기록",
-        value: latestReport?.run_id || "—",
-        description: "선택과 반응이 상태로 누적된 결과입니다.",
-      },
-      {
-        label: "다음 포인트",
-        value: activeSection === "home" ? "흐름 선택" : activeSection,
-        description: "어떤 흐름을 열어볼지 결정하는 진입점입니다.",
-      },
-    ];
-
     return (
       <div style={styles.homeGrid}>
-        <div style={styles.homeHero}>
-          <p style={styles.homeKicker}>운영 허브</p>
-          <h2 style={styles.homeTitle}>운영 화면</h2>
-          <p style={styles.homeText}>흐름과 기록을 확인합니다.</p>
-          {statusNotice}
-          <IdentityLoopSummary
-            kicker="operator view"
-            title="운영 요약"
-            subtitle="흐름과 기록만 간단히 봅니다."
-            cards={summaryCards}
-            notes={[
-              "흐름 확인",
-              "기록 확인",
-            ]}
-          />
-          <div style={styles.quickActions}>
-            {ACTIONS.map((action) => (
-                <button key={action.id} type="button" style={styles.quickAction} onClick={() => onSectionChange(action.id)}>
-                  <span style={styles.quickActionLabel}>{action.label}</span>
-                  <span style={styles.quickActionDesc}>{action.description}</span>
-                </button>
-            ))}
+        <div style={styles.homeFeed}>
+          <div style={styles.homeIntro}>
+            <p style={styles.homeKicker}>관리자 홈</p>
+            <h2 style={styles.homeTitle}>최근에 쓰인 글부터 봅니다</h2>
+            <p style={styles.homeText}>지표보다 먼저 실제 글의 톤과 흐름을 훑고, 필요할 때만 도구로 들어갑니다.</p>
+          </div>
+
+          <div style={styles.homeFeedCard}>
+            <div style={styles.homeFeedHeader}>
+              <span style={styles.homeFeedLabel}>최근 글</span>
+              <span style={styles.homeFeedHint}>가장 최근에 올라온 글부터 자연스럽게 확인합니다.</span>
+            </div>
+            <PostList
+              currentUser={operatorUser}
+              readOnly
+              surfaceVariant="feed"
+              queryParams={{ sort: "recent" }}
+            />
           </div>
         </div>
 
@@ -184,11 +158,17 @@ export default function AdminDashboard({ activeSection = "home", onSectionChange
             detail={latestReport ? `평가 지표와 글 흐름이 담긴 최신 결과입니다.` : "기록이 없으면 아직 실행되지 않은 상태입니다."}
             tone={reportError ? "warn" : "neutral"}
           />
-          <StatusCard
-            label="다음 할 일"
-            title={activeSection === "home" ? "흐름 카드에서 한 곳을 선택하세요" : "선택한 화면을 아래에서 확인하세요"}
-            summary="왼쪽 카드로 목적을 읽고, 오른쪽 바로가기로 바로 이동합니다."
-          />
+          {statusNotice}
+          <div style={styles.toolsCard}>
+            <span style={styles.toolsLabel}>도구</span>
+            <div style={styles.toolsRow}>
+              {ACTIONS.map((action) => (
+                <button key={action.id} type="button" style={styles.toolBtn} onClick={() => onSectionChange(action.id)}>
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -312,18 +292,16 @@ const styles = {
   },
   homeGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+    gridTemplateColumns: "minmax(0, 1fr) 320px",
     gap: 16,
+    alignItems: "start",
   },
-  homeHero: {
-    padding: 20,
-    borderRadius: 12,
-    border: "1px solid #e5e7eb",
-    background: "#fff",
+  homeFeed: {
     display: "flex",
     flexDirection: "column",
-    gap: 10,
+    gap: 14,
   },
+  homeIntro: { display: "flex", flexDirection: "column", gap: 8 },
   homeKicker: {
     margin: 0,
     fontSize: 11,
@@ -344,32 +322,31 @@ const styles = {
     lineHeight: 1.6,
     color: "#475569",
   },
-  quickActions: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: 10,
-    marginTop: 10,
-  },
-  quickAction: {
-    textAlign: "left",
-    padding: 14,
-    borderRadius: 10,
-    border: "1px solid #dbe4f0",
+  homeFeedCard: {
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
     background: "#fff",
-    cursor: "pointer",
+    padding: 16,
     display: "flex",
     flexDirection: "column",
-    gap: 6,
+    gap: 14,
   },
-  quickActionLabel: {
-    fontSize: 14,
+  homeFeedHeader: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+  },
+  homeFeedLabel: {
+    fontSize: 12,
     fontWeight: 800,
     color: "#111827",
   },
-  quickActionDesc: {
+  homeFeedHint: {
     fontSize: 12,
+    lineHeight: 1.5,
     color: "#64748b",
-    lineHeight: 1.45,
   },
   statusRail: {
     display: "grid",
@@ -413,6 +390,41 @@ const styles = {
     fontSize: 12,
     lineHeight: 1.5,
     color: "#a16207",
+  },
+  toolsCard: {
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    background: "#fff",
+    padding: 14,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  toolsLabel: {
+    fontSize: 11,
+    fontWeight: 800,
+    color: "#6b7280",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+  },
+  toolsRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  toolBtn: {
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#dbe4f0",
+    borderRadius: 999,
+    background: "#fff",
+    padding: "7px 12px",
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#334155",
   },
   statusLabel: {
     fontSize: 11,
