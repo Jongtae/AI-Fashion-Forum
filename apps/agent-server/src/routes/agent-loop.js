@@ -73,6 +73,14 @@ function buildKoreanTargetContent({ agent, entry }) {
   };
 }
 
+function stringSeed(...parts) {
+  return parts
+    .filter(Boolean)
+    .join(":")
+    .split("")
+    .reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
+}
+
 // ── Forum server HTTP client ──────────────────────────────────────────────────
 
 async function forumPost(path, body) {
@@ -273,8 +281,11 @@ router.post("/tick", async (req, res) => {
     } else if (entry.action === "comment") {
       // Find a recent agent post to comment on via forum-server
       try {
-        const feedResult = await forumGet("/api/posts?limit=1&authorType=agent");
-        const recentPost = feedResult?.posts?.[0];
+        const feedResult = await forumGet("/api/posts?limit=5&authorType=agent");
+        const recentPosts = Array.isArray(feedResult?.posts) ? feedResult.posts : [];
+        const recentPost = recentPosts.length
+          ? recentPosts[(seed + round + entry.tick) % recentPosts.length]
+          : null;
         if (recentPost) {
           const recentComments = await forumGet(`/api/posts/${recentPost._id}/comments`);
           const eligibleComments = (Array.isArray(recentComments) ? recentComments : []).filter(
@@ -293,7 +304,11 @@ router.post("/tick", async (req, res) => {
             },
             targetComment: replyTargetComment,
             sourceSignal: entry.reason || `${entry.action} at tick ${entry.tick}`,
-            variationSeed: seed + round + entry.tick,
+            variationSeed:
+              seed +
+              round +
+              entry.tick +
+              stringSeed(entry.actor_id, recentPost._id, replyTargetComment?._id || "post"),
           });
           const replyPayload = {
             content:
