@@ -6,7 +6,6 @@ import {
   createLiveCommentDraft,
 } from "@ai-fashion-forum/agent-core";
 import {
-  SAMPLE_STATE_SNAPSHOT,
   applyCharacterOverridesToState,
   createActionExecutionResult,
   createIngestionEnvelope,
@@ -19,6 +18,7 @@ import {
   agentToSeedAxes,
   createSpawnedAgentState,
 } from "../lib/agent-state.js";
+import { loadAgentStartupStateSnapshot } from "../lib/agent-startup-state.js";
 import {
   buildPopulationGrowthPlan,
   DEFAULT_INITIAL_AGENT_COUNT,
@@ -102,8 +102,9 @@ let currentWorld = null;
 let currentRound = 0;
 
 function buildInitialState() {
+  const startupSnapshot = loadAgentStartupStateSnapshot();
   return {
-    ...ensureStateCharacterContracts(JSON.parse(JSON.stringify(SAMPLE_STATE_SNAPSHOT))),
+    ...ensureStateCharacterContracts(JSON.parse(JSON.stringify(startupSnapshot))),
     simulationTick: 0,
   };
 }

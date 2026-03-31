@@ -184,6 +184,21 @@ npm run init:agent-states
 This gives us a read-only bridge from projection export to simulation startup
 without mutating the source collections.
 
+The agent-server startup loader follows this source order:
+
+1. `AGENT_STATE_CANDIDATES_FILE` if the environment variable is set
+2. `data/agent-state-candidates.json` in the repo
+3. the existing `SAMPLE_STATE_SNAPSHOT` fallback
+
+That keeps the startup path agent-centered while still preserving a safe local
+fallback when the derived candidate file is absent.
+
+To refresh the checked-in candidate file from the live projection pipeline, run:
+
+```bash
+npm run sync:agent-state-candidates
+```
+
 ## What Should Be Preserved
 
 When reconstructing content, preserve:

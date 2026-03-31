@@ -1,4 +1,5 @@
 import { SAMPLE_AGENT_STATES, createAgentState } from "@ai-fashion-forum/shared-types";
+import { getAgentStartupTemplates } from "./agent-startup-state.js";
 
 function toPlainObject(value, fallback = {}) {
   if (!value) return { ...fallback };
@@ -108,7 +109,8 @@ export function createSpawnedAgentState({
   tick = 0,
   spawnIndex = 0,
 } = {}) {
-  const templates = SAMPLE_AGENT_STATES.length > 0 ? SAMPLE_AGENT_STATES : [];
+  const startupTemplates = getAgentStartupTemplates();
+  const templates = startupTemplates.length > 0 ? startupTemplates : SAMPLE_AGENT_STATES;
   const template = templates.length > 0
     ? templates[(seed + round + tick + spawnIndex) % templates.length]
     : null;
