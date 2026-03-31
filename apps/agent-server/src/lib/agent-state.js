@@ -81,6 +81,8 @@ export function buildAgentStateUpdate(agent, { round, tick, exposureSummary } = 
     tick,
     handle: agent.handle,
     display_name: agent.display_name,
+    avatar_url: agent.avatar_url || "",
+    avatar_locale: agent.avatar_locale || "",
     interest_vector: agent.interest_vector || {},
     belief_vector: agent.belief_vector || {},
     openness: agent.openness ?? 0.5,
