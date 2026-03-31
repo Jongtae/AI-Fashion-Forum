@@ -11,6 +11,10 @@ function normalizeText(value) {
   return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
 }
 
+function uniqueNormalizedList(values = []) {
+  return [...new Set((Array.isArray(values) ? values : []).map((value) => normalizeText(value)).filter(Boolean))];
+}
+
 function summarizeContentRecord(contentRecord = {}) {
   const title = normalizeText(contentRecord.title) || "스레드";
   const topics = Array.isArray(contentRecord.topics) && contentRecord.topics.length
@@ -35,6 +39,101 @@ function countHangul(text) {
 
 function countLatin(text) {
   return (text.match(/[A-Za-z]/g) || []).length;
+}
+
+function hasFinalConsonant(word = "") {
+  const text = normalizeText(word);
+  if (!text) {
+    return false;
+  }
+
+  const lastChar = text[text.length - 1];
+  const code = lastChar.charCodeAt(0);
+  if (code < 0xac00 || code > 0xd7a3) {
+    return false;
+  }
+
+  return (code - 0xac00) % 28 !== 0;
+}
+
+function normalizeKoreanParticlePairs(text = "") {
+  return normalizeText(text).replace(
+    /([A-Za-z0-9가-힣]+)(은\(는\)|는\(은\)|이\(가\)|가\(이\)|을\(를\)|를\(을\)|과\(와\)|와\(과\)|으로\(로\)|로\(으로\))/g,
+    (_, word, pair) => {
+      const hasBatchim = hasFinalConsonant(word);
+      const resolved = {
+        "은(는)": hasBatchim ? "은" : "는",
+        "는(은)": hasBatchim ? "은" : "는",
+        "이(가)": hasBatchim ? "이" : "가",
+        "가(이)": hasBatchim ? "이" : "가",
+        "을(를)": hasBatchim ? "을" : "를",
+        "를(을)": hasBatchim ? "을" : "를",
+        "과(와)": hasBatchim ? "과" : "와",
+        "와(과)": hasBatchim ? "과" : "와",
+        "으로(로)": hasBatchim ? "으로" : "로",
+        "로(으로)": hasBatchim ? "으로" : "로",
+      }[pair];
+      return `${word}${resolved || ""}`;
+    }
+  );
+}
+
+function attachKoreanParticle(word = "", particleType = "subject") {
+  const text = normalizeText(word).replace(/[.?!…]+$/u, "");
+  if (!text) {
+    return "";
+  }
+
+  const hasBatchim = hasFinalConsonant(text);
+  const particleMap = {
+    subject: hasBatchim ? "은" : "는",
+    object: hasBatchim ? "을" : "를",
+    topic: hasBatchim ? "은" : "는",
+    contrast: hasBatchim ? "은" : "는",
+    with: hasBatchim ? "과" : "와",
+    direction: hasBatchim ? "으로" : "로",
+    location: hasBatchim ? "에" : "에",
+  };
+
+  return `${text}${particleMap[particleType] || ""}`;
+}
+
+function tokenizeForSimilarity(text = "") {
+  return String(text)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]+/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter((token) => token.length > 1);
+}
+
+function jaccardSimilarity(left = "", right = "") {
+  const leftSet = new Set(tokenizeForSimilarity(left));
+  const rightSet = new Set(tokenizeForSimilarity(right));
+  if (leftSet.size === 0 || rightSet.size === 0) {
+    return 0;
+  }
+
+  const intersection = [...leftSet].filter((token) => rightSet.has(token)).length;
+  const union = new Set([...leftSet, ...rightSet]).size;
+  return union ? intersection / union : 0;
+}
+
+function sanitizeDraftContent(value = "") {
+  return normalizeKoreanParticlePairs(value)
+    .replace(/이 에이전트가/g, "")
+    .replace(/현재 주제 흐름/g, "")
+    .replace(/\bagent\b/gi, "")
+    .replace(/\b이 사람이\b/g, "저는")
+    .replace(/\b이 사람은\b/g, "저는")
+    .replace(/에 맞춰 답글을 남겼다\.?/g, "짧게 답을 남겼다.")
+    .replace(/현재 주제 흐름에 맞춰 답글을 남겼다\.?/g, "짧게 답을 남겼다.")
+    .replace(/생활감는/g, "생활감은")
+    .replace(/생활감를/g, "생활감을")
+    .replace(/신호을/g, "신호를")
+    .replace(/이 신호을/g, "이 신호를")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function isKoreanDominant(text) {
@@ -75,14 +174,14 @@ const KO_TOPIC_LABELS = {
 function localizeTopicLabel(value) {
   const normalized = normalizeText(value);
   if (!normalized) {
-    return "일반";
+    return "생활감";
   }
 
   if (KO_TOPIC_LABELS[normalized]) {
     return KO_TOPIC_LABELS[normalized];
   }
 
-  return isKoreanDominant(normalized) ? normalized : "일상";
+  return isKoreanDominant(normalized) ? normalized : "생활감";
 }
 
 function parseContextsPayload(value) {
@@ -175,10 +274,11 @@ function buildOpenAIPrompt({
   sourceBody,
   sourceCommentPreview,
   replyTargetType,
+  styleProfile = null,
 } = {}) {
   const promptTitle = localizeSourceLabel(sourceTitle, "이 글");
   const sourceTopicText = Array.isArray(sourceTopics) && sourceTopics.length
-    ? sourceTopics.map(localizeTopicLabel).join(", ")
+    ? uniqueNormalizedList(sourceTopics.map(localizeTopicLabel)).join(", ")
     : "일반 포럼 신호";
   const promptSignal = localizeSourceLabel(sourceSignal, "이 신호");
   const promptSnippet = isKoreanDominant(sourceSnippet)
@@ -187,6 +287,9 @@ function buildOpenAIPrompt({
   const promptBody = isKoreanDominant(sourceBody)
     ? normalizeText(sourceBody)
     : "원문 전체가 영어 단서라면 한국어 커뮤니티 문장으로 다시 써라.";
+  const styleOpeners = uniqueNormalizedList(styleProfile?.openers || styleProfile?.openerMarkers || []);
+  const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
+  const styleSamples = uniqueNormalizedList(styleProfile?.sampleComments || []);
 
   const modeLabel = mode === "live" ? "실시간 에이전트 글" : "배치 생성 글";
 
@@ -198,12 +301,18 @@ function buildOpenAIPrompt({
     '형식은 {"contexts":[{"context_id":"...","context_label":"...","angle":"...","content":"...","tone":"..."}]} 이다.',
     "contexts는 정확히 4개를 권장하며, 각 항목은 서로 다른 맥락과 다른 문장 흐름을 가져야 한다.",
     "content는 한글 자연문으로, 커뮤니티 글처럼 읽혀야 하며 너무 과장된 템플릿 문구를 반복하지 말아라.",
-    "댓글인 경우에는 실제 커뮤니티 댓글처럼 간결하고 구어체로 쓰고, '이 에이전트가' 같은 메타 설명은 쓰지 마라.",
+    "댓글인 경우에는 실제 커뮤니티 댓글처럼 간결하고 구어체로 쓰고, 주어를 굳이 설명하지 마라.",
+    "번역투보다 실제 커뮤니티 댓글의 짧은 리듬과 맞장구, 질문, 부드러운 반박을 우선해라.",
     "같은 제목 구조나 같은 문장 시작을 반복하지 말고, 생활 리듬, 가격/손익, 신호 읽기, 관계/정체성 같은 서로 다른 관점으로 분기해라.",
-    `작성자: ${agentHandle || "agent"}`,
+    `작성자 표시명: ${agentHandle || "익명"}`,
     `대상 글 제목: ${sourceTitle || "스레드"} / 본문에서는 "${promptTitle}"처럼 한국어로 재해석해라.`,
     `대상 토픽: ${sourceTopicText}`,
     `상황 단서: ${promptSignal || "맥락 없음"}`,
+    styleProfile?.register ? `말투 레지스터: ${styleProfile.register}` : null,
+    styleProfile?.cadence ? `말투 리듬: ${styleProfile.cadence}` : null,
+    styleOpeners.length ? `참고 시작어: ${styleOpeners.join(", ")}` : null,
+    styleEndings.length ? `참고 끝맺음: ${styleEndings.join(", ")}` : null,
+    styleSamples.length ? `참고 댓글 샘플: ${styleSamples.slice(0, 3).join(" / ")}` : null,
     promptSnippet ? `대상 본문 단서: ${promptSnippet}` : null,
     promptBody ? `대상 본문 전체: ${promptBody}` : null,
     sourceCommentPreview ? `대상 댓글 단서: ${normalizeText(sourceCommentPreview)}` : null,
@@ -229,14 +338,20 @@ function buildFallbackContexts({
   variationSeed = 0,
   reactionRecord = null,
   contentRecord = null,
+  styleProfile = null,
 } = {}) {
   const title = sourceTitle || "스레드";
   const displayTitle = localizeSourceLabel(title, "이 글");
   const topics = Array.isArray(sourceTopics) && sourceTopics.length
-    ? sourceTopics.map(localizeTopicLabel).join(", ")
+    ? uniqueNormalizedList(sourceTopics.map(localizeTopicLabel)).join(", ")
     : "일반 포럼 신호";
-  const baseSignal = localizeSourceLabel(sourceSignal, "이 신호");
-  const actorLabel = "이 에이전트";
+  const normalizedSignal = normalizeText(sourceSignal);
+  const baseSignal =
+    normalizedSignal && normalizedSignal.length <= 10 && !/[\s.?!]/.test(normalizedSignal)
+      ? localizeSourceLabel(normalizedSignal, "이 신호")
+      : "이번 신호";
+  const signalWithObject = attachKoreanParticle(baseSignal, "object");
+  const topicsWithObject = attachKoreanParticle(topics, "object");
   const sourceCommentLabel = isKoreanDominant(sourceCommentPreview)
     ? normalizeText(sourceCommentPreview)
     : "앞선 댓글";
@@ -250,6 +365,21 @@ function buildFallbackContexts({
       ? sourceTopics.map(localizeTopicLabel)
       : ["일반"],
   };
+  const styleOpeners = uniqueNormalizedList(styleProfile?.openers || styleProfile?.openerMarkers || []);
+  const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
+  const styleSamples = uniqueNormalizedList(styleProfile?.sampleComments || []);
+  const lead = pickBySeed(
+    styleOpeners.length ? styleOpeners : ["근데", "저는", "오히려", "맞아요", "솔직히", "개인적으로"],
+    variationSeed
+  ) || "";
+  const closing = pickBySeed(
+    styleEndings.length ? styleEndings : ["같아요", "보여요", "느껴져요", "더라고요", "네요"],
+    variationSeed + 1
+  ) || "";
+  const sample = pickBySeed(styleSamples, variationSeed + 2) || "";
+  const leadText = lead ? `${lead}${/[요다]$/.test(lead) ? "" : " "}` : "";
+  const closingText = closing ? ` ${closing}` : "";
+  const sampleText = sample ? ` ${sample.slice(0, 48)}` : "";
 
   if (mode === "comment") {
     const replyTargetLabel = replyTargetType === "comment" ? "다른 댓글" : "게시글 본문";
@@ -258,42 +388,42 @@ function buildFallbackContexts({
         contextId: "reply-continue",
         contextLabel: "답장 이어가기",
         angle: "상대의 말을 받아서 대화를 이어가는 반응",
-        content: `앞선 말에 덧붙이면 ${replyTargetLabel} 흐름이 꽤 중요해 보여요. ${displayTitle}에서 읽힌 ${topics} 신호를 같이 보면 대화가 자연스럽게 이어집니다. ${sourceCommentLabel}을 다시 읽고 나서 한 번 더 정리해봤어요.`,
+        content: `${leadText}앞선 말에 덧붙이면 ${replyTargetLabel} 흐름이 꽤 중요해 보여요. ${displayTitle}에서 읽힌 ${topics} 신호를 같이 보면 대화가 자연스럽게 이어집니다.${closingText}${sampleText}`,
         tone: "대화형",
       },
       {
         contextId: "reply-question",
         contextLabel: "질문 던지기",
         angle: "상대의 판단 기준을 더 묻는 반응",
-        content: `궁금한 건 ${baseSignal}를 보실 때 ${topics} 중 어디를 가장 크게 보셨는지예요. 저는 다른 단서도 같이 보고 있어서 기준이 조금 달라질 수 있겠다고 느꼈습니다.`,
+        content: `${leadText}궁금한 건 ${signalWithObject} 보실 때 ${topics} 중 어디를 가장 크게 보셨는지예요. 저는 다른 단서도 같이 보고 있어서 기준이 조금 달라질 수 있겠다고 느꼈습니다.${closingText}`,
         tone: "호기심 있는",
       },
       {
         contextId: "reply-nuance",
         contextLabel: "보완 의견",
         angle: "부드럽게 다른 관점을 보태는 반응",
-        content: `조금 다르게 읽으면 ${displayTitle}의 ${topics} 신호가 더 핵심일 수 있어요. ${replyTargetLabel}만 봤을 때보다 전체 흐름을 같이 보면 해석이 달라집니다. 너무 한쪽으로만 읽히지 않게 보완해보고 싶었어요.`,
+        content: `${leadText}조금 다르게 읽으면 ${displayTitle}의 ${topics} 신호가 더 핵심일 수 있어요. ${replyTargetLabel}만 봤을 때보다 전체 흐름을 같이 보면 해석이 달라집니다. 너무 한쪽으로만 읽히지 않게 보완해보고 싶었어요.${closingText}`,
         tone: "조심스러운",
       },
       {
         contextId: "reply-thread",
         contextLabel: "스레드 연결",
         angle: "댓글과 게시글을 다시 이어 붙이는 반응",
-        content: `다른 댓글과 글을 함께 놓고 보면 ${displayTitle}의 방향이 더 또렷해져요. ${baseSignal}을 중심으로 보면 커뮤니티 대화가 자연스럽게 이어집니다. 앞선 맥락까지 합쳐야 전체가 보이더라고요.`,
+        content: `${leadText}다른 댓글과 글을 함께 놓고 보면 ${displayTitle}의 방향이 더 또렷해져요. ${signalWithObject} 중심으로 보면 커뮤니티 대화가 자연스럽게 이어집니다. 앞선 맥락까지 합쳐야 전체가 보이더라고요.${closingText}`,
         tone: "관찰적인",
       },
       {
         contextId: "reply-support",
         contextLabel: "공감 보태기",
         angle: "상대의 감정에 공감하면서 힘을 실어주는 반응",
-        content: `그 느낌은 충분히 이해돼요. ${displayTitle}에서 읽힌 ${topics} 신호는 실제로 오래 남는 편이라서, ${replyTargetLabel}의 반응도 자연스럽게 이어질 수 있다고 봤어요.`,
+        content: `${leadText}그 느낌은 충분히 이해돼요. ${displayTitle}에서 읽힌 ${topics} 신호는 실제로 오래 남는 편이라서, ${replyTargetLabel}의 반응도 자연스럽게 이어질 수 있다고 봤어요.${closingText}`,
         tone: "공감형",
       },
       {
         contextId: "reply-counterpoint",
         contextLabel: "반대 관점",
         angle: "같은 글을 다른 결로 읽어보는 반응",
-        content: `저는 같은 글을 조금 다르게 읽었어요. ${displayTitle}의 ${topics}는 분명 눈에 띄지만, ${baseSignal}를 같이 보면 결론이 조금 달라질 수 있습니다.`,
+        content: `${leadText}저는 같은 글을 조금 다르게 읽었어요. ${displayTitle}의 ${topics}는 분명 눈에 띄지만, ${signalWithObject} 같이 보면 결론이 조금 달라질 수 있습니다.${closingText}`,
         tone: "조심스럽지만 단단한",
       },
     ];
@@ -305,42 +435,42 @@ function buildFallbackContexts({
         contextId: "life-rhythm",
         contextLabel: "생활 리듬",
         angle: "일상에서 다시 읽는 반복 착용 기준",
-        content: `아침에 다시 보니 ${displayTitle}은(는) 생활 리듬에 더 가깝게 보였어요. ${topics}는 과한 설명보다 반복해서 입을 수 있느냐가 더 중요하게 느껴집니다. ${baseSignal}를 바탕으로 오늘의 기준을 다시 정리해봤습니다.`,
+        content: `${leadText}아침에 다시 보니 이 글은 생활 리듬에 더 가깝게 보였어요. ${topics}보다 반복해서 입을 수 있느냐가 먼저 중요하게 느껴집니다. ${signalWithObject} 바탕으로 오늘의 기준을 다시 정리해봤습니다.${closingText}${sampleText}`,
         tone: "차분한",
       },
       {
         contextId: "signal-reading",
         contextLabel: "신호 읽기",
         angle: "새로운 신호를 먼저 잡는 관점",
-        content: `눈에 먼저 들어온 건 ${displayTitle}의 ${topics} 쪽 신호였어요. 겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다. 신호를 먼저 잡는 쪽으로 생각이 조금 기울었습니다.`,
+        content: `${leadText}눈에 먼저 들어온 건 ${displayTitle}의 ${topics} 쪽 신호였어요. 겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다. 신호를 먼저 잡는 쪽으로 생각이 조금 기울었습니다.${closingText}`,
         tone: "관찰적인",
       },
       {
         contextId: "tradeoff-check",
         contextLabel: "손익 점검",
         angle: "좋아 보이는 인상보다 실제 손익을 따지는 관점",
-        content: `${displayTitle}은(는) 첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야 하겠더라고요. ${baseSignal}을 기준으로 과장보다 현실성을 먼저 점검하는 편이 더 맞습니다. 결국 손익이 남는지부터 보게 됩니다.`,
+        content: `${leadText}이 글은 첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야 하겠더라고요. ${signalWithObject} 기준으로 과장보다 현실성을 먼저 점검하는 편이 더 맞습니다. 결국 손익이 남는지부터 보게 됩니다.${closingText}`,
         tone: "신중한",
       },
       {
         contextId: "community-reply",
         contextLabel: "커뮤니티 반응",
         angle: "포럼 대화 맥락에 기대는 반응",
-        content: `댓글까지 같이 보면 ${displayTitle}의 해석이 더 넓어졌어요. ${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다. ${baseSignal}을 함께 놓고 보면 더 자연스럽습니다.`,
+        content: `${leadText}댓글까지 같이 보면 ${displayTitle}의 해석이 더 넓어졌어요. ${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다. ${signalWithObject} 함께 놓고 보면 더 자연스럽습니다.${closingText}`,
         tone: "대화형",
       },
       {
         contextId: "micro-observation",
         contextLabel: "미시 관찰",
         angle: "작은 디테일을 먼저 짚는 관점",
-        content: `${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요. ${topics}만 보던 것과 달리 ${baseSignal}를 붙여 읽으면 느낌이 꽤 달라집니다. 저는 이런 작은 차이가 제일 오래 남는다고 봐요.`,
+        content: `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요. ${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다. 저는 이런 작은 차이가 제일 오래 남는다고 봐요.${closingText}`,
         tone: "세심한",
       },
       {
         contextId: "personal-memory",
         contextLabel: "개인 기억",
         angle: "개인 경험을 살짝 섞는 반응",
-        content: `비슷한 장면을 떠올려보면 ${displayTitle}은(는) 생각보다 오래 남는 타입이에요. ${topics}를 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다. 저도 이런 방식이 더 편하더라고요.`,
+        content: `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요. ${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다. 저도 이런 방식이 더 편하더라고요.${closingText}`,
         tone: "회고적인",
       },
     ];
@@ -353,42 +483,42 @@ function buildFallbackContexts({
         contextId: "life-rhythm",
         contextLabel: "생활 리듬",
         angle: "출근이나 외출 전에 다시 읽는 생활 기준",
-        content: `출근 전에 다시 읽어보니 ${displayTitle}은(는) 생활 리듬에 더 가깝게 보였어요. ${topics}는 과한 설명보다 반복해서 입을 수 있느냐가 더 중요하게 느껴집니다. ${baseSignal}를 바탕으로 오늘의 기준을 다시 정리해봤습니다.`,
+        content: `${leadText}출근 전에 다시 읽어보니 이 글은 생활 리듬에 더 가깝게 보였어요. ${topics}보다 반복해서 입을 수 있느냐가 먼저 중요하게 느껴집니다. ${signalWithObject} 바탕으로 오늘의 기준을 다시 정리해봤습니다.${closingText}${sampleText}`,
         tone: "차분한",
       },
       {
         contextId: "signal-reading",
         contextLabel: "신호 읽기",
         angle: "글에서 새로 보이는 신호를 먼저 잡는 관점",
-        content: `${displayTitle}에서 제일 먼저 보인 건 ${topics} 쪽 신호였어요. 겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다. 신호를 먼저 잡는 쪽으로 생각이 조금 기울었습니다.`,
+        content: `${leadText}${displayTitle}에서 제일 먼저 보인 건 ${topics} 쪽 신호였어요. 겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다. 신호를 먼저 잡는 쪽으로 생각이 조금 기울었습니다.${closingText}`,
         tone: "관찰적인",
       },
       {
         contextId: "tradeoff-check",
         contextLabel: "손익 점검",
         angle: "가격과 과장보다 실제 손익을 따지는 관점",
-        content: `${displayTitle}은(는) 첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야 하겠더라고요. ${baseSignal}을 기준으로 과장보다 현실성을 먼저 점검하는 편이 더 맞습니다. 결국 손익이 남는지부터 보게 됩니다.`,
+        content: `${leadText}이 글은 첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야 하겠더라고요. ${signalWithObject} 기준으로 과장보다 현실성을 먼저 점검하는 편이 더 맞습니다. 결국 손익이 남는지부터 보게 됩니다.${closingText}`,
         tone: "신중한",
       },
       {
         contextId: "community-reply",
         contextLabel: "커뮤니티 반응",
         angle: "포럼 대화 흐름에 기대는 반응",
-        content: `댓글들까지 같이 보니 ${displayTitle}의 해석이 더 넓어졌어요. ${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다. ${baseSignal}을 함께 놓고 보면 더 자연스럽습니다.`,
+        content: `${leadText}댓글들까지 같이 보니 ${displayTitle}의 해석이 더 넓어졌어요. ${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다. ${signalWithObject} 함께 놓고 보면 더 자연스럽습니다.${closingText}`,
         tone: "대화형",
       },
       {
         contextId: "micro-observation",
         contextLabel: "미시 관찰",
         angle: "작은 디테일을 먼저 짚는 관점",
-        content: `${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요. ${topics}만 보던 것과 달리 ${baseSignal}를 붙여 읽으면 느낌이 꽤 달라집니다. 저는 이런 작은 차이가 제일 오래 남는다고 봐요.`,
+        content: `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요. ${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다. 저는 이런 작은 차이가 제일 오래 남는다고 봐요.${closingText}`,
         tone: "세심한",
       },
       {
         contextId: "personal-memory",
         contextLabel: "개인 기억",
         angle: "개인 경험을 살짝 섞는 반응",
-        content: `비슷한 장면을 떠올려보면 ${displayTitle}은(는) 생각보다 오래 남는 타입이에요. ${topics}를 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다. 저도 이런 방식이 더 편하더라고요.`,
+        content: `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요. ${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다. 저도 이런 방식이 더 편하더라고요.${closingText}`,
         tone: "회고적인",
       },
     ];
@@ -403,6 +533,7 @@ function buildGenerationContext({
   sourceSignal,
   sourceCommentPreview,
   replyTargetType,
+  styleProfile = null,
   model,
   contextCount,
   mode,
@@ -422,6 +553,7 @@ function buildGenerationContext({
     selectedContextLabel: selectedContext?.contextLabel || null,
     selectedContextAngle: selectedContext?.angle || null,
     selectedTone: selectedContext?.tone || null,
+    selectedStyle: styleProfile?.register || null,
     model: model || null,
     summary: selectedContext
       ? `${sourceTitle}를 ${selectedContext.contextLabel} 흐름으로 자연스럽게 풀어냈다.`
@@ -437,6 +569,51 @@ function selectContext(contexts, variationSeed = 0) {
   }
 
   return contexts[Math.abs(Number(variationSeed) || 0) % contexts.length];
+}
+
+function maxSimilarityAgainstPool(text = "", comparisonTexts = []) {
+  const base = normalizeText(text);
+  if (!base || !Array.isArray(comparisonTexts) || comparisonTexts.length === 0) {
+    return 0;
+  }
+
+  return comparisonTexts.reduce((max, comparisonText) => {
+    const score = jaccardSimilarity(base, comparisonText);
+    return score > max ? score : max;
+  }, 0);
+}
+
+function selectDiverseContext(contexts, variationSeed = 0, comparisonTexts = []) {
+  if (!Array.isArray(contexts) || contexts.length === 0) {
+    return null;
+  }
+
+  if (!Array.isArray(comparisonTexts) || comparisonTexts.length === 0) {
+    return selectContext(contexts, variationSeed);
+  }
+
+  const startIndex = Math.abs(Number(variationSeed) || 0) % contexts.length;
+  let bestContext = null;
+  let bestScore = Infinity;
+  let bestDistance = Infinity;
+
+  for (let offset = 0; offset < contexts.length; offset += 1) {
+    const index = (startIndex + offset) % contexts.length;
+    const context = contexts[index];
+    const score = maxSimilarityAgainstPool(context?.content || "", comparisonTexts);
+    const distance = offset;
+
+    if (
+      score < bestScore ||
+      (score === bestScore && distance < bestDistance)
+    ) {
+      bestContext = context;
+      bestScore = score;
+      bestDistance = distance;
+    }
+  }
+
+  return bestContext;
 }
 
 async function requestOpenAIContexts({
@@ -477,6 +654,7 @@ async function resolvePostDraft({
   apiKey = process.env.OPENAI_API_KEY || "",
   model = process.env.OPENAI_POST_CONTEXT_MODEL || "gpt-4o",
   fetchImpl = globalThis.fetch,
+  comparisonTexts = [],
   agentHandle,
   sourceTitle,
   sourceTopics,
@@ -487,26 +665,33 @@ async function resolvePostDraft({
   replyTargetType,
   reactionRecord = null,
   contentRecord = null,
+  styleProfile = null,
 } = {}) {
   const fallbackPool = buildFallbackContexts({
     mode,
     agentHandle,
     sourceTitle,
     sourceTopics,
-    sourceSignal,
+    sourceSignal: sanitizeDraftContent(sourceSignal),
     sourceSnippet,
     sourceBody,
     sourceCommentPreview,
     replyTargetType,
+    comparisonTexts,
     variationSeed,
     reactionRecord,
     contentRecord,
+    styleProfile,
   });
 
   if (!apiKey) {
-    const selectedFallback = selectContext(fallbackPool, variationSeed) || fallbackPool[0];
+    const selectedFallback =
+      selectDiverseContext(fallbackPool, variationSeed, comparisonTexts) ||
+      selectContext(fallbackPool, variationSeed) ||
+      fallbackPool[0];
+    const sanitizedContent = sanitizeDraftContent(selectedFallback?.content || "");
     return {
-      content: selectedFallback?.content || "",
+      content: sanitizedContent || selectedFallback?.content || "",
       generationContext: buildGenerationContext({
         source: "fallback",
         selectedContext: selectedFallback,
@@ -516,6 +701,7 @@ async function resolvePostDraft({
         sourceSignal,
         sourceCommentPreview,
         replyTargetType,
+        styleProfile,
         model: null,
         contextCount: fallbackPool.length,
         mode,
@@ -535,6 +721,7 @@ async function resolvePostDraft({
       sourceBody,
       sourceCommentPreview,
       replyTargetType,
+      styleProfile,
     });
     const result = await requestOpenAIContexts({
       apiKey,
@@ -546,9 +733,12 @@ async function resolvePostDraft({
     const contexts = parseContextsPayload(parsed);
 
     if (contexts.length > 0) {
-      const selected = selectContext(contexts, variationSeed);
+      const selected =
+        selectDiverseContext(contexts, variationSeed, comparisonTexts) ||
+        selectContext(contexts, variationSeed);
+      const sanitizedContent = sanitizeDraftContent(selected?.content || "");
       return {
-        content: selected?.content || fallbackPool[0]?.content || "",
+        content: sanitizedContent || selected?.content || fallbackPool[0]?.content || "",
         generationContext: buildGenerationContext({
           source: "openai",
           selectedContext: selected,
@@ -558,6 +748,7 @@ async function resolvePostDraft({
           sourceSignal,
           sourceCommentPreview,
           replyTargetType,
+          styleProfile,
           model,
           contextCount: contexts.length,
           mode,
@@ -569,9 +760,13 @@ async function resolvePostDraft({
     // Fall through to deterministic fallback.
   }
 
-  const selectedFallback = selectContext(fallbackPool, variationSeed) || fallbackPool[0];
+  const selectedFallback =
+    selectDiverseContext(fallbackPool, variationSeed, comparisonTexts) ||
+    selectContext(fallbackPool, variationSeed) ||
+    fallbackPool[0];
+  const sanitizedContent = sanitizeDraftContent(selectedFallback?.content || "");
   return {
-    content: selectedFallback?.content || "",
+    content: sanitizedContent || selectedFallback?.content || "",
     generationContext: buildGenerationContext({
       source: "fallback",
       selectedContext: selectedFallback,
@@ -581,6 +776,7 @@ async function resolvePostDraft({
       sourceSignal,
       sourceCommentPreview,
       replyTargetType,
+      styleProfile,
       model: null,
       contextCount: fallbackPool.length,
       mode,
@@ -593,10 +789,12 @@ export async function createRunPostDraft({
   updatedAgent,
   reactionRecord,
   contentRecord,
+  comparisonTexts = [],
   variationSeed = 0,
   apiKey,
   model,
   fetchImpl,
+  styleProfile = null,
 } = {}) {
   const sourceTitle = normalizeText(contentRecord?.title) || "스레드";
   const sourceTopics = Array.isArray(contentRecord?.topics) ? contentRecord.topics : [];
@@ -616,6 +814,7 @@ export async function createRunPostDraft({
     apiKey,
     model,
     fetchImpl,
+    comparisonTexts,
     agentHandle: updatedAgent?.handle || "agent",
     sourceTitle,
     sourceTopics,
@@ -624,6 +823,7 @@ export async function createRunPostDraft({
     sourceBody: sourceSnippet,
     reactionRecord,
     contentRecord,
+    styleProfile,
   });
 }
 
@@ -631,10 +831,12 @@ export async function createLivePostDraft({
   agent,
   targetContent,
   sourceSignal,
+  comparisonTexts = [],
   variationSeed = 0,
   apiKey,
   model,
   fetchImpl,
+  styleProfile = null,
 } = {}) {
   const sourceTitle = normalizeText(targetContent?.title) || "최근 패션 흐름";
   const sourceTopics = Array.isArray(targetContent?.topics) ? targetContent.topics : [];
@@ -646,12 +848,14 @@ export async function createLivePostDraft({
     apiKey,
     model,
     fetchImpl,
+    comparisonTexts,
     agentHandle: agent?.handle || agent?.agent_id || "agent",
     sourceTitle,
     sourceTopics,
     sourceSignal: normalizeText(sourceSignal),
     sourceSnippet,
     sourceBody: sourceSnippet,
+    styleProfile,
   });
 }
 
@@ -660,10 +864,12 @@ export async function createLiveCommentDraft({
   targetContent,
   targetComment = null,
   sourceSignal,
+  comparisonTexts = [],
   variationSeed = 0,
   apiKey,
   model,
   fetchImpl,
+  styleProfile = null,
 } = {}) {
   const sourceTitle = normalizeText(targetContent?.title) || "최근 글";
   const sourceTopics = Array.isArray(targetContent?.topics) ? targetContent.topics : [];
@@ -676,6 +882,7 @@ export async function createLiveCommentDraft({
     apiKey,
     model,
     fetchImpl,
+    comparisonTexts,
     agentHandle: agent?.handle || agent?.agent_id || "agent",
     sourceTitle,
     sourceTopics,
@@ -685,5 +892,6 @@ export async function createLiveCommentDraft({
     targetComment,
     sourceCommentPreview,
     replyTargetType: targetComment ? "comment" : "post",
+    styleProfile,
   });
 }

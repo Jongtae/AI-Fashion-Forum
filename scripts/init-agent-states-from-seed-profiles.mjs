@@ -99,6 +99,7 @@ function deriveBeliefVector(profile) {
 function deriveRecentMemories(profile) {
   const topics = profile.topicalMemory?.dominantTopics || [];
   const references = profile.sourceReferences || [];
+  const voiceNotes = Array.isArray(profile.voiceNotes) ? profile.voiceNotes : [];
   return [
     {
       kind: "topic_summary",
@@ -115,6 +116,14 @@ function deriveRecentMemories(profile) {
       kind: "source_anchor",
       text: references.length > 0 ? `Source sample post: ${references[0].title}` : "No source anchor found.",
     },
+    ...(voiceNotes.length > 0
+      ? [
+          {
+            kind: "style_note",
+            text: voiceNotes[0],
+          },
+        ]
+      : []),
   ];
 }
 
@@ -187,8 +196,19 @@ async function main() {
           kind: "topic_memory",
           text: topicSummary.length > 0 ? `Top topics: ${topicSummary.join(", ")}` : "No dominant topic memory yet.",
         },
+        ...(Array.isArray(profile.voiceNotes) && profile.voiceNotes.length > 0
+          ? [
+              {
+                kind: "style_memory",
+                text: profile.voiceNotes[0],
+              },
+            ]
+          : []),
       ],
-      selfNarratives: profile.memoryPromptHints || [],
+      selfNarratives: [
+        ...(profile.memoryPromptHints || []),
+        ...(profile.voiceNotes || []).slice(0, 2),
+      ],
       memoryWritebacks: [],
       exposureSummary: {
         source_post_count: profile.topicalMemory?.totalPosts || 0,
@@ -201,6 +221,8 @@ async function main() {
         responseStyle: profile.behaviorHints?.responseStyle || "selective_response",
         memoryPriority: profile.behaviorHints?.memoryPriority || "topic_weighted",
       },
+      commentStyle: profile.commentStyle || null,
+      voiceNotes: profile.voiceNotes || [],
       rawSnapshot: {
         sourceProfile: profile,
         sourceReferences: profile.sourceReferences || [],

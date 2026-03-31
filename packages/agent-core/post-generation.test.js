@@ -127,6 +127,73 @@ test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => 
   assert.strictEqual(requestBody?.model, "gpt-4o");
 });
 
+test("createRunPostDraft avoids overly similar contexts when comparison texts are provided", async () => {
+  const localApiKey = "local-test-key";
+  const fetchImpl = async (_url, options = {}) => ({
+    ok: true,
+    json: async () => ({
+      id: "resp_456",
+      output_text: JSON.stringify({
+        contexts: [
+          {
+            context_id: "ctx-a",
+            context_label: "생활 리듬",
+            angle: "일상 기준",
+            content: "오피스 흐름을 생활 기준으로 다시 읽은 한국어 글입니다.",
+            tone: "차분한",
+          },
+          {
+            context_id: "ctx-b",
+            context_label: "신호 읽기",
+            angle: "새 신호",
+            content: "새 신호를 중심으로 정리한 한국어 글입니다.",
+            tone: "관찰적인",
+          },
+          {
+            context_id: "ctx-c",
+            context_label: "손익 점검",
+            angle: "손익 기준",
+            content: "손익을 따지는 한국어 글입니다.",
+            tone: "신중한",
+          },
+          {
+            context_id: "ctx-d",
+            context_label: "커뮤니티 반응",
+            angle: "대화 흐름",
+            content: "대화형 톤의 한국어 글입니다.",
+            tone: "대화형",
+          },
+        ],
+      }),
+    }),
+    text: async () => "",
+  });
+
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+    },
+    reactionRecord: {
+      meaning_frame: "care_context",
+      stance_signal: "empathetic",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "quiet office outfit",
+      body: "A small look at weekday layering and commute comfort.",
+      topics: ["office", "layering"],
+    },
+    comparisonTexts: ["대화형 톤의 한국어 글입니다."],
+    variationSeed: 3,
+    apiKey: localApiKey,
+    fetchImpl,
+  });
+
+  assert.strictEqual(draft.generationContext.source, "openai");
+  assert.notStrictEqual(draft.generationContext.selectedContextLabel, "커뮤니티 반응");
+  assert.doesNotMatch(draft.content, /대화형 톤의 한국어 글입니다/);
+});
+
 test("createLiveCommentDraft uses local OpenAI mock contexts and targets comments", async () => {
   const localApiKey = "local-test-key";
   const fetchImpl = async () => ({
@@ -216,7 +283,7 @@ test("createLiveCommentDraft falls back to conversational Korean reply contexts"
   assert.strictEqual(draft.generationContext.replyTargetType, "comment");
   assert.doesNotMatch(draft.content, /이 에이전트가/);
   assert.doesNotMatch(draft.content, /이 답글 대상/);
-  assert.match(draft.content, /맞아요|저는|다르게 보면|이 얘기|앞선 댓글/);
+  assert.match(draft.content, /맞아요|저는|다르게 보면|이 얘기|앞선 댓글|근데|오히려|솔직히/);
 });
 
 test("createLivePostDraft falls back to Korean live contexts", async () => {

@@ -119,6 +119,10 @@ function deriveSeedProfile(candidate = {}, sourceProfile = {}) {
   const seedId = sourceProfile.seedProfileId || candidate.source_seed_profile_id || `seed:${candidate.agent_id}`;
   const behaviorHints = sourceProfile.behaviorHints || {};
   const topicalMemory = sourceProfile.topicalMemory || {};
+  const voiceNotes = [
+    ...(Array.isArray(sourceProfile.memoryPromptHints) ? sourceProfile.memoryPromptHints : []),
+    ...(Array.isArray(sourceProfile.voiceNotes) ? sourceProfile.voiceNotes : []),
+  ];
 
   return {
     seed_id: seedId,
@@ -154,11 +158,13 @@ function deriveSeedProfile(candidate = {}, sourceProfile = {}) {
         (candidate.relationship_summary?.trust_circle_size ? 0.6 : 0.4),
       care_drive: sourceProfile.seedAxes?.care_drive ?? 0.5,
     },
-    voice_notes: Array.isArray(sourceProfile.memoryPromptHints)
-      ? [...sourceProfile.memoryPromptHints]
-      : Array.isArray(candidate.selfNarratives)
-        ? [...candidate.selfNarratives]
-        : [],
+    voice_notes:
+      voiceNotes.length > 0
+        ? [...new Set(voiceNotes)]
+        : Array.isArray(candidate.selfNarratives)
+          ? [...candidate.selfNarratives]
+          : [],
+    comment_style: sourceProfile.commentStyle || candidate.commentStyle || null,
     display_name: identity.displayName,
     handle: identity.handle,
     avatar_url: identity.avatarUrl,
@@ -269,6 +275,7 @@ function candidateToAgentState(candidate = {}, index = 0) {
         : [],
     seed_profile: seedProfile,
     mutable_state: mutableState,
+    comment_style: sourceProfile.commentStyle || candidate.commentStyle || null,
   });
 }
 

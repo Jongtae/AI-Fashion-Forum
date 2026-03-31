@@ -35,6 +35,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPLAY_DIR = path.resolve(__dirname, "../../../../data/replays");
 
 const FORUM_SERVER_URL = process.env.FORUM_SERVER_URL || "http://localhost:4000";
+const SIMULATION_OPENAI_API_KEY =
+  process.env.OPENAI_SIMULATION_ENABLED === "true" ? process.env.OPENAI_API_KEY || "" : "";
 
 async function postToForum(urlPath, body) {
   const res = await fetch(`${FORUM_SERVER_URL}${urlPath}`, {
@@ -98,6 +100,7 @@ router.post("/", async (req, res) => {
 
   // ── Step 2: State-driven post generation (after memory writeback) ─────────
   const generatedPosts = [];
+  const recentDraftTexts = [];
   for (const [index, updatedAgent] of runtime.state.agents.entries()) {
     const exposureSample = exposureByAgent[updatedAgent.agent_id];
     const reactions = exposureSample?.reaction_records || [];
@@ -116,9 +119,22 @@ router.post("/", async (req, res) => {
       updatedAgent,
       reactionRecord: selectedReaction,
       contentRecord: selectedContent,
+      styleProfile: updatedAgent?.seed_profile?.comment_style || null,
+      comparisonTexts: [
+        ...recentDraftTexts.slice(-8),
+        selectedContent?.title || "",
+        selectedContent?.content || "",
+        selectedContent?.body || "",
+        selectedReaction?.meaning_frame || "",
+        selectedReaction?.stance_signal || "",
+      ].filter(Boolean),
       variationSeed,
+      apiKey: SIMULATION_OPENAI_API_KEY,
     });
 
+    if (draft.content) {
+      recentDraftTexts.push(draft.content);
+    }
     generatedPosts.push({
       post_id: `${runId}:post:${updatedAgent.agent_id}`,
       agent_id: updatedAgent.agent_id,

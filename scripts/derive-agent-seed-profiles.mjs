@@ -89,6 +89,17 @@ function buildCommentsByPost(comments) {
   return map;
 }
 
+function buildCommentsByAuthor(comments) {
+  const map = new Map();
+  for (const comment of comments) {
+    const key = String(comment.authorId || "unknown");
+    const bucket = map.get(key) || [];
+    bucket.push(comment);
+    map.set(key, bucket);
+  }
+  return map;
+}
+
 function countCommentDepth(comments) {
   return comments.reduce(
     (acc, comment) => {
@@ -101,6 +112,103 @@ function countCommentDepth(comments) {
     },
     { root: 0, nested: 0 },
   );
+}
+
+function isKoreanDominant(text) {
+  const normalized = normalizeText(text);
+  if (!normalized) {
+    return false;
+  }
+
+  const hangul = (normalized.match(/[가-힣]/g) || []).length;
+  const latin = (normalized.match(/[A-Za-z]/g) || []).length;
+  return hangul >= latin;
+}
+
+function uniqueTextSnippets(values = [], limit = 5) {
+  const snippets = [...new Set((Array.isArray(values) ? values : [])
+    .map((value) => normalizeText(value))
+    .filter((value) => value && isKoreanDominant(value))
+  )]
+    .sort((left, right) => left.length - right.length);
+
+  return snippets.slice(0, limit);
+}
+
+function countPhraseHits(texts = [], phrases = []) {
+  return phrases.map((phrase) => {
+    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escaped, "g");
+    return {
+      key: phrase,
+      count: texts.reduce((sum, text) => sum + (normalizeText(text).match(regex)?.length || 0), 0),
+    };
+  }).sort((left, right) => right.count - left.count);
+}
+
+function deriveCommentStyleProfile(comments = []) {
+  const texts = uniqueTextSnippets((Array.isArray(comments) ? comments : []).map((comment) => comment?.content || comment));
+  const averageLength = texts.length
+    ? texts.reduce((sum, text) => sum + text.length, 0) / texts.length
+    : 0;
+  const openerHits = countPhraseHits(texts, [
+    "근데",
+    "오히려",
+    "맞아요",
+    "저는",
+    "개인적으로",
+    "솔직히",
+    "사실",
+    "이건",
+    "그 부분",
+    "음",
+  ]).slice(0, 4);
+  const endingHits = countPhraseHits(texts, [
+    "같아요",
+    "보여요",
+    "느껴져요",
+    "더라고요",
+    "네요",
+    "싶어요",
+    "인 것 같아요",
+    "입니다",
+    "같네요",
+  ]).slice(0, 4);
+  const playfulHits = countPhraseHits(texts, ["ㅋㅋ", "ㅎㅎ", "ㅠㅠ", "…", "!"]).slice(0, 3);
+  const register =
+    playfulHits[0]?.count > 0
+      ? "casual_playful"
+      : endingHits[0]?.key === "입니다"
+        ? "semi_formal"
+        : "casual_polite";
+  const cadence =
+    averageLength <= 42
+      ? "short_reply"
+      : averageLength <= 72
+        ? "balanced_reply"
+        : "thoughtful_reply";
+
+  const sampleComments = texts.slice(0, 4);
+  const voiceNotes = [
+    "댓글 말투는 짧고 구어체로 둔다.",
+    "맞아요, 근데, 오히려 같은 전환어를 자연스럽게 섞는다.",
+    "저는, 개인적으로, 솔직히 같은 1인칭 완충어를 가볍게 쓴다.",
+    "문장 끝은 ~요, ~네, ~같아요, ~더라고요를 우선한다.",
+    "번역투처럼 길게 풀지 말고 한 번에 읽히게 끊는다.",
+    ...openerHits.filter((item) => item.count > 0).map((item) => `자주 보이는 시작어: ${item.key}`),
+    ...endingHits.filter((item) => item.count > 0).map((item) => `자주 보이는 끝맺음: ${item.key}`),
+    ...sampleComments.map((snippet) => `참고 댓글: ${snippet.slice(0, 72)}`),
+  ];
+
+  return {
+    register,
+    cadence,
+    openerMarkers: openerHits.filter((item) => item.count > 0).map((item) => item.key),
+    endingMarkers: endingHits.filter((item) => item.count > 0).map((item) => item.key),
+    playfulMarkers: playfulHits.filter((item) => item.count > 0).map((item) => item.key),
+    sampleComments,
+    voiceNotes,
+  };
 }
 
 function derivePostFingerprint(post, comments) {
@@ -196,6 +304,7 @@ async function main() {
     .lean();
 
   const commentsByPost = buildCommentsByPost(comments);
+  const commentsByAuthor = buildCommentsByAuthor(comments);
   const postFingerprints = posts.map((post) => derivePostFingerprint(post, commentsByPost.get(String(post._id)) || []));
 
   const byAuthor = new Map();
@@ -253,6 +362,13 @@ async function main() {
 
   const seedProfiles = [...byAuthor.values()]
     .map((stats) => {
+      const authoredComments = commentsByAuthor.get(stats.authorId) || [];
+      const receivedComments = stats.postIds.flatMap((postId) => commentsByPost.get(String(postId)) || []);
+      const commentStyle = deriveCommentStyleProfile([
+        ...authoredComments,
+        ...receivedComments,
+        ...comments,
+      ]);
       const uniqueTopics = stats.topics.size;
       const uniqueFormats = stats.formats.size;
       const avgComments = stats.postVolume > 0 ? stats.comments / stats.postVolume : 0;
@@ -336,7 +452,10 @@ async function main() {
           stats.comments > 0
             ? "The profile should remember reply depth and social feedback."
             : "The profile should favor broadcast-style observation and sparse reaction.",
+          `댓글 말투는 ${commentStyle.register} / ${commentStyle.cadence} 중심으로 유지한다.`,
         ],
+        commentStyle,
+        voiceNotes: commentStyle.voiceNotes,
         timeRange: {
           firstSeenAt: stats.firstSeenAt,
           lastSeenAt: stats.lastSeenAt,
