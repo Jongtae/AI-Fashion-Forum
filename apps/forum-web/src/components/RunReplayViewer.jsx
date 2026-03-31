@@ -405,11 +405,12 @@ export default function RunReplayViewer({ onOpenSprint1 }) {
   } = useQuery({
     queryKey: ["latest-replay"],
     queryFn: fetchLatestReplay,
-    retry: 1,
+    retry: false,
     staleTime: 10_000,
     refetchInterval: (query) => (query.state.data ? REPLAY_REFRESH_MS : false),
     refetchIntervalInBackground: true,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     refetchOnMount: true,
   });
 

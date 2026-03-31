@@ -97,18 +97,11 @@ export default function AdminDashboard({ activeSection = "home", onSectionChange
 
   const { data: latestReport, isLoading: reportLoading, error: reportError } = useQuery({
     queryKey: ["admin-latest-report"],
-    queryFn: async () => {
-      try {
-        return await fetchLatestReport();
-      } catch (error) {
-        if (error?.status === 404) {
-          return null;
-        }
-        throw error;
-      }
-    },
-    refetchInterval: 30_000,
-    retry: 1,
+    queryFn: fetchLatestReport,
+    refetchInterval: (query) => (query.state.data ? 30_000 : false),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
   });
 
   const statusNotice = loopError || reportError ? (
