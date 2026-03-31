@@ -368,62 +368,86 @@ function buildFallbackContexts({
   const styleOpeners = uniqueNormalizedList(styleProfile?.openers || styleProfile?.openerMarkers || []);
   const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
   const styleSamples = uniqueNormalizedList(styleProfile?.sampleComments || []);
-  const lead = pickBySeed(
-    styleOpeners.length ? styleOpeners : ["근데", "저는", "오히려", "맞아요", "솔직히", "개인적으로"],
-    variationSeed
-  ) || "";
-  const closing = pickBySeed(
-    styleEndings.length ? styleEndings : ["같아요", "보여요", "느껴져요", "더라고요", "네요"],
-    variationSeed + 1
-  ) || "";
+  const openerPool = styleOpeners.length ? styleOpeners : ["근데", "저는", "오히려", "맞아요", "솔직히", "개인적으로", "음"];
+  const endingPool = styleEndings.length ? styleEndings : ["같아요", "보여요", "느껴져요", "더라고요", "네요", "맞네요"];
+  const lead = pickBySeed(openerPool, variationSeed) || "";
+  const closing = pickBySeed(endingPool, variationSeed + 1) || "";
   const sample = pickBySeed(styleSamples, variationSeed + 2) || "";
-  const leadText = lead ? `${lead}${/[요다]$/.test(lead) ? "" : " "}` : "";
+  const leadText = lead ? `${lead} ` : "";
   const closingText = closing ? ` ${closing}` : "";
   const sampleText = sample ? ` ${sample.slice(0, 48)}` : "";
+  const casualBridgePool = [
+    "딱 그 부분이 먼저 보이네요",
+    "저는 이 포인트가 더 크게 보여요",
+    "이건 생각보다 바로 읽히더라고요",
+    "오히려 이쪽이 더 눈에 들어와요",
+    "근데 이 흐름은 꽤 자연스럽네요",
+    "솔직히 이 포인트가 제일 남아요",
+  ];
+  const casualQuestionPool = [
+    "어느 부분을 가장 크게 보셨는지 궁금해요",
+    "저는 다른 쪽도 같이 보게 되네요",
+    "이 포인트를 먼저 잡으신 이유가 있을까요",
+    "비슷하게 읽으셨는지 좀 궁금하네요",
+    "어디를 기준으로 보셨는지 알고 싶어요",
+  ];
+  const casualSupportPool = [
+    "그 느낌은 충분히 이해돼요",
+    "그렇게 느끼는 것도 자연스러워 보여요",
+    "저도 비슷하게 봤어요",
+    "그 말은 꽤 공감돼요",
+    "그 부분은 저도 고개가 끄덕여지더라고요",
+  ];
+  const casualCounterPool = [
+    "저는 조금 다르게 읽었어요",
+    "근데 저는 여기서 결이 좀 다르게 보여요",
+    "오히려 반대로 볼 수도 있겠더라고요",
+    "솔직히 저는 이쪽 해석이 더 먼저 와요",
+    "조금 다른 시선도 가능해 보여요",
+  ];
 
   if (mode === "comment") {
-    const replyTargetLabel = replyTargetType === "comment" ? "다른 댓글" : "게시글 본문";
     return [
       {
         contextId: "reply-continue",
         contextLabel: "답장 이어가기",
         angle: "상대의 말을 받아서 대화를 이어가는 반응",
-        content: `${leadText}앞선 말에 덧붙이면 ${replyTargetLabel} 흐름이 꽤 중요해 보여요. ${displayTitle}에서 읽힌 ${topics} 신호를 같이 보면 대화가 자연스럽게 이어집니다.${closingText}${sampleText}`,
+        content: `${leadText}${pickBySeed(["근데", "오히려", "맞아요", "저는"], variationSeed)} ${displayTitle} 쪽은 ${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 1)} 먼저 보이네요. 같이 보면 더 또렷해요.`,
         tone: "대화형",
       },
       {
         contextId: "reply-question",
         contextLabel: "질문 던지기",
         angle: "상대의 판단 기준을 더 묻는 반응",
-        content: `${leadText}궁금한 건 ${signalWithObject} 보실 때 ${topics} 중 어디를 가장 크게 보셨는지예요. 저는 다른 단서도 같이 보고 있어서 기준이 조금 달라질 수 있겠다고 느꼈습니다.${closingText}`,
+        content: `${leadText}${pickBySeed(["저는", "근데", "오히려"], variationSeed)} ${topics}보다 다른 단서가 먼저 보였어요. ${pickBySeed(casualQuestionPool, variationSeed)}`,
         tone: "호기심 있는",
       },
       {
         contextId: "reply-nuance",
         contextLabel: "보완 의견",
         angle: "부드럽게 다른 관점을 보태는 반응",
-        content: `${leadText}조금 다르게 읽으면 ${displayTitle}의 ${topics} 신호가 더 핵심일 수 있어요. ${replyTargetLabel}만 봤을 때보다 전체 흐름을 같이 보면 해석이 달라집니다. 너무 한쪽으로만 읽히지 않게 보완해보고 싶었어요.${closingText}`,
+        content: `${leadText}${pickBySeed(casualCounterPool, variationSeed)}. ${displayTitle} 쪽이 ${topics}보다 더 커 보여요.`,
         tone: "조심스러운",
       },
       {
         contextId: "reply-thread",
         contextLabel: "스레드 연결",
         angle: "댓글과 게시글을 다시 이어 붙이는 반응",
-        content: `${leadText}다른 댓글과 글을 함께 놓고 보면 ${displayTitle}의 방향이 더 또렷해져요. ${signalWithObject} 중심으로 보면 커뮤니티 대화가 자연스럽게 이어집니다. 앞선 맥락까지 합쳐야 전체가 보이더라고요.${closingText}`,
+        content: `${leadText}맞아요. 댓글까지 같이 보면 흐름이 더 자연스럽네요.`,
         tone: "관찰적인",
       },
       {
         contextId: "reply-support",
         contextLabel: "공감 보태기",
         angle: "상대의 감정에 공감하면서 힘을 실어주는 반응",
-        content: `${leadText}그 느낌은 충분히 이해돼요. ${displayTitle}에서 읽힌 ${topics} 신호는 실제로 오래 남는 편이라서, ${replyTargetLabel}의 반응도 자연스럽게 이어질 수 있다고 봤어요.${closingText}`,
+        content: `${leadText}${pickBySeed(casualSupportPool, variationSeed)}. 저도 비슷하게 봤어요.`,
         tone: "공감형",
       },
       {
         contextId: "reply-counterpoint",
         contextLabel: "반대 관점",
         angle: "같은 글을 다른 결로 읽어보는 반응",
-        content: `${leadText}저는 같은 글을 조금 다르게 읽었어요. ${displayTitle}의 ${topics}는 분명 눈에 띄지만, ${signalWithObject} 같이 보면 결론이 조금 달라질 수 있습니다.${closingText}`,
+        content: `${leadText}${pickBySeed(casualCounterPool, variationSeed + 1)}. ${displayTitle} 쪽이랑 같이 보면 결이 조금 달라져요.`,
         tone: "조심스럽지만 단단한",
       },
     ];
@@ -435,42 +459,42 @@ function buildFallbackContexts({
         contextId: "life-rhythm",
         contextLabel: "생활 리듬",
         angle: "일상에서 다시 읽는 반복 착용 기준",
-        content: `${leadText}아침에 다시 보니 이 글은 생활 리듬에 더 가깝게 보였어요. ${topics}보다 반복해서 입을 수 있느냐가 먼저 중요하게 느껴집니다. ${signalWithObject} 바탕으로 오늘의 기준을 다시 정리해봤습니다.${closingText}${sampleText}`,
+        content: `${leadText}아침에 다시 보니까 이 글은 생활 리듬에 더 가깝게 보였어요. ${topics}보다 반복해서 입을 수 있느냐가 먼저 중요하게 느껴집니다.${closingText}${sampleText}`,
         tone: "차분한",
       },
       {
         contextId: "signal-reading",
         contextLabel: "신호 읽기",
         angle: "새로운 신호를 먼저 잡는 관점",
-        content: `${leadText}눈에 먼저 들어온 건 ${displayTitle}의 ${topics} 쪽 신호였어요. 겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다. 신호를 먼저 잡는 쪽으로 생각이 조금 기울었습니다.${closingText}`,
+        content: `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽 신호였어요. 겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다.${closingText}`,
         tone: "관찰적인",
       },
       {
         contextId: "tradeoff-check",
         contextLabel: "손익 점검",
         angle: "좋아 보이는 인상보다 실제 손익을 따지는 관점",
-        content: `${leadText}이 글은 첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야 하겠더라고요. ${signalWithObject} 기준으로 과장보다 현실성을 먼저 점검하는 편이 더 맞습니다. 결국 손익이 남는지부터 보게 됩니다.${closingText}`,
+        content: `${leadText}이 글은 첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야 하겠더라고요. ${signalWithObject} 기준으로 과장보다 현실성을 먼저 보게 됩니다.${closingText}`,
         tone: "신중한",
       },
       {
         contextId: "community-reply",
         contextLabel: "커뮤니티 반응",
         angle: "포럼 대화 맥락에 기대는 반응",
-        content: `${leadText}댓글까지 같이 보면 ${displayTitle}의 해석이 더 넓어졌어요. ${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다. ${signalWithObject} 함께 놓고 보면 더 자연스럽습니다.${closingText}`,
+        content: `${leadText}댓글까지 같이 보면 ${displayTitle}의 해석이 더 넓어졌어요. ${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다.${closingText}`,
         tone: "대화형",
       },
       {
         contextId: "micro-observation",
         contextLabel: "미시 관찰",
         angle: "작은 디테일을 먼저 짚는 관점",
-        content: `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요. ${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다. 저는 이런 작은 차이가 제일 오래 남는다고 봐요.${closingText}`,
+        content: `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요. ${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다.${closingText}`,
         tone: "세심한",
       },
       {
         contextId: "personal-memory",
         contextLabel: "개인 기억",
         angle: "개인 경험을 살짝 섞는 반응",
-        content: `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요. ${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다. 저도 이런 방식이 더 편하더라고요.${closingText}`,
+        content: `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요. ${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다.${closingText}`,
         tone: "회고적인",
       },
     ];
@@ -483,42 +507,42 @@ function buildFallbackContexts({
         contextId: "life-rhythm",
         contextLabel: "생활 리듬",
         angle: "출근이나 외출 전에 다시 읽는 생활 기준",
-        content: `${leadText}출근 전에 다시 읽어보니 이 글은 생활 리듬에 더 가깝게 보였어요. ${topics}보다 반복해서 입을 수 있느냐가 먼저 중요하게 느껴집니다. ${signalWithObject} 바탕으로 오늘의 기준을 다시 정리해봤습니다.${closingText}${sampleText}`,
+        content: `${leadText}출근 전에 다시 읽어보니 이 글은 생활 리듬에 더 가깝게 보였어요. ${topics}보다 반복해서 입을 수 있느냐가 먼저 중요하게 느껴집니다.${closingText}${sampleText}`,
         tone: "차분한",
       },
       {
         contextId: "signal-reading",
         contextLabel: "신호 읽기",
         angle: "글에서 새로 보이는 신호를 먼저 잡는 관점",
-        content: `${leadText}${displayTitle}에서 제일 먼저 보인 건 ${topics} 쪽 신호였어요. 겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다. 신호를 먼저 잡는 쪽으로 생각이 조금 기울었습니다.${closingText}`,
+        content: `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽 신호였어요. 겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다.${closingText}`,
         tone: "관찰적인",
       },
       {
         contextId: "tradeoff-check",
         contextLabel: "손익 점검",
         angle: "가격과 과장보다 실제 손익을 따지는 관점",
-        content: `${leadText}이 글은 첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야 하겠더라고요. ${signalWithObject} 기준으로 과장보다 현실성을 먼저 점검하는 편이 더 맞습니다. 결국 손익이 남는지부터 보게 됩니다.${closingText}`,
+        content: `${leadText}이 글은 첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야 하겠더라고요. ${signalWithObject} 기준으로 과장보다 현실성을 먼저 보게 됩니다.${closingText}`,
         tone: "신중한",
       },
       {
         contextId: "community-reply",
         contextLabel: "커뮤니티 반응",
         angle: "포럼 대화 흐름에 기대는 반응",
-        content: `${leadText}댓글들까지 같이 보니 ${displayTitle}의 해석이 더 넓어졌어요. ${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다. ${signalWithObject} 함께 놓고 보면 더 자연스럽습니다.${closingText}`,
+        content: `${leadText}댓글들까지 같이 보니 ${displayTitle}의 해석이 더 넓어졌어요. ${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다.${closingText}`,
         tone: "대화형",
       },
       {
         contextId: "micro-observation",
         contextLabel: "미시 관찰",
         angle: "작은 디테일을 먼저 짚는 관점",
-        content: `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요. ${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다. 저는 이런 작은 차이가 제일 오래 남는다고 봐요.${closingText}`,
+        content: `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요. ${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다.${closingText}`,
         tone: "세심한",
       },
       {
         contextId: "personal-memory",
         contextLabel: "개인 기억",
         angle: "개인 경험을 살짝 섞는 반응",
-        content: `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요. ${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다. 저도 이런 방식이 더 편하더라고요.${closingText}`,
+        content: `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요. ${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다.${closingText}`,
         tone: "회고적인",
       },
     ];

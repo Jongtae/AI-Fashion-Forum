@@ -286,6 +286,37 @@ test("createLiveCommentDraft falls back to conversational Korean reply contexts"
   assert.match(draft.content, /맞아요|저는|다르게 보면|이 얘기|앞선 댓글|근데|오히려|솔직히/);
 });
 
+test("createLiveCommentDraft uses comment style seed markers when provided", async () => {
+  const draft = await createLiveCommentDraft({
+    agent: {
+      handle: "brandreceipt",
+    },
+    targetContent: {
+      title: "quiet office outfit",
+      body: "A short live signal summary.",
+      topics: ["office", "layering"],
+    },
+    targetComment: {
+      content: "I think the sleeve balance is the real story here.",
+    },
+    sourceSignal: "comment reply / tick 9",
+    styleProfile: {
+      register: "casual_playful",
+      cadence: "short_reply",
+      openerMarkers: ["근데", "오히려"],
+      endingMarkers: ["같아요", "ㅎㅎ"],
+      sampleComments: ["근데 이건 좀 다른 얘기 같아요 ㅎㅎ"],
+    },
+    variationSeed: 2,
+    apiKey: "",
+  });
+
+  assert.strictEqual(draft.generationContext.source, "fallback");
+  assert.strictEqual(draft.generationContext.selectedStyle, "casual_playful");
+  assert.match(draft.content, /근데|오히려/);
+  assert.match(draft.content, /같아요|ㅎㅎ|더라고요|보여요|네요/);
+});
+
 test("createLivePostDraft falls back to Korean live contexts", async () => {
   const draft = await createLivePostDraft({
     agent: {
