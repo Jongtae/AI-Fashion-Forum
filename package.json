@@ -15,6 +15,7 @@
     "boot:local": "concurrently --names \"forum-web,forum-server,agent-server\" --prefix-colors \"cyan,green,yellow\" \"npm run dev:forum\" \"npm run dev:forum-server\" \"npm run dev:agent-server\"",
     "boot:local:with-infra": "node scripts/bootstrap-local.mjs",
     "export:content-projections": "node scripts/export-content-projections.mjs",
+    "derive:agent-seeds": "node scripts/derive-agent-seed-profiles.mjs",
     "build": "npm run build --workspace @ai-fashion-forum/forum-web",
     "preview": "npm run preview --workspace @ai-fashion-forum/forum-web",
     "crawl:images": "npm run crawl:images --workspace @ai-fashion-forum/forum-web",
