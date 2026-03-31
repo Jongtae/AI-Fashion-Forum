@@ -12,8 +12,8 @@ import ProfilePanel from "./components/ProfilePanel.jsx";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
-    // 실시간 업데이트: 30초마다 자동 갱신
-    queries: { retry: 1, staleTime: 10_000, refetchInterval: 30_000 },
+    // 기본적으로는 조용하게 두고, 필요한 화면만 명시적으로 갱신한다.
+    queries: { retry: 1, staleTime: 10_000 },
   },
 });
 
@@ -345,6 +345,7 @@ export default function ForumApp() {
   );
   const [knowledgeView, setKnowledgeView] = useState(getInitialSidebarTab);
   const autoTickInFlightRef = useRef(false);
+  const enableAutoTick = import.meta.env.VITE_ENABLE_AUTO_TICK === "true";
   const prevSelectedPostIdRef = useRef(null);
   const previousServiceTabRef = useRef("forum");
   const isCompact = viewportWidth < 1024;
@@ -653,6 +654,10 @@ export default function ForumApp() {
   }
 
   useEffect(() => {
+    if (!enableAutoTick) {
+      return undefined;
+    }
+
     let cancelled = false;
 
     const runAutoTick = async () => {
@@ -683,7 +688,7 @@ export default function ForumApp() {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, []);
+  }, [enableAutoTick]);
 
   return (
     <div style={styles.root}>
