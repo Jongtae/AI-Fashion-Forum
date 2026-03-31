@@ -77,6 +77,12 @@ function getInitialSidebarTab() {
   return "forum";
 }
 
+function getInitialAdminSection() {
+  const [first, second] = getPathSegments();
+  if (first !== "admin") return "home";
+  return ["home", "operator", "replay", "sprint1"].includes(second) ? second : "home";
+}
+
 function formatTimeAgo(dateLike) {
   if (!dateLike) return "";
   const diffMs = Date.now() - new Date(dateLike).getTime();
@@ -292,6 +298,16 @@ function setViewUrl(view, { replace = true } = {}) {
   }
 }
 
+function setAdminSectionUrl(section, { replace = true } = {}) {
+  const nextPath = section && section !== "home" ? `/admin/${section}` : "/admin";
+  const nextUrl = buildNextUrl(nextPath);
+  if (replace) {
+    window.history.replaceState({}, "", nextUrl);
+  } else {
+    window.history.pushState({}, "", nextUrl);
+  }
+}
+
 const FEED_SCROLL_KEY = "forum:last-feed-scroll-y";
 const USER_AVATAR_PALETTE = ["#dbeafe", "#fce7f3", "#d1fae5", "#fef3c7", "#ede9fe", "#fee2e2"];
 
@@ -320,6 +336,7 @@ export default function ForumApp() {
   const [activeTagFilter, setActiveTagFilter] = useState(getInitialActiveTagFilter);
   const [discoverySearchText, setDiscoverySearchText] = useState(getInitialDiscoveryQuery);
   const [discoveryMode, setDiscoveryMode] = useState(getInitialDiscoveryMode);
+  const [adminSection, setAdminSection] = useState(getInitialAdminSection);
   const [composerOpen, setComposerOpen] = useState(false);
   const [hasForumActivity, setHasForumActivity] = useState(false);
   const [pendingTab, setPendingTab] = useState(null);
@@ -377,9 +394,11 @@ export default function ForumApp() {
       setActiveTagFilter("");
       setDiscoverySearchText("");
       setDiscoveryMode("recent");
+      setAdminSection("home");
       setTagUrl("", { replace: true });
       setDiscoveryQueryUrl("", { replace: true });
       setDiscoveryModeUrl("recent", { replace: true });
+      setAdminSectionUrl("home", { replace: true });
       restoreFeedScrollPosition();
     };
 
@@ -440,6 +459,11 @@ export default function ForumApp() {
       const params = new URLSearchParams(window.location.search);
       const [first, second, third] = getPathSegments();
       setTab(first === "admin" || first === "operator" ? "admin" : first === "discover" ? "discover" : first === "saved" ? "saved" : "forum");
+      setAdminSection(
+        first === "admin" && ["home", "operator", "replay", "sprint1"].includes(second)
+          ? second
+          : "home"
+      );
       setSelectedPostId(first === "post" && second ? second : null);
       setSelectedProfile(
         first === "profile" && second
@@ -616,7 +640,13 @@ export default function ForumApp() {
         </header>
 
         <main style={styles.adminMain}>
-          <AdminDashboard />
+          <AdminDashboard
+            activeSection={adminSection}
+            onSectionChange={(section) => {
+              setAdminSection(section);
+              setAdminSectionUrl(section, { replace: false });
+            }}
+          />
         </main>
       </>
     );
