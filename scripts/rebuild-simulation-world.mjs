@@ -230,6 +230,9 @@ async function main() {
   runCommand("npm", ["run", "sync:agent-state-candidates"]);
   console.log("[rebuild] Regenerated seed profiles and agent-state candidates");
 
+  runCommand("npm", ["run", "judge:content-quality", "--", "--output", "data/judgements/content-quality-latest.json"]);
+  console.log("[rebuild] Generated content-quality judge report");
+
   console.log("[rebuild] Done");
 }
 

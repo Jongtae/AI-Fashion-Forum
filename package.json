@@ -19,6 +19,7 @@
     "init:agent-states": "node scripts/init-agent-states-from-seed-profiles.mjs",
     "backfill:author-identities": "node scripts/backfill-author-identities.mjs",
     "rebuild:simulation-world": "node scripts/rebuild-simulation-world.mjs",
+    "judge:content-quality": "node scripts/judge-content-quality.mjs",
     "sync:agent-state-candidates": "npm run derive:agent-seeds -- --output tmp/agent-seed-profiles.full.json && npm run init:agent-states -- --input tmp/agent-seed-profiles.full.json --output data/agent-state-candidates.json",
     "build": "npm run build --workspace @ai-fashion-forum/forum-web",
     "preview": "npm run preview --workspace @ai-fashion-forum/forum-web",

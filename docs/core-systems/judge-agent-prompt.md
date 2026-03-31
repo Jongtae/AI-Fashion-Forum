@@ -89,10 +89,10 @@ Return only valid JSON with this shape:
 - Prefer using the judge after generation, not during generation.
 - Keep the input minimal: title, body, tags, and the immediate thread context are usually enough.
 - If you need stable evaluation over time, keep the prompt unchanged and compare score deltas across runs.
+- For local, no-key validation, use `npm run judge:content-quality` to score the latest posts and comments with the repository's deterministic judge report.
 
 ## Recommended Decision Guide
 
 - `pass` when the text is human-like, thread-worthy, and not repetitive.
 - `needs_revision` when the text is usable but feels generic, flat, or slightly machine-shaped.
 - `fail` when the text is obviously synthetic, meta, or too repetitive to belong in a real forum thread.
-
