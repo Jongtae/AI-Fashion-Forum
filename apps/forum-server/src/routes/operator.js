@@ -22,6 +22,35 @@ import {
 
 const router = Router();
 
+export function buildAgentStateSummaryPipeline() {
+  return [
+    { $sort: { agentId: 1, round: -1 } },
+    {
+      $group: {
+        _id: "$agentId",
+        states: {
+          $firstN: {
+            input: {
+              round: "$round",
+              handle: "$handle",
+              display_name: "$display_name",
+              archetype: "$archetype",
+              mutableAxes: "$mutableAxes",
+              rawSnapshot: {
+                mutable_state: "$rawSnapshot.mutable_state",
+              },
+              selfNarrativeCount: {
+                $size: { $ifNull: ["$selfNarratives", []] },
+              },
+            },
+            n: 2,
+          },
+        },
+      },
+    },
+  ];
+}
+
 // ── GET /api/operator/metrics ─────────────────────────────────────────────────
 // 운영자 대시보드용 집계 메트릭.
 // 사용자 참여 지표, 콘텐츠 현황, 에이전트 활동량을 반환한다.
@@ -302,11 +331,7 @@ router.get("/dashboard", async (req, res) => {
       safe(
         "agentStates",
         () =>
-          AgentState.aggregate([
-            { $sort: { agentId: 1, round: -1 } },
-            { $group: { _id: "$agentId", states: { $push: "$$ROOT" } } },
-            { $limit: 100 },
-          ]),
+          AgentState.aggregate(buildAgentStateSummaryPipeline()),
         []
       ),
 
@@ -373,7 +398,7 @@ router.get("/dashboard", async (req, res) => {
       currentArc: latestSnapshot?.mutable_state?.recent_arc || latestSnapshot?.mutable_state?.recentArc || "stable",
       previousArc:
         previousSnapshot?.mutable_state?.recent_arc || previousSnapshot?.mutable_state?.recentArc || null,
-      narrativeCount: Array.isArray(latest?.selfNarratives) ? latest.selfNarratives.length : 0,
+      narrativeCount: Number(latest?.selfNarrativeCount ?? 0),
       driftTail: Array.isArray(latestSnapshot?.mutable_state?.drift_log)
         ? latestSnapshot.mutable_state.drift_log.slice(-2)
         : [],
