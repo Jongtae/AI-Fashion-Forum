@@ -573,6 +573,7 @@ function buildOpenAIPrompt({
     "content는 최소 2문장 이상인 한글 자연문으로, 커뮤니티 글처럼 읽혀야 하며 너무 과장된 템플릿 문구를 반복하지 말아라.",
     "첫 문장은 상황을 잡고, 두 번째 문장은 근거나 비교를 붙이고, 마지막 문장은 판단이나 여운으로 완결해라.",
     "문장 끝은 끊긴 메모처럼 남기지 말고, 본문 자체가 읽히도록 완결된 문장으로 마무리해라.",
+    "본문 첫 단어를 '맞아요', '그렇죠', '그래요' 같은 동의 표현으로 시작하지 말고, 바로 상황이나 관찰로 들어가라.",
     "제목은 본문 요약처럼 쓰지 말고, 짧은 훅과 관점 차이가 드러나게 따로 잡아라.",
     "댓글인 경우에는 실제 커뮤니티 댓글처럼 간결하고 구어체로 쓰고, 주어를 굳이 설명하지 마라.",
     "번역투보다 실제 커뮤니티 댓글의 짧은 리듬과 맞장구, 질문, 부드러운 반박을 우선해라.",
@@ -640,7 +641,15 @@ function buildFallbackContexts({
   };
   const styleOpeners = uniqueNormalizedList(styleProfile?.openers || styleProfile?.openerMarkers || []);
   const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
-  const openerPool = styleOpeners.length ? styleOpeners : ["근데", "저는", "오히려", "맞아요", "솔직히", "개인적으로", "음"];
+  const postFallbackOpeners = ["", "근데", "저는", "오히려", "솔직히", "개인적으로", "이번엔", "조용히 보면"];
+  const commentFallbackOpeners = ["근데", "저는", "오히려", "맞아요", "솔직히", "개인적으로", "음"];
+  const isAgreementOpener = (value = "") => /^(맞아요|그렇죠|그래요|네|응)([\s,!.?].*)?$/u.test(normalizeText(value));
+  const openerPool =
+    mode === "comment"
+      ? (styleOpeners.length ? styleOpeners : commentFallbackOpeners)
+      : (styleOpeners.filter((opener) => !isAgreementOpener(opener)).length
+        ? styleOpeners.filter((opener) => !isAgreementOpener(opener))
+        : postFallbackOpeners);
   const lead = pickBySeed(openerPool, variationSeed) || "";
   const wrapUpPool = styleEndings.length
     ? styleEndings.filter((ending) => /[.!?…。]$/u.test(ending))
@@ -681,6 +690,12 @@ function buildFallbackContexts({
     "솔직히 저는 이쪽 해석이 더 먼저 와요",
     "조금 다른 시선도 가능해 보여요",
   ];
+  const socialHookPool = [
+    "이건 다들 어떻게 읽으셨는지도 궁금해요.",
+    "비슷하게 본 분들도 있을지 궁금합니다.",
+    "같은 포인트를 먼저 보신 분들도 있나요.",
+    "저만 이렇게 읽은 건지 조금 궁금하네요.",
+  ];
 
   if (mode === "comment") {
     return [
@@ -689,7 +704,7 @@ function buildFallbackContexts({
         contextLabel: "답장 이어가기",
         angle: "상대의 말을 받아서 대화를 이어가는 반응",
         content: composeReadableBody(
-          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(["근데", "오히려", "맞아요", "저는"], variationSeed, [lead]))} ${displayTitle} 쪽은 ${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 1)} 먼저 보이네요`,
+          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(["근데", "오히려", "저는"], variationSeed, [lead]))} ${displayTitle} 쪽은 ${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 1)} 먼저 보이네요`,
           "같이 보면 해석이 더 또렷해져요",
           wrapUp,
         ),
@@ -722,7 +737,7 @@ function buildFallbackContexts({
         contextLabel: "스레드 연결",
         angle: "댓글과 게시글을 다시 이어 붙이는 반응",
         content: composeReadableBody(
-          `${leadText}맞아요`,
+          `${leadText}${pickBySeed(casualSupportPool, variationSeed)}`,
           "댓글까지 같이 보면 흐름이 더 자연스럽게 이어져요",
           wrapUp,
         ),
@@ -762,7 +777,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${leadText}아침에 다시 보니 이 글은 생활 리듬 쪽으로 더 읽혔어요`,
           `${topics}보다 반복해서 입을 수 있느냐를 먼저 보게 되고, 그래서 실제로 손이 가는지부터 떠올리게 됩니다`,
-          wrapUp,
+          pickBySeed(socialHookPool, variationSeed + 2),
         ),
         tone: "차분한",
       },
@@ -773,7 +788,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽 신호였어요`,
           `겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 조금 달라집니다`,
-          wrapUp,
+          pickBySeed(socialHookPool, variationSeed + 3),
         ),
         tone: "관찰적인",
       },
@@ -795,7 +810,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${leadText}댓글까지 같이 보니 ${displayTitle}의 해석이 더 넓어졌어요`,
           `${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다`,
-          wrapUp,
+          pickBySeed(socialHookPool, variationSeed + 4),
         ),
         tone: "대화형",
       },
@@ -834,7 +849,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${leadText}출근 전에 다시 읽어보니 이 글은 생활 리듬에 더 가깝게 보였어요`,
           `${topics}보다 반복해서 입을 수 있느냐가 먼저 중요하게 느껴집니다`,
-          wrapUp,
+          pickBySeed(socialHookPool, variationSeed + 2),
         ),
         tone: "차분한",
       },
@@ -845,7 +860,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽 신호였어요`,
           `겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다`,
-          wrapUp,
+          pickBySeed(socialHookPool, variationSeed + 3),
         ),
         tone: "관찰적인",
       },
@@ -867,7 +882,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${leadText}댓글들까지 같이 보니 ${displayTitle}의 해석이 더 넓어졌어요`,
           `${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다`,
-          wrapUp,
+          pickBySeed(socialHookPool, variationSeed + 4),
         ),
         tone: "대화형",
       },

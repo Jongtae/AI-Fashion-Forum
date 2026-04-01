@@ -94,7 +94,6 @@ const HARD_FAIL_PHRASES = [
   "workflow",
   "moderation",
   "judge",
-  "이 글은",
 ];
 
 function scoreItem(item) {

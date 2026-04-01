@@ -90,6 +90,32 @@ test("createRunPostDraft joins korean topic labels naturally", async () => {
   assert.doesNotMatch(draft.content, /가격와 생활감/);
 });
 
+test("createRunPostDraft avoids repetitive agreement openers", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+    },
+    reactionRecord: {
+      meaning_frame: "care_context",
+      stance_signal: "empathetic",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "quiet office outfit",
+      body: "A small look at weekday layering and commute comfort.",
+      topics: ["pricing", "care_context"],
+    },
+    variationSeed: 0,
+    apiKey: "",
+    styleProfile: {
+      openers: ["맞아요", "근데", "저는"],
+    },
+  });
+
+  assert.doesNotMatch(draft.content, /^맞아요\b/);
+  assert.match(draft.content, /궁금해요|궁금합니다|보셨는지도|읽으셨는지|있나요/);
+});
+
 test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => {
   const localApiKey = "local-test-key";
   let requestBody = null;
