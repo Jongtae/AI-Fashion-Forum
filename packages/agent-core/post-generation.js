@@ -357,7 +357,9 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
       : ["의외로", "생각보다", "뜻밖에"],
   };
   const emotionHooks = {
-    curiosity: ["이건 다들 어떻게 읽으셨는지도 궁금해요.", "비슷하게 본 분들도 있을지 궁금합니다."],
+    curiosity: isComment
+      ? ["이 포인트는 어떻게 보셨는지 궁금해요.", "어느 기준이 먼저였는지 궁금해요."]
+      : ["이 기준은 사람마다 다를 것 같아요.", "어느 쪽이 먼저 보였는지 궁금해요."],
     empathy: ["그 마음이 남는 지점이 있네요.", "마음 쓰이는 부분이 조금 길게 남아요."],
     amusement: ["이건 살짝 웃겨서 남네요.", "웃음이 나는 지점이 꽤 오래 가요."],
     sadness: ["괜히 아쉬운 마음이 조금 남아요.", "조금 허전하게 읽히는 부분이 있어요."],
@@ -367,7 +369,9 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
     surprise: ["생각보다 의외의 지점이 있네요.", "뜻밖의 포인트가 먼저 보였어요."],
   };
   const emotionClosings = {
-    curiosity: ["이건 다들 어떻게 읽으셨는지도 궁금해요.", "같은 포인트를 먼저 보신 분들도 있나요."],
+    curiosity: isComment
+      ? ["이 포인트는 어떻게 보셨는지 궁금해요.", "어느 기준이 먼저였는지 궁금해요."]
+      : ["이 기준은 사람마다 다를 것 같아요.", "어느 쪽이 먼저 보였는지 궁금해요."],
     empathy: ["그 마음이 남는 지점이 있네요.", "괜히 마음이 가는 부분이 있어요."],
     amusement: ["조금 웃겨서 오래 남네요.", "이런 사진이 은근 기억에 남아요."],
     sadness: ["괜히 아쉬운 마음이 조금 남아요.", "조금 허전하게 남는 지점이 있어요."],
@@ -907,11 +911,11 @@ function buildFallbackContexts({
         "이렇게 읽으면 판단이 빨라져요.",
       ];
   const questionTailPool = [
-    "어느 부분을 가장 크게 보셨는지 궁금해요",
+    "어느 기준으로 보셨는지 궁금해요",
+    "이 포인트를 어떻게 잡으셨는지 궁금해요",
+    "다른 단서도 같이 보셨는지 궁금해요",
     "저는 다른 쪽도 같이 보게 돼요",
-    "이 포인트를 먼저 잡으신 이유가 있을까요",
-    "비슷하게 읽으셨는지 좀 궁금해요",
-    "어디를 기준으로 보셨는지 알고 싶어요",
+    "어느 부분을 가장 크게 보셨는지 궁금해요",
   ];
   const supportTailPool = [
     "그 느낌은 충분히 이해돼요",
@@ -939,11 +943,93 @@ function buildFallbackContexts({
     const value = pickTone(seedOffset, emotionTone.leadPool, openerPool, ...pools);
     return value ? `${value}, ` : "";
   };
-  const buildQuestionTail = (seedOffset, ...pools) => pickTone(seedOffset, questionTailPool, emotionTone.hookPool, ...pools);
-  const buildSupportTail = (seedOffset, ...pools) => pickTone(seedOffset, supportTailPool, emotionTone.closingPool, ...pools);
-  const buildCounterTail = (seedOffset, ...pools) => pickTone(seedOffset, counterTailPool, emotionTone.closingPool, ...pools);
-  const buildObservationTail = (seedOffset, ...pools) => pickTone(seedOffset, observationTailPool, emotionTone.closingPool, ...pools);
-  const buildCloser = (seedOffset, ...pools) => pickTone(seedOffset, emotionTone.closingPool, wrapUpPool, ...pools);
+  const contextTailMap = {
+    comment: {
+      "reply-continue": {
+        observation: [
+          "이 부분은 다시 볼수록 더 보여요",
+          "한 번 더 보면 결이 더 또렷해져요",
+        ],
+      },
+      "reply-question": {
+        question: [
+          "어느 기준으로 보셨는지도 궁금해요",
+          "어떤 단서를 먼저 잡으셨는지 궁금해요",
+        ],
+      },
+      "reply-nuance": {
+        observation: [
+          "저는 이쪽 결이 더 남아요",
+          "이 부분은 조금 다르게 보였어요",
+        ],
+      },
+      "reply-thread": {
+        support: [
+          "댓글까지 보면 흐름이 더 또렷해져요",
+          "스레드로 보면 맥락이 한 번 더 붙어요",
+        ],
+      },
+      "reply-support": {
+        support: [
+          "그 마음은 꽤 오래 남아요",
+          "그 공감이 더 자연스럽게 읽혀요",
+        ],
+      },
+      "reply-counterpoint": {
+        counter: [
+          "저는 이쪽이 조금 더 남았어요",
+          "같이 보면 저는 반대 쪽이 먼저 보였어요",
+        ],
+      },
+    },
+    run: {
+      "life-rhythm": {
+        question: [
+          "이걸 몇 번 더 입게 되는지가 제일 궁금해요",
+          "반복해서 손이 가는지부터 보게 돼요",
+        ],
+      },
+      "signal-reading": {
+        observation: [
+          "겉보다 안쪽 결이 더 중요해 보여요",
+          "한 번 더 보면 신호가 조금 달라져요",
+        ],
+      },
+      "tradeoff-check": {
+        closing: [
+          "결국 오래 갈지부터 보게 돼요",
+          "가격보다 오래 남는지 먼저 보게 돼요",
+        ],
+      },
+      "community-reply": {
+        question: [
+          "반응이 갈리는 지점이 어디인지 궁금해요",
+          "다들 어디를 먼저 보셨는지도 궁금해요",
+        ],
+      },
+      "micro-observation": {
+        observation: [
+          "작은 차이가 판단을 바꾸기도 해요",
+          "이런 디테일이 오래 남더라고요",
+        ],
+      },
+      "personal-memory": {
+        closing: [
+          "이런 건 기억이 붙어서 더 오래 남아요",
+          "비슷한 기억이 있으면 판단이 빨라져요",
+        ],
+      },
+    },
+  };
+  const pickContextTail = (contextId, kind, seedOffset, ...pools) => {
+    const contextPool = contextTailMap?.[mode]?.[contextId]?.[kind] || [];
+    return pickTone(seedOffset, contextPool, ...pools);
+  };
+  const buildQuestionTail = (contextId, seedOffset, ...pools) => pickContextTail(contextId, "question", seedOffset, questionTailPool, emotionTone.hookPool, ...pools);
+  const buildSupportTail = (contextId, seedOffset, ...pools) => pickContextTail(contextId, "support", seedOffset, supportTailPool, emotionTone.closingPool, ...pools);
+  const buildCounterTail = (contextId, seedOffset, ...pools) => pickContextTail(contextId, "counter", seedOffset, counterTailPool, emotionTone.closingPool, ...pools);
+  const buildObservationTail = (contextId, seedOffset, ...pools) => pickContextTail(contextId, "observation", seedOffset, observationTailPool, emotionTone.closingPool, ...pools);
+  const buildCloser = (contextId, seedOffset, ...pools) => pickContextTail(contextId, "closing", seedOffset, emotionTone.closingPool, wrapUpPool, ...pools);
   const casualQuestionPool = [
     "이건 다들 어떻게 읽으셨는지도 궁금해요.",
     "비슷하게 본 분들도 있을지 궁금합니다.",
@@ -961,7 +1047,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(1)}${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 2)} 먼저 보여요`,
           "같이 보면 조금 더 또렷해져요",
-          buildObservationTail(3),
+          buildObservationTail("reply-continue", 3),
         ),
         tone: "대화형",
       },
@@ -972,7 +1058,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(4)}${topics}보다 다른 단서가 먼저 보여요`,
           pickDistinctBySeed(casualQuestionPool, variationSeed, []),
-          buildQuestionTail(5),
+          buildQuestionTail("reply-question", 5),
         ),
         tone: "호기심 있는",
       },
@@ -982,7 +1068,7 @@ function buildFallbackContexts({
         angle: "부드럽게 다른 관점을 보태는 반응",
         content: composeReadableBody(
           `${buildLead(6)}저는 여기서 결이 좀 다르게 보여요`,
-          buildObservationTail(7),
+          buildObservationTail("reply-nuance", 7),
         ),
         tone: "조심스러운",
       },
@@ -991,9 +1077,9 @@ function buildFallbackContexts({
         contextLabel: "스레드",
         angle: "댓글과 게시글을 다시 이어 붙이는 반응",
         content: composeReadableBody(
-          `${buildLead(8)}${pickBySeed(supportTailPool, variationSeed + 1)}`,
+          `${buildLead(8)}${buildSupportTail("reply-thread", variationSeed + 1)}`,
           "댓글까지 같이 보면 흐름이 더 잘 보여요",
-          buildSupportTail(9),
+          buildSupportTail("reply-thread", 9),
         ),
         tone: "관찰적인",
       },
@@ -1002,9 +1088,9 @@ function buildFallbackContexts({
         contextLabel: "공감",
         angle: "상대의 감정에 공감하면서 힘을 실어주는 반응",
         content: composeReadableBody(
-          `${buildLead(10)}${pickBySeed(supportTailPool, variationSeed + 2)}`,
+          `${buildLead(10)}${buildSupportTail("reply-support", variationSeed + 2)}`,
           pickDistinctBySeed(["그 말이 맞는 것 같아요", "그 공감이 이해돼요", "그 부분은 저도 고개가 끄덕여지더라고요"], variationSeed + 3, []),
-          buildSupportTail(11),
+          buildSupportTail("reply-support", 11),
         ),
         tone: "공감형",
       },
@@ -1015,7 +1101,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(12)}저는 조금 다르게 읽었어요`,
           `같이 보면 느낌이 조금 달라져요`,
-          buildCounterTail(13),
+          buildCounterTail("reply-counterpoint", 13),
         ),
         tone: "조심스럽지만 단단한",
       },
@@ -1031,7 +1117,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(1)}아침에 다시 보니까 이건 오래 갈 쪽이더라`,
           `${topics}보다 반복해서 손이 가는지 먼저 보게 돼요`,
-          buildQuestionTail(2),
+          buildQuestionTail("life-rhythm", 2),
         ),
         tone: "차분한",
       },
@@ -1042,7 +1128,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(3)}먼저 보인 건 ${topics} 쪽이에요`,
           `겉으로는 단순해 보여도 ${baseSignal} 따라가면 결이 조금 달라져요`,
-          buildObservationTail(4),
+          buildObservationTail("signal-reading", 4),
         ),
         tone: "관찰적인",
       },
@@ -1053,7 +1139,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(5)}첫 인상은 괜찮은데, 가격 보면 생각이 달라져요`,
           `${signalWithObject} 기준으로 오래 갈지부터 보게 돼요`,
-          buildCloser(6),
+          buildCloser("tradeoff-check", 6),
         ),
         tone: "신중한",
       },
@@ -1064,7 +1150,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(7)}댓글까지 같이 보니까 조금 다르게 보여요`,
           `${topics}에 대한 반응이 갈리니까 글 하나도 다시 보게 돼요`,
-          buildQuestionTail(8),
+          buildQuestionTail("community-reply", 8),
         ),
         tone: "대화형",
       },
@@ -1075,7 +1161,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(9)}작은 디테일 하나가 먼저 보여요`,
           `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라져요`,
-          buildObservationTail(10),
+          buildObservationTail("micro-observation", 10),
         ),
         tone: "세심한",
       },
@@ -1086,7 +1172,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(11)}비슷한 사진이나 옷을 떠올리면 이 글이 더 잘 남아요`,
           `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
-          buildCloser(12),
+          buildCloser("personal-memory", 12),
         ),
         tone: "회고적인",
       },
@@ -1103,7 +1189,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(1)}출근 전에 다시 보니까 이건 더 오래 갈 쪽이더라`,
           `${topics}보다 반복해서 입을 수 있느냐가 먼저 중요해요`,
-          buildQuestionTail(2),
+          buildQuestionTail("life-rhythm", 2),
         ),
         tone: "차분한",
       },
@@ -1114,7 +1200,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(3)}먼저 보인 건 ${topics} 쪽이에요`,
           `겉으로는 단순해 보여도 ${baseSignal} 따라가면 결이 달라져요`,
-          buildObservationTail(4),
+          buildObservationTail("signal-reading", 4),
         ),
         tone: "관찰적인",
       },
@@ -1125,7 +1211,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(5)}첫 인상은 괜찮은데, 가격 보면 생각이 달라져요`,
           `${signalWithObject} 기준으로 오래 갈지부터 보게 돼요`,
-          buildCloser(6),
+          buildCloser("tradeoff-check", 6),
         ),
         tone: "신중한",
       },
@@ -1136,7 +1222,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(7)}댓글까지 같이 보니까 조금 다르게 보여요`,
           `${topics}에 대한 반응이 갈리니까 글 하나도 다시 보게 돼요`,
-          buildQuestionTail(8),
+          buildQuestionTail("community-reply", 8),
         ),
         tone: "대화형",
       },
@@ -1147,7 +1233,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(9)}작은 디테일 하나가 먼저 보여요`,
           `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라져요`,
-          buildObservationTail(10),
+          buildObservationTail("micro-observation", 10),
         ),
         tone: "세심한",
       },
@@ -1158,7 +1244,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(11)}비슷한 사진이나 옷을 떠올리면 이 글이 더 잘 남아요`,
           `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
-          buildCloser(12),
+          buildCloser("personal-memory", 12),
         ),
         tone: "회고적인",
       },
