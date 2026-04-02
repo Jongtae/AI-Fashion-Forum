@@ -332,7 +332,7 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   const isComment = mode === "comment";
   const emotionOpeners = {
     curiosity: isComment
-      ? ["이 부분부터 보였어요", "저는 이 기준이 먼저 와요", "처음 걸린 건 이거예요", "문득 이 부분이 보였어요", "가만히 보면 이 기준이 먼저 와요"]
+      ? ["이 부분부터 보였어요", "이 기준이 먼저 와요", "처음 걸린 건 이거예요", "문득 이 부분이 보였어요", "가만히 보면 이 기준이 먼저 와요"]
       : ["이 기준이 먼저 보여요", "처음엔 이 부분부터 봤어요", "처음 눈에 걸린 건 이 쪽이에요", "문득 이 부분이 먼저 보여요", "가만히 보면 이 기준이 더 먼저 와요", "보니까 이 포인트가 먼저 남아요"],
     empathy: isComment
       ? ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서", "조금 마음이 가서", "읽다 보니 공감이 먼저 됐어요"]
@@ -358,7 +358,7 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   };
   const emotionHooks = {
     curiosity: isComment
-      ? ["어느 기준으로 보셨는지 궁금해요.", "이 포인트를 어떻게 잡으셨는지 궁금해요."]
+      ? ["어느 기준으로 보셨는지 궁금해요.", "이 포인트를 어떻게 잡으셨는지 궁금해요.", "처음 어떤 단서가 걸렸는지도 궁금해요.", "같이 보면 어떤 쪽이 먼저 보이셨는지도 궁금해요."]
       : ["어느 쪽을 먼저 보셨는지 궁금해요.", "기준이 좀 나뉠 것 같아요."],
     empathy: ["그 마음이 남는 지점이 있네요.", "마음 쓰이는 부분이 조금 길게 남아요."],
     amusement: ["이건 살짝 웃겨서 남네요.", "웃음이 나는 지점이 꽤 오래 가요."],
@@ -370,7 +370,13 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   };
   const emotionClosings = {
     curiosity: isComment
-      ? ["같이 보면 조금 더 또렷해요.", "이렇게 보면 흐름이 더 보여요."]
+      ? [
+          "같이 보면 조금 더 또렷해요.",
+          "이렇게 보면 흐름이 더 보여요.",
+          "앞뒤를 묶어 보면 맥락이 더 살아나요.",
+          "한 번 더 보면 다른 기준도 보여요.",
+          "댓글까지 붙이면 판단이 조금 달라져요.",
+        ]
       : ["이 기준은 사람마다 다를 것 같아요.", "저는 이쪽이 조금 더 남아요."],
     empathy: ["그 마음이 남는 지점이 있네요.", "괜히 마음이 가는 부분이 있어요."],
     amusement: ["조금 웃겨서 오래 남네요.", "이런 사진이 은근 기억에 남아요."],
@@ -955,7 +961,7 @@ function buildFallbackContexts({
   const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
   const emotionTone = buildEmotionTonePack(emotionProfile, mode);
   const postFallbackOpeners = ["", "근데", "오히려", "솔직히", "개인적으로", "이번엔", "조용히 보면", "문득", "가만히 보면", "처음엔", "한 번 더 보면", "왠지", "보니까", "결국", "생각보다"];
-  const commentFallbackOpeners = ["", "근데", "저는", "오히려", "솔직히", "개인적으로", "음", "이 부분은", "그 포인트는", "문득", "가만히 보면", "한 번 더 보면", "왠지"];
+  const commentFallbackOpeners = ["", "근데", "오히려", "솔직히", "개인적으로", "음", "이 부분은", "그 포인트는", "문득", "가만히 보면", "한 번 더 보면", "왠지", "처음엔", "생각보다", "보니까"];
   const isAgreementOpener = (value = "") => /^(맞아요|그렇죠|그래요|네|응)([\s,!.?].*)?$/u.test(normalizeText(value));
   const filteredStyleOpeners = styleOpeners.filter((opener) => !isAgreementOpener(opener));
   const openerPool =
@@ -978,13 +984,23 @@ function buildFallbackContexts({
     "다른 단서도 같이 보셨는지 궁금해요",
     "저는 다른 쪽도 같이 보게 돼요",
     "어느 부분을 가장 크게 보셨는지 궁금해요",
+    "이 부분은 어떤 식으로 읽히셨는지 궁금해요",
+    "비슷한 글이랑 비교해보셨는지도 궁금해요",
+    "처음 어떤 단서가 걸렸는지 궁금해요",
   ];
   const supportTailPool = [
     "그 느낌은 충분히 이해돼요",
     "그렇게 느끼는 것도 자연스러워 보여요",
     "저도 비슷하게 봤어요",
     "그 말은 꽤 공감돼요",
-    "그 부분은 저도 고개가 끄덕여져요",
+    "고개가 끄덕여져요",
+    "그 얘기 들으니 더 또렷해져요",
+    "말한 의도가 좀 더 살아나요",
+    "그 느낌이 오래 남네요",
+    "그 말이 왜 남는지 알겠어요",
+    "이 부분은 다들 비슷하게 읽을 듯해요",
+    "말끝보다 기분이 먼저 남아요",
+    "읽고 나면 마음이 좀 남아요",
   ];
   const counterTailPool = [
     "저는 조금 다르게 읽었어요",
@@ -992,15 +1008,59 @@ function buildFallbackContexts({
     "오히려 반대로 볼 수도 있겠어요",
     "솔직히 저는 이쪽 해석이 더 먼저 와요",
     "조금 다른 시선도 가능해 보여요",
+    "이건 반대로 읽히기도 해요",
+    "저는 다른 쪽이 더 먼저 보여요",
+    "조금 반대에서 보면 더 선명해요",
+    "다른 기준이면 전혀 다르게 읽혀요",
+    "이쪽만 보면 놓치는 게 있어 보여요",
   ];
   const observationTailPool = [
     "이렇게 읽으면 판단이 더 빨라져요",
     "그래서 오래 볼수록 결이 더 보여요",
     "이런 기준이면 다시 볼 맛이 있어요",
     "이런 글은 한 번 더 보게 돼요",
+    "이 기준이 있으면 다시 읽기 쉬워요",
+    "이 포인트가 오래 남아요",
+    "나중에도 다시 보여요",
+    "조금 다른 기준이 보이네요",
+    "나중에 다시 보면 더 보일 것 같아요",
+    "이 기준이 붙으니 글이 덜 흐려져요",
+  ];
+  const threadBridgePool = [
+    "댓글까지 같이 보면 결이 더 또렷해져요",
+    "흐름을 댓글까지 묶어 보면 더 잘 보여요",
+    "댓글이 붙으니 맥락이 더 살아나요",
+    "이야기를 같이 보니 흐름이 더 보여요",
+    "대화가 붙으니 포인트가 더 선명해요",
+    "댓글 흐름까지 보면 판단이 달라져요",
+  ];
+  const supportReactionPool = [
+    "그 공감이 이해돼요",
+    "그 부분은 고개가 끄덕여져요",
+    "말한 포인트가 더 살아나요",
+    "그 말이 왜 남는지 알겠어요",
+    "읽고 나면 마음에 조금 남아요",
+    "그런 반응도 자연스러워 보여요",
+    "공감이 먼저 와서 더 남아요",
+  ];
+  const counterReactionPool = [
+    "그렇지만 조금 다르게 봤어요",
+    "반대로 보면 더 또렷해 보여요",
+    "이쪽보다 다른 쪽이 먼저 보여요",
+    "조금 다르게 읽히는 지점이 있어요",
+    "이건 반대에서 보면 더 선명해요",
+    "다르게 읽으면 포인트가 바뀌어요",
   ];
   const mergePools = (...pools) => pools.flatMap((pool) => (Array.isArray(pool) ? pool : [pool])).filter(Boolean);
   const pickTone = (seedOffset, ...pools) => pickBySeed(mergePools(...pools), variationSeed + seedOffset) || "";
+  const pickContextTone = (contextId, kind, seedOffset, ...pools) => {
+    const contextSeed = variationSeed + seedOffset + stringSeed(mode, contextId, kind, title, topics, baseSignal, sourceCommentLabel);
+    return pickBySeed(mergePools(...pools), contextSeed) || "";
+  };
+  const pickContextDistinct = (contextId, seedOffset, items, excluded = []) => {
+    const contextSeed = variationSeed + seedOffset + stringSeed(mode, contextId, title, topics, baseSignal, sourceCommentLabel);
+    return pickDistinctBySeed(items, contextSeed, excluded);
+  };
   const buildLead = (seedOffset, ...pools) => {
     const value = pickTone(seedOffset, emotionTone.leadPool, openerPool, ...pools);
     return value ? `${value} ` : "";
@@ -1011,36 +1071,56 @@ function buildFallbackContexts({
         observation: [
           "이 부분은 다시 볼수록 더 보여요",
           "한 번 더 보면 결이 더 또렷해져요",
+          "앞뒤를 같이 보면 흐름이 더 보여요",
+          "읽는 순서가 바뀌면 느낌도 달라져요",
         ],
       },
       "reply-question": {
         question: [
           "어느 기준으로 보셨는지도 궁금해요",
           "어떤 단서를 먼저 잡으셨는지 궁금해요",
+          "이 부분은 어떻게 먼저 보였는지도 궁금해요",
+          "비슷한 글이랑 같이 보신 건지도 궁금해요",
         ],
       },
       "reply-nuance": {
         observation: [
           "저는 이쪽 결이 더 남아요",
           "이 부분은 조금 다르게 보였어요",
+          "같은 글인데 결이 조금 달라 보여요",
+          "이쪽으로 보면 또 다른 느낌이 있어요",
         ],
       },
       "reply-thread": {
         support: [
           "댓글까지 보면 흐름이 더 또렷해져요",
           "스레드로 보면 맥락이 한 번 더 붙어요",
+          "댓글이 붙으니 맥락이 더 살아나요",
+          "한 번 더 이어 보면 결이 더 보여요",
+          "앞뒤 반응이 같이 붙으니 더 잘 읽혀요",
+          "이렇게 이어 읽으면 톤이 더 보이네요",
         ],
       },
       "reply-support": {
         support: [
           "그 마음은 꽤 오래 남아요",
           "그 공감이 더 자연스럽게 읽혀요",
+          "그 공감이 이해돼요",
+          "그 말이 왜 남는지 알겠어요",
+          "이렇게 읽으니 더 마음이 가네요",
+          "그 얘기라면 오래 생각날 것 같아요",
+          "그 반응이 더 사람답게 느껴져요",
         ],
       },
       "reply-counterpoint": {
         counter: [
           "저는 이쪽이 조금 더 남았어요",
           "같이 보면 저는 반대 쪽이 먼저 보였어요",
+          "반대로 보면 더 또렷해 보여요",
+          "조금 다르게 읽히는 지점이 있어요",
+          "한쪽보다 다른 쪽이 더 먼저 보여요",
+          "이쪽만 보면 조금 좁아 보여요",
+          "다른 쪽에서 보면 해석이 넓어져요",
         ],
       },
     },
@@ -1085,7 +1165,7 @@ function buildFallbackContexts({
   };
   const pickContextTail = (contextId, kind, seedOffset, ...pools) => {
     const contextPool = contextTailMap?.[mode]?.[contextId]?.[kind] || [];
-    return pickTone(seedOffset, contextPool, ...pools);
+    return pickContextTone(contextId, kind, seedOffset, contextPool, ...pools);
   };
   const buildQuestionTail = (contextId, seedOffset, ...pools) => pickContextTail(contextId, "question", seedOffset, questionTailPool, emotionTone.hookPool, ...pools);
   const buildSupportTail = (contextId, seedOffset, ...pools) => pickContextTail(contextId, "support", seedOffset, supportTailPool, emotionTone.closingPool, ...pools);
@@ -1119,7 +1199,7 @@ function buildFallbackContexts({
         angle: "상대의 판단 기준을 더 묻는 반응",
         content: composeReadableBody(
           `${buildLead(4)}${topics}보다 다른 단서가 먼저 보여요`,
-          pickDistinctBySeed(casualQuestionPool, variationSeed, []),
+          pickContextDistinct("reply-question", variationSeed, casualQuestionPool, []),
           buildQuestionTail("reply-question", 5),
         ),
         tone: "호기심 있는",
@@ -1140,7 +1220,7 @@ function buildFallbackContexts({
         angle: "댓글과 게시글을 다시 이어 붙이는 반응",
         content: composeReadableBody(
           `${buildLead(8)}${buildSupportTail("reply-thread", variationSeed + 1)}`,
-          "댓글까지 같이 보면 흐름이 더 잘 보여요",
+          pickContextDistinct("reply-thread", variationSeed + 2, threadBridgePool, []),
           buildSupportTail("reply-thread", 9),
         ),
         tone: "관찰적인",
@@ -1151,7 +1231,7 @@ function buildFallbackContexts({
         angle: "상대의 감정에 공감하면서 힘을 실어주는 반응",
         content: composeReadableBody(
           `${buildLead(10)}${buildSupportTail("reply-support", variationSeed + 2)}`,
-          pickDistinctBySeed(["그 말이 맞는 것 같아요", "그 공감이 이해돼요", "그 부분은 저도 고개가 끄덕여지더라고요"], variationSeed + 3, []),
+          pickContextDistinct("reply-support", variationSeed + 3, supportReactionPool, []),
           buildSupportTail("reply-support", 11),
         ),
         tone: "공감형",

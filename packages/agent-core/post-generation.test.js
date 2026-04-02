@@ -540,7 +540,7 @@ test("createLiveCommentDraft falls back to conversational Korean reply contexts"
   assert.doesNotMatch(draft.content, /이 답글 대상/);
   assert.doesNotMatch(draft.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌|다시 읽어보니|더 현실적으로 보여요/);
   assert.doesNotMatch(draft.content, /이 글가|글가/);
-  assert.match(draft.content, /궁금해서|왜 그런지|이건|저는|다르게 보면|앞선 댓글|근데|오히려|솔직히/);
+  assert.match(draft.content, /이 기준이 먼저 와요|이 흐름이 먼저 보여요|이 포인트가 먼저 보여요|궁금해서|왜 그런지|이건|저는|다르게 보면|앞선 댓글|근데|오히려|솔직히/);
 });
 
 test("createLiveCommentDraft uses comment style seed markers when provided", async () => {
@@ -570,9 +570,36 @@ test("createLiveCommentDraft uses comment style seed markers when provided", asy
 
   assert.strictEqual(draft.generationContext.source, "fallback");
   assert.strictEqual(draft.generationContext.selectedStyle, "casual_playful");
-  assert.match(draft.content, /궁금해서|왜 그런지|이 부분이 먼저 보여요|근데|오히려|저는|문득|가만히 보면|왠지|솔직히/);
+  assert.match(draft.content, /이 기준이 먼저 와요|여기서는 결이 좀 다르게 보여요|궁금해서|왜 그런지|이 부분이 먼저 보여요|근데|오히려|저는|문득|가만히 보면|왠지|솔직히/);
   assert.match(draft.content, /같아요|ㅎㅎ|더라고요|보여요|네요/);
   assert.doesNotMatch(draft.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌|다시 읽어보니|더 현실적으로 보여요|이 글가|글가/);
+});
+
+test("createLiveCommentDraft spreads reply endings across seeds", async () => {
+  const endings = new Set();
+  for (let seed = 0; seed < 8; seed += 1) {
+    const draft = await createLiveCommentDraft({
+      agent: {
+        handle: "brandreceipt",
+      },
+      targetContent: {
+        title: "quiet office outfit",
+        body: "A short live signal summary.",
+        topics: ["office", "layering"],
+      },
+      targetComment: {
+        content: "I think the sleeve balance is the real story here.",
+      },
+      sourceSignal: "comment reply / tick 9",
+      variationSeed: seed,
+      apiKey: "",
+    });
+
+    const sentences = draft.content.split(/(?<=[.!?…。])\s+/).map((part) => part.trim()).filter(Boolean);
+    endings.add(sentences.at(-1));
+  }
+
+  assert.ok(endings.size >= 5, Array.from(endings).join(" | "));
 });
 
 test("createLivePostDraft falls back to Korean live contexts", async () => {
