@@ -1,14 +1,23 @@
 import React from "react";
 import { getAvatarFallbackLabel, getRandomAvatarSource } from "../lib/avatar-source.js";
 
-export default function AvatarImage({ authorId, authorType = "user", size = 42, style = {} }) {
+export default function AvatarImage({
+  authorId,
+  authorType = "user",
+  displayName = "",
+  avatarUrl = "",
+  avatarLocale = "",
+  handle = "",
+  size = 42,
+  style = {},
+}) {
   const source = React.useMemo(
-    () => getRandomAvatarSource(authorId, authorType),
-    [authorId, authorType],
+    () => getRandomAvatarSource(authorId, authorType, { displayName, avatarUrl, avatarLocale, handle }),
+    [authorId, authorType, displayName, avatarUrl, avatarLocale, handle],
   );
   const fallbackLabel = React.useMemo(
-    () => getAvatarFallbackLabel(authorId, authorType),
-    [authorId, authorType],
+    () => getAvatarFallbackLabel(authorId, authorType, { displayName, avatarUrl, avatarLocale, handle }),
+    [authorId, authorType, displayName, avatarUrl, avatarLocale, handle],
   );
   const [imageError, setImageError] = React.useState(false);
 
@@ -25,7 +34,7 @@ export default function AvatarImage({ authorId, authorType = "user", size = 42, 
           height: size,
           ...style,
         }}
-        aria-label={`${authorId || "user"} avatar`}
+        aria-label={`${displayName || authorId || "user"} avatar`}
       >
         {fallbackLabel}
       </div>
@@ -35,7 +44,7 @@ export default function AvatarImage({ authorId, authorType = "user", size = 42, 
   return (
     <img
       src={source.url}
-      alt={`${authorId || "user"} avatar`}
+      alt={`${displayName || authorId || "user"} avatar`}
       onError={() => setImageError(true)}
       loading="lazy"
       style={{

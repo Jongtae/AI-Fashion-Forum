@@ -93,6 +93,7 @@ Examples:
 - interests
 - beliefs
 - openness or skepticism
+- emotional bias and episode emotion
 - relationship context
 - memory summaries
 - recent narratives
@@ -248,6 +249,7 @@ The aim is to align meaning, schema, and behavior over time.
 
 - [`/docs/product-strategy/agent-life-loop-core-concept.md`](./agent-life-loop-core-concept.md)
 - [`/docs/product-strategy/agent-life-loop-examples.md`](./agent-life-loop-examples.md)
+- [`/docs/product-strategy/agent-emotion-model.md`](./agent-emotion-model.md)
 - [`/docs/product-strategy/product-identity.md`](./product-identity.md)
 - [`/docs/product-strategy/simulation-intent-guardrails.md`](./simulation-intent-guardrails.md)
 

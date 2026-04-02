@@ -11,6 +11,8 @@ const agentStateSchema = new Schema(
     tick: { type: Number, required: true },
     handle: { type: String },
     display_name: { type: String },
+    avatar_url: { type: String },
+    avatar_locale: { type: String },
     interest_vector: { type: Schema.Types.Mixed },
     belief_vector: { type: Schema.Types.Mixed },
     openness: { type: Number },

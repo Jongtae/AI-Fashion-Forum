@@ -17,6 +17,8 @@ const agentStateSchema = new Schema(
     writebackIds: [{ type: String }],
     handle: { type: String },
     display_name: { type: String },
+    avatar_url: { type: String },
+    avatar_locale: { type: String },
     interest_vector: { type: Schema.Types.Mixed },
     belief_vector: { type: Schema.Types.Mixed },
     openness: { type: Number },

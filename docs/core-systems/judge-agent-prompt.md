@@ -45,6 +45,10 @@ Evaluation dimensions:
 5. Community fit
    - Does it feel like it belongs in a fashion/community discussion space rather than a generic blog, ad, or system-generated message?
 
+6. Emotional believability
+   - Does the post or comment feel emotionally grounded?
+   - Do the emotions match the topic, social context, and response style without sounding labeled or forced?
+
 Scoring:
 - Score each dimension from 1 to 5.
 - Give an overall verdict:
@@ -68,7 +72,8 @@ Return only valid JSON with this shape:
     "social_pull": 1,
     "variety": 1,
     "consistency": 1,
-    "community_fit": 1
+    "community_fit": 1,
+    "emotional_believability": 1
   },
   "summary": "Short explanation of the verdict.",
   "strengths": [
@@ -89,10 +94,10 @@ Return only valid JSON with this shape:
 - Prefer using the judge after generation, not during generation.
 - Keep the input minimal: title, body, tags, and the immediate thread context are usually enough.
 - If you need stable evaluation over time, keep the prompt unchanged and compare score deltas across runs.
+- For local, no-key validation, use `npm run judge:content-quality` to score the latest posts and comments with the repository's deterministic judge report.
 
 ## Recommended Decision Guide
 
 - `pass` when the text is human-like, thread-worthy, and not repetitive.
-- `needs_revision` when the text is usable but feels generic, flat, or slightly machine-shaped.
+- `needs_revision` when the text is usable but feels generic, flat, emotionally thin, or slightly machine-shaped.
 - `fail` when the text is obviously synthetic, meta, or too repetitive to belong in a real forum thread.
-

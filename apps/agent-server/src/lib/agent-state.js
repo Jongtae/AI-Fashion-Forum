@@ -1,4 +1,8 @@
-import { SAMPLE_AGENT_STATES, createAgentState } from "@ai-fashion-forum/shared-types";
+import {
+  SAMPLE_AGENT_STATES,
+  createAgentState,
+  resolveAuthorIdentity,
+} from "@ai-fashion-forum/shared-types";
 import { getAgentStartupTemplates } from "./agent-startup-state.js";
 
 function toPlainObject(value, fallback = {}) {
@@ -42,6 +46,8 @@ export function hydrateAgentStateRecord(record, fallbackAgent = {}) {
     agent_id: source.agent_id || source.agentId || fallbackAgent.agent_id,
     handle: source.handle || fallbackAgent.handle,
     display_name: source.display_name || fallbackAgent.display_name,
+    avatar_url: source.avatar_url || source.avatarUrl || fallbackAgent.avatar_url || fallbackAgent.avatarUrl,
+    avatar_locale: source.avatar_locale || source.avatarLocale || fallbackAgent.avatar_locale || fallbackAgent.avatarLocale,
     archetype: source.archetype || fallbackAgent.archetype,
     openness: source.openness ?? fallbackAgent.openness ?? 0.5,
     conformity: source.conformity ?? fallbackAgent.conformity ?? 0.5,
@@ -75,6 +81,8 @@ export function buildAgentStateUpdate(agent, { round, tick, exposureSummary } = 
     tick,
     handle: agent.handle,
     display_name: agent.display_name,
+    avatar_url: agent.avatar_url || "",
+    avatar_locale: agent.avatar_locale || "",
     interest_vector: agent.interest_vector || {},
     belief_vector: agent.belief_vector || {},
     openness: agent.openness ?? 0.5,
@@ -115,13 +123,21 @@ export function createSpawnedAgentState({
     ? templates[(seed + round + tick + spawnIndex) % templates.length]
     : null;
   const agentId = getNextSpawnAgentId(existingAgents);
-  const templateHandle = template?.handle || "newvoice";
-  const templateName = template?.display_name || "New Voice";
+  const identity = resolveAuthorIdentity({
+    authorId: agentId,
+    authorType: "agent",
+    displayName: template?.display_name || template?.handle || "New Voice",
+    handle: template?.handle || "",
+    avatarUrl: template?.avatar_url || template?.avatarUrl || "",
+    localeHint: template?.avatar_locale || template?.avatarLocale || "",
+  });
 
   return createAgentState({
     agent_id: agentId,
-    handle: `${templateHandle}_${agentId}`,
-    display_name: `${templateName} ${agentId}`,
+    handle: identity.handle,
+    display_name: identity.displayName,
+    avatar_url: identity.avatarUrl,
+    avatar_locale: identity.avatarLocale,
     archetype: template?.archetype || SAMPLE_AGENT_STATES[0].archetype,
     joined_tick: tick,
     activity_level: Math.min(0.9, Math.max(0.3, (template?.activity_level ?? 0.5) + 0.05)),

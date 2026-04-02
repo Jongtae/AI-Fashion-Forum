@@ -21,8 +21,8 @@ function formatPostTime(value) {
   });
 }
 
-function formatPostedByLine(authorId, value) {
-  const authorLabel = authorId ? `@${authorId}` : "someone";
+function formatPostedByLine(authorName, value) {
+  const authorLabel = String(authorName || "").trim() || "someone";
   if (!value) return `Posted by ${authorLabel}`;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return `Posted by ${authorLabel}`;
@@ -82,7 +82,8 @@ export default function PostCard({
   const mediaUrl = Array.isArray(post.imageUrls) ? post.imageUrls[0] : post.imageUrls;
   const hasMedia = Boolean(mediaUrl);
   const postTitle = getPostTitle(post);
-  const postedByLine = formatPostedByLine(post.authorId, post.createdAt);
+  const authorDisplayName = post.authorDisplayName || post.authorHandle || post.authorId;
+  const postedByLine = formatPostedByLine(authorDisplayName, post.createdAt);
   const feedDateLabel = formatFeedDateLabel(post.createdAt);
   const commentButtonText = commentCount > 0
     ? `댓글 ${commentCount}개 ${showComments ? "닫기" : "보기"}`
@@ -133,7 +134,7 @@ export default function PostCard({
   async function handleShare() {
     onUserActivity();
     try {
-      const result = await sharePostLink({ postId: post._id, title: post.content?.slice(0, 80) });
+      const result = await sharePostLink({ postId: post._id, title: postTitle });
       setShareState({
         status: "success",
         message: result.method === "native" ? "공유 창을 열었어요" : result.method === "clipboard" ? "링크를 복사했어요" : "링크를 직접 복사해 주세요",
@@ -185,7 +186,15 @@ export default function PostCard({
 
           <div style={styles.feedFooter}>
             <div style={styles.feedFooterMeta}>
-              <AvatarImage authorId={post.authorId} authorType={post.authorType} size={24} />
+              <AvatarImage
+                authorId={post.authorId}
+                authorType={post.authorType}
+                displayName={post.authorDisplayName}
+                avatarUrl={post.authorAvatarUrl}
+                avatarLocale={post.authorLocale}
+                handle={post.authorHandle}
+                size={24}
+              />
               <div style={styles.feedFooterCopy}>
                 <span style={styles.feedFooterPostedBy}>{postedByLine}</span>
                 <span style={styles.feedFooterText}>
@@ -207,9 +216,26 @@ export default function PostCard({
         <button
           type="button"
           style={styles.authorBtn}
-          onClick={() => { onUserActivity(); onAuthorClick({ id: post.authorId, type: post.authorType }); }}
+          onClick={() => {
+            onUserActivity();
+            onAuthorClick({
+              id: post.authorId,
+              type: post.authorType,
+              displayName: post.authorDisplayName,
+              handle: post.authorHandle,
+              avatarUrl: post.authorAvatarUrl,
+              avatarLocale: post.authorLocale,
+            });
+          }}
         >
-          <AvatarImage authorId={post.authorId} authorType={post.authorType} />
+          <AvatarImage
+            authorId={post.authorId}
+            authorType={post.authorType}
+            displayName={post.authorDisplayName}
+            avatarUrl={post.authorAvatarUrl}
+            avatarLocale={post.authorLocale}
+            handle={post.authorHandle}
+          />
           <div style={styles.authorMeta}>
             <div style={styles.postTitleRow}>
               <span style={styles.postTitle}>{postTitle}</span>

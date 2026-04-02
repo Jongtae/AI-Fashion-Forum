@@ -22,6 +22,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { resolveAuthorIdentity } from "@ai-fashion-forum/shared-types";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -97,6 +99,7 @@ function deriveBeliefVector(profile) {
 function deriveRecentMemories(profile) {
   const topics = profile.topicalMemory?.dominantTopics || [];
   const references = profile.sourceReferences || [];
+  const voiceNotes = Array.isArray(profile.voiceNotes) ? profile.voiceNotes : [];
   return [
     {
       kind: "topic_summary",
@@ -113,6 +116,14 @@ function deriveRecentMemories(profile) {
       kind: "source_anchor",
       text: references.length > 0 ? `Source sample post: ${references[0].title}` : "No source anchor found.",
     },
+    ...(voiceNotes.length > 0
+      ? [
+          {
+            kind: "style_note",
+            text: voiceNotes[0],
+          },
+        ]
+      : []),
   ];
 }
 
@@ -143,6 +154,14 @@ async function main() {
   const candidates = profiles.map((profile, index) => {
     const seedProfileId = stableString(profile.seedProfileId || profile.sourceAuthorId || `seed-${index + 1}`);
     const topicSummary = profile.topicalMemory?.dominantTopics?.map((topic) => topic.key) || [];
+    const identity = resolveAuthorIdentity({
+      authorId: profile.sourceAuthorId || seedProfileId,
+      authorType: profile.sourceAuthorType || "agent",
+      displayName: profile.displayName || profile.displayLabel || "",
+      handle: profile.handle || "",
+      avatarUrl: profile.avatarUrl || "",
+      localeHint: profile.avatarLocale || profile.localeHint || "",
+    });
 
     return {
       snapshot_id: `init:${seedProfileId}`,
@@ -152,8 +171,10 @@ async function main() {
       source_seed_profile_id: seedProfileId,
       source_author_type: stableString(profile.sourceAuthorType || "agent"),
       archetype: deriveArchetype(profile),
-      handle: stableString(profile.displayLabel || profile.sourceAuthorId || seedProfileId),
-      display_name: stableString(profile.displayLabel || profile.sourceAuthorId || seedProfileId),
+      handle: stableString(identity.handle || profile.displayLabel || profile.sourceAuthorId || seedProfileId),
+      display_name: stableString(identity.displayName || profile.displayLabel || profile.sourceAuthorId || seedProfileId),
+      avatar_url: stableString(identity.avatarUrl || ""),
+      avatar_locale: stableString(identity.avatarLocale || ""),
       seed_axes: profile.seedAxes || {},
       mutable_axes: deriveMutableAxes(profile),
       interest_vector: deriveInterestVector(profile),
@@ -175,8 +196,19 @@ async function main() {
           kind: "topic_memory",
           text: topicSummary.length > 0 ? `Top topics: ${topicSummary.join(", ")}` : "No dominant topic memory yet.",
         },
+        ...(Array.isArray(profile.voiceNotes) && profile.voiceNotes.length > 0
+          ? [
+              {
+                kind: "style_memory",
+                text: profile.voiceNotes[0],
+              },
+            ]
+          : []),
       ],
-      selfNarratives: profile.memoryPromptHints || [],
+      selfNarratives: [
+        ...(profile.memoryPromptHints || []),
+        ...(profile.voiceNotes || []).slice(0, 2),
+      ],
       memoryWritebacks: [],
       exposureSummary: {
         source_post_count: profile.topicalMemory?.totalPosts || 0,
@@ -189,6 +221,8 @@ async function main() {
         responseStyle: profile.behaviorHints?.responseStyle || "selective_response",
         memoryPriority: profile.behaviorHints?.memoryPriority || "topic_weighted",
       },
+      commentStyle: profile.commentStyle || null,
+      voiceNotes: profile.voiceNotes || [],
       rawSnapshot: {
         sourceProfile: profile,
         sourceReferences: profile.sourceReferences || [],

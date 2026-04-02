@@ -35,6 +35,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPLAY_DIR = path.resolve(__dirname, "../../../../data/replays");
 
 const FORUM_SERVER_URL = process.env.FORUM_SERVER_URL || "http://localhost:4000";
+const SIMULATION_OPENAI_API_KEY =
+  process.env.OPENAI_SIMULATION_ENABLED === "true" ? process.env.OPENAI_API_KEY || "" : "";
 
 async function postToForum(urlPath, body) {
   const res = await fetch(`${FORUM_SERVER_URL}${urlPath}`, {
@@ -98,6 +100,7 @@ router.post("/", async (req, res) => {
 
   // ── Step 2: State-driven post generation (after memory writeback) ─────────
   const generatedPosts = [];
+  const recentDraftTexts = [];
   for (const [index, updatedAgent] of runtime.state.agents.entries()) {
     const exposureSample = exposureByAgent[updatedAgent.agent_id];
     const reactions = exposureSample?.reaction_records || [];
@@ -116,18 +119,49 @@ router.post("/", async (req, res) => {
       updatedAgent,
       reactionRecord: selectedReaction,
       contentRecord: selectedContent,
+      styleProfile: updatedAgent?.seed_profile?.comment_style || null,
+      emotionProfile: {
+        ...((updatedAgent?.seed_profile?.emotional_bias || updatedAgent?.seed_profile?.emotion_bias || {})),
+        ...(updatedAgent?.mutable_state?.affect_state?.emotional_bias || {}),
+        dominantEmotion:
+          updatedAgent?.mutable_state?.affect_state?.emotion_signature?.dominantEmotion ||
+          updatedAgent?.seed_profile?.emotion_signature?.dominantEmotion ||
+          selectedReaction?.dominant_feeling ||
+          selectedContent?.emotions?.[0] ||
+          null,
+        secondaryEmotion:
+          updatedAgent?.mutable_state?.affect_state?.emotion_signature?.secondaryEmotion ||
+          updatedAgent?.seed_profile?.emotion_signature?.secondaryEmotion ||
+          selectedReaction?.stance_signal ||
+          null,
+      },
+      comparisonTexts: [
+        ...recentDraftTexts.slice(-8),
+        selectedContent?.title || "",
+        selectedContent?.content || "",
+        selectedContent?.body || "",
+        selectedReaction?.meaning_frame || "",
+        selectedReaction?.stance_signal || "",
+      ].filter(Boolean),
       variationSeed,
+      apiKey: SIMULATION_OPENAI_API_KEY,
     });
 
+    if (draft.content) {
+      recentDraftTexts.push(draft.content);
+    }
     generatedPosts.push({
       post_id: `${runId}:post:${updatedAgent.agent_id}`,
       agent_id: updatedAgent.agent_id,
       handle: updatedAgent.handle,
+      display_name: updatedAgent.display_name,
+      avatar_url: updatedAgent.avatar_url,
+      avatar_locale: updatedAgent.avatar_locale,
       source_content_id: selectedReaction.content_id,
       source_reaction_id: selectedReaction.reaction_id,
       meaning_frame: selectedReaction.meaning_frame,
       stance_signal: selectedReaction.stance_signal,
-      title: null,
+      title: draft.title || null,
       body: draft.content,
       generationContext: draft.generationContext,
       contextPool: draft.contextPool,
@@ -159,9 +193,14 @@ router.post("/", async (req, res) => {
 
     try {
       const result = await postToForum("/api/posts", {
+        title: post.title || null,
         content: post.body,
         authorId: post.agent_id,
         authorType: "agent",
+        authorDisplayName: post.display_name || post.handle || post.agent_id,
+        authorHandle: post.handle || post.display_name || post.agent_id,
+        authorAvatarUrl: post.avatar_url || "",
+        authorLocale: post.avatar_locale || "",
         tags: [post.meaning_frame, post.stance_signal].filter(Boolean),
         generationContext: post.generationContext,
       });
@@ -273,6 +312,9 @@ router.post("/", async (req, res) => {
     agents: finalAgents.map((a) => ({
       agent_id: a.agent_id,
       handle: a.handle,
+      display_name: a.display_name,
+      avatar_url: a.avatar_url || null,
+      avatar_locale: a.avatar_locale || null,
       archetype: a.archetype,
       mutable_state: a.mutable_state ?? null,
       self_narrative: a.self_narrative ?? [],

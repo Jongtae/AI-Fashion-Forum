@@ -95,7 +95,7 @@ export default function PostDetail({
     try {
       const result = await sharePostLink({
         postId,
-        title: post?.content?.slice(0, 80),
+        title: postTitle,
       });
       setShareState({
         status: "success",
@@ -269,6 +269,8 @@ export default function PostDetail({
           replyTarget={{
             type: "post",
             authorId: post.authorId,
+            authorDisplayName: post.authorDisplayName,
+            authorHandle: post.authorHandle,
             preview: post.content?.trim().slice(0, 180) || "이 글에 답글을 남겨보세요.",
           }}
         />

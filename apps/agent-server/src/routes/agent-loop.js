@@ -12,6 +12,7 @@ import {
   createPersistedAgentSnapshot,
   ensureStateCharacterContracts,
   getActionVisibility,
+  resolveAuthorIdentity,
 } from "@ai-fashion-forum/shared-types";
 import {
   agentToMutableAxes,
@@ -32,6 +33,8 @@ import { StoredAction } from "../models/StoredAction.js";
 const router = Router();
 
 const FORUM_SERVER_URL = process.env.FORUM_SERVER_URL || "http://localhost:4000";
+const SIMULATION_OPENAI_API_KEY =
+  process.env.OPENAI_SIMULATION_ENABLED === "true" ? process.env.OPENAI_API_KEY || "" : "";
 
 const KO_TOPIC_LABELS = {
   style: "스타일",
@@ -58,18 +61,97 @@ function localizeTopicLabel(value) {
   return KO_TOPIC_LABELS[value] || value.replace(/_/g, " ");
 }
 
+function normalizeText(value) {
+  return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
+}
+
+function hasFinalConsonant(word = "") {
+  const text = normalizeText(word);
+  if (!text) {
+    return false;
+  }
+
+  const lastChar = text[text.length - 1];
+  const code = lastChar.charCodeAt(0);
+  if (code < 0xac00 || code > 0xd7a3) {
+    return false;
+  }
+
+  return (code - 0xac00) % 28 !== 0;
+}
+
+function normalizeKoreanParticlePairs(text = "") {
+  return normalizeText(text).replace(
+    /([A-Za-z0-9가-힣]+)(은\(는\)|는\(은\)|이\(가\)|가\(이\)|을\(를\)|를\(을\)|과\(와\)|와\(과\)|으로\(로\)|로\(으로\))/g,
+    (_, word, pair) => {
+      const hasBatchim = hasFinalConsonant(word);
+      const resolved = {
+        "은(는)": hasBatchim ? "은" : "는",
+        "는(은)": hasBatchim ? "은" : "는",
+        "이(가)": hasBatchim ? "이" : "가",
+        "가(이)": hasBatchim ? "이" : "가",
+        "을(를)": hasBatchim ? "을" : "를",
+        "를(을)": hasBatchim ? "을" : "를",
+        "과(와)": hasBatchim ? "과" : "와",
+        "와(과)": hasBatchim ? "과" : "와",
+        "으로(로)": hasBatchim ? "으로" : "로",
+        "로(으로)": hasBatchim ? "으로" : "로",
+      }[pair];
+      return `${word}${resolved || ""}`;
+    }
+  );
+}
+
+function sanitizeAgentText(value) {
+  return normalizeKoreanParticlePairs(value)
+    .replace(/이 에이전트가/g, "")
+    .replace(/현재 주제 흐름/g, "")
+    .replace(/\b이 사람이\b/g, "저는")
+    .replace(/\b이 사람은\b/g, "저는")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function buildKoreanTargetContent({ agent, entry }) {
   const interestTopics = agent?.interest_vector ? Object.keys(agent.interest_vector).slice(0, 3) : [];
   const localizedTopics = interestTopics.length
-    ? interestTopics.map(localizeTopicLabel)
+    ? [...new Set(interestTopics.map(localizeTopicLabel))]
     : ["스타일", "코디"];
+  const reasonText = sanitizeAgentText(entry?.reason) || "이번 신호를 다시 읽어봤다.";
+  const primaryTopic = localizedTopics[0] || "스타일";
+  const secondaryTopic = localizedTopics[1] || localizedTopics[0] || "코디";
+  const tertiaryTopic = localizedTopics[2] || secondaryTopic;
+  const titleVariants = [
+    `${primaryTopic} 흐름을 다시 읽는 중`,
+    `${primaryTopic}와 ${secondaryTopic}를 같이 본 메모`,
+    `${primaryTopic}를 읽고 남긴 짧은 메모`,
+    `오늘의 ${primaryTopic} 관찰`,
+    `${primaryTopic}와 ${tertiaryTopic} 사이에서 보인 차이`,
+  ];
+  const bodyVariants = [
+    reasonText || `${primaryTopic}와 ${secondaryTopic}를 함께 놓고 다시 봤다.`,
+    `${primaryTopic}를 먼저 보고 나서 ${secondaryTopic}까지 이어서 읽어봤다.`,
+    `${secondaryTopic} 쪽 신호도 같이 보니까 판단이 조금 달라졌다.`,
+    `${primaryTopic}만 볼 때와 ${primaryTopic} + ${tertiaryTopic}를 같이 볼 때의 느낌이 다르다.`,
+    `${reasonText} ${primaryTopic} 중심으로 다시 정리해둔다.`,
+  ];
+  const titleSeed = stringSeed(agent?.agent_id, entry?.action_id, entry?.reason, "title");
+  const bodySeed = stringSeed(agent?.agent_id, entry?.action_id, entry?.reason, "body");
 
   return {
-    title: "최근 패션 흐름",
-    body: entry?.reason || "",
+    title: titleVariants[Math.abs(titleSeed) % titleVariants.length],
+    body: bodyVariants[Math.abs(bodySeed) % bodyVariants.length],
     topics: localizedTopics,
     emotions: ["호기심"],
   };
+}
+
+function stringSeed(...parts) {
+  return parts
+    .filter(Boolean)
+    .join(":")
+    .split("")
+    .reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
 }
 
 // ── Forum server HTTP client ──────────────────────────────────────────────────
@@ -100,6 +182,7 @@ async function forumGet(path) {
 
 let currentWorld = null;
 let currentRound = 0;
+const recentDraftTexts = [];
 
 function buildInitialState() {
   const startupSnapshot = loadAgentStartupStateSnapshot();
@@ -202,26 +285,53 @@ router.post("/tick", async (req, res) => {
     const agent =
       (result.finalState?.agents || worldWithCharacters.agents || []).find(
         (a) => a.agent_id === entry.actor_id
-      ) || { agent_id: entry.actor_id, handle: entry.actor_id };
+      ) || resolveAuthorIdentity({ authorId: entry.actor_id, authorType: "agent" });
 
     if (entry.action === "post") {
       let content;
       try {
         const targetContent = buildKoreanTargetContent({ agent, entry });
-        const draft = await createLivePostDraft({
-          agent,
-          targetContent,
-          sourceSignal: entry.reason || `${entry.action} at tick ${entry.tick}`,
+          const draft = await createLivePostDraft({
+            agent,
+            targetContent,
+            sourceSignal: sanitizeAgentText(entry.reason || `${entry.action} at tick ${entry.tick}`),
+            styleProfile: agent?.seed_profile?.comment_style || null,
+            emotionProfile: {
+              ...((agent?.seed_profile?.emotional_bias || agent?.seed_profile?.emotion_bias || {})),
+              ...(agent?.mutable_state?.affect_state?.emotional_bias || {}),
+              dominantEmotion:
+                agent?.mutable_state?.affect_state?.emotion_signature?.dominantEmotion ||
+                agent?.seed_profile?.emotion_signature?.dominantEmotion ||
+                entry?.dominant_feeling ||
+                targetContent?.emotions?.[0] ||
+                null,
+              secondaryEmotion:
+                agent?.mutable_state?.affect_state?.emotion_signature?.secondaryEmotion ||
+                agent?.seed_profile?.emotion_signature?.secondaryEmotion ||
+                entry?.stance_signal ||
+                null,
+            },
+            comparisonTexts: [
+              ...recentDraftTexts.slice(-8),
+              targetContent?.title || "",
+            targetContent?.body || "",
+            ...(targetContent?.topics || []),
+            entry.reason || "",
+          ].filter(Boolean),
           variationSeed: seed + round + entry.tick,
+          apiKey: SIMULATION_OPENAI_API_KEY,
         });
-        content = draft.content || entry.reason || `${agent.handle || agent.agent_id}가 새 글을 올렸다.`;
+        content = draft.content || entry.reason || "새 글을 올렸다.";
+        if (content) {
+          recentDraftTexts.push(content);
+        }
         artifactResults.set(entry.action_id, {
           artifactId: null,
           artifactType: "post",
           generationContext: draft.generationContext,
         });
       } catch {
-        content = entry.reason || `${agent.handle || agent.agent_id}가 새 글을 올렸다.`;
+        content = entry.reason || "새 글을 올렸다.";
       }
 
       if (!writeForumArtifacts) {
@@ -236,9 +346,14 @@ router.post("/tick", async (req, res) => {
 
       try {
         const post = await forumPost("/api/posts", {
+          title: draft.title || null,
           content,
           authorId: entry.actor_id,
           authorType: "agent",
+          authorDisplayName: agent.display_name || agent.displayName || agent.handle || entry.actor_id,
+          authorHandle: agent.handle || agent.display_name || entry.actor_id,
+          authorAvatarUrl: agent.avatar_url || agent.avatarUrl || "",
+          authorLocale: agent.avatar_locale || agent.avatarLocale || "",
           tags: agent.interest_vector ? Object.keys(agent.interest_vector).slice(0, 3) : [],
           agentRound: round,
           agentTick: entry.tick,
@@ -268,13 +383,23 @@ router.post("/tick", async (req, res) => {
     } else if (entry.action === "comment") {
       // Find a recent agent post to comment on via forum-server
       try {
-        const feedResult = await forumGet("/api/posts?limit=1&authorType=agent");
-        const recentPost = feedResult?.posts?.[0];
+        const feedResult = await forumGet("/api/posts?limit=5&authorType=agent");
+        const recentPosts = Array.isArray(feedResult?.posts) ? feedResult.posts : [];
+        const recentPost = recentPosts.length
+          ? recentPosts[(seed + round + entry.tick) % recentPosts.length]
+          : null;
         if (recentPost) {
           const recentComments = await forumGet(`/api/posts/${recentPost._id}/comments`);
           const eligibleComments = (Array.isArray(recentComments) ? recentComments : []).filter(
             (comment) => comment.authorId !== entry.actor_id
           );
+          const comparisonTexts = [
+            ...recentDraftTexts.slice(-8),
+            ...recentPosts.flatMap((post) => [post.title || "", post.content || ""]),
+            ...eligibleComments.map((comment) => comment.content || ""),
+            recentPost.title || "",
+            recentPost.content || "",
+          ].filter(Boolean);
           const replyTargetComment =
             eligibleComments.length > 0
               ? eligibleComments[(seed + round + entry.tick) % eligibleComments.length]
@@ -287,14 +412,40 @@ router.post("/tick", async (req, res) => {
               topics: (recentPost.tags || []).map(localizeTopicLabel),
             },
             targetComment: replyTargetComment,
-            sourceSignal: entry.reason || `${entry.action} at tick ${entry.tick}`,
-            variationSeed: seed + round + entry.tick,
+            sourceSignal: sanitizeAgentText(entry.reason || `${entry.action} at tick ${entry.tick}`),
+            styleProfile: agent?.seed_profile?.comment_style || null,
+            emotionProfile: {
+              ...((agent?.seed_profile?.emotional_bias || agent?.seed_profile?.emotion_bias || {})),
+              ...(agent?.mutable_state?.affect_state?.emotional_bias || {}),
+              dominantEmotion:
+                agent?.mutable_state?.affect_state?.emotion_signature?.dominantEmotion ||
+                agent?.seed_profile?.emotion_signature?.dominantEmotion ||
+                entry?.dominant_feeling ||
+                replyTargetComment?.emotions?.[0] ||
+                null,
+              secondaryEmotion:
+                agent?.mutable_state?.affect_state?.emotion_signature?.secondaryEmotion ||
+                agent?.seed_profile?.emotion_signature?.secondaryEmotion ||
+                entry?.stance_signal ||
+                null,
+            },
+            comparisonTexts,
+            variationSeed:
+              seed +
+              round +
+              entry.tick +
+              stringSeed(entry.actor_id, recentPost._id, replyTargetComment?._id || "post"),
+            apiKey: SIMULATION_OPENAI_API_KEY,
           });
           const replyPayload = {
             content:
-              draft.content || entry.reason || `${agent.handle || entry.actor_id}가 답글을 남겼다.`,
+              draft.content || entry.reason || "짧게 답을 남겼다.",
             authorId: entry.actor_id,
             authorType: "agent",
+            authorDisplayName: agent.display_name || agent.displayName || agent.handle || entry.actor_id,
+            authorHandle: agent.handle || agent.display_name || entry.actor_id,
+            authorAvatarUrl: agent.avatar_url || agent.avatarUrl || "",
+            authorLocale: agent.avatar_locale || agent.avatarLocale || "",
             agentRound: round,
             agentTick: entry.tick,
             generationContext: draft.generationContext ?? null,
@@ -313,6 +464,9 @@ router.post("/tick", async (req, res) => {
             replyPayload.replyTargetPreview = recentPost.content?.slice(0, 180) || "";
           }
 
+          if (draft.content) {
+            recentDraftTexts.push(draft.content);
+          }
           if (!writeForumArtifacts) {
             artifactResults.set(entry.action_id, {
               executionStatus: "blocked",

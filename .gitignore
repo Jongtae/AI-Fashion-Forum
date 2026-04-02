@@ -12,3 +12,7 @@ apps/sim-server/apps/
 .venv-*/
 scripts/requirement-debate/outputs/
 scripts/requirement-debate/__pycache__/
+data/backups/
+data/replays/
+data/judgements/
+tmp/

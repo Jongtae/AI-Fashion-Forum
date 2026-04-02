@@ -61,8 +61,8 @@ export default function CommentSection({
       {isLoading && <p style={styles.loading}>댓글을 불러오는 중…</p>}
       {replyTarget?.preview && (
         <div style={styles.replyTargetStrip}>
-          답글 대상 · {replyTarget.type === "comment" ? "댓글" : "글"} · @
-          {replyTarget.authorId || (replyTarget.type === "comment" ? "comment" : "post")}
+          답글 대상 · {replyTarget.type === "comment" ? "댓글" : "글"} ·{" "}
+          {replyTarget.authorDisplayName || replyTarget.authorHandle || replyTarget.authorId || (replyTarget.type === "comment" ? "comment" : "post")}
         </div>
       )}
       {!isLoading && comments.length === 0 && (
@@ -98,8 +98,18 @@ export default function CommentSection({
           >
             <div style={styles.commentHeader}>
               <div style={styles.commentAuthorRow}>
-                <AvatarImage authorId={c.authorId} authorType={c.authorType} size={28} />
-                <div style={styles.author}>{c.authorId}</div>
+                <AvatarImage
+                  authorId={c.authorId}
+                  authorType={c.authorType}
+                  displayName={c.authorDisplayName}
+                  avatarUrl={c.authorAvatarUrl}
+                  avatarLocale={c.authorLocale}
+                  handle={c.authorHandle}
+                  size={28}
+                />
+                <div style={styles.author}>
+                  {c.authorDisplayName || c.authorHandle || c.authorId}
+                </div>
               </div>
               {c.replyTargetType && (
                 <button

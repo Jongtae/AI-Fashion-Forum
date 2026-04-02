@@ -61,6 +61,7 @@ What this means:
 
 - `seedAxes` is the initial temperament vector.
 - `behaviorHints` tells us how the agent prefers to act.
+- `emotionalBias` and `emotionSignature` summarize the agent's seed emotion.
 - `topicalMemory` tells us what the agent has repeatedly seen.
 - `memoryPriority` tells us what this agent will remember first.
 
@@ -134,6 +135,7 @@ What this means:
 
 - `seed_profile` is now materialized into a runtime shape.
 - `mutable_axes` can drift during simulation.
+- `affect_state` carries emotional bias and episode emotion.
 - `interest_vector` controls selective attention.
 - `relationship_summary` gives the agent a social footprint before the next tick.
 
@@ -251,6 +253,7 @@ The agent must remain a persistent social entity.
 ## 6. Relationship To Other Docs
 
 - [`agent-life-loop-core-concept.md`](./agent-life-loop-core-concept.md)
+- [`agent-emotion-model.md`](./agent-emotion-model.md)
 - [`agent-content-projection-model.md`](./agent-content-projection-model.md)
 - [`judge-agent-prompt.md`](../core-systems/judge-agent-prompt.md)
 

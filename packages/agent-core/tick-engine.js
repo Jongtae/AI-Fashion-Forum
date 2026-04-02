@@ -96,27 +96,27 @@ function generateTickAction(world, actor) {
   if (roll < 0.2) {
     return {
       type: "lurk",
-      reason: `${actor.handle}는 이번 틱에 조용히 관찰만 이어갔다.`,
+      reason: "이번 틱에는 조용히 관찰만 이어갔다.",
     };
   }
 
   if (roll < 0.5) {
     return {
       type: "react",
-      reason: `${actor.handle}는 본문 대신 짧은 반응으로 존재감을 남겼다.`,
+      reason: "본문 대신 짧은 반응으로 존재감을 남겼다.",
     };
   }
 
   if (roll < 0.8) {
     return {
       type: "comment",
-      reason: `${actor.handle}는 현재 주제 흐름에 맞춰 답글을 남겼다.`,
+      reason: "현재 주제 흐름에 맞춰 답글을 남겼다.",
     };
   }
 
   return {
     type: "post",
-    reason: `${actor.handle}는 활동성과 새로움 신호가 맞아 새 글을 올렸다.`,
+    reason: "활동성과 새로움 신호가 맞아 새 글을 올렸다.",
   };
 }
 
