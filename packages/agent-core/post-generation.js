@@ -794,7 +794,7 @@ function buildOpenAIPrompt({
   const promptTitle = localizeSourceLabel(sourceTitle, "이 글");
   const sourceTopicText = Array.isArray(sourceTopics) && sourceTopics.length
     ? uniqueNormalizedList(sourceTopics.map(localizeTopicLabel)).join(", ")
-    : "일반 포럼 신호";
+    : "이번 글";
   const promptSignal = localizeSourceLabel(sourceSignal, "이 신호");
   const promptSnippet = isKoreanDominant(sourceSnippet)
     ? normalizeText(sourceSnippet)
@@ -868,7 +868,7 @@ function buildFallbackContexts({
   const displayTitle = localizeSourceLabel(title, "이 글");
   const topics = Array.isArray(sourceTopics) && sourceTopics.length
     ? joinKoreanTopicList(sourceTopics.map(localizeTopicLabel))
-    : "일반 포럼 신호";
+    : "이번 글";
   const normalizedSignal = sanitizeForumLanguage(sourceSignal);
   const baseSignal =
     normalizedSignal && normalizedSignal.length <= 10 && !/[\s.?!]/.test(normalizedSignal)
