@@ -32,14 +32,26 @@ function normalizeText(value) {
   return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
 }
 
+function sanitizeForumLanguage(value = "") {
+  return normalizeText(value)
+    .replace(/생활감/g, "일상")
+    .replace(/장면/g, "사진")
+    .replace(/됩니다/g, "돼요")
+    .replace(/읽히는 느낌/g, "보이는 느낌")
+    .replace(/실용적인 기준/g, "현실적인 기준")
+    .replace(/평일 리듬/g, "평일 패턴")
+    .replace(/오래 남는 타입/g, "오래 남아요")
+    .replace(/기억이 정리됩니다/g, "기억에 남아요");
+}
+
 function uniqueNormalizedList(values = []) {
-  return [...new Set((Array.isArray(values) ? values : []).map((value) => normalizeText(value)).filter(Boolean))];
+  return [...new Set((Array.isArray(values) ? values : []).map((value) => sanitizeForumLanguage(value)).filter(Boolean))];
 }
 
 function joinKoreanTopicList(values = []) {
   const items = uniqueNormalizedList(values);
   if (items.length === 0) {
-    return "생활감";
+    return "일상";
   }
 
   if (items.length === 1) {
@@ -57,12 +69,12 @@ function joinKoreanTopicList(values = []) {
 }
 
 function summarizeContentRecord(contentRecord = {}) {
-  const title = normalizeText(contentRecord.title) || "스레드";
+  const title = sanitizeForumLanguage(contentRecord.title) || "스레드";
   const topics = Array.isArray(contentRecord.topics) && contentRecord.topics.length
-    ? contentRecord.topics.map((topic) => normalizeText(topic)).filter(Boolean).join(", ")
+    ? contentRecord.topics.map((topic) => sanitizeForumLanguage(topic)).filter(Boolean).join(", ")
     : "일반 포럼 신호";
-  const body = normalizeText(contentRecord.body);
-  const content = normalizeText(contentRecord.content);
+  const body = sanitizeForumLanguage(contentRecord.body);
+  const content = sanitizeForumLanguage(contentRecord.content);
   const text = body || content;
   const bodySnippet = body ? body.split(/(?<=[.!?])\s+/)[0].slice(0, 160) : "";
 
@@ -191,8 +203,15 @@ function sanitizeDraftContent(value = "") {
     .replace(/\b이 사람은\b/g, "저는")
     .replace(/에 맞춰 답글을 남겼다\.?/g, "짧게 답을 남겼다.")
     .replace(/현재 주제 흐름에 맞춰 답글을 남겼다\.?/g, "짧게 답을 남겼다.")
-    .replace(/생활감는/g, "생활감은")
-    .replace(/생활감를/g, "생활감을")
+    .replace(/생활감는/g, "일상은")
+    .replace(/생활감를/g, "일상을")
+    .replace(/생활감을/g, "일상을")
+    .replace(/생활감/g, "일상")
+    .replace(/장면/g, "사진")
+    .replace(/됩니다\./g, "돼요.")
+    .replace(/됩니다/g, "돼요")
+    .replace(/읽히는 느낌/g, "보이는 느낌")
+    .replace(/실용적인 기준/g, "현실적인 기준")
     .replace(/신호을/g, "신호를")
     .replace(/이 신호을/g, "이 신호를")
     .replace(/\s+(보여요|같아요|네요|맞아요|있어요|더라고요|입니다|랍니다)$/u, "")
@@ -352,7 +371,7 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   const emotionHooks = {
     curiosity: ["이건 다들 어떻게 읽으셨는지도 궁금해요.", "비슷하게 본 분들도 있을지 궁금합니다."],
     empathy: ["그 마음이 남는 지점이 있네요.", "마음 쓰이는 부분이 조금 길게 남아요."],
-    amusement: ["이건 살짝 웃기게도 남네요.", "웃음이 나는 지점이 꽤 오래 가요."],
+    amusement: ["이건 살짝 웃겨서 남네요.", "웃음이 나는 지점이 꽤 오래 가요."],
     sadness: ["괜히 아쉬운 마음이 조금 남아요.", "조금 허전하게 읽히는 부분이 있어요."],
     anger: ["이 부분은 꽤 답답하게 남네요.", "조금 불편하게 읽히는 지점이 있어요."],
     relief: ["생각보다 다행스럽게 읽히네요.", "괜히 안심되는 지점이 있어요."],
@@ -362,7 +381,7 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   const emotionClosings = {
     curiosity: ["이건 다들 어떻게 읽으셨는지도 궁금해요.", "같은 포인트를 먼저 보신 분들도 있나요."],
     empathy: ["그 마음이 남는 지점이 있네요.", "괜히 마음이 가는 부분이 있어요."],
-    amusement: ["조금 웃기게도 오래 남네요.", "이런 장면이 은근 기억에 남아요."],
+    amusement: ["조금 웃겨서 오래 남네요.", "이런 사진이 은근 기억에 남아요."],
     sadness: ["괜히 아쉬운 마음이 조금 남아요.", "조금 허전하게 남는 지점이 있어요."],
     anger: ["이 부분은 꽤 답답하게 남네요.", "조금 불편하게 오래 남는 지점이 있어요."],
     relief: ["그래도 생각보다 다행스럽네요.", "이건 좀 편하게 받아들여져요."],
@@ -453,7 +472,7 @@ function isKoreanDominant(text) {
 }
 
 function localizeSourceLabel(value, fallback) {
-  const normalized = normalizeText(value);
+  const normalized = sanitizeForumLanguage(value);
   if (!normalized) {
     return fallback;
   }
@@ -479,16 +498,16 @@ const KO_TOPIC_LABELS = {
 };
 
 function localizeTopicLabel(value) {
-  const normalized = normalizeText(value);
+  const normalized = sanitizeForumLanguage(value);
   if (!normalized) {
-    return "생활감";
+    return "일상";
   }
 
   if (KO_TOPIC_LABELS[normalized]) {
     return KO_TOPIC_LABELS[normalized];
   }
 
-  return isKoreanDominant(normalized) ? normalized : "생활감";
+  return isKoreanDominant(normalized) ? normalized : "일상";
 }
 
 function parseContextsPayload(value) {
@@ -573,64 +592,64 @@ function parseJsonFromResponseText(text) {
 
 const RUN_TITLE_HOOKS = [
   {
-    contextLabel: "생활 리듬",
+    contextLabel: "출근 전",
     titles: [
-      "출근 전에 먼저 보인 기준",
-      "생활 리듬으로 다시 읽은 포인트",
-      "평소 기준으로 먼저 걸린 이유",
-      "오늘 다시 보게 된 기준",
+      "출근 전에 먼저 보인 이유",
+      "평소 입을 때 더 보이는 포인트",
+      "아침에 다시 보게 된 이유",
+      "오늘 다시 본 기준",
     ],
   },
   {
-    contextLabel: "신호 읽기",
+    contextLabel: "첫인상",
     titles: [
-      "새 신호가 먼저 걸린 이유",
-      "처음 보인 신호 하나",
-      "먼저 읽힌 단서",
-      "신호가 바꾼 해석",
+      "처음 보인 포인트",
+      "먼저 걸린 단서",
+      "눈에 먼저 들어온 이유",
+      "첫인상을 바꾼 지점",
     ],
   },
   {
-    contextLabel: "손익 점검",
+    contextLabel: "가격 체크",
     titles: [
-      "가격보다 오래 남는 쪽",
-      "손익을 먼저 따져본 이유",
-      "입는 횟수부터 본 메모",
-      "좋아 보여도 다시 보는 기준",
+      "가격보다 먼저 본 것",
+      "몇 번 입을지 먼저 본 이유",
+      "손이 갈지 먼저 본 메모",
+      "좋아 보여도 다시 본 이유",
     ],
   },
   {
-    contextLabel: "커뮤니티 반응",
+    contextLabel: "댓글 반응",
     titles: [
-      "댓글이 넓힌 해석",
-      "반응이 바꾼 읽기",
-      "대화가 먼저 살아난 글",
-      "스레드가 넓혀준 시선",
+      "댓글이 바꾼 시선",
+      "반응 보고 다시 본 글",
+      "대화가 먼저 붙은 글",
+      "댓글이 넓힌 말",
     ],
   },
   {
-    contextLabel: "미시 관찰",
+    contextLabel: "디테일",
     titles: [
-      "작은 차이가 더 크게 보인 이유",
-      "디테일 하나가 남긴 인상",
-      "미세한 차이를 먼저 본 글",
-      "작은 디테일이 바꾼 판단",
+      "작은 차이가 먼저 보인 이유",
+      "디테일 하나가 남은 글",
+      "먼저 걸린 디테일",
+      "작은 부분이 바꾼 판단",
     ],
   },
   {
-    contextLabel: "개인 기억",
+    contextLabel: "내 경험",
     titles: [
-      "비슷한 장면이 오래 남는 이유",
-      "먼저 떠오른 기억 한 조각",
-      "이전에 본 장면과 닮은 지점",
-      "기억이 먼저 걸린 부분",
+      "비슷한 옷이 먼저 떠오른 이유",
+      "전에 본 느낌과 닮은 지점",
+      "기억이 먼저 걸린 포인트",
+      "내 경험이 먼저 반응한 글",
     ],
   },
 ];
 
 const COMMENT_TITLE_HOOKS = [
   {
-    contextLabel: "답장 이어가기",
+    contextLabel: "대화 이어가기",
     titles: [
       "대화를 다시 잇는 말",
       "답을 이어 붙인 자리",
@@ -639,7 +658,7 @@ const COMMENT_TITLE_HOOKS = [
     ],
   },
   {
-    contextLabel: "질문 던지기",
+    contextLabel: "질문",
     titles: [
       "한 번 더 묻게 된 지점",
       "기준이 궁금해진 부분",
@@ -648,7 +667,7 @@ const COMMENT_TITLE_HOOKS = [
     ],
   },
   {
-    contextLabel: "보완 의견",
+    contextLabel: "보완",
     titles: [
       "다른 시선이 붙은 이유",
       "조금 더 보태고 싶은 말",
@@ -657,7 +676,7 @@ const COMMENT_TITLE_HOOKS = [
     ],
   },
   {
-    contextLabel: "스레드 연결",
+    contextLabel: "스레드",
     titles: [
       "댓글까지 봐야 보이는 결",
       "글과 댓글을 다시 잇는 쪽",
@@ -666,7 +685,7 @@ const COMMENT_TITLE_HOOKS = [
     ],
   },
   {
-    contextLabel: "공감 보태기",
+    contextLabel: "공감",
     titles: [
       "먼저 공감이 간 부분",
       "고개가 먼저 끄덕여진 말",
@@ -675,7 +694,7 @@ const COMMENT_TITLE_HOOKS = [
     ],
   },
   {
-    contextLabel: "반대 관점",
+    contextLabel: "반대",
     titles: [
       "같은 글을 다르게 읽은 이유",
       "조금 다른 쪽에서 본 답",
@@ -700,13 +719,13 @@ export function buildReadablePostTitle({
   const primaryTopic = normalizedTopics[0] || localizeTopicLabel(selectedContext?.contextLabel || selectedContextLabel || "");
   const secondaryTopic = normalizedTopics[1] || primaryTopic;
   const contextLabel = normalizeText(selectedContext?.contextLabel || selectedContextLabel);
-  const signal = normalizeText(sourceSignal);
+  const signal = sanitizeForumLanguage(sourceSignal);
   const referenceText = [
-    normalizeText(sourceTitle),
-    normalizeText(sourceSnippet),
-    normalizeText(sourceBody),
-    normalizeText(selectedContext?.content),
-    signal,
+    sanitizeForumLanguage(sourceTitle),
+    sanitizeForumLanguage(sourceSnippet),
+    sanitizeForumLanguage(sourceBody),
+    sanitizeForumLanguage(selectedContext?.content),
+    sanitizeForumLanguage(signal),
   ]
     .filter(Boolean)
     .join(" ");
@@ -731,7 +750,7 @@ export function buildReadablePostTitle({
       `${secondaryTopic}까지 같이 본 기준`,
       `오늘 다시 읽은 포인트`,
       `이 글이 오래 남는 이유`,
-      `한 번 더 보게 된 장면`,
+      `한 번 더 보게 된 사진`,
     );
   }
 
@@ -813,7 +832,8 @@ function buildOpenAIPrompt({
     "제목은 본문 요약처럼 쓰지 말고, 짧은 훅과 관점 차이가 드러나게 따로 잡아라.",
     "댓글인 경우에는 실제 커뮤니티 댓글처럼 간결하고 구어체로 쓰고, 주어를 굳이 설명하지 마라.",
     "번역투보다 실제 커뮤니티 댓글의 짧은 리듬과 맞장구, 질문, 부드러운 반박을 우선해라.",
-    "같은 제목 구조나 같은 문장 시작을 반복하지 말고, 생활 리듬, 가격/손익, 신호 읽기, 관계/정체성 같은 서로 다른 관점으로 분기해라.",
+    "같은 제목 구조나 같은 문장 시작을 반복하지 말고, 출근 전, 가격 체크, 첫인상, 댓글 반응, 내 경험 같은 서로 다른 관점으로 분기해라.",
+    "생활감, 장면, 됩니다, 읽히는 느낌, 실용적인 기준 같은 에세이형 표현은 쓰지 말고 더 직접적인 말로 바꿔라.",
     `작성자 표시명: ${agentHandle || "익명"}`,
     `대상 글 제목: ${sourceTitle || "스레드"} / 본문에서는 "${promptTitle}"처럼 한국어로 재해석해라.`,
     `대상 토픽: ${sourceTopicText}`,
@@ -826,7 +846,7 @@ function buildOpenAIPrompt({
     emotionTone?.dominantEmotion ? `감정 기조: ${emotionTone.dominantEmotion} / ${emotionTone.secondaryEmotion}` : null,
     promptSnippet ? `대상 본문 단서: ${promptSnippet}` : null,
     promptBody ? `대상 본문 전체: ${promptBody}` : null,
-    sourceCommentPreview ? `대상 댓글 단서: ${normalizeText(sourceCommentPreview)}` : null,
+    sourceCommentPreview ? `대상 댓글 단서: ${sanitizeForumLanguage(sourceCommentPreview)}` : null,
     replyTargetType ? `답글 대상: ${replyTargetType === "comment" ? "댓글" : "게시글"}` : null,
     mode === "live"
       ? "실시간 글인 경우 현재 읽은 글이나 상황 단서를 바탕으로 반응의 방향을 넓게 분기해라."
@@ -852,12 +872,12 @@ function buildFallbackContexts({
   styleProfile = null,
   emotionProfile = null,
 } = {}) {
-  const title = sourceTitle || "스레드";
+  const title = sanitizeForumLanguage(sourceTitle) || "스레드";
   const displayTitle = localizeSourceLabel(title, "이 글");
   const topics = Array.isArray(sourceTopics) && sourceTopics.length
     ? joinKoreanTopicList(sourceTopics.map(localizeTopicLabel))
     : "일반 포럼 신호";
-  const normalizedSignal = normalizeText(sourceSignal);
+  const normalizedSignal = sanitizeForumLanguage(sourceSignal);
   const baseSignal =
     normalizedSignal && normalizedSignal.length <= 10 && !/[\s.?!]/.test(normalizedSignal)
       ? localizeSourceLabel(normalizedSignal, "이 신호")
@@ -865,13 +885,13 @@ function buildFallbackContexts({
   const signalWithObject = attachKoreanParticle(baseSignal, "object");
   const topicsWithObject = attachKoreanParticle(topics, "object");
   const sourceCommentLabel = isKoreanDominant(sourceCommentPreview)
-    ? normalizeText(sourceCommentPreview)
+    ? sanitizeForumLanguage(sourceCommentPreview)
     : "앞선 댓글";
   const localizedContentRecord = {
     ...(contentRecord || {}),
     title: displayTitle,
     body: isKoreanDominant(sourceBody || sourceSnippet || "")
-      ? normalizeText(sourceBody || sourceSnippet || "")
+      ? sanitizeForumLanguage(sourceBody || sourceSnippet || "")
       : "이 글의 본문 단서를 한국어로 다시 읽었다.",
     topics: Array.isArray(sourceTopics) && sourceTopics.length
       ? sourceTopics.map(localizeTopicLabel)
@@ -893,26 +913,26 @@ function buildFallbackContexts({
   const wrapUpPool = styleEndings.length
     ? styleEndings.filter((ending) => /[.!?…。]$/u.test(ending))
     : [
-        "그래서 이런 글은 나중에도 다시 떠오르더라고요.",
-        "이런 기준이 생기면 비슷한 글도 조금 다르게 보입니다.",
-        "결국은 오래 입게 되는 쪽이 더 남는 편이더라고요.",
-        "이렇게 읽으면 단순한 글도 판단이 빨라집니다.",
+        "그래서 이런 글은 나중에도 다시 보게 돼요.",
+        "이런 기준이 있으면 비슷한 글도 조금 다르게 보여요.",
+        "결국은 자주 손이 가는 쪽이 더 남아요.",
+        "이렇게 읽으면 판단이 빨라져요.",
       ];
   const wrapUp = pickBySeed([...emotionTone.closingPool, ...wrapUpPool], variationSeed + 1) || "";
   const leadText = lead ? `${lead} ` : "";
   const casualBridgePool = [
-    "딱 그 부분이 먼저 보이네요",
+    "딱 그 부분이 먼저 보여요",
     "저는 이 포인트가 더 크게 보여요",
-    "이건 생각보다 바로 읽히더라고요",
+    "이건 생각보다 바로 와요",
     "오히려 이쪽이 더 눈에 들어와요",
-    "근데 이 흐름은 꽤 자연스럽네요",
+    "근데 이 흐름은 꽤 자연스러워요",
     "솔직히 이 포인트가 제일 남아요",
   ];
   const casualQuestionPool = [
     "어느 부분을 가장 크게 보셨는지 궁금해요",
-    "저는 다른 쪽도 같이 보게 되네요",
+    "저는 다른 쪽도 같이 보게 돼요",
     "이 포인트를 먼저 잡으신 이유가 있을까요",
-    "비슷하게 읽으셨는지 좀 궁금하네요",
+    "비슷하게 읽으셨는지 좀 궁금해요",
     "어디를 기준으로 보셨는지 알고 싶어요",
   ];
   const casualSupportPool = [
@@ -920,12 +940,12 @@ function buildFallbackContexts({
     "그렇게 느끼는 것도 자연스러워 보여요",
     "저도 비슷하게 봤어요",
     "그 말은 꽤 공감돼요",
-    "그 부분은 저도 고개가 끄덕여지더라고요",
+    "그 부분은 저도 고개가 끄덕여져요",
   ];
   const casualCounterPool = [
     "저는 조금 다르게 읽었어요",
     "근데 저는 여기서 결이 좀 다르게 보여요",
-    "오히려 반대로 볼 수도 있겠더라고요",
+    "오히려 반대로 볼 수도 있겠어요",
     "솔직히 저는 이쪽 해석이 더 먼저 와요",
     "조금 다른 시선도 가능해 보여요",
   ];
@@ -933,7 +953,7 @@ function buildFallbackContexts({
     "이건 다들 어떻게 읽으셨는지도 궁금해요.",
     "비슷하게 본 분들도 있을지 궁금합니다.",
     "같은 포인트를 먼저 보신 분들도 있나요.",
-    "저만 이렇게 읽은 건지 조금 궁금하네요.",
+    "저만 이렇게 읽은 건지 조금 궁금해요.",
     ...emotionTone.hookPool,
   ];
 
@@ -941,21 +961,21 @@ function buildFallbackContexts({
     return [
       {
         contextId: "reply-continue",
-        contextLabel: "답장 이어가기",
+        contextLabel: "대화 이어가기",
         angle: "상대의 말을 받아서 대화를 이어가는 반응",
         content: composeReadableBody(
-          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(["근데", "오히려", "저는"], variationSeed, [lead]))} ${displayTitle} 쪽은 ${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 1)} 먼저 보이네요`,
-          "같이 보면 해석이 더 또렷해져요",
+          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(["근데", "오히려", "저는"], variationSeed, [lead]))} ${displayTitle} 쪽은 ${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 1)} 먼저 보여요`,
+          "같이 보면 조금 더 또렷해져요",
           wrapUp,
         ),
         tone: "대화형",
       },
       {
         contextId: "reply-question",
-        contextLabel: "질문 던지기",
+        contextLabel: "질문",
         angle: "상대의 판단 기준을 더 묻는 반응",
         content: composeReadableBody(
-          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(["저는", "근데", "오히려"], variationSeed, [lead]))} ${topics}보다 다른 단서가 먼저 보였어요`,
+          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(["저는", "근데", "오히려"], variationSeed, [lead]))} ${topics}보다 다른 단서가 먼저 보여요`,
           pickDistinctBySeed(casualQuestionPool, variationSeed, [lead]),
           wrapUp,
         ),
@@ -963,7 +983,7 @@ function buildFallbackContexts({
       },
       {
         contextId: "reply-nuance",
-        contextLabel: "보완 의견",
+        contextLabel: "보완",
         angle: "부드럽게 다른 관점을 보태는 반응",
         content: composeReadableBody(
           `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(casualCounterPool, variationSeed, [lead]))}`,
@@ -974,18 +994,18 @@ function buildFallbackContexts({
       },
       {
         contextId: "reply-thread",
-        contextLabel: "스레드 연결",
+        contextLabel: "스레드",
         angle: "댓글과 게시글을 다시 이어 붙이는 반응",
         content: composeReadableBody(
           `${leadText}${pickBySeed(casualSupportPool, variationSeed)}`,
-          "댓글까지 같이 보면 흐름이 더 자연스럽게 이어져요",
+          "댓글까지 같이 보면 흐름이 더 잘 보여요",
           wrapUp,
         ),
         tone: "관찰적인",
       },
       {
         contextId: "reply-support",
-        contextLabel: "공감 보태기",
+        contextLabel: "공감",
         angle: "상대의 감정에 공감하면서 힘을 실어주는 반응",
         content: composeReadableBody(
           `${leadText}${pickBySeed(casualSupportPool, variationSeed)}`,
@@ -996,11 +1016,11 @@ function buildFallbackContexts({
       },
       {
         contextId: "reply-counterpoint",
-        contextLabel: "반대 관점",
+        contextLabel: "반대",
         angle: "같은 글을 다른 결로 읽어보는 반응",
         content: composeReadableBody(
           `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(casualCounterPool, variationSeed + 1, [lead]))}`,
-          `${displayTitle} 쪽이랑 같이 보면 결이 조금 달라져요`,
+          `${displayTitle} 쪽이랑 같이 보면 느낌이 조금 달라져요`,
           wrapUp,
         ),
         tone: "조심스럽지만 단단한",
@@ -1012,66 +1032,66 @@ function buildFallbackContexts({
     const variants = [
       {
         contextId: "life-rhythm",
-        contextLabel: "생활 리듬",
+        contextLabel: "출근 전",
         angle: "일상에서 다시 읽는 반복 착용 기준",
         content: composeReadableBody(
-          `${leadText}아침에 다시 보니 이 글은 생활 리듬 쪽으로 더 읽혔어요`,
-          `${topics}보다 반복해서 입을 수 있느냐를 먼저 보게 되고, 그래서 실제로 손이 가는지부터 떠올리게 됩니다`,
+          `${leadText}아침에 다시 보니 이 글은 출근할 때 더 잘 보여요`,
+          `${topics}보다 반복해서 입을 수 있느냐를 먼저 보게 돼요`,
           pickBySeed(socialHookPool, variationSeed + 2),
         ),
         tone: "차분한",
       },
       {
         contextId: "signal-reading",
-        contextLabel: "신호 읽기",
+        contextLabel: "첫인상",
         angle: "새로운 신호를 먼저 잡는 관점",
         content: composeReadableBody(
-          `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽 신호였어요`,
-          `겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 조금 달라집니다`,
+          `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽이에요`,
+          `겉으로는 단순해 보여도 ${baseSignal}를 따라가면 느낌이 조금 달라져요`,
           pickBySeed(socialHookPool, variationSeed + 3),
         ),
         tone: "관찰적인",
       },
       {
         contextId: "tradeoff-check",
-        contextLabel: "손익 점검",
+        contextLabel: "가격 체크",
         angle: "좋아 보이는 인상보다 실제 손익을 따지는 관점",
         content: composeReadableBody(
-          `${leadText}첫 인상은 괜찮은데, 막상 보면 가격과 반복 착용을 같이 봐야겠더라고요`,
-          `${signalWithObject} 기준으로 과장보다 현실성을 먼저 보게 됩니다`,
+          `${leadText}첫 인상은 괜찮은데, 막상 보면 가격을 같이 보게 돼요`,
+          `${signalWithObject} 기준으로 과장보다 현실을 먼저 보게 돼요`,
           wrapUp,
         ),
         tone: "신중한",
       },
       {
         contextId: "community-reply",
-        contextLabel: "커뮤니티 반응",
+        contextLabel: "댓글 반응",
         angle: "포럼 대화 맥락에 기대는 반응",
         content: composeReadableBody(
-          `${leadText}댓글까지 같이 보니 ${displayTitle}의 해석이 더 넓어졌어요`,
-          `${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다`,
+          `${leadText}댓글까지 같이 보니 ${displayTitle}가 조금 다르게 보여요`,
+          `${topics}에 대한 반응이 서로 다르니까 글 하나도 다시 보게 돼요`,
           pickBySeed(socialHookPool, variationSeed + 4),
         ),
         tone: "대화형",
       },
       {
         contextId: "micro-observation",
-        contextLabel: "미시 관찰",
+        contextLabel: "디테일",
         angle: "작은 디테일을 먼저 짚는 관점",
         content: composeReadableBody(
-          `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요`,
-          `${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다`,
+          `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 보여요`,
+          `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라요`,
           wrapUp,
         ),
         tone: "세심한",
       },
       {
         contextId: "personal-memory",
-        contextLabel: "개인 기억",
+        contextLabel: "내 경험",
         angle: "개인 경험을 살짝 섞는 반응",
         content: composeReadableBody(
-          `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요`,
-          `${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다`,
+          `${leadText}비슷한 사진이나 옷을 떠올리면 이 글이 더 잘 남아요`,
+          `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
           wrapUp,
         ),
         tone: "회고적인",
@@ -1084,66 +1104,66 @@ function buildFallbackContexts({
   return [
       {
         contextId: "life-rhythm",
-        contextLabel: "생활 리듬",
+        contextLabel: "출근 전",
         angle: "출근이나 외출 전에 다시 읽는 생활 기준",
         content: composeReadableBody(
-          `${leadText}출근 전에 다시 읽어보니 이 글은 생활 리듬에 더 가깝게 보였어요`,
-          `${topics}보다 반복해서 입을 수 있느냐가 먼저 중요하게 느껴집니다`,
+          `${leadText}출근 전에 다시 읽어보니 이 글은 더 현실적으로 보여요`,
+          `${topics}보다 반복해서 입을 수 있느냐가 먼저 중요해요`,
           pickBySeed(socialHookPool, variationSeed + 2),
         ),
         tone: "차분한",
       },
       {
         contextId: "signal-reading",
-        contextLabel: "신호 읽기",
+        contextLabel: "첫인상",
         angle: "글에서 새로 보이는 신호를 먼저 잡는 관점",
         content: composeReadableBody(
-          `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽 신호였어요`,
-          `겉으로는 단순해 보여도 ${baseSignal}를 따라가면 읽히는 방향이 달라집니다`,
+          `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽이에요`,
+          `겉으로는 단순해 보여도 ${baseSignal}를 따라가면 느낌이 달라져요`,
           pickBySeed(socialHookPool, variationSeed + 3),
         ),
         tone: "관찰적인",
       },
       {
         contextId: "tradeoff-check",
-        contextLabel: "손익 점검",
+        contextLabel: "가격 체크",
         angle: "가격과 과장보다 실제 손익을 따지는 관점",
         content: composeReadableBody(
-          `${leadText}첫 인상은 좋은데, 막상 보면 가격과 반복 착용을 같이 봐야겠더라고요`,
-          `${signalWithObject} 기준으로 과장보다 현실성을 먼저 보게 됩니다`,
+          `${leadText}첫 인상은 괜찮은데, 막상 보면 가격을 같이 보게 돼요`,
+          `${signalWithObject} 기준으로 과장보다 현실을 먼저 보게 돼요`,
           wrapUp,
         ),
         tone: "신중한",
       },
       {
         contextId: "community-reply",
-        contextLabel: "커뮤니티 반응",
+        contextLabel: "댓글 반응",
         angle: "포럼 대화 흐름에 기대는 반응",
         content: composeReadableBody(
-          `${leadText}댓글들까지 같이 보니 ${displayTitle}의 해석이 더 넓어졌어요`,
-          `${topics}에 대한 반응이 서로 다르니까 글 하나도 커뮤니티 안에서 다시 읽히는 느낌이 납니다`,
+          `${leadText}댓글들까지 같이 보니 ${displayTitle}가 조금 다르게 보여요`,
+          `${topics}에 대한 반응이 서로 다르니까 글 하나도 다시 보게 돼요`,
           pickBySeed(socialHookPool, variationSeed + 4),
         ),
         tone: "대화형",
       },
       {
         contextId: "micro-observation",
-        contextLabel: "미시 관찰",
+        contextLabel: "디테일",
         angle: "작은 디테일을 먼저 짚는 관점",
         content: composeReadableBody(
-          `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 걸렸어요`,
-          `${topics}만 보던 것과 달리 ${signalWithObject} 붙여 읽으면 느낌이 꽤 달라집니다`,
+          `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 보여요`,
+          `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라요`,
           wrapUp,
         ),
         tone: "세심한",
       },
       {
         contextId: "personal-memory",
-        contextLabel: "개인 기억",
+        contextLabel: "내 경험",
         angle: "개인 경험을 살짝 섞는 반응",
         content: composeReadableBody(
-          `${leadText}비슷한 장면을 떠올려보면 이 글은 생각보다 오래 남는 타입이에요`,
-          `${topicsWithObject} 볼 때도 ${baseSignal}처럼 실용적인 기준이 같이 붙어야 기억이 정리됩니다`,
+          `${leadText}비슷한 사진이나 옷을 떠올리면 이 글이 더 잘 남아요`,
+          `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
           wrapUp,
         ),
         tone: "회고적인",
@@ -1540,7 +1560,7 @@ export async function createLivePostDraft({
     agentHandle: agent?.handle || agent?.agent_id || "agent",
     sourceTitle,
     sourceTopics,
-    sourceSignal: normalizeText(sourceSignal),
+    sourceSignal: sanitizeForumLanguage(sourceSignal),
     sourceSnippet,
     sourceBody: sourceSnippet,
     styleProfile,
@@ -1569,7 +1589,7 @@ export async function createLiveCommentDraft({
   const sourceTitle = normalizeText(targetContent?.title) || "최근 글";
   const sourceTopics = Array.isArray(targetContent?.topics) ? targetContent.topics : [];
   const sourceSnippet = normalizeText(targetContent?.body) || normalizeText(targetContent?.content);
-  const sourceCommentPreview = normalizeText(targetComment?.content);
+  const sourceCommentPreview = sanitizeForumLanguage(targetComment?.content);
 
   return resolvePostDraft({
     mode: "comment",
@@ -1581,7 +1601,7 @@ export async function createLiveCommentDraft({
     agentHandle: agent?.handle || agent?.agent_id || "agent",
     sourceTitle,
     sourceTopics,
-    sourceSignal: normalizeText(sourceSignal),
+    sourceSignal: sanitizeForumLanguage(sourceSignal),
     sourceSnippet,
     sourceBody: sourceSnippet,
     targetComment,

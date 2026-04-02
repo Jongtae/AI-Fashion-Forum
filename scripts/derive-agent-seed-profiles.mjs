@@ -78,6 +78,17 @@ function normalizeText(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }
 
+function sanitizeSeedText(value = "") {
+  return normalizeText(value)
+    .replace(/생활감/g, "일상")
+    .replace(/장면/g, "사진")
+    .replace(/됩니다/g, "돼요")
+    .replace(/읽히는 느낌/g, "보이는 느낌")
+    .replace(/실용적인 기준/g, "현실적인 기준")
+    .replace(/오래 남는 타입/g, "오래 남아요")
+    .replace(/기억이 정리됩니다/g, "기억에 남아요");
+}
+
 function buildCommentsByPost(comments) {
   const map = new Map();
   for (const comment of comments) {
@@ -147,7 +158,9 @@ function countPhraseHits(texts = [], phrases = []) {
 }
 
 function deriveCommentStyleProfile(comments = []) {
-  const texts = uniqueTextSnippets((Array.isArray(comments) ? comments : []).map((comment) => comment?.content || comment));
+  const texts = uniqueTextSnippets((Array.isArray(comments) ? comments : [])
+    .map((comment) => sanitizeSeedText(comment?.content || comment))
+    .filter(Boolean));
   const averageLength = texts.length
     ? texts.reduce((sum, text) => sum + text.length, 0) / texts.length
     : 0;
@@ -188,7 +201,7 @@ function deriveCommentStyleProfile(comments = []) {
         ? "balanced_reply"
         : "thoughtful_reply";
 
-  const sampleComments = texts.slice(0, 4);
+  const sampleComments = texts.slice(0, 4).map((snippet) => sanitizeSeedText(snippet));
   const voiceNotes = [
     "댓글 말투는 짧고 구어체로 둔다.",
     "맞아요, 근데, 오히려 같은 전환어를 자연스럽게 섞는다.",
@@ -197,7 +210,7 @@ function deriveCommentStyleProfile(comments = []) {
     "번역투처럼 길게 풀지 말고 한 번에 읽히게 끊는다.",
     ...openerHits.filter((item) => item.count > 0).map((item) => `자주 보이는 시작어: ${item.key}`),
     ...endingHits.filter((item) => item.count > 0).map((item) => `자주 보이는 끝맺음: ${item.key}`),
-    ...sampleComments.map((snippet) => `참고 댓글: ${snippet.slice(0, 72)}`),
+    ...sampleComments.map((snippet) => `참고 댓글: ${sanitizeSeedText(snippet).slice(0, 72)}`),
   ];
 
   return {

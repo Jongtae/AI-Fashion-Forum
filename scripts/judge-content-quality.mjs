@@ -96,6 +96,16 @@ const HARD_FAIL_PHRASES = [
   "judge",
 ];
 
+const ESSAYISH_PHRASES = [
+  "생활감",
+  "장면",
+  "됩니다",
+  "실용적인 기준",
+  "읽히는 느낌",
+  "오래 남는 타입",
+  "기억이 정리됩니다",
+];
+
 const EMOTION_CUE_GROUPS = {
   curiosity: ["궁금", "왜", "어떻게", "알고 싶", "신기", "흥미", "궁금해"],
   empathy: ["공감", "마음", "이해", "위로", "배려", "따뜻", "같이", "다행", "괜찮"],
@@ -121,6 +131,11 @@ function countEmotionSignals(text = "") {
   };
 }
 
+function countEssayishSignals(text = "") {
+  const normalized = String(text || "");
+  return ESSAYISH_PHRASES.filter((phrase) => normalized.includes(phrase)).length;
+}
+
 function scoreItem(item) {
   const content = String(item.content || "");
   const title = String(item.title || "");
@@ -133,12 +148,14 @@ function scoreItem(item) {
   const hasHardFailPhrase = HARD_FAIL_PHRASES.some((phrase) => text.includes(phrase));
   const repeatedFirstTokens = tokens.slice(0, 4).join(" ");
   const emotionSignals = countEmotionSignals(text);
+  const essayishSignals = countEssayishSignals(text);
   const humanLikeLength = length >= 25 && length <= 260 ? 1 : length < 25 ? 0.28 : 0.64;
   const communityFit = clamp(
     0.4 +
       (hasQuestion ? 0.18 : 0) +
       (hasHookWords ? 0.18 : 0) +
-      (item.kind === "comment" ? 0.14 : 0.08),
+      (item.kind === "comment" ? 0.14 : 0.08) -
+      essayishSignals * 0.06,
   );
   const emotionBelievability = clamp(
     0.22 +
@@ -151,7 +168,8 @@ function scoreItem(item) {
     humanLikeLength * 0.35 +
       uniqueRatio * 0.25 +
       (isNaturalLanguage(text) ? 0.2 : 0.05) +
-      (hasHardFailPhrase ? 0 : 0.2),
+      (hasHardFailPhrase ? 0 : 0.2) -
+      essayishSignals * 0.05,
   );
   const socialPull = clamp(
     0.25 +
@@ -163,7 +181,8 @@ function scoreItem(item) {
   const variety = clamp(
     uniqueRatio * 0.5 +
       (repeatedFirstTokens.split(" ").length >= 3 ? 0.1 : 0.02) +
-      (hasHardFailPhrase ? 0 : 0.32),
+      (hasHardFailPhrase ? 0 : 0.32) -
+      essayishSignals * 0.03,
   );
   const consistency = clamp(
     0.5 +
@@ -196,6 +215,7 @@ function scoreItem(item) {
   if (length > 260) issues.push("Content is a bit long for a feed item.");
   if (!hasQuestion && !hasHookWords) issues.push("Social hook is weak.");
   if (emotionBelievability < 0.42) issues.push("Emotional signal is thin.");
+  if (essayishSignals > 0) issues.push("Language feels too essay-like or abstract.");
 
   const strengths = [];
   if (hasQuestion) strengths.push("Has a reply-inviting question.");
