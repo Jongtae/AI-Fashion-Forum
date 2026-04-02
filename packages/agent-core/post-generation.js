@@ -13,21 +13,6 @@ function pickDistinctBySeed(items = [], seed = 0, excluded = []) {
   return pickBySeed(pool.length ? pool : uniqueNormalizedList(items), seed);
 }
 
-function escapeRegExp(value = "") {
-  return normalizeText(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function stripRepeatedLeadWord(lead = "", value = "") {
-  const leadWord = normalizeText(lead).split(/\s+/)[0];
-  const text = normalizeText(value);
-  if (!leadWord || !text) {
-    return text;
-  }
-
-  const pattern = new RegExp(`^${escapeRegExp(leadWord)}\\s+`);
-  return text.replace(pattern, "");
-}
-
 function normalizeText(value) {
   return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
 }
@@ -198,6 +183,9 @@ function sanitizeDraftContent(value = "") {
     normalizeKoreanParticlePairs(value)
     .replace(/이 에이전트가/g, "")
     .replace(/현재 주제 흐름/g, "")
+    .replace(/이 글은/g, "이건")
+    .replace(/다시 읽어보니/g, "다시 보니")
+    .replace(/더 현실적으로 보여요/g, "더 실감나요")
     .replace(/\bagent\b/gi, "")
     .replace(/\b이 사람이\b/g, "저는")
     .replace(/\b이 사람은\b/g, "저는")
@@ -344,8 +332,8 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   const isComment = mode === "comment";
   const emotionOpeners = {
     curiosity: isComment
-      ? ["궁금해서", "이건 좀 더 보고 싶어서", "왜 그런지 생각해보면"]
-      : ["궁금해서", "왜 이렇게 보였는지 생각해보면", "이건 계속 보게 되더라고요"],
+      ? ["궁금해서", "왜 그런지", "이 부분이 먼저 보여요"]
+      : ["궁금해서", "왜 이렇게 보이는지", "이 부분이 먼저 보여요"],
     empathy: isComment
       ? ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서"]
       : ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서"],
@@ -825,7 +813,7 @@ function buildOpenAIPrompt({
     '형식은 {"contexts":[{"context_id":"...","context_label":"...","angle":"...","content":"...","tone":"..."}]} 이다.',
     "contexts는 정확히 4개를 권장하며, 각 항목은 서로 다른 맥락과 다른 문장 흐름을 가져야 한다.",
     "content는 최소 2문장 이상인 한글 자연문으로, 커뮤니티 글처럼 읽혀야 하며 너무 과장된 템플릿 문구를 반복하지 말아라.",
-    "첫 문장은 상황을 잡고, 두 번째 문장은 근거나 비교를 붙이고, 마지막 문장은 판단이나 여운으로 완결해라.",
+    "각 context는 한 턴의 역할이 분명해야 한다. 첫 문장은 맥락 앵커, 둘째 문장은 내 반응이나 관찰, 마지막 문장은 질문/공감/반박/여운 중 하나로 끝내라.",
     "문장 끝은 끊긴 메모처럼 남기지 말고, 본문 자체가 읽히도록 완결된 문장으로 마무리해라.",
     "본문 첫 단어를 '맞아요', '그렇죠', '그래요' 같은 동의 표현으로 시작하지 말고, 바로 상황이나 관찰로 들어가라.",
     "희로애락 같은 감정은 이름으로 설명하기보다, 문장 리듬과 선택 단어로 드러내라.",
@@ -833,7 +821,7 @@ function buildOpenAIPrompt({
     "댓글인 경우에는 실제 커뮤니티 댓글처럼 간결하고 구어체로 쓰고, 주어를 굳이 설명하지 마라.",
     "번역투보다 실제 커뮤니티 댓글의 짧은 리듬과 맞장구, 질문, 부드러운 반박을 우선해라.",
     "같은 제목 구조나 같은 문장 시작을 반복하지 말고, 출근 전, 가격 체크, 첫인상, 댓글 반응, 내 경험 같은 서로 다른 관점으로 분기해라.",
-    "생활감, 장면, 됩니다, 읽히는 느낌, 실용적인 기준 같은 에세이형 표현은 쓰지 말고 더 직접적인 말로 바꿔라.",
+    "생활감, 장면, 됩니다, 읽히는 느낌, 실용적인 기준, 다시 읽어보니, 더 현실적으로 보여요 같은 에세이형 표현은 쓰지 말고 더 직접적인 말로 바꿔라.",
     `작성자 표시명: ${agentHandle || "익명"}`,
     `대상 글 제목: ${sourceTitle || "스레드"} / 본문에서는 "${promptTitle}"처럼 한국어로 재해석해라.`,
     `대상 토픽: ${sourceTopicText}`,
@@ -901,15 +889,15 @@ function buildFallbackContexts({
   const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
   const emotionTone = buildEmotionTonePack(emotionProfile, mode);
   const postFallbackOpeners = ["", "근데", "저는", "오히려", "솔직히", "개인적으로", "이번엔", "조용히 보면"];
-  const commentFallbackOpeners = ["근데", "저는", "오히려", "맞아요", "솔직히", "개인적으로", "음"];
+  const commentFallbackOpeners = ["근데", "저는", "오히려", "솔직히", "개인적으로", "음", "이 부분은", "그 포인트는"];
   const isAgreementOpener = (value = "") => /^(맞아요|그렇죠|그래요|네|응)([\s,!.?].*)?$/u.test(normalizeText(value));
+  const filteredStyleOpeners = styleOpeners.filter((opener) => !isAgreementOpener(opener));
   const openerPool =
     mode === "comment"
-      ? (styleOpeners.length ? styleOpeners : commentFallbackOpeners)
-      : (styleOpeners.filter((opener) => !isAgreementOpener(opener)).length
-        ? styleOpeners.filter((opener) => !isAgreementOpener(opener))
+      ? (filteredStyleOpeners.length ? filteredStyleOpeners : commentFallbackOpeners)
+      : (filteredStyleOpeners.length
+        ? filteredStyleOpeners
         : postFallbackOpeners);
-  const lead = pickBySeed([...emotionTone.leadPool, ...openerPool], variationSeed) || "";
   const wrapUpPool = styleEndings.length
     ? styleEndings.filter((ending) => /[.!?…。]$/u.test(ending))
     : [
@@ -918,38 +906,45 @@ function buildFallbackContexts({
         "결국은 자주 손이 가는 쪽이 더 남아요.",
         "이렇게 읽으면 판단이 빨라져요.",
       ];
-  const wrapUp = pickBySeed([...emotionTone.closingPool, ...wrapUpPool], variationSeed + 1) || "";
-  const leadText = lead ? `${lead} ` : "";
-  const casualBridgePool = [
-    "딱 그 부분이 먼저 보여요",
-    "저는 이 포인트가 더 크게 보여요",
-    "이건 생각보다 바로 와요",
-    "오히려 이쪽이 더 눈에 들어와요",
-    "근데 이 흐름은 꽤 자연스러워요",
-    "솔직히 이 포인트가 제일 남아요",
-  ];
-  const casualQuestionPool = [
+  const questionTailPool = [
     "어느 부분을 가장 크게 보셨는지 궁금해요",
     "저는 다른 쪽도 같이 보게 돼요",
     "이 포인트를 먼저 잡으신 이유가 있을까요",
     "비슷하게 읽으셨는지 좀 궁금해요",
     "어디를 기준으로 보셨는지 알고 싶어요",
   ];
-  const casualSupportPool = [
+  const supportTailPool = [
     "그 느낌은 충분히 이해돼요",
     "그렇게 느끼는 것도 자연스러워 보여요",
     "저도 비슷하게 봤어요",
     "그 말은 꽤 공감돼요",
     "그 부분은 저도 고개가 끄덕여져요",
   ];
-  const casualCounterPool = [
+  const counterTailPool = [
     "저는 조금 다르게 읽었어요",
     "근데 저는 여기서 결이 좀 다르게 보여요",
     "오히려 반대로 볼 수도 있겠어요",
     "솔직히 저는 이쪽 해석이 더 먼저 와요",
     "조금 다른 시선도 가능해 보여요",
   ];
-  const socialHookPool = [
+  const observationTailPool = [
+    "이렇게 읽으면 판단이 더 빨라져요",
+    "그래서 오래 볼수록 결이 더 보여요",
+    "이런 기준이면 다시 볼 맛이 있어요",
+    "이런 글은 한 번 더 보게 돼요",
+  ];
+  const mergePools = (...pools) => pools.flatMap((pool) => (Array.isArray(pool) ? pool : [pool])).filter(Boolean);
+  const pickTone = (seedOffset, ...pools) => pickBySeed(mergePools(...pools), variationSeed + seedOffset) || "";
+  const buildLead = (seedOffset, ...pools) => {
+    const value = pickTone(seedOffset, emotionTone.leadPool, openerPool, ...pools);
+    return value ? `${value}, ` : "";
+  };
+  const buildQuestionTail = (seedOffset, ...pools) => pickTone(seedOffset, questionTailPool, emotionTone.hookPool, ...pools);
+  const buildSupportTail = (seedOffset, ...pools) => pickTone(seedOffset, supportTailPool, emotionTone.closingPool, ...pools);
+  const buildCounterTail = (seedOffset, ...pools) => pickTone(seedOffset, counterTailPool, emotionTone.closingPool, ...pools);
+  const buildObservationTail = (seedOffset, ...pools) => pickTone(seedOffset, observationTailPool, emotionTone.closingPool, ...pools);
+  const buildCloser = (seedOffset, ...pools) => pickTone(seedOffset, emotionTone.closingPool, wrapUpPool, ...pools);
+  const casualQuestionPool = [
     "이건 다들 어떻게 읽으셨는지도 궁금해요.",
     "비슷하게 본 분들도 있을지 궁금합니다.",
     "같은 포인트를 먼저 보신 분들도 있나요.",
@@ -964,9 +959,9 @@ function buildFallbackContexts({
         contextLabel: "대화 이어가기",
         angle: "상대의 말을 받아서 대화를 이어가는 반응",
         content: composeReadableBody(
-          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(["근데", "오히려", "저는"], variationSeed, [lead]))} ${displayTitle} 쪽은 ${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 1)} 먼저 보여요`,
+          `${buildLead(1)}${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 2)} 먼저 보여요`,
           "같이 보면 조금 더 또렷해져요",
-          wrapUp,
+          buildObservationTail(3),
         ),
         tone: "대화형",
       },
@@ -975,9 +970,9 @@ function buildFallbackContexts({
         contextLabel: "질문",
         angle: "상대의 판단 기준을 더 묻는 반응",
         content: composeReadableBody(
-          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(["저는", "근데", "오히려"], variationSeed, [lead]))} ${topics}보다 다른 단서가 먼저 보여요`,
-          pickDistinctBySeed(casualQuestionPool, variationSeed, [lead]),
-          wrapUp,
+          `${buildLead(4)}${topics}보다 다른 단서가 먼저 보여요`,
+          pickDistinctBySeed(casualQuestionPool, variationSeed, []),
+          buildQuestionTail(5),
         ),
         tone: "호기심 있는",
       },
@@ -986,9 +981,8 @@ function buildFallbackContexts({
         contextLabel: "보완",
         angle: "부드럽게 다른 관점을 보태는 반응",
         content: composeReadableBody(
-          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(casualCounterPool, variationSeed, [lead]))}`,
-          `${displayTitle} 쪽이 ${topics}보다 더 크게 보이네요`,
-          wrapUp,
+          `${buildLead(6)}저는 여기서 결이 좀 다르게 보여요`,
+          buildObservationTail(7),
         ),
         tone: "조심스러운",
       },
@@ -997,9 +991,9 @@ function buildFallbackContexts({
         contextLabel: "스레드",
         angle: "댓글과 게시글을 다시 이어 붙이는 반응",
         content: composeReadableBody(
-          `${leadText}${pickBySeed(casualSupportPool, variationSeed)}`,
+          `${buildLead(8)}${pickBySeed(supportTailPool, variationSeed + 1)}`,
           "댓글까지 같이 보면 흐름이 더 잘 보여요",
-          wrapUp,
+          buildSupportTail(9),
         ),
         tone: "관찰적인",
       },
@@ -1008,9 +1002,9 @@ function buildFallbackContexts({
         contextLabel: "공감",
         angle: "상대의 감정에 공감하면서 힘을 실어주는 반응",
         content: composeReadableBody(
-          `${leadText}${pickBySeed(casualSupportPool, variationSeed)}`,
-          pickDistinctBySeed(["그 말이 맞는 것 같아요", "그 공감이 이해돼요", "그 부분은 저도 고개가 끄덕여지더라고요"], variationSeed + 1, [lead]),
-          wrapUp,
+          `${buildLead(10)}${pickBySeed(supportTailPool, variationSeed + 2)}`,
+          pickDistinctBySeed(["그 말이 맞는 것 같아요", "그 공감이 이해돼요", "그 부분은 저도 고개가 끄덕여지더라고요"], variationSeed + 3, []),
+          buildSupportTail(11),
         ),
         tone: "공감형",
       },
@@ -1019,9 +1013,9 @@ function buildFallbackContexts({
         contextLabel: "반대",
         angle: "같은 글을 다른 결로 읽어보는 반응",
         content: composeReadableBody(
-          `${leadText}${stripRepeatedLeadWord(lead, pickDistinctBySeed(casualCounterPool, variationSeed + 1, [lead]))}`,
-          `${displayTitle} 쪽이랑 같이 보면 느낌이 조금 달라져요`,
-          wrapUp,
+          `${buildLead(12)}저는 조금 다르게 읽었어요`,
+          `같이 보면 느낌이 조금 달라져요`,
+          buildCounterTail(13),
         ),
         tone: "조심스럽지만 단단한",
       },
@@ -1033,11 +1027,11 @@ function buildFallbackContexts({
       {
         contextId: "life-rhythm",
         contextLabel: "출근 전",
-        angle: "일상에서 다시 읽는 반복 착용 기준",
+        angle: "일상에서 다시 보는 반복 착용 기준",
         content: composeReadableBody(
-          `${leadText}아침에 다시 보니 이 글은 출근할 때 더 잘 보여요`,
-          `${topics}보다 반복해서 입을 수 있느냐를 먼저 보게 돼요`,
-          pickBySeed(socialHookPool, variationSeed + 2),
+          `${buildLead(1)}아침에 다시 보니까 이건 오래 갈 쪽이더라`,
+          `${topics}보다 반복해서 손이 가는지 먼저 보게 돼요`,
+          buildQuestionTail(2),
         ),
         tone: "차분한",
       },
@@ -1046,9 +1040,9 @@ function buildFallbackContexts({
         contextLabel: "첫인상",
         angle: "새로운 신호를 먼저 잡는 관점",
         content: composeReadableBody(
-          `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽이에요`,
-          `겉으로는 단순해 보여도 ${baseSignal}를 따라가면 느낌이 조금 달라져요`,
-          pickBySeed(socialHookPool, variationSeed + 3),
+          `${buildLead(3)}먼저 보인 건 ${topics} 쪽이에요`,
+          `겉으로는 단순해 보여도 ${baseSignal} 따라가면 결이 조금 달라져요`,
+          buildObservationTail(4),
         ),
         tone: "관찰적인",
       },
@@ -1057,9 +1051,9 @@ function buildFallbackContexts({
         contextLabel: "가격 체크",
         angle: "좋아 보이는 인상보다 실제 손익을 따지는 관점",
         content: composeReadableBody(
-          `${leadText}첫 인상은 괜찮은데, 막상 보면 가격을 같이 보게 돼요`,
-          `${signalWithObject} 기준으로 과장보다 현실을 먼저 보게 돼요`,
-          wrapUp,
+          `${buildLead(5)}첫 인상은 괜찮은데, 가격 보면 생각이 달라져요`,
+          `${signalWithObject} 기준으로 오래 갈지부터 보게 돼요`,
+          buildCloser(6),
         ),
         tone: "신중한",
       },
@@ -1068,9 +1062,9 @@ function buildFallbackContexts({
         contextLabel: "댓글 반응",
         angle: "포럼 대화 맥락에 기대는 반응",
         content: composeReadableBody(
-          `${leadText}댓글까지 같이 보니 ${displayTitle}가 조금 다르게 보여요`,
-          `${topics}에 대한 반응이 서로 다르니까 글 하나도 다시 보게 돼요`,
-          pickBySeed(socialHookPool, variationSeed + 4),
+          `${buildLead(7)}댓글까지 같이 보니까 조금 다르게 보여요`,
+          `${topics}에 대한 반응이 갈리니까 글 하나도 다시 보게 돼요`,
+          buildQuestionTail(8),
         ),
         tone: "대화형",
       },
@@ -1079,9 +1073,9 @@ function buildFallbackContexts({
         contextLabel: "디테일",
         angle: "작은 디테일을 먼저 짚는 관점",
         content: composeReadableBody(
-          `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 보여요`,
-          `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라요`,
-          wrapUp,
+          `${buildLead(9)}작은 디테일 하나가 먼저 보여요`,
+          `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라져요`,
+          buildObservationTail(10),
         ),
         tone: "세심한",
       },
@@ -1090,9 +1084,9 @@ function buildFallbackContexts({
         contextLabel: "내 경험",
         angle: "개인 경험을 살짝 섞는 반응",
         content: composeReadableBody(
-          `${leadText}비슷한 사진이나 옷을 떠올리면 이 글이 더 잘 남아요`,
+          `${buildLead(11)}비슷한 사진이나 옷을 떠올리면 이 글이 더 잘 남아요`,
           `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
-          wrapUp,
+          buildCloser(12),
         ),
         tone: "회고적인",
       },
@@ -1107,9 +1101,9 @@ function buildFallbackContexts({
         contextLabel: "출근 전",
         angle: "출근이나 외출 전에 다시 읽는 생활 기준",
         content: composeReadableBody(
-          `${leadText}출근 전에 다시 읽어보니 이 글은 더 현실적으로 보여요`,
+          `${buildLead(1)}출근 전에 다시 보니까 이건 더 오래 갈 쪽이더라`,
           `${topics}보다 반복해서 입을 수 있느냐가 먼저 중요해요`,
-          pickBySeed(socialHookPool, variationSeed + 2),
+          buildQuestionTail(2),
         ),
         tone: "차분한",
       },
@@ -1118,9 +1112,9 @@ function buildFallbackContexts({
         contextLabel: "첫인상",
         angle: "글에서 새로 보이는 신호를 먼저 잡는 관점",
         content: composeReadableBody(
-          `${leadText}${displayTitle}에서 먼저 보인 건 ${topics} 쪽이에요`,
-          `겉으로는 단순해 보여도 ${baseSignal}를 따라가면 느낌이 달라져요`,
-          pickBySeed(socialHookPool, variationSeed + 3),
+          `${buildLead(3)}먼저 보인 건 ${topics} 쪽이에요`,
+          `겉으로는 단순해 보여도 ${baseSignal} 따라가면 결이 달라져요`,
+          buildObservationTail(4),
         ),
         tone: "관찰적인",
       },
@@ -1129,9 +1123,9 @@ function buildFallbackContexts({
         contextLabel: "가격 체크",
         angle: "가격과 과장보다 실제 손익을 따지는 관점",
         content: composeReadableBody(
-          `${leadText}첫 인상은 괜찮은데, 막상 보면 가격을 같이 보게 돼요`,
-          `${signalWithObject} 기준으로 과장보다 현실을 먼저 보게 돼요`,
-          wrapUp,
+          `${buildLead(5)}첫 인상은 괜찮은데, 가격 보면 생각이 달라져요`,
+          `${signalWithObject} 기준으로 오래 갈지부터 보게 돼요`,
+          buildCloser(6),
         ),
         tone: "신중한",
       },
@@ -1140,9 +1134,9 @@ function buildFallbackContexts({
         contextLabel: "댓글 반응",
         angle: "포럼 대화 흐름에 기대는 반응",
         content: composeReadableBody(
-          `${leadText}댓글들까지 같이 보니 ${displayTitle}가 조금 다르게 보여요`,
-          `${topics}에 대한 반응이 서로 다르니까 글 하나도 다시 보게 돼요`,
-          pickBySeed(socialHookPool, variationSeed + 4),
+          `${buildLead(7)}댓글까지 같이 보니까 조금 다르게 보여요`,
+          `${topics}에 대한 반응이 갈리니까 글 하나도 다시 보게 돼요`,
+          buildQuestionTail(8),
         ),
         tone: "대화형",
       },
@@ -1151,9 +1145,9 @@ function buildFallbackContexts({
         contextLabel: "디테일",
         angle: "작은 디테일을 먼저 짚는 관점",
         content: composeReadableBody(
-          `${leadText}${displayTitle}에서 작은 디테일 하나가 먼저 보여요`,
-          `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라요`,
-          wrapUp,
+          `${buildLead(9)}작은 디테일 하나가 먼저 보여요`,
+          `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라져요`,
+          buildObservationTail(10),
         ),
         tone: "세심한",
       },
@@ -1162,9 +1156,9 @@ function buildFallbackContexts({
         contextLabel: "내 경험",
         angle: "개인 경험을 살짝 섞는 반응",
         content: composeReadableBody(
-          `${leadText}비슷한 사진이나 옷을 떠올리면 이 글이 더 잘 남아요`,
+          `${buildLead(11)}비슷한 사진이나 옷을 떠올리면 이 글이 더 잘 남아요`,
           `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
-          wrapUp,
+          buildCloser(12),
         ),
         tone: "회고적인",
       },
@@ -1208,8 +1202,8 @@ function buildGenerationContext({
     titleStrategy: "hook_not_summary",
     model: model || null,
     summary: selectedContext
-      ? `${sourceTitle}를 ${selectedContext.contextLabel} 흐름으로 자연스럽게 풀어냈다.`
-      : `${sourceTitle}를 자연스럽게 풀어냈다.`,
+      ? `${attachKoreanParticle(sourceTitle || "이 글", "object")} ${selectedContext.contextLabel} 흐름으로 자연스럽게 풀어냈다.`
+      : `${attachKoreanParticle(sourceTitle || "이 글", "object")} 자연스럽게 풀어냈다.`,
     situation: selectedContext?.contextLabel || null,
     toneLabel: selectedContext?.tone || null,
   };

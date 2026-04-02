@@ -104,6 +104,8 @@ const ESSAYISH_PHRASES = [
   "읽히는 느낌",
   "오래 남는 타입",
   "기억이 정리됩니다",
+  "다시 읽어보니",
+  "더 현실적으로 보여요",
 ];
 
 const EMOTION_CUE_GROUPS = {

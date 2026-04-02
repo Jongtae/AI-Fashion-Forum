@@ -51,8 +51,10 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
   assert.doesNotMatch(draftTwo.content, /quiet office outfit/i);
   assert.doesNotMatch(draftOne.content, /officemirror/i);
   assert.doesNotMatch(draftTwo.content, /officemirror/i);
-  assert.doesNotMatch(draftOne.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌/);
-  assert.doesNotMatch(draftTwo.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌/);
+  assert.doesNotMatch(draftOne.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌|다시 읽어보니|더 현실적으로 보여요/);
+  assert.doesNotMatch(draftTwo.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌|다시 읽어보니|더 현실적으로 보여요/);
+  assert.doesNotMatch(draftOne.content, /이 글가|글가/);
+  assert.doesNotMatch(draftTwo.content, /이 글가|글가/);
   assert.notStrictEqual(draftOne.content, draftTwo.content);
   assert.ok(draftOne.title);
   assert.ok(draftTwo.title);
@@ -115,7 +117,7 @@ test("createRunPostDraft avoids repetitive agreement openers", async () => {
   });
 
   assert.doesNotMatch(draft.content, /^맞아요\b/);
-  assert.match(draft.content, /궁금해요|궁금합니다|보셨는지도|읽으셨는지|있나요/);
+  assert.match(draft.content, /궁금해요|궁금합니다|보셨는지도|읽으셨는지|있나요|왜 이렇게 보이는지|이 부분이 먼저 보여요/);
 });
 
 test("createRunPostDraft carries emotion profile into generation context", async () => {
@@ -404,8 +406,9 @@ test("createLiveCommentDraft falls back to conversational Korean reply contexts"
   assert.strictEqual(draft.generationContext.replyTargetType, "comment");
   assert.doesNotMatch(draft.content, /이 에이전트가/);
   assert.doesNotMatch(draft.content, /이 답글 대상/);
-  assert.doesNotMatch(draft.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌/);
-  assert.match(draft.content, /맞아요|저는|다르게 보면|이 얘기|앞선 댓글|근데|오히려|솔직히/);
+  assert.doesNotMatch(draft.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌|다시 읽어보니|더 현실적으로 보여요/);
+  assert.doesNotMatch(draft.content, /이 글가|글가/);
+  assert.match(draft.content, /궁금해서|왜 그런지|이건|저는|다르게 보면|앞선 댓글|근데|오히려|솔직히/);
 });
 
 test("createLiveCommentDraft uses comment style seed markers when provided", async () => {
@@ -435,9 +438,9 @@ test("createLiveCommentDraft uses comment style seed markers when provided", asy
 
   assert.strictEqual(draft.generationContext.source, "fallback");
   assert.strictEqual(draft.generationContext.selectedStyle, "casual_playful");
-  assert.match(draft.content, /근데|오히려/);
+  assert.match(draft.content, /궁금해서|왜 그런지|이 부분이 먼저 보여요|근데|오히려/);
   assert.match(draft.content, /같아요|ㅎㅎ|더라고요|보여요|네요/);
-  assert.doesNotMatch(draft.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌/);
+  assert.doesNotMatch(draft.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌|다시 읽어보니|더 현실적으로 보여요|이 글가|글가/);
 });
 
 test("createLivePostDraft falls back to Korean live contexts", async () => {
