@@ -15,6 +15,7 @@ import path from "node:path";
 import mongoose from "mongoose";
 import { Post } from "../apps/forum-server/src/models/Post.js";
 import { Comment } from "../apps/forum-server/src/models/Comment.js";
+import { scoreCommunityDraft } from "../packages/agent-core/content-quality.js";
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/ai-fashion-forum";
 
@@ -139,116 +140,7 @@ function countEssayishSignals(text = "") {
 }
 
 function scoreItem(item) {
-  const content = String(item.content || "");
-  const title = String(item.title || "");
-  const text = `${title} ${content}`.trim();
-  const tokens = tokenize(text);
-  const uniqueRatio = tokens.length ? new Set(tokens).size / tokens.length : 0;
-  const length = content.length;
-  const hasQuestion = text.includes("?");
-  const hasHookWords = /(같이|왜|어떻게|느껴|보이|궁금|달라|이유|생각)/.test(text);
-  const hasHardFailPhrase = HARD_FAIL_PHRASES.some((phrase) => text.includes(phrase));
-  const repeatedFirstTokens = tokens.slice(0, 4).join(" ");
-  const emotionSignals = countEmotionSignals(text);
-  const essayishSignals = countEssayishSignals(text);
-  const humanLikeLength = length >= 25 && length <= 260 ? 1 : length < 25 ? 0.28 : 0.64;
-  const communityFit = clamp(
-    0.4 +
-      (hasQuestion ? 0.18 : 0) +
-      (hasHookWords ? 0.18 : 0) +
-      (item.kind === "comment" ? 0.14 : 0.08) -
-      essayishSignals * 0.06,
-  );
-  const emotionBelievability = clamp(
-    0.22 +
-      emotionSignals.coverage * 0.46 +
-      (emotionSignals.distinctHits.length >= 2 ? 0.12 : 0.04) +
-      (item.kind === "comment" ? 0.08 : 0.04) +
-      (hasHardFailPhrase ? -0.14 : 0),
-  );
-  const humanLikeness = clamp(
-    humanLikeLength * 0.35 +
-      uniqueRatio * 0.25 +
-      (isNaturalLanguage(text) ? 0.2 : 0.05) +
-      (hasHardFailPhrase ? 0 : 0.2) -
-      essayishSignals * 0.05,
-  );
-  const socialPull = clamp(
-    0.25 +
-      (hasQuestion ? 0.23 : 0) +
-      (hasHookWords ? 0.18 : 0) +
-      (item.kind === "comment" ? 0.18 : 0.12) +
-      (content.includes("같이") ? 0.09 : 0),
-  );
-  const variety = clamp(
-    uniqueRatio * 0.5 +
-      (repeatedFirstTokens.split(" ").length >= 3 ? 0.1 : 0.02) +
-      (hasHardFailPhrase ? 0 : 0.32) -
-      essayishSignals * 0.03,
-  );
-  const consistency = clamp(
-    0.5 +
-      (item.authorDisplayName ? 0.08 : 0) +
-      (item.authorType === "agent" ? 0.06 : 0) +
-      (item.replyTargetType ? 0.1 : 0.04),
-  );
-
-  const overall_score = clamp(
-    humanLikeness * 0.35 +
-      socialPull * 0.22 +
-      variety * 0.18 +
-      consistency * 0.1 +
-      communityFit * 0.08 +
-      emotionBelievability * 0.07,
-  );
-
-  const verdict = hasHardFailPhrase
-    ? "fail"
-    : overall_score >= 0.72
-      ? "pass"
-      : overall_score >= 0.52
-        ? "needs_revision"
-        : "fail";
-
-  const issues = [];
-  if (hasHardFailPhrase) issues.push("Contains internal/system-like phrases.");
-  if (uniqueRatio < 0.46) issues.push("Lexical variety is low.");
-  if (length < 35) issues.push("Content is very short.");
-  if (length > 260) issues.push("Content is a bit long for a feed item.");
-  if (!hasQuestion && !hasHookWords) issues.push("Social hook is weak.");
-  if (emotionBelievability < 0.42) issues.push("Emotional signal is thin.");
-  if (essayishSignals > 0) issues.push("Language feels too essay-like or abstract.");
-
-  const strengths = [];
-  if (hasQuestion) strengths.push("Has a reply-inviting question.");
-  if (hasHookWords) strengths.push("Contains a conversational hook.");
-  if (emotionSignals.distinctHits.length > 0) strengths.push(`Emotion cues present: ${emotionSignals.distinctHits.join(", ")}.`);
-  if (isNaturalLanguage(text)) strengths.push("Reads like natural language.");
-  if (!hasHardFailPhrase) strengths.push("Avoids obvious system-language leakage.");
-
-  return {
-    id: item.id,
-    kind: item.kind,
-    author: item.authorDisplayName || null,
-    overall_score,
-    verdict,
-    dimension_scores: {
-      human_likeness: humanLikeness,
-      social_pull: socialPull,
-      variety,
-      consistency,
-      community_fit: communityFit,
-      emotional_believability: emotionBelievability,
-    },
-    summary:
-      verdict === "pass"
-        ? "Feels human, specific, and thread-worthy."
-        : verdict === "needs_revision"
-          ? "Usable, but repetition or hook strength could be improved."
-          : "Too repetitive, synthetic, or low-signal for the community feed.",
-    strengths,
-    issues,
-  };
+  return scoreCommunityDraft(item);
 }
 
 function computeCorpusReport(items, itemReports) {
