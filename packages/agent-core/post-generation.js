@@ -333,7 +333,7 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   const emotionOpeners = {
     curiosity: isComment
       ? ["이 부분부터 보였어요", "저는 이 기준이 먼저 와요", "처음 걸린 건 이거예요", "문득 이 부분이 보였어요", "가만히 보면 이 기준이 먼저 와요"]
-      : ["이 기준이 먼저 보여요", "저는 이 부분부터 봤어요", "처음 눈에 걸린 건 이 쪽이에요", "문득 이 부분이 먼저 보여요", "가만히 보면 이 기준이 더 먼저 와요"],
+      : ["이 기준이 먼저 보여요", "처음엔 이 부분부터 봤어요", "처음 눈에 걸린 건 이 쪽이에요", "문득 이 부분이 먼저 보여요", "가만히 보면 이 기준이 더 먼저 와요", "보니까 이 포인트가 먼저 남아요"],
     empathy: isComment
       ? ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서", "조금 마음이 가서", "읽다 보니 공감이 먼저 됐어요"]
       : ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서", "조금 마음이 가서", "읽다 보니 공감이 먼저 됐어요"],
@@ -954,7 +954,7 @@ function buildFallbackContexts({
   const styleOpeners = uniqueNormalizedList(styleProfile?.openers || styleProfile?.openerMarkers || []);
   const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
   const emotionTone = buildEmotionTonePack(emotionProfile, mode);
-  const postFallbackOpeners = ["", "근데", "저는", "오히려", "솔직히", "개인적으로", "이번엔", "조용히 보면", "문득", "가만히 보면", "처음엔", "한 번 더 보면", "왠지"];
+  const postFallbackOpeners = ["", "근데", "오히려", "솔직히", "개인적으로", "이번엔", "조용히 보면", "문득", "가만히 보면", "처음엔", "한 번 더 보면", "왠지", "보니까", "결국", "생각보다"];
   const commentFallbackOpeners = ["", "근데", "저는", "오히려", "솔직히", "개인적으로", "음", "이 부분은", "그 포인트는", "문득", "가만히 보면", "한 번 더 보면", "왠지"];
   const isAgreementOpener = (value = "") => /^(맞아요|그렇죠|그래요|네|응)([\s,!.?].*)?$/u.test(normalizeText(value));
   const filteredStyleOpeners = styleOpeners.filter((opener) => !isAgreementOpener(opener));

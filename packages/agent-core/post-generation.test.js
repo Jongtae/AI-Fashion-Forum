@@ -174,6 +174,30 @@ test("createRunPostDraft spreads short opener starts across seeds", async () => 
   assert.ok(starts.size >= 6, Array.from(starts).join(" | "));
 });
 
+test("createRunPostDraft avoids first-person dominance in post openings", async () => {
+  for (let seed = 0; seed < 12; seed += 1) {
+    const draft = await createRunPostDraft({
+      updatedAgent: {
+        handle: "officemirror",
+      },
+      reactionRecord: {
+        meaning_frame: "care_context",
+        stance_signal: "empathetic",
+        dominant_feeling: "curious",
+      },
+      contentRecord: {
+        title: "quiet office outfit",
+        body: "A small look at weekday layering and commute comfort.",
+        topics: ["pricing", "care_context"],
+      },
+      variationSeed: seed,
+      apiKey: "",
+    });
+
+    assert.doesNotMatch(draft.content, /^저는\b/);
+  }
+});
+
 test("createRunPostDraft avoids broken joint topic grammar in titles", async () => {
   for (let seed = 0; seed < 12; seed += 1) {
     const draft = await createRunPostDraft({
