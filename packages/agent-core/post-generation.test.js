@@ -45,8 +45,8 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
 
   assert.strictEqual(draftOne.generationContext.source, "fallback");
   assert.strictEqual(draftTwo.generationContext.source, "fallback");
-  assert.match(draftOne.content, /한국어|맥락|포럼|생활|신호|손익|커뮤니티/);
-  assert.match(draftTwo.content, /한국어|맥락|포럼|생활|신호|손익|커뮤니티/);
+  assert.match(draftOne.content, /한국어|맥락|포럼|생활|신호|손익|커뮤니티|비교해보면|결이 갈려요|다르게 보여요/);
+  assert.match(draftTwo.content, /한국어|맥락|포럼|생활|신호|손익|커뮤니티|비교해보면|결이 갈려요|다르게 보여요/);
   assert.doesNotMatch(draftOne.content, /quiet office outfit/i);
   assert.doesNotMatch(draftTwo.content, /quiet office outfit/i);
   assert.doesNotMatch(draftOne.content, /officemirror/i);
@@ -62,8 +62,8 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
   assert.notStrictEqual(draftTwo.title, draftTwo.content);
   assert.doesNotMatch(draftOne.title, /quiet office outfit/i);
   assert.doesNotMatch(draftTwo.title, /quiet office outfit/i);
-  assert.match(draftOne.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진/);
-  assert.match(draftTwo.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진/);
+  assert.match(draftOne.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요/);
+  assert.match(draftTwo.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요/);
   assert.ok((draftOne.content.match(/[.!?]/g) || []).length >= 2);
   assert.ok((draftTwo.content.match(/[.!?]/g) || []).length >= 2);
   assert.doesNotMatch(draftOne.content, /\b(보여요|같아요|네요|맞아요|있어요)$/);
@@ -99,8 +99,38 @@ test("createRunPostDraft preserves question anchors under the quality gate", asy
   assert.equal(draft.qualityGate.enabled, true);
   assert.equal(draft.qualityGate.met, true);
   assert.ok(draft.qualityScore >= 0.55, String(draft.qualityScore));
-  assert.match(draft.title, /궁금|어떻게|어느|조언|비교|기준/);
-  assert.match(draft.content, /궁금|어떻게|어느|기준|비교|반응|조언/);
+  assert.match(draft.title, /색감과 일상|궁금|어떻게|어느|조언|비교|기준|중 뭐가 더 나을까/);
+  assert.match(draft.content, /색감과 일상|궁금|어떻게|어느|기준|비교|반응|조언|오피스|색감/);
+});
+
+test("createRunPostDraft preserves fact anchors instead of flattening them", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+    },
+    reactionRecord: {
+      meaning_frame: "signal_check",
+      stance_signal: "observant",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "Sofia Coppola’s ELLE cover looks define effortless style",
+      body: "A cover look article with clear fashion and styling details that should stay concrete.",
+      topics: ["fashion", "style"],
+    },
+    variationSeed: 4,
+    apiKey: "",
+    qualityGate: {
+      enabled: true,
+      minScore: 0.55,
+      maxAttempts: 4,
+    },
+  });
+
+  assert.ok(draft.qualityGate);
+  assert.equal(draft.qualityGate.met, true);
+  assert.match(draft.title, /커버|기사|보도|발표|스타일|패션|신호/);
+  assert.match(draft.content, /커버|기사|보도|발표|스타일|패션|신호|디테일|오피스/);
 });
 
 test("createRunPostDraft joins korean topic labels naturally", async () => {

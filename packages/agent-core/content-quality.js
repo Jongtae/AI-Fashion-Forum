@@ -89,12 +89,58 @@ function countEssayishSignals(text = "") {
   return ESSAYISH_PHRASES.filter((phrase) => normalized.includes(phrase)).length;
 }
 
+function normalizeList(values = []) {
+  return [...new Set((Array.isArray(values) ? values : []).map((value) => normalizeText(value)).filter(Boolean))];
+}
+
 function hasQuestionOrComparison(text = "") {
   const normalized = normalizeText(text).toLowerCase();
   return (
     /[?？]/.test(normalized) ||
     /(what|which|how|need advice|pair with|goes with|thoughts|think|recommend|better|vs|versus|choose|advice)/i.test(normalized) ||
     /(어떤|어느|뭐가|뭐|어떻게|조언|추천|비교|둘 중|중에서|vs|vs\.|괜찮|어울|궁금)/.test(normalized)
+  );
+}
+
+function scoreAnchorPreservation({
+  text = "",
+  sourceIntent = "",
+  sourceAnchorTerms = [],
+  sourceTopics = [],
+  concreteAnchor = false,
+  hasQuestion = false,
+} = {}) {
+  const normalizedText = normalizeText(text).toLowerCase();
+  const normalizedTerms = normalizeList(sourceAnchorTerms).map((term) => term.toLowerCase());
+  const normalizedTopics = normalizeList(sourceTopics).map((topic) => topic.toLowerCase());
+  const anchorHits = normalizedTerms.filter((term) => term && normalizedText.includes(term)).length;
+  const topicHits = normalizedTopics.filter((topic) => topic && normalizedText.includes(topic)).length;
+  const anchorCoverage = normalizedTerms.length ? anchorHits / normalizedTerms.length : 0;
+  const topicCoverage = normalizedTopics.length ? topicHits / normalizedTopics.length : 0;
+
+  let intentFit = 0.34;
+  if (sourceIntent === "question") {
+    intentFit = hasQuestion ? 1 : 0.28;
+  } else if (sourceIntent === "comparison") {
+    intentFit = /(비교|둘 중|어느 쪽|중 뭐가|더 나을까|vs|versus|같이 보면|다르게 읽)/.test(normalizedText) ? 1 : 0.32;
+  } else if (sourceIntent === "controversy") {
+    intentFit = /(의견|반응이 갈|갈릴|호불호|논쟁|불편|다르게 읽)/.test(normalizedText) ? 1 : 0.28;
+  } else if (sourceIntent === "fact") {
+    intentFit = concreteAnchor ? 0.88 : /(기사|커버|발표|보도|내용|신호|사진|패션|가격|색감|오피스)/.test(normalizedText) ? 0.8 : 0.34;
+  } else if (sourceIntent === "reason") {
+    intentFit = /(이유|왜|근거|배경)/.test(normalizedText) ? 1 : 0.3;
+  } else if (sourceIntent === "discussion") {
+    intentFit = concreteAnchor ? 0.7 : 0.42;
+  } else {
+    intentFit = concreteAnchor ? 0.62 : 0.38;
+  }
+
+  return clamp(
+    0.22 +
+      anchorCoverage * 0.34 +
+      topicCoverage * 0.12 +
+      intentFit * 0.26 +
+      (concreteAnchor ? 0.06 : 0.02),
   );
 }
 
@@ -153,6 +199,9 @@ export function scoreCommunityDraft(item) {
   const content = String(item.content || "");
   const title = String(item.title || "");
   const text = `${title} ${content}`.trim();
+  const sourceIntent = normalizeText(item.sourceIntent || "").toLowerCase();
+  const sourceAnchorTerms = Array.isArray(item.sourceAnchorTerms) ? item.sourceAnchorTerms : [];
+  const sourceTopics = Array.isArray(item.sourceTopics) ? item.sourceTopics : [];
   const tokens = tokenize(text);
   const uniqueRatio = tokens.length ? new Set(tokens).size / tokens.length : 0;
   const length = content.length;
@@ -163,6 +212,14 @@ export function scoreCommunityDraft(item) {
   const emotionSignals = countEmotionSignals(text);
   const essayishSignals = countEssayishSignals(text);
   const concreteAnchor = hasConcreteAnchor(text);
+  const anchorPreservation = scoreAnchorPreservation({
+    text,
+    sourceIntent,
+    sourceAnchorTerms,
+    sourceTopics,
+    concreteAnchor,
+    hasQuestion,
+  });
   const humanLikeLength = length >= 25 && length <= 260 ? 1 : length < 25 ? 0.28 : 0.64;
   const communityFit = clamp(
     0.34 +
@@ -209,12 +266,13 @@ export function scoreCommunityDraft(item) {
   );
 
   const overall_score = clamp(
-    humanLikeness * 0.34 +
-      socialPull * 0.24 +
-      variety * 0.17 +
+    humanLikeness * 0.3 +
+      socialPull * 0.22 +
+      variety * 0.16 +
       consistency * 0.1 +
       communityFit * 0.08 +
-      emotionBelievability * 0.07,
+      emotionBelievability * 0.05 +
+      anchorPreservation * 0.09,
   );
 
   const verdict = hasHardFailPhrase
@@ -233,11 +291,13 @@ export function scoreCommunityDraft(item) {
   if (!hasQuestion && !hasHookWords) issues.push("Social hook is weak.");
   if (emotionBelievability < 0.42) issues.push("Emotional signal is thin.");
   if (essayishSignals > 0) issues.push("Language feels too essay-like or abstract.");
+  if (anchorPreservation < 0.42) issues.push("Concrete source anchors are weak.");
 
   const strengths = [];
   if (hasQuestion) strengths.push("Has a reply-inviting question or comparison.");
   if (hasHookWords) strengths.push("Contains a conversational hook.");
   if (concreteAnchor) strengths.push("Keeps a concrete content anchor.");
+  if (anchorPreservation >= 0.68) strengths.push("Preserves concrete source anchors.");
   if (emotionSignals.distinctHits.length > 0) strengths.push(`Emotion cues present: ${emotionSignals.distinctHits.join(", ")}.`);
   if (isNaturalLanguage(text)) strengths.push("Reads like natural language.");
   if (!hasHardFailPhrase) strengths.push("Avoids obvious system-language leakage.");
@@ -255,6 +315,7 @@ export function scoreCommunityDraft(item) {
       consistency,
       community_fit: communityFit,
       emotional_believability: emotionBelievability,
+      anchor_preservation: anchorPreservation,
     },
     summary:
       verdict === "pass"

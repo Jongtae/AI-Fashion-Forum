@@ -28,39 +28,40 @@ function localizeSourceTitle(value = "", sourceTopics = [], sourceIntent = "") {
   const lower = normalized.toLowerCase();
   const primaryTopic = localizeTopicLabel(Array.isArray(sourceTopics) && sourceTopics.length ? sourceTopics[0] : "");
   const secondaryTopic = localizeTopicLabel(Array.isArray(sourceTopics) && sourceTopics.length > 1 ? sourceTopics[1] : primaryTopic);
+  const topicPair = joinKoreanTopicList([primaryTopic, secondaryTopic]);
 
   if (sourceIntent === "question" || /[?？]/.test(normalized) || /(what do you all think|what do you think|need advice|pair with|what goes with|what to wear with|how do you|which one|which is better)/i.test(lower)) {
     if (/pair with|goes with|wear with/i.test(lower)) {
       return `${primaryTopic}엔 뭐가 잘 맞을까?`;
     }
     if (/which one|which is better|vs\.?|versus|better/i.test(lower)) {
-      return `${primaryTopic}와 ${secondaryTopic} 중 뭐가 더 나을까?`;
+      return `${topicPair} 중 뭐가 더 나을까?`;
     }
     if (/what do you all think|what do you think|thoughts?|opinion/i.test(lower)) {
-      return "다들 어떻게 보세요?";
+      return sourceTopics.length > 1 ? `${topicPair}은 어떻게 보세요?` : `${primaryTopic}은 어떻게 보세요?`;
     }
     if (/need advice|advice/i.test(lower)) {
-      return "조언이 필요한 글";
+      return sourceTopics.length > 1 ? `${topicPair} 쪽 조언이 필요한 글` : `${primaryTopic} 쪽 조언이 필요한 글`;
     }
     if (/how do you|how would you|how to/i.test(lower)) {
-      return `${primaryTopic}는 어떻게 보세요?`;
+      return sourceTopics.length > 1 ? `${topicPair}는 어떻게 보세요?` : `${primaryTopic}는 어떻게 보세요?`;
     }
     if (/why/i.test(lower)) {
       return "왜 이렇게 보이는지 궁금해요";
     }
-    return `${primaryTopic}은 어떻게 보세요?`;
+    return sourceTopics.length > 1 ? `${topicPair}은 어떻게 보세요?` : `${primaryTopic}은 어떻게 보세요?`;
   }
 
   if (sourceIntent === "comparison") {
-    return `${joinKoreanTopicList([primaryTopic, secondaryTopic])} 중 뭐가 더 나을까?`;
+    return `${topicPair} 중 뭐가 더 나을까?`;
   }
 
   if (sourceIntent === "controversy") {
-    return `${primaryTopic} 쪽에서 의견이 갈릴 수 있어요`;
+    return `${topicPair} 쪽에서 의견이 갈릴 수 있어요`;
   }
 
   if (sourceIntent === "fact") {
-    return normalized.length <= 48 ? normalized : `${primaryTopic} 관련 신호`;
+    return normalized.length <= 48 ? normalized : `${topicPair} 관련 신호`;
   }
 
   return sanitizeForumLanguage(normalized);
@@ -807,9 +808,37 @@ export function buildReadablePostTitle({
     .join(" ");
 
   const pool = [];
+  const priorityTitles = [];
+
+  if (sourceIntent === "question") {
+    priorityTitles.push(
+      localizedSourceTitle && localizedSourceTitle.length <= 36 ? localizedSourceTitle : null,
+      `${topicPair} 중 뭐가 더 나을까?`,
+      `${primaryTopic}은 어떻게 보세요?`,
+    );
+  } else if (sourceIntent === "comparison") {
+    priorityTitles.push(
+      `${topicPair} 중 뭐가 더 나을까?`,
+      `${topicPair}을 같이 비교한 이유`,
+      `${topicPair} 사이의 기준`,
+    );
+  } else if (sourceIntent === "controversy") {
+    priorityTitles.push(
+      `${topicPair} 쪽에서 의견이 갈리는 이유`,
+      `${topicPair} 반응이 갈리는 지점`,
+      `${topicPair}에서 의견이 나뉘는 포인트`,
+    );
+  } else if (sourceIntent === "fact") {
+    priorityTitles.push(
+      localizedSourceTitle && localizedSourceTitle.length <= 48 ? localizedSourceTitle : null,
+      `${topicPair} 관련 신호`,
+      `${primaryTopicObject}에서 먼저 보인 내용`,
+    );
+  }
 
   if (mode === "comment") {
     const hookSet = COMMENT_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel) || null;
+    pool.push(...priorityTitles);
     pool.push(...(hookSet?.titles || []));
     pool.push(
       localizedSourceTitle && localizedSourceTitle.length <= 28 ? localizedSourceTitle : null,
@@ -830,6 +859,7 @@ export function buildReadablePostTitle({
     );
   } else {
     const hookSet = RUN_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel) || null;
+    pool.push(...priorityTitles);
     pool.push(...(hookSet?.titles || []));
     pool.push(
       localizedSourceTitle && localizedSourceTitle.length <= 28 ? localizedSourceTitle : null,
@@ -940,6 +970,7 @@ function buildOpenAIPrompt({
   replyTargetType,
   styleProfile = null,
   emotionProfile = null,
+  sourceAnchorTerms = [],
 } = {}) {
   const promptTitle = localizeSourceLabel(sourceTitle, "이 글");
   const sourceTopicText = Array.isArray(sourceTopics) && sourceTopics.length
@@ -982,6 +1013,7 @@ function buildOpenAIPrompt({
     `대상 글 제목: ${sourceTitle || "스레드"} / 본문에서는 "${promptTitle}"처럼 한국어로 재해석해라.`,
     `대상 토픽: ${sourceTopicText}`,
     `상황 단서: ${promptSignal || "맥락 없음"}`,
+    sourceAnchorTerms.length ? `앵커 단서: ${sourceAnchorTerms.slice(0, 6).join(", ")}` : null,
     styleProfile?.register ? `말투 레지스터: ${styleProfile.register}` : null,
     styleProfile?.cadence ? `말투 리듬: ${styleProfile.cadence}` : null,
     styleOpeners.length ? `참고 시작어: ${styleOpeners.join(", ")}` : null,
@@ -1019,6 +1051,7 @@ function buildFallbackContexts({
 } = {}) {
   const title = sanitizeForumLanguage(sourceTitle) || "스레드";
   const inferredIntent = sourceIntent || classifySourceIntent({ title, body: sourceBody || sourceSnippet || "", topics: sourceTopics || [] });
+  const discussionAnchors = deriveDiscussionAnchors({ title, body: sourceBody || sourceSnippet || "", topics: sourceTopics || [] });
   const displayTitle = localizeSourceLabel(title, "이 글");
   const intentTitle = localizeSourceTitle(title, sourceTopics, inferredIntent);
   const topics = Array.isArray(sourceTopics) && sourceTopics.length
@@ -1034,7 +1067,21 @@ function buildFallbackContexts({
   const sourceCommentLabel = isKoreanDominant(sourceCommentPreview)
     ? sanitizeForumLanguage(sourceCommentPreview)
     : "앞선 댓글";
-  const sourceAnchorTitle = intentTitle || displayTitle;
+  const sourceAnchorTitle = intentTitle || discussionAnchors.questionAnchor || discussionAnchors.factualAnchor || displayTitle;
+  const sourceAnchorStem = sanitizeForumLanguage(sourceAnchorTitle)
+    .replace(/\s*(은 어떻게 보세요\?|는 어떻게 보세요\?|중 뭐가 더 나을까\?|쪽에서 의견이 갈릴 수 있어요|관련 신호)$/u, "")
+    .replace(/[?？]+$/u, "")
+    .trim() || sourceAnchorTitle;
+  const sourceAnchorTerms = uniqueNormalizedList([
+    sourceAnchorTitle,
+    displayTitle,
+    intentTitle,
+    discussionAnchors.questionAnchor,
+    discussionAnchors.factualAnchor,
+    discussionAnchors.comparisonAnchor,
+    discussionAnchors.controversyAnchor,
+    ...(Array.isArray(sourceTopics) ? sourceTopics.map(localizeTopicLabel) : []),
+  ]);
   const localizedContentRecord = {
     ...(contentRecord || {}),
     title: intentTitle || displayTitle,
@@ -1422,7 +1469,7 @@ function buildFallbackContexts({
         contextLabel: "출근 전",
         angle: "일상에서 다시 보는 반복 착용 기준",
         content: composeReadableBody(
-          `${buildLead(1)}${sourceAnchorTitle}를 아침에 다시 보니까 이건 오래 갈 쪽이더라`,
+          `${buildLead(1)}${attachKoreanParticle(sourceAnchorStem, "object")} 아침에 다시 보니까 이건 오래 갈 쪽이더라`,
           `${topics}보다 반복해서 손이 가는지 먼저 보게 돼요`,
           buildQuestionTail("life-rhythm", 2),
           buildCloser("life-rhythm", 3),
@@ -1434,7 +1481,7 @@ function buildFallbackContexts({
         contextLabel: "첫인상",
         angle: "새로운 신호를 먼저 잡는 관점",
         content: composeReadableBody(
-          `${buildLead(3)}먼저 보인 건 ${sourceAnchorTitle} 쪽이에요`,
+          `${buildLead(3)}먼저 보인 건 ${sourceAnchorStem} 쪽이에요`,
           `겉으로는 단순해 보여도 ${baseSignal} 따라가면 결이 조금 달라져요`,
           buildObservationTail("signal-reading", 4),
           buildCloser("signal-reading", 5),
@@ -1446,7 +1493,7 @@ function buildFallbackContexts({
         contextLabel: "가격 체크",
         angle: "좋아 보이는 인상보다 실제 손익을 따지는 관점",
         content: composeReadableBody(
-          `${buildLead(5)}${sourceAnchorTitle}는 첫 인상은 괜찮은데, 가격 보면 생각이 달라져요`,
+          `${buildLead(5)}${attachKoreanParticle(sourceAnchorStem, "subject")} 첫 인상은 괜찮은데, 가격 보면 생각이 달라져요`,
           `${signalWithObject} 기준으로 오래 갈지부터 보게 돼요`,
           buildCloser("tradeoff-check", 6),
         ),
@@ -1457,7 +1504,7 @@ function buildFallbackContexts({
         contextLabel: "댓글 반응",
         angle: "포럼 대화 맥락에 기대는 반응",
         content: composeReadableBody(
-          `${buildLead(7)}댓글까지 같이 보니까 ${sourceAnchorTitle}가 조금 다르게 보여요`,
+          `${buildLead(7)}댓글까지 같이 보니까 ${sourceAnchorStem}가 조금 다르게 보여요`,
           `${topics}에 대한 반응이 갈리니까 글 하나도 다시 보게 돼요`,
           buildQuestionTail("community-reply", 8),
           buildCloser("community-reply", 9),
@@ -1469,7 +1516,7 @@ function buildFallbackContexts({
         contextLabel: "디테일",
         angle: "작은 디테일을 먼저 짚는 관점",
         content: composeReadableBody(
-          `${buildLead(9)}${sourceAnchorTitle}에서 작은 디테일 하나가 먼저 보여요`,
+          `${buildLead(9)}${sourceAnchorStem}에서 작은 디테일 하나가 먼저 보여요`,
           `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라져요`,
           buildObservationTail("micro-observation", 10),
           buildCloser("micro-observation", 11),
@@ -1481,7 +1528,7 @@ function buildFallbackContexts({
         contextLabel: "내 경험",
         angle: "개인 경험을 살짝 섞는 반응",
         content: composeReadableBody(
-          `${buildLead(11)}비슷한 사진이나 옷을 떠올리면 ${sourceAnchorTitle}가 더 잘 남아요`,
+          `${buildLead(11)}비슷한 사진이나 옷을 떠올리면 ${attachKoreanParticle(sourceAnchorStem, "subject")} 더 잘 남아요`,
           `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
           buildCloser("personal-memory", 12),
         ),
@@ -1498,7 +1545,7 @@ function buildFallbackContexts({
         contextLabel: "출근 전",
         angle: "출근이나 외출 전에 다시 읽는 생활 기준",
         content: composeReadableBody(
-          `${buildLead(1)}출근 전에 다시 보니까 ${sourceAnchorTitle}는 더 오래 갈 쪽이더라`,
+          `${buildLead(1)}출근 전에 다시 보니까 ${attachKoreanParticle(sourceAnchorStem, "subject")} 더 오래 갈 쪽이더라`,
           `${topics}보다 반복해서 입을 수 있느냐가 먼저 중요해요`,
           buildQuestionTail("life-rhythm", 2),
           buildCloser("life-rhythm", 3),
@@ -1510,7 +1557,7 @@ function buildFallbackContexts({
         contextLabel: "첫인상",
         angle: "글에서 새로 보이는 신호를 먼저 잡는 관점",
         content: composeReadableBody(
-          `${buildLead(3)}먼저 보인 건 ${sourceAnchorTitle} 쪽이에요`,
+          `${buildLead(3)}먼저 보인 건 ${sourceAnchorStem} 쪽이에요`,
           `겉으로는 단순해 보여도 ${baseSignal} 따라가면 결이 달라져요`,
           buildObservationTail("signal-reading", 4),
           buildCloser("signal-reading", 5),
@@ -1522,7 +1569,7 @@ function buildFallbackContexts({
         contextLabel: "가격 체크",
         angle: "가격과 과장보다 실제 손익을 따지는 관점",
         content: composeReadableBody(
-          `${buildLead(5)}${sourceAnchorTitle}는 첫 인상은 괜찮은데, 가격 보면 생각이 달라져요`,
+          `${buildLead(5)}${attachKoreanParticle(sourceAnchorStem, "subject")} 첫 인상은 괜찮은데, 가격 보면 생각이 달라져요`,
           `${signalWithObject} 기준으로 오래 갈지부터 보게 돼요`,
           buildCloser("tradeoff-check", 6),
         ),
@@ -1533,7 +1580,7 @@ function buildFallbackContexts({
         contextLabel: "댓글 반응",
         angle: "포럼 대화 흐름에 기대는 반응",
         content: composeReadableBody(
-          `${buildLead(7)}댓글까지 같이 보니까 ${sourceAnchorTitle}가 조금 다르게 보여요`,
+          `${buildLead(7)}댓글까지 같이 보니까 ${sourceAnchorStem}가 조금 다르게 보여요`,
           `${topics}에 대한 반응이 갈리니까 글 하나도 다시 보게 돼요`,
           buildQuestionTail("community-reply", 8),
           buildCloser("community-reply", 9),
@@ -1545,7 +1592,7 @@ function buildFallbackContexts({
         contextLabel: "디테일",
         angle: "작은 디테일을 먼저 짚는 관점",
         content: composeReadableBody(
-          `${buildLead(9)}${sourceAnchorTitle}에서 작은 디테일 하나가 먼저 보여요`,
+          `${buildLead(9)}${sourceAnchorStem}에서 작은 디테일 하나가 먼저 보여요`,
           `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라져요`,
           buildObservationTail("micro-observation", 10),
           buildCloser("micro-observation", 11),
@@ -1557,7 +1604,7 @@ function buildFallbackContexts({
         contextLabel: "내 경험",
         angle: "개인 경험을 살짝 섞는 반응",
         content: composeReadableBody(
-          `${buildLead(11)}비슷한 사진이나 옷을 떠올리면 ${sourceAnchorTitle}가 더 잘 남아요`,
+          `${buildLead(11)}비슷한 사진이나 옷을 떠올리면 ${attachKoreanParticle(sourceAnchorStem, "subject")} 더 잘 남아요`,
           `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
           buildCloser("personal-memory", 12),
         ),
@@ -1581,6 +1628,7 @@ function buildGenerationContext({
   mode,
   emotionProfile = null,
   sourceIntent = "",
+  sourceAnchorTerms = [],
   qualityGate = null,
 }) {
   const emotionTone = buildEmotionTonePack(emotionProfile, mode);
@@ -1603,6 +1651,7 @@ function buildGenerationContext({
     dominantEmotion: emotionTone?.dominantEmotion || null,
     secondaryEmotion: emotionTone?.secondaryEmotion || null,
     sourceIntent: sourceIntent || null,
+    sourceAnchorTerms: Array.isArray(sourceAnchorTerms) ? sourceAnchorTerms : [],
     titleStrategy: "hook_not_summary",
     model: model || null,
     summary: selectedContext
@@ -1729,6 +1778,31 @@ async function resolvePostDraftOnce({
     contentRecord,
     emotionProfile,
   });
+  const discussionAnchors = deriveDiscussionAnchors({
+    title: sourceTitle || "",
+    body: sourceBody || sourceSnippet || "",
+    topics: sourceTopics || [],
+  });
+  const sourceAnchorTerms = uniqueNormalizedList([
+    buildReadablePostTitle({
+      mode,
+      sourceTitle,
+      sourceTopics,
+      sourceSignal,
+      sourceSnippet,
+      sourceBody,
+      sourceCommentPreview,
+      selectedContext: null,
+      selectedContextLabel: null,
+      variationSeed,
+      sourceIntent,
+    }),
+    discussionAnchors.questionAnchor,
+    discussionAnchors.factualAnchor,
+    discussionAnchors.comparisonAnchor,
+    discussionAnchors.controversyAnchor,
+    ...(Array.isArray(sourceTopics) ? sourceTopics.map(localizeTopicLabel) : []),
+  ]);
   const fallbackPool = buildFallbackContexts({
     mode,
     agentHandle,
@@ -1760,6 +1834,7 @@ async function resolvePostDraftOnce({
     selectedContextLabel: null,
     variationSeed,
     sourceIntent,
+    sourceAnchorTerms,
   });
 
   if (!apiKey) {
@@ -1786,6 +1861,7 @@ async function resolvePostDraftOnce({
         mode,
         emotionProfile: resolvedEmotionProfile,
         sourceIntent,
+        sourceAnchorTerms,
       }),
       contextPool: fallbackPool,
     };
@@ -1804,6 +1880,7 @@ async function resolvePostDraftOnce({
       replyTargetType,
       styleProfile,
       emotionProfile: resolvedEmotionProfile,
+      sourceAnchorTerms,
     });
     const result = await requestOpenAIContexts({
       apiKey,
@@ -1848,6 +1925,7 @@ async function resolvePostDraftOnce({
           mode,
           emotionProfile: resolvedEmotionProfile,
           sourceIntent,
+          sourceAnchorTerms,
         }),
         contextPool: contexts,
       };
@@ -1890,6 +1968,7 @@ async function resolvePostDraftOnce({
       mode,
       emotionProfile: resolvedEmotionProfile,
       sourceIntent,
+      sourceAnchorTerms,
     }),
     contextPool: fallbackPool,
   };
@@ -1925,16 +2004,23 @@ async function resolvePostDraft({
       ...rest,
       variationSeed,
     });
-    const quality = scoreCommunityDraft({
-      id: `${rest.mode || "post"}:${variationSeed}`,
-      kind: rest.mode === "comment" ? "comment" : "post",
-      title: candidate.title || "",
-      content: candidate.content || "",
-      authorDisplayName: rest.agentHandle || rest.agent?.handle || null,
-      authorType: "agent",
-      replyTargetType: rest.replyTargetType || null,
-      tags: Array.isArray(candidate.generationContext?.sourceContentTopics) ? candidate.generationContext.sourceContentTopics : [],
-    });
+      const quality = scoreCommunityDraft({
+        id: `${rest.mode || "post"}:${variationSeed}`,
+        kind: rest.mode === "comment" ? "comment" : "post",
+        title: candidate.title || "",
+        content: candidate.content || "",
+        authorDisplayName: rest.agentHandle || rest.agent?.handle || null,
+        authorType: "agent",
+        replyTargetType: rest.replyTargetType || null,
+        tags: Array.isArray(candidate.generationContext?.sourceContentTopics) ? candidate.generationContext.sourceContentTopics : [],
+        sourceIntent: candidate.generationContext?.sourceIntent || classifySourceIntent({
+          title: candidate.title || "",
+          body: candidate.content || "",
+          topics: candidate.generationContext?.sourceContentTopics || [],
+        }),
+        sourceAnchorTerms: candidate.generationContext?.sourceAnchorTerms || [],
+        sourceTopics: Array.isArray(candidate.generationContext?.sourceContentTopics) ? candidate.generationContext.sourceContentTopics : [],
+      });
 
     const detailedResult = {
       ...candidate,
