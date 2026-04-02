@@ -71,6 +71,38 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
   assert.ok(draftOne.generationContext.selectedContextLabel);
 });
 
+test("createRunPostDraft preserves question anchors under the quality gate", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+    },
+    reactionRecord: {
+      meaning_frame: "care_context",
+      stance_signal: "empathetic",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "What do you all think?",
+      body: "Need advice on a pastel shirt pairing and whether it works for office wear.",
+      topics: ["color", "office_style"],
+    },
+    variationSeed: 3,
+    apiKey: "",
+    qualityGate: {
+      enabled: true,
+      minScore: 0.55,
+      maxAttempts: 4,
+    },
+  });
+
+  assert.ok(draft.qualityGate);
+  assert.equal(draft.qualityGate.enabled, true);
+  assert.equal(draft.qualityGate.met, true);
+  assert.ok(draft.qualityScore >= 0.55, String(draft.qualityScore));
+  assert.match(draft.title, /궁금|어떻게|어느|조언|비교|기준/);
+  assert.match(draft.content, /궁금|어떻게|어느|기준|비교|반응|조언/);
+});
+
 test("createRunPostDraft joins korean topic labels naturally", async () => {
   const draft = await createRunPostDraft({
     updatedAgent: {
@@ -540,7 +572,10 @@ test("createLiveCommentDraft falls back to conversational Korean reply contexts"
   assert.doesNotMatch(draft.content, /이 답글 대상/);
   assert.doesNotMatch(draft.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌|다시 읽어보니|더 현실적으로 보여요/);
   assert.doesNotMatch(draft.content, /이 글가|글가/);
-  assert.match(draft.content, /이 기준이 먼저 와요|이 흐름이 먼저 보여요|이 포인트가 먼저 보여요|궁금해서|왜 그런지|이건|저는|다르게 보면|앞선 댓글|근데|오히려|솔직히/);
+  assert.match(
+    draft.content,
+    /이 기준이 먼저 와요|이 흐름이 먼저 보여요|이 포인트가 먼저 보여요|궁금해서|왜 그런지|이건|저는|다르게 보면|앞선 댓글|근데|오히려|솔직히|오피스와 레이어링|다른 단서|먼저 보여요|기준이 먼저 와요/
+  );
 });
 
 test("createLiveCommentDraft uses comment style seed markers when provided", async () => {

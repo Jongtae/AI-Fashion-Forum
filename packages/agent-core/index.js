@@ -1,5 +1,6 @@
 export * from "./content-pipeline.js";
 export * from "./content-indexing.js";
+export * from "./content-quality.js";
 export * from "./debug-console.js";
 export * from "./evaluation-metrics.js";
 export * from "./forum-generation.js";
