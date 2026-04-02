@@ -1074,6 +1074,11 @@ function buildFallbackContexts({
           "앞뒤를 같이 보면 흐름이 더 보여요",
           "읽는 순서가 바뀌면 느낌도 달라져요",
         ],
+        closing: [
+          "그래서 더 오래 보게 돼요",
+          "이런 글은 나중에도 다시 떠올라요",
+          "결국은 이 기준이 남아요",
+        ],
       },
       "reply-question": {
         question: [
@@ -1082,6 +1087,11 @@ function buildFallbackContexts({
           "이 부분은 어떻게 먼저 보였는지도 궁금해요",
           "비슷한 글이랑 같이 보신 건지도 궁금해요",
         ],
+        closing: [
+          "그래서 더 궁금해져요",
+          "이 기준이 있으면 더 잘 보일 것 같아요",
+          "이렇게 보면 판단이 조금 넓어져요",
+        ],
       },
       "reply-nuance": {
         observation: [
@@ -1089,6 +1099,11 @@ function buildFallbackContexts({
           "이 부분은 조금 다르게 보였어요",
           "같은 글인데 결이 조금 달라 보여요",
           "이쪽으로 보면 또 다른 느낌이 있어요",
+        ],
+        closing: [
+          "이렇게 보면 포인트가 조금 달라져요",
+          "다른 기준도 같이 남아요",
+          "결이 갈리는 지점이 보여요",
         ],
       },
       "reply-thread": {
@@ -1099,6 +1114,11 @@ function buildFallbackContexts({
           "한 번 더 이어 보면 결이 더 보여요",
           "앞뒤 반응이 같이 붙으니 더 잘 읽혀요",
           "이렇게 이어 읽으면 톤이 더 보이네요",
+        ],
+        closing: [
+          "이렇게 묶어 보면 더 잘 보여요",
+          "대화로 보면 포인트가 더 선명해요",
+          "흐름이 붙으니 판단이 쉬워져요",
         ],
       },
       "reply-support": {
@@ -1111,6 +1131,11 @@ function buildFallbackContexts({
           "그 얘기라면 오래 생각날 것 같아요",
           "그 반응이 더 사람답게 느껴져요",
         ],
+        closing: [
+          "그래서 더 오래 기억날 것 같아요",
+          "그 마음이 꽤 자연스럽게 남아요",
+          "이런 반응이 더 편하게 읽혀요",
+        ],
       },
       "reply-counterpoint": {
         counter: [
@@ -1121,6 +1146,11 @@ function buildFallbackContexts({
           "한쪽보다 다른 쪽이 더 먼저 보여요",
           "이쪽만 보면 조금 좁아 보여요",
           "다른 쪽에서 보면 해석이 넓어져요",
+        ],
+        closing: [
+          "그래서 다른 읽기도 남아요",
+          "이렇게 보면 결이 조금 넓어져요",
+          "반대 방향도 같이 보여요",
         ],
       },
     },
@@ -1188,8 +1218,8 @@ function buildFallbackContexts({
         angle: "상대의 말을 받아서 대화를 이어가는 반응",
         content: composeReadableBody(
           `${buildLead(1)}${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 2)} 먼저 보여요`,
-          "같이 보면 조금 더 또렷해져요",
           buildObservationTail("reply-continue", 3),
+          buildCloser("reply-continue", 4),
         ),
         tone: "대화형",
       },
@@ -1201,6 +1231,7 @@ function buildFallbackContexts({
           `${buildLead(4)}${topics}보다 다른 단서가 먼저 보여요`,
           pickContextDistinct("reply-question", variationSeed, casualQuestionPool, []),
           buildQuestionTail("reply-question", 5),
+          buildCloser("reply-question", 6),
         ),
         tone: "호기심 있는",
       },
@@ -1211,6 +1242,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(6)}여기서는 결이 좀 다르게 보여요`,
           buildObservationTail("reply-nuance", 7),
+          buildCloser("reply-nuance", 8),
         ),
         tone: "조심스러운",
       },
@@ -1221,7 +1253,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(8)}${buildSupportTail("reply-thread", variationSeed + 1)}`,
           pickContextDistinct("reply-thread", variationSeed + 2, threadBridgePool, []),
-          buildSupportTail("reply-thread", 9),
+          buildCloser("reply-thread", 9),
         ),
         tone: "관찰적인",
       },
@@ -1232,7 +1264,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(10)}${buildSupportTail("reply-support", variationSeed + 2)}`,
           pickContextDistinct("reply-support", variationSeed + 3, supportReactionPool, []),
-          buildSupportTail("reply-support", 11),
+          buildCloser("reply-support", 11),
         ),
         tone: "공감형",
       },
@@ -1243,7 +1275,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(12)}조금 다르게 읽었어요`,
           `같이 보면 느낌이 조금 달라져요`,
-          buildCounterTail("reply-counterpoint", 13),
+          buildCloser("reply-counterpoint", 13),
         ),
         tone: "조심스럽지만 단단한",
       },
