@@ -759,6 +759,11 @@ export function buildReadablePostTitle({
       `한 번 더 물어본 이유`,
       `${attachKoreanParticle(primaryTopic, "object")} 다시 읽고 남긴 말`,
       `${secondaryTopic} 쪽이 더 남는 이유`,
+      `${contextLabel || "댓글"}에서 먼저 남은 말`,
+      `${contextLabel || "댓글"}로 이어진 짧은 반응`,
+      `${attachKoreanParticle(primaryTopic, "object")}를 보고 남긴 답`,
+      `${attachKoreanParticle(primaryTopic, "object")}을 다시 보게 된 댓글`,
+      `${attachKoreanParticle(joinKoreanTopicList([primaryTopic, secondaryTopic]), "object")} 같이 본 말`,
     );
   } else {
     const hookSet = RUN_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel) || null;
@@ -771,6 +776,11 @@ export function buildReadablePostTitle({
       `한 번 더 보게 된 사진`,
       `${attachKoreanParticle(primaryTopic, "object")} 다시 본 기준`,
       `${secondaryTopic} 쪽이 더 남는 이유`,
+      `${contextLabel || "이번 글"}에서 먼저 보인 ${primaryTopic}`,
+      `${contextLabel || "이번 글"}로 다시 읽은 기준`,
+      `${primaryTopic}보다 먼저 보인 포인트`,
+      `${primaryTopic}이 더 남는 이유`,
+      `${attachKoreanParticle(joinKoreanTopicList([primaryTopic, secondaryTopic]), "object")} 같이 본 글`,
     );
   }
 
@@ -779,11 +789,13 @@ export function buildReadablePostTitle({
       pool.push(
         `${contextLabel}에서 다시 읽은 말`,
         `${contextLabel}로 이어진 한 줄`,
+        `${contextLabel}에서 남은 짧은 생각`,
       );
     } else {
       pool.push(
         `${contextLabel}에서 먼저 보인 포인트`,
         `${contextLabel}로 다시 읽은 기준`,
+        `${contextLabel}에서 더 남는 이유`,
       );
     }
   }

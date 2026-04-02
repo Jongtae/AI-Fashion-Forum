@@ -147,6 +147,31 @@ test("createRunPostDraft avoids comma after short colloquial openers", async () 
   }
 });
 
+test("createRunPostDraft avoids broken joint topic grammar in titles", async () => {
+  for (let seed = 0; seed < 12; seed += 1) {
+    const draft = await createRunPostDraft({
+      updatedAgent: {
+        handle: "officemirror",
+      },
+      reactionRecord: {
+        meaning_frame: "care_context",
+        stance_signal: "empathetic",
+        dominant_feeling: "curious",
+      },
+      contentRecord: {
+        title: "quiet office outfit",
+        body: "A small look at weekday layering and commute comfort.",
+        topics: ["pricing", "care_context"],
+      },
+      variationSeed: seed,
+      apiKey: "",
+    });
+
+    assert.doesNotMatch(draft.title, /[가-힣]를 같이 본/);
+    assert.doesNotMatch(draft.title, /[가-힣]를과/);
+  }
+});
+
 test("createRunPostDraft produces varied titles across seeds", async () => {
   const titles = [];
   for (let seed = 0; seed < 6; seed += 1) {
@@ -170,7 +195,7 @@ test("createRunPostDraft produces varied titles across seeds", async () => {
     titles.push(draft.title);
   }
 
-  assert.ok(new Set(titles).size >= 4, titles.join(" | "));
+  assert.ok(new Set(titles).size >= 5, titles.join(" | "));
   for (const title of titles) {
     assert.doesNotMatch(title, /[을를이가은는] 쪽/);
   }
