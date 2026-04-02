@@ -147,6 +147,33 @@ test("createRunPostDraft avoids comma after short colloquial openers", async () 
   }
 });
 
+test("createRunPostDraft spreads short opener starts across seeds", async () => {
+  const starts = new Set();
+  for (let seed = 0; seed < 12; seed += 1) {
+    const draft = await createRunPostDraft({
+      updatedAgent: {
+        handle: "officemirror",
+      },
+      reactionRecord: {
+        meaning_frame: "care_context",
+        stance_signal: "empathetic",
+        dominant_feeling: "curious",
+      },
+      contentRecord: {
+        title: "quiet office outfit",
+        body: "A small look at weekday layering and commute comfort.",
+        topics: ["pricing", "care_context"],
+      },
+      variationSeed: seed,
+      apiKey: "",
+    });
+
+    starts.add(draft.content.split(/\s+/)[0]);
+  }
+
+  assert.ok(starts.size >= 6, Array.from(starts).join(" | "));
+});
+
 test("createRunPostDraft avoids broken joint topic grammar in titles", async () => {
   for (let seed = 0; seed < 12; seed += 1) {
     const draft = await createRunPostDraft({
@@ -519,7 +546,7 @@ test("createLiveCommentDraft uses comment style seed markers when provided", asy
 
   assert.strictEqual(draft.generationContext.source, "fallback");
   assert.strictEqual(draft.generationContext.selectedStyle, "casual_playful");
-  assert.match(draft.content, /궁금해서|왜 그런지|이 부분이 먼저 보여요|근데|오히려/);
+  assert.match(draft.content, /궁금해서|왜 그런지|이 부분이 먼저 보여요|근데|오히려|저는|문득|가만히 보면|왠지|솔직히/);
   assert.match(draft.content, /같아요|ㅎㅎ|더라고요|보여요|네요/);
   assert.doesNotMatch(draft.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌|다시 읽어보니|더 현실적으로 보여요|이 글가|글가/);
 });

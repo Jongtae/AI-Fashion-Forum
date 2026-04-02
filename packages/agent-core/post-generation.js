@@ -332,29 +332,29 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   const isComment = mode === "comment";
   const emotionOpeners = {
     curiosity: isComment
-      ? ["이 부분부터 보였어요", "저는 이 기준이 먼저 와요", "처음 걸린 건 이거예요"]
-      : ["이 기준이 먼저 보여요", "저는 이 부분부터 봤어요", "처음 눈에 걸린 건 이 쪽이에요"],
+      ? ["이 부분부터 보였어요", "저는 이 기준이 먼저 와요", "처음 걸린 건 이거예요", "문득 이 부분이 보였어요", "가만히 보면 이 기준이 먼저 와요"]
+      : ["이 기준이 먼저 보여요", "저는 이 부분부터 봤어요", "처음 눈에 걸린 건 이 쪽이에요", "문득 이 부분이 먼저 보여요", "가만히 보면 이 기준이 더 먼저 와요"],
     empathy: isComment
-      ? ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서"]
-      : ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서"],
+      ? ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서", "조금 마음이 가서", "읽다 보니 공감이 먼저 됐어요"]
+      : ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서", "조금 마음이 가서", "읽다 보니 공감이 먼저 됐어요"],
     amusement: isComment
-      ? ["살짝 웃겨서", "생각보다 재밌어서", "괜히 웃음이 나서"]
-      : ["살짝 웃기게도", "생각보다 재밌게", "괜히 웃음이 나서"],
+      ? ["살짝 웃겨서", "생각보다 재밌어서", "괜히 웃음이 나서", "보자마자 웃겨서", "은근 웃겨서"]
+      : ["살짝 웃기게도", "생각보다 재밌게", "괜히 웃음이 나서", "보자마자 웃겨서", "은근 웃겨서"],
     sadness: isComment
-      ? ["조금 아쉬워서", "괜히 허전해서", "마음이 조금 가라앉아서"]
-      : ["조금 아쉽게", "괜히 허전하게", "생각보다 씁쓸하게"],
+      ? ["조금 아쉬워서", "괜히 허전해서", "마음이 조금 가라앉아서", "왠지 허전해서", "보고 나니 아쉬워서"]
+      : ["조금 아쉽게", "괜히 허전하게", "생각보다 씁쓸하게", "왠지 허전하게", "보고 나니 아쉽게"],
     anger: isComment
-      ? ["솔직히 좀 답답해서", "조금 화가 나서", "이건 꽤 불편해서"]
-      : ["솔직히 좀 답답하게", "조금 화가 나서", "의외로 불만스럽게"],
+      ? ["솔직히 좀 답답해서", "조금 화가 나서", "이건 꽤 불편해서", "보자마자 답답해서", "생각보다 거슬려서"]
+      : ["솔직히 좀 답답하게", "조금 화가 나서", "의외로 불만스럽게", "보자마자 답답하게", "생각보다 거슬리게"],
     relief: isComment
-      ? ["생각보다 다행이라서", "괜히 안심돼서", "그래도 편하게 느껴져서"]
-      : ["생각보다 다행스럽게", "괜히 안심돼서", "이건 좀 편하게 읽혔어요"],
+      ? ["생각보다 다행이라서", "괜히 안심돼서", "그래도 편하게 느껴져서", "보니까 다행이라서", "한숨 놓이게 돼서"]
+      : ["생각보다 다행스럽게", "괜히 안심돼서", "이건 좀 편하게 읽혔어요", "보니까 다행스럽게", "한숨 놓이게"],
     anticipation: isComment
-      ? ["다음이 궁금해서", "계속 이어질 것 같아서", "이 뒤가 더 궁금해져서"]
-      : ["다음이 궁금해서", "앞으로가 기대돼서", "계속 지켜보게 돼요"],
+      ? ["다음이 궁금해서", "계속 이어질 것 같아서", "이 뒤가 더 궁금해져서", "다음 말이 궁금해서", "이후가 더 궁금해져서"]
+      : ["다음이 궁금해서", "앞으로가 기대돼서", "계속 지켜보게 돼요", "다음 흐름이 궁금해서", "이후가 더 궁금해져서"],
     surprise: isComment
-      ? ["의외라서", "생각보다 새로워서", "뜻밖이라서"]
-      : ["의외로", "생각보다", "뜻밖에"],
+      ? ["의외라서", "생각보다 새로워서", "뜻밖이라서", "갑자기 눈에 걸려서", "예상보다 낯설어서"]
+      : ["의외로", "생각보다", "뜻밖에", "갑자기 눈에 들어와서", "예상보다 낯설게"],
   };
   const emotionHooks = {
     curiosity: isComment
@@ -946,8 +946,8 @@ function buildFallbackContexts({
   const styleOpeners = uniqueNormalizedList(styleProfile?.openers || styleProfile?.openerMarkers || []);
   const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
   const emotionTone = buildEmotionTonePack(emotionProfile, mode);
-  const postFallbackOpeners = ["", "근데", "저는", "오히려", "솔직히", "개인적으로", "이번엔", "조용히 보면"];
-  const commentFallbackOpeners = ["근데", "저는", "오히려", "솔직히", "개인적으로", "음", "이 부분은", "그 포인트는"];
+  const postFallbackOpeners = ["", "근데", "저는", "오히려", "솔직히", "개인적으로", "이번엔", "조용히 보면", "문득", "가만히 보면", "처음엔", "한 번 더 보면", "왠지"];
+  const commentFallbackOpeners = ["", "근데", "저는", "오히려", "솔직히", "개인적으로", "음", "이 부분은", "그 포인트는", "문득", "가만히 보면", "한 번 더 보면", "왠지"];
   const isAgreementOpener = (value = "") => /^(맞아요|그렇죠|그래요|네|응)([\s,!.?].*)?$/u.test(normalizeText(value));
   const filteredStyleOpeners = styleOpeners.filter((opener) => !isAgreementOpener(opener));
   const openerPool =
@@ -1121,7 +1121,7 @@ function buildFallbackContexts({
         contextLabel: "보완",
         angle: "부드럽게 다른 관점을 보태는 반응",
         content: composeReadableBody(
-          `${buildLead(6)}저는 여기서 결이 좀 다르게 보여요`,
+          `${buildLead(6)}여기서는 결이 좀 다르게 보여요`,
           buildObservationTail("reply-nuance", 7),
         ),
         tone: "조심스러운",
@@ -1153,7 +1153,7 @@ function buildFallbackContexts({
         contextLabel: "반대",
         angle: "같은 글을 다른 결로 읽어보는 반응",
         content: composeReadableBody(
-          `${buildLead(12)}저는 조금 다르게 읽었어요`,
+          `${buildLead(12)}조금 다르게 읽었어요`,
           `같이 보면 느낌이 조금 달라져요`,
           buildCounterTail("reply-counterpoint", 13),
         ),
