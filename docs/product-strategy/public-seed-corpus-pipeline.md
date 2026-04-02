@@ -33,6 +33,7 @@ The one-step rebuild command runs:
 
 ## Notes
 
-- The active simulation state is not overwritten automatically.
-- If you want to run the agent server from the public corpus candidates, point `AGENT_STATE_CANDIDATES_FILE` at `data/seed-corpus/public/recent-fashion-agent-state-candidates.json`.
+- The active simulation state is not overwritten automatically by the crawl step alone.
+- The agent server now prefers `data/seed-corpus/public/recent-fashion-agent-state-candidates.json` when that file is present, and still accepts `AGENT_STATE_CANDIDATES_FILE` or `PUBLIC_AGENT_STATE_CANDIDATES_FILE` overrides.
+- The sprint-1 content starter pack now prefers `data/seed-corpus/public/recent-fashion-corpus.json` when that corpus exists, so controlled rebuilds can be run directly from the public seed world.
 - Bluesky and Discord remain follow-up source families for public crawl adapters when accessible collection paths are confirmed.
