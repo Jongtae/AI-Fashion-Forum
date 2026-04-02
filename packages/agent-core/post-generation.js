@@ -332,8 +332,8 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   const isComment = mode === "comment";
   const emotionOpeners = {
     curiosity: isComment
-      ? ["궁금해서", "왜 그런지", "이 부분이 먼저 보여요"]
-      : ["궁금해서", "왜 이렇게 보이는지", "이 부분이 먼저 보여요"],
+      ? ["이 부분부터 보였어요", "저는 이 기준이 먼저 와요", "처음 걸린 건 이거예요"]
+      : ["이 기준이 먼저 보여요", "저는 이 부분부터 봤어요", "처음 눈에 걸린 건 이 쪽이에요"],
     empathy: isComment
       ? ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서"]
       : ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서"],
@@ -358,8 +358,8 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   };
   const emotionHooks = {
     curiosity: isComment
-      ? ["이 포인트는 어떻게 보셨는지 궁금해요.", "어느 기준이 먼저였는지 궁금해요."]
-      : ["이 기준은 사람마다 다를 것 같아요.", "어느 쪽이 먼저 보였는지 궁금해요."],
+      ? ["어느 기준으로 보셨는지 궁금해요.", "이 포인트를 어떻게 잡으셨는지 궁금해요."]
+      : ["어느 쪽을 먼저 보셨는지 궁금해요.", "기준이 좀 나뉠 것 같아요."],
     empathy: ["그 마음이 남는 지점이 있네요.", "마음 쓰이는 부분이 조금 길게 남아요."],
     amusement: ["이건 살짝 웃겨서 남네요.", "웃음이 나는 지점이 꽤 오래 가요."],
     sadness: ["괜히 아쉬운 마음이 조금 남아요.", "조금 허전하게 읽히는 부분이 있어요."],
@@ -370,8 +370,8 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   };
   const emotionClosings = {
     curiosity: isComment
-      ? ["이 포인트는 어떻게 보셨는지 궁금해요.", "어느 기준이 먼저였는지 궁금해요."]
-      : ["이 기준은 사람마다 다를 것 같아요.", "어느 쪽이 먼저 보였는지 궁금해요."],
+      ? ["같이 보면 조금 더 또렷해요.", "이렇게 보면 흐름이 더 보여요."]
+      : ["이 기준은 사람마다 다를 것 같아요.", "저는 이쪽이 조금 더 남아요."],
     empathy: ["그 마음이 남는 지점이 있네요.", "괜히 마음이 가는 부분이 있어요."],
     amusement: ["조금 웃겨서 오래 남네요.", "이런 사진이 은근 기억에 남아요."],
     sadness: ["괜히 아쉬운 마음이 조금 남아요.", "조금 허전하게 남는 지점이 있어요."],
@@ -590,6 +590,8 @@ const RUN_TITLE_HOOKS = [
       "평소 입을 때 더 보이는 포인트",
       "아침에 다시 보게 된 이유",
       "오늘 다시 본 기준",
+      "출근길에 다시 읽은 포인트",
+      "오늘 아침에 더 남은 이유",
     ],
   },
   {
@@ -599,6 +601,8 @@ const RUN_TITLE_HOOKS = [
       "먼저 걸린 단서",
       "눈에 먼저 들어온 이유",
       "첫인상을 바꾼 지점",
+      "처음 보이고 오래 남은 이유",
+      "먼저 눈에 걸린 기준",
     ],
   },
   {
@@ -608,6 +612,8 @@ const RUN_TITLE_HOOKS = [
       "몇 번 입을지 먼저 본 이유",
       "손이 갈지 먼저 본 메모",
       "좋아 보여도 다시 본 이유",
+      "가격보다 오래 남는 쪽",
+      "가격을 다시 보게 된 이유",
     ],
   },
   {
@@ -617,6 +623,8 @@ const RUN_TITLE_HOOKS = [
       "반응 보고 다시 본 글",
       "대화가 먼저 붙은 글",
       "댓글이 넓힌 말",
+      "댓글까지 보고 다시 본 이유",
+      "반응이 갈린 지점",
     ],
   },
   {
@@ -626,6 +634,8 @@ const RUN_TITLE_HOOKS = [
       "디테일 하나가 남은 글",
       "먼저 걸린 디테일",
       "작은 부분이 바꾼 판단",
+      "작은 부분이 오래 남은 이유",
+      "디테일이 먼저 남은 글",
     ],
   },
   {
@@ -635,6 +645,8 @@ const RUN_TITLE_HOOKS = [
       "전에 본 느낌과 닮은 지점",
       "기억이 먼저 걸린 포인트",
       "내 경험이 먼저 반응한 글",
+      "기억이 먼저 붙은 이유",
+      "내 경험이 다시 떠오른 글",
     ],
   },
 ];
@@ -647,6 +659,8 @@ const COMMENT_TITLE_HOOKS = [
       "답을 이어 붙인 자리",
       "흐름을 놓치지 않은 답",
       "이야기를 계속 잇는 댓글",
+      "대화를 조금 더 잇는 말",
+      "흐름을 다시 잡은 댓글",
     ],
   },
   {
@@ -656,6 +670,8 @@ const COMMENT_TITLE_HOOKS = [
       "기준이 궁금해진 부분",
       "다시 물어보고 싶은 이유",
       "질문이 남은 포인트",
+      "기준이 더 궁금해진 말",
+      "한 번 더 묻게 된 이유",
     ],
   },
   {
@@ -665,6 +681,8 @@ const COMMENT_TITLE_HOOKS = [
       "조금 더 보태고 싶은 말",
       "부드럽게 다른 쪽을 본 답",
       "보완해서 읽은 댓글",
+      "다르게 보인 한 줄",
+      "조금 더 보태고 싶은 이유",
     ],
   },
   {
@@ -674,6 +692,8 @@ const COMMENT_TITLE_HOOKS = [
       "글과 댓글을 다시 잇는 쪽",
       "대화 흐름을 묶은 메모",
       "스레드 전체를 다시 읽은 말",
+      "댓글까지 봐야 보이는 포인트",
+      "흐름을 묶어 읽은 댓글",
     ],
   },
   {
@@ -683,6 +703,8 @@ const COMMENT_TITLE_HOOKS = [
       "고개가 먼저 끄덕여진 말",
       "비슷하게 느낀 지점",
       "공감부터 남긴 댓글",
+      "먼저 마음이 간 부분",
+      "비슷하게 읽힌 한 줄",
     ],
   },
   {
@@ -692,6 +714,8 @@ const COMMENT_TITLE_HOOKS = [
       "조금 다른 쪽에서 본 답",
       "반대로 보인 한 지점",
       "다른 결로 읽은 댓글",
+      "다르게 읽힌 이유",
+      "조금 다른 쪽에서 남긴 말",
     ],
   },
 ];
@@ -733,6 +757,8 @@ export function buildReadablePostTitle({
       `대화를 이어 붙인 한 줄`,
       `댓글 흐름에서 남은 포인트`,
       `한 번 더 물어본 이유`,
+      `${attachKoreanParticle(primaryTopic, "object")} 다시 읽고 남긴 말`,
+      `${secondaryTopic} 쪽이 더 남는 이유`,
     );
   } else {
     const hookSet = RUN_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel) || null;
@@ -743,7 +769,23 @@ export function buildReadablePostTitle({
       `오늘 다시 읽은 포인트`,
       `이 글이 오래 남는 이유`,
       `한 번 더 보게 된 사진`,
+      `${attachKoreanParticle(primaryTopic, "object")} 다시 본 기준`,
+      `${secondaryTopic} 쪽이 더 남는 이유`,
     );
+  }
+
+  if (contextLabel) {
+    if (mode === "comment") {
+      pool.push(
+        `${contextLabel}에서 다시 읽은 말`,
+        `${contextLabel}로 이어진 한 줄`,
+      );
+    } else {
+      pool.push(
+        `${contextLabel}에서 먼저 보인 포인트`,
+        `${contextLabel}로 다시 읽은 기준`,
+      );
+    }
   }
 
   const candidates = uniqueNormalizedList(pool)
@@ -941,7 +983,7 @@ function buildFallbackContexts({
   const pickTone = (seedOffset, ...pools) => pickBySeed(mergePools(...pools), variationSeed + seedOffset) || "";
   const buildLead = (seedOffset, ...pools) => {
     const value = pickTone(seedOffset, emotionTone.leadPool, openerPool, ...pools);
-    return value ? `${value}, ` : "";
+    return value ? `${value} ` : "";
   };
   const contextTailMap = {
     comment: {

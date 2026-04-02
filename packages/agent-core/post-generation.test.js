@@ -120,6 +120,62 @@ test("createRunPostDraft avoids repetitive agreement openers", async () => {
   assert.match(draft.content, /궁금해요|궁금합니다|보셨는지도|읽으셨는지|있나요|왜 이렇게 보이는지|이 부분이 먼저 보여요/);
 });
 
+test("createRunPostDraft avoids comma after short colloquial openers", async () => {
+  const shortOpeners = ["저는", "근데", "솔직히", "궁금해서", "개인적으로", "오히려"];
+  for (let seed = 0; seed < 6; seed += 1) {
+    const draft = await createRunPostDraft({
+      updatedAgent: {
+        handle: "officemirror",
+      },
+      reactionRecord: {
+        meaning_frame: "care_context",
+        stance_signal: "empathetic",
+        dominant_feeling: "curious",
+      },
+      contentRecord: {
+        title: "quiet office outfit",
+        body: "A small look at weekday layering and commute comfort.",
+        topics: ["pricing", "care_context"],
+      },
+      variationSeed: seed,
+      apiKey: "",
+    });
+
+    for (const opener of shortOpeners) {
+      assert.doesNotMatch(draft.content, new RegExp(`^${opener},`));
+    }
+  }
+});
+
+test("createRunPostDraft produces varied titles across seeds", async () => {
+  const titles = [];
+  for (let seed = 0; seed < 6; seed += 1) {
+    const draft = await createRunPostDraft({
+      updatedAgent: {
+        handle: "officemirror",
+      },
+      reactionRecord: {
+        meaning_frame: "care_context",
+        stance_signal: "empathetic",
+        dominant_feeling: "curious",
+      },
+      contentRecord: {
+        title: "quiet office outfit",
+        body: "A small look at weekday layering and commute comfort.",
+        topics: ["pricing", "care_context"],
+      },
+      variationSeed: seed,
+      apiKey: "",
+    });
+    titles.push(draft.title);
+  }
+
+  assert.ok(new Set(titles).size >= 4, titles.join(" | "));
+  for (const title of titles) {
+    assert.doesNotMatch(title, /[을를이가은는] 쪽/);
+  }
+});
+
 test("createRunPostDraft carries emotion profile into generation context", async () => {
   const draft = await createRunPostDraft({
     updatedAgent: {
