@@ -623,3 +623,31 @@ test("createLivePostDraft falls back to Korean live contexts", async () => {
   assert.ok(draft.title);
   assert.notStrictEqual(draft.title, draft.content);
 });
+
+test("createRunPostDraft spreads closing lines across seeds", async () => {
+  const endings = new Set();
+  for (let seed = 0; seed < 8; seed += 1) {
+    const draft = await createRunPostDraft({
+      updatedAgent: {
+        handle: "officemirror",
+      },
+      reactionRecord: {
+        meaning_frame: "care_context",
+        stance_signal: "empathetic",
+        dominant_feeling: "curious",
+      },
+      contentRecord: {
+        title: "quiet office outfit",
+        body: "A small look at weekday layering and commute comfort.",
+        topics: ["pricing", "care_context"],
+      },
+      variationSeed: seed,
+      apiKey: "",
+    });
+
+    const sentences = draft.content.split(/(?<=[.!?…。])\s+/).map((part) => part.trim()).filter(Boolean);
+    endings.add(sentences.at(-1));
+  }
+
+  assert.ok(endings.size >= 5, Array.from(endings).join(" | "));
+});
