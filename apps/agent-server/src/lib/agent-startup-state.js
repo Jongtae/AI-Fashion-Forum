@@ -17,6 +17,10 @@ const DEFAULT_CANDIDATES_FILE = path.resolve(
   __dirname,
   "../../../../data/agent-state-candidates.json",
 );
+const DEFAULT_PUBLIC_CANDIDATES_FILE = path.resolve(
+  __dirname,
+  "../../../../data/seed-corpus/public/recent-fashion-agent-state-candidates.json",
+);
 
 const startupCache = new Map();
 
@@ -40,6 +44,15 @@ function resolveCandidatesFilePath(explicitPath) {
   const envPath = process.env.AGENT_STATE_CANDIDATES_FILE;
   if (envPath) {
     return path.resolve(process.cwd(), envPath);
+  }
+
+  const publicEnvPath = process.env.PUBLIC_AGENT_STATE_CANDIDATES_FILE;
+  if (publicEnvPath) {
+    return path.resolve(process.cwd(), publicEnvPath);
+  }
+
+  if (fs.existsSync(DEFAULT_PUBLIC_CANDIDATES_FILE)) {
+    return DEFAULT_PUBLIC_CANDIDATES_FILE;
   }
 
   return DEFAULT_CANDIDATES_FILE;

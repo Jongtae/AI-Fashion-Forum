@@ -82,3 +82,10 @@ test("loads derived candidates when the candidate file exists", () => {
   assert.equal(meta.source, "agent-state-candidates");
   assert.equal(meta.agentCount, 1);
 });
+
+test("prefers the public candidate file when available", () => {
+  const meta = loadAgentStartupStateMeta();
+
+  assert.match(meta.filePath, /seed-corpus\/public\/recent-fashion-agent-state-candidates\.json$/);
+  assert.equal(meta.source, "agent-state-candidates");
+});

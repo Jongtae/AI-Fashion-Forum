@@ -1,13 +1,231 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import {
   CONTENT_PROVIDER_INTERFACE,
   createProviderRecord,
   normalizeProviderRecord,
 } from "@ai-fashion-forum/shared-types";
 
+import {
+  deriveEmotionSignals,
+  extractTopicBag,
+  normalizeText,
+  stripHtml,
+} from "../../scripts/public-seed-corpus-utils.mjs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const DEFAULT_PUBLIC_SEED_CORPUS_PATH = path.resolve(
+  __dirname,
+  "../../data/seed-corpus/public/recent-fashion-corpus.json",
+);
+
+const publicSeedCorpusCache = new Map();
+
 function assertContentProvider(provider) {
   if (!provider || typeof provider.getRecords !== "function") {
     throw new Error("provider must implement ContentProvider.getRecords(context)");
   }
+}
+
+function sanitizeSeedText(value = "") {
+  return normalizeText(stripHtml(String(value || "")))
+    .replace(/https?:\/\/\S+/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function readCorpusText(record = {}) {
+  const fields = [
+    record.title,
+    record.body,
+    record.text,
+    record.excerpt,
+  ];
+
+  const normalized = fields
+    .map((value) => sanitizeSeedText(value))
+    .find((value) => Boolean(value));
+
+  return normalized || "";
+}
+
+function resolvePublicSeedCorpusPath(explicitPath) {
+  if (explicitPath) {
+    return path.resolve(process.cwd(), explicitPath);
+  }
+
+  if (process.env.PUBLIC_SEED_CORPUS_FILE) {
+    return path.resolve(process.cwd(), process.env.PUBLIC_SEED_CORPUS_FILE);
+  }
+
+  return DEFAULT_PUBLIC_SEED_CORPUS_PATH;
+}
+
+async function loadPublicSeedCorpusBundle({ corpusPath } = {}) {
+  const resolvedPath = resolvePublicSeedCorpusPath(corpusPath);
+  if (publicSeedCorpusCache.has(resolvedPath)) {
+    return publicSeedCorpusCache.get(resolvedPath);
+  }
+
+  try {
+    const raw = await fs.readFile(resolvedPath, "utf8");
+    const parsed = JSON.parse(raw);
+    const records = Array.isArray(parsed?.records) ? parsed.records : [];
+    const bundle = {
+      corpusPath: resolvedPath,
+      exportedAt: parsed?.exportedAt || null,
+      topic: parsed?.topic || null,
+      selectionLimit: parsed?.selectionLimit || null,
+      sourceSummary: parsed?.sourceSummary || null,
+      records,
+    };
+    publicSeedCorpusCache.set(resolvedPath, bundle);
+    return bundle;
+  } catch (error) {
+    publicSeedCorpusCache.set(resolvedPath, null);
+    return null;
+  }
+}
+
+function hasQuestionSignal(text = "") {
+  return /\?/u.test(text) || /\b(why|what|how|which|when|where|궁금|어떻게|왜|무슨)\b/i.test(text);
+}
+
+function hasPricingSignal(text = "") {
+  return /\b(price|cost|budget|worth|cheap|expensive|pricing|value|가격|비용|가성비)\b/i.test(text);
+}
+
+function hasSizingSignal(text = "") {
+  return /\b(size|sizing|fit|small|large|tight|loose|핏|사이즈|여유)\b/i.test(text);
+}
+
+function hasStyleSignal(record = {}, text = "") {
+  return (
+    record.mediaCount > 0 ||
+    /\b(style|ootd|outfit|look|fitcheck|코디|스타일|착장|룩)\b/i.test(text)
+  );
+}
+
+function derivePublicSourceType(record = {}, text = "") {
+  if (Number(record.mediaCount || 0) > 0) {
+    return "image_description";
+  }
+
+  if (
+    /\bhttps?:\/\/\S+/i.test(text) ||
+    /\b(article|review|news|feature|guide|blog|announcement|launch)\b/i.test(text)
+  ) {
+    return "external_article";
+  }
+
+  return "social_post";
+}
+
+function derivePublicFormat(record = {}, sourceType = "social_post", text = "") {
+  if (sourceType === "image_description") {
+    return /cat|dog|pet|강아지|고양이|반려/i.test(text) ? "pet_episode" : "scene_note";
+  }
+
+  if (sourceType === "external_article") {
+    if (hasPricingSignal(text)) {
+      return "buy_decision";
+    }
+    return "trend_report";
+  }
+
+  if (hasSizingSignal(text)) {
+    return "size_help";
+  }
+  if (hasPricingSignal(text)) {
+    return "buy_decision";
+  }
+  if (hasStyleSignal(record, text)) {
+    return record.replyCount > 20 ? "empathy_post" : "style_signal";
+  }
+  if (hasQuestionSignal(text)) {
+    return "empathy_post";
+  }
+
+  return "daily_snapshot";
+}
+
+function derivePublicTopics(record = {}, text = "") {
+  const topicBag = Array.isArray(record.topicBag) && record.topicBag.length > 0
+    ? record.topicBag
+    : extractTopicBag([record.title, record.body, record.text, record.excerpt], record.tags || []);
+  const topics = topicBag
+    .map((item) => item?.key)
+    .filter(Boolean);
+
+  if (topics.length > 0) {
+    return [...new Set(topics)].slice(0, 6);
+  }
+
+  if (hasPricingSignal(text)) {
+    return ["pricing", "tradeoff"];
+  }
+  if (hasSizingSignal(text)) {
+    return ["sizing_fit", "fit"];
+  }
+  if (hasStyleSignal(record, text)) {
+    return ["fashion", "style"];
+  }
+
+  return ["community"];
+}
+
+function derivePublicEmotions(record = {}, text = "") {
+  const derived = deriveEmotionSignals([record.title, record.body, record.text, record.excerpt, text]);
+  const emotions = [derived.dominantEmotion, derived.secondaryEmotion]
+    .map((emotion) => normalizeText(emotion).toLowerCase())
+    .filter(Boolean);
+
+  return [...new Set(emotions.length > 0 ? emotions : ["curiosity"])];
+}
+
+function buildPublicProviderRecord(record, index) {
+  const text = readCorpusText(record);
+  const title = sanitizeSeedText(record.title || record.excerpt || text).slice(0, 140) || "public seed";
+  const body = sanitizeSeedText(record.body || record.text || record.excerpt || record.title || text) || title;
+  const sourceType = derivePublicSourceType(record, `${title} ${body}`);
+  const sourcePlatform = sanitizeSeedText(record.sourcePlatform || "public");
+  const providerFormat = derivePublicFormat(record, sourceType, `${title} ${body}`);
+  const topics = derivePublicTopics(record, `${title} ${body}`);
+  const emotions = derivePublicEmotions(record, `${title} ${body}`);
+  const authorId = sanitizeSeedText(record.sourceAuthorId || record.sourceAuthorName || `public-${index}`) || `public-${index}`;
+
+  return createProviderRecord({
+    provider_id: "public-seed-corpus",
+    provider_item_id: record.corpusId || `${sourcePlatform}:${record.sourceId || index}`,
+    source_type: sourceType,
+    format: providerFormat,
+    author_id: `public:${authorId}`,
+    created_tick: index,
+    title,
+    body,
+    topics,
+    emotions,
+    source_metadata: {
+      source_platform: record.sourcePlatform || "public",
+      source_community: record.sourceCommunity || null,
+      source_id: record.sourceId || null,
+      source_url: record.sourceUrl || null,
+      source_author_id: record.sourceAuthorId || null,
+      source_author_name: record.sourceAuthorName || null,
+      created_at: record.createdAt || null,
+      score: Number(record.score || 0),
+      reply_count: Number(record.replyCount || 0),
+      boost_count: Number(record.boostCount || 0),
+      media_count: Number(record.mediaCount || 0),
+      language_hint: record.languageHint || null,
+      topic_bag: Array.isArray(record.topicBag) ? record.topicBag : extractTopicBag([title, body], record.tags || []),
+      origin: "public_seed_corpus",
+    },
+  });
 }
 
 export function createMockContentProvider({
@@ -292,6 +510,25 @@ export function createSprint1StarterContentProvider({
   };
 }
 
+export async function createPublicSeedContentProvider({
+  corpusPath,
+} = {}) {
+  const corpusBundle = await loadPublicSeedCorpusBundle({ corpusPath });
+  if (!corpusBundle) {
+    return null;
+  }
+
+  return {
+    provider_id: "public-seed-corpus",
+    interface: CONTENT_PROVIDER_INTERFACE,
+    async getRecords({ startTick = 0 } = {}) {
+      return corpusBundle.records.map((record, index) =>
+        buildPublicProviderRecord(record, startTick + index),
+      );
+    },
+  };
+}
+
 export async function collectNormalizedProviderContent({
   provider,
   startTick = 0,
@@ -322,6 +559,14 @@ export async function createMockNormalizedContentBundle(options = {}) {
 }
 
 export async function createSprint1StarterPackBundle(options = {}) {
+  const publicSeedProvider = await createPublicSeedContentProvider(options);
+  if (publicSeedProvider) {
+    return collectNormalizedProviderContent({
+      provider: publicSeedProvider,
+      startTick: options.startTick || 0,
+    });
+  }
+
   return collectNormalizedProviderContent({
     provider: createSprint1StarterContentProvider(options),
     startTick: options.startTick || 0,
