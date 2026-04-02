@@ -734,6 +734,9 @@ export function buildReadablePostTitle({
   const normalizedTopics = uniqueNormalizedList((Array.isArray(sourceTopics) ? sourceTopics : []).map(localizeTopicLabel));
   const primaryTopic = normalizedTopics[0] || localizeTopicLabel(selectedContext?.contextLabel || selectedContextLabel || "");
   const secondaryTopic = normalizedTopics[1] || primaryTopic;
+  const topicPair = joinKoreanTopicList([primaryTopic, secondaryTopic]);
+  const primaryTopicObject = attachKoreanParticle(primaryTopic, "object");
+  const secondaryTopicObject = attachKoreanParticle(secondaryTopic, "object");
   const contextLabel = normalizeText(selectedContext?.contextLabel || selectedContextLabel);
   const signal = sanitizeForumLanguage(sourceSignal);
   const referenceText = [
@@ -752,35 +755,40 @@ export function buildReadablePostTitle({
     const hookSet = COMMENT_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel) || null;
     pool.push(...(hookSet?.titles || []));
     pool.push(
-      `${attachKoreanParticle(primaryTopic, "object")} 보고 남긴 짧은 말`,
-      `${attachKoreanParticle(secondaryTopic, "object")} 같이 본 뒤의 생각`,
+      `${primaryTopicObject} 보고 남긴 짧은 말`,
+      `${secondaryTopicObject} 같이 본 뒤의 생각`,
       `대화를 이어 붙인 한 줄`,
       `댓글 흐름에서 남은 포인트`,
       `한 번 더 물어본 이유`,
-      `${attachKoreanParticle(primaryTopic, "object")} 다시 읽고 남긴 말`,
+      `${primaryTopicObject} 다시 읽고 남긴 말`,
       `${secondaryTopic} 쪽이 더 남는 이유`,
       `${contextLabel || "댓글"}에서 먼저 남은 말`,
       `${contextLabel || "댓글"}로 이어진 짧은 반응`,
-      `${attachKoreanParticle(primaryTopic, "object")}를 보고 남긴 답`,
-      `${attachKoreanParticle(primaryTopic, "object")}을 다시 보게 된 댓글`,
-      `${attachKoreanParticle(joinKoreanTopicList([primaryTopic, secondaryTopic]), "object")} 같이 본 말`,
+      `${primaryTopicObject} 보고 남긴 답`,
+      `${primaryTopicObject} 다시 보게 된 댓글`,
+      `${attachKoreanParticle(topicPair, "object")} 같이 본 말`,
+      `${contextLabel || "댓글"}에서 ${primaryTopicObject} 다시 본 이유`,
+      `${attachKoreanParticle(topicPair, "object")} 두고 남긴 말`,
     );
   } else {
     const hookSet = RUN_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel) || null;
     pool.push(...(hookSet?.titles || []));
     pool.push(
-      `${attachKoreanParticle(primaryTopic, "object")} 먼저 보게 된 이유`,
+      `${primaryTopicObject} 먼저 보게 된 이유`,
       `${secondaryTopic}까지 같이 본 기준`,
       `오늘 다시 읽은 포인트`,
       `이 글이 오래 남는 이유`,
       `한 번 더 보게 된 사진`,
-      `${attachKoreanParticle(primaryTopic, "object")} 다시 본 기준`,
+      `${primaryTopicObject} 다시 본 기준`,
       `${secondaryTopic} 쪽이 더 남는 이유`,
       `${contextLabel || "이번 글"}에서 먼저 보인 ${primaryTopic}`,
       `${contextLabel || "이번 글"}로 다시 읽은 기준`,
       `${primaryTopic}보다 먼저 보인 포인트`,
       `${primaryTopic}이 더 남는 이유`,
-      `${attachKoreanParticle(joinKoreanTopicList([primaryTopic, secondaryTopic]), "object")} 같이 본 글`,
+      `${attachKoreanParticle(topicPair, "object")} 같이 본 글`,
+      `${contextLabel || "이번 글"}에서 ${primaryTopicObject} 다시 본 이유`,
+      `${attachKoreanParticle(topicPair, "object")} 같이 보게 된 글`,
+      `${topicPair} 사이의 기준`,
     );
   }
 
