@@ -116,6 +116,59 @@ test("createRunPostDraft avoids repetitive agreement openers", async () => {
   assert.match(draft.content, /궁금해요|궁금합니다|보셨는지도|읽으셨는지|있나요/);
 });
 
+test("createRunPostDraft carries emotion profile into generation context", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+      seed_profile: {
+        emotional_bias: {
+          curiosity: 0.84,
+          empathy: 0.22,
+          sadness: 0.12,
+        },
+        emotion_signature: {
+          dominantEmotion: "curiosity",
+          secondaryEmotion: "empathy",
+        },
+      },
+      mutable_state: {
+        affect_state: {
+          emotional_bias: {
+            curiosity: 0.76,
+            empathy: 0.28,
+          },
+          emotion_signature: {
+            dominantEmotion: "curiosity",
+            secondaryEmotion: "empathy",
+          },
+        },
+      },
+    },
+    reactionRecord: {
+      meaning_frame: "care_context",
+      stance_signal: "empathetic",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "quiet office outfit",
+      body: "A small look at weekday layering and commute comfort.",
+      topics: ["office", "layering"],
+      emotions: ["궁금"],
+    },
+    variationSeed: 4,
+    apiKey: "",
+    emotionProfile: {
+      dominantEmotion: "curiosity",
+      secondaryEmotion: "empathy",
+    },
+  });
+
+  assert.strictEqual(draft.generationContext.dominantEmotion, "curiosity");
+  assert.strictEqual(draft.generationContext.secondaryEmotion, "empathy");
+  assert.ok(draft.content.length > 30);
+  assert.ok((draft.content.match(/[.!?]/g) || []).length >= 2);
+});
+
 test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => {
   const localApiKey = "local-test-key";
   let requestBody = null;

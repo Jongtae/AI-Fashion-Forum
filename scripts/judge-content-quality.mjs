@@ -96,6 +96,31 @@ const HARD_FAIL_PHRASES = [
   "judge",
 ];
 
+const EMOTION_CUE_GROUPS = {
+  curiosity: ["궁금", "왜", "어떻게", "알고 싶", "신기", "흥미", "궁금해"],
+  empathy: ["공감", "마음", "이해", "위로", "배려", "따뜻", "같이", "다행", "괜찮"],
+  amusement: ["웃기", "재밌", "귀엽", "ㅋㅋ", "ㅎㅎ", "유쾌", "웃음", "재치"],
+  sadness: ["아쉽", "슬프", "허전", "씁쓸", "속상", "외롭", "먹먹"],
+  anger: ["화나", "답답", "짜증", "억울", "별로", "불편", "실망", "불만"],
+  relief: ["다행", "안심", "무난", "괜찮", "덜", "편해", "안도"],
+  anticipation: ["기대", "다음", "보고 싶", "기다려", "앞으로", "이어지"],
+  surprise: ["의외", "생각보다", "뜻밖", "놀라", "새롭", "반전"],
+};
+
+function countEmotionSignals(text = "") {
+  const normalized = String(text || "");
+  const distinctHits = Object.entries(EMOTION_CUE_GROUPS).reduce((acc, [emotion, phrases]) => {
+    const hasHit = phrases.some((phrase) => normalized.includes(phrase));
+    if (hasHit) acc.push(emotion);
+    return acc;
+  }, []);
+
+  return {
+    distinctHits,
+    coverage: distinctHits.length / Object.keys(EMOTION_CUE_GROUPS).length,
+  };
+}
+
 function scoreItem(item) {
   const content = String(item.content || "");
   const title = String(item.title || "");
@@ -107,12 +132,20 @@ function scoreItem(item) {
   const hasHookWords = /(같이|왜|어떻게|느껴|보이|궁금|달라|이유|생각)/.test(text);
   const hasHardFailPhrase = HARD_FAIL_PHRASES.some((phrase) => text.includes(phrase));
   const repeatedFirstTokens = tokens.slice(0, 4).join(" ");
+  const emotionSignals = countEmotionSignals(text);
   const humanLikeLength = length >= 25 && length <= 260 ? 1 : length < 25 ? 0.28 : 0.64;
   const communityFit = clamp(
     0.4 +
       (hasQuestion ? 0.18 : 0) +
       (hasHookWords ? 0.18 : 0) +
       (item.kind === "comment" ? 0.14 : 0.08),
+  );
+  const emotionBelievability = clamp(
+    0.22 +
+      emotionSignals.coverage * 0.46 +
+      (emotionSignals.distinctHits.length >= 2 ? 0.12 : 0.04) +
+      (item.kind === "comment" ? 0.08 : 0.04) +
+      (hasHardFailPhrase ? -0.14 : 0),
   );
   const humanLikeness = clamp(
     humanLikeLength * 0.35 +
@@ -144,7 +177,8 @@ function scoreItem(item) {
       socialPull * 0.22 +
       variety * 0.18 +
       consistency * 0.1 +
-      communityFit * 0.15,
+      communityFit * 0.08 +
+      emotionBelievability * 0.07,
   );
 
   const verdict = hasHardFailPhrase
@@ -161,10 +195,12 @@ function scoreItem(item) {
   if (length < 35) issues.push("Content is very short.");
   if (length > 260) issues.push("Content is a bit long for a feed item.");
   if (!hasQuestion && !hasHookWords) issues.push("Social hook is weak.");
+  if (emotionBelievability < 0.42) issues.push("Emotional signal is thin.");
 
   const strengths = [];
   if (hasQuestion) strengths.push("Has a reply-inviting question.");
   if (hasHookWords) strengths.push("Contains a conversational hook.");
+  if (emotionSignals.distinctHits.length > 0) strengths.push(`Emotion cues present: ${emotionSignals.distinctHits.join(", ")}.`);
   if (isNaturalLanguage(text)) strengths.push("Reads like natural language.");
   if (!hasHardFailPhrase) strengths.push("Avoids obvious system-language leakage.");
 
@@ -180,6 +216,7 @@ function scoreItem(item) {
       variety,
       consistency,
       community_fit: communityFit,
+      emotional_believability: emotionBelievability,
     },
     summary:
       verdict === "pass"
@@ -237,6 +274,9 @@ function computeCorpusReport(items, itemReports) {
       ),
       community_fit: clamp(
         average(itemReports.map((report) => report.dimension_scores.community_fit)),
+      ),
+      emotional_believability: clamp(
+        average(itemReports.map((report) => report.dimension_scores.emotional_believability)),
       ),
     },
     summary:

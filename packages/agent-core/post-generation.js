@@ -182,7 +182,8 @@ function jaccardSimilarity(left = "", right = "") {
 }
 
 function sanitizeDraftContent(value = "") {
-  return normalizeKoreanParticlePairs(value)
+  return dedupeAdjacentSentences(
+    normalizeKoreanParticlePairs(value)
     .replace(/이 에이전트가/g, "")
     .replace(/현재 주제 흐름/g, "")
     .replace(/\bagent\b/gi, "")
@@ -196,11 +197,12 @@ function sanitizeDraftContent(value = "") {
     .replace(/이 신호을/g, "이 신호를")
     .replace(/\s+(보여요|같아요|네요|맞아요|있어요|더라고요|입니다|랍니다)$/u, "")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim(),
+  );
 }
 
 function composeReadableBody(...parts) {
-  return parts
+  const text = parts
     .flat()
     .map((part) => normalizeText(part))
     .filter(Boolean)
@@ -208,6 +210,237 @@ function composeReadableBody(...parts) {
     .join(" ")
     .replace(/\s+/g, " ")
     .trim();
+
+  return dedupeAdjacentSentences(text);
+}
+
+function dedupeAdjacentSentences(value = "") {
+  const sentences = normalizeText(value)
+    .split(/(?<=[.!?…。])\s+/)
+    .map((sentence) => normalizeText(sentence))
+    .filter(Boolean);
+
+  const deduped = [];
+  for (const sentence of sentences) {
+    const previous = deduped[deduped.length - 1];
+    if (previous && previous === sentence) {
+      continue;
+    }
+    deduped.push(sentence);
+  }
+
+  return deduped.join(" ").trim();
+}
+
+const EMOTION_KEY_ALIASES = {
+  care: "empathy",
+  warmth: "empathy",
+  kindness: "empathy",
+  empathetic: "empathy",
+  empathy: "empathy",
+  공감: "empathy",
+  배려: "empathy",
+  따뜻: "empathy",
+  humor: "amusement",
+  funny: "amusement",
+  amused: "amusement",
+  amusing: "amusement",
+  amusement: "amusement",
+  funnybone: "amusement",
+  재미: "amusement",
+  웃음: "amusement",
+  curious: "curiosity",
+  curiosity: "curiosity",
+  interest: "curiosity",
+  intrigue: "curiosity",
+  intrigued: "curiosity",
+  궁금: "curiosity",
+  호기심: "curiosity",
+  sadness: "sadness",
+  sad: "sadness",
+  sorrow: "sadness",
+  gloomy: "sadness",
+  슬픔: "sadness",
+  아쉬움: "sadness",
+  anger: "anger",
+  angry: "anger",
+  frustration: "anger",
+  annoyed: "anger",
+  upset: "anger",
+  화: "anger",
+  답답: "anger",
+  relief: "relief",
+  relieved: "relief",
+  calm: "relief",
+  reassurance: "relief",
+  안도: "relief",
+  다행: "relief",
+  anticipation: "anticipation",
+  anticipate: "anticipation",
+  excited: "anticipation",
+  기대: "anticipation",
+  surprise: "surprise",
+  surprised: "surprise",
+  wonder: "surprise",
+  unexpected: "surprise",
+  의외: "surprise",
+  놀람: "surprise",
+};
+
+function normalizeEmotionKey(value = "") {
+  const normalized = normalizeText(value).toLowerCase();
+  if (!normalized) {
+    return "";
+  }
+
+  return EMOTION_KEY_ALIASES[normalized] || EMOTION_KEY_ALIASES[normalizeText(value)] || normalized;
+}
+
+function normalizeEmotionProfile(profile = {}) {
+  const source = profile && typeof profile === "object" && !Array.isArray(profile)
+    ? (profile.weights && typeof profile.weights === "object" ? profile.weights : profile)
+    : {};
+
+  const weights = Object.entries(source)
+    .filter(([, value]) => typeof value === "number" && !Number.isNaN(value))
+    .reduce((acc, [key, value]) => {
+      const normalizedKey = normalizeEmotionKey(key);
+      acc[normalizedKey] = (acc[normalizedKey] || 0) + Number(value);
+      return acc;
+    }, {});
+
+  const sorted = Object.entries(weights).sort((left, right) => right[1] - left[1]);
+  const dominantEmotion = normalizeText(profile?.dominantEmotion || profile?.dominant_emotion || sorted[0]?.[0] || "curiosity").toLowerCase();
+  const secondaryEmotion = normalizeText(profile?.secondaryEmotion || profile?.secondary_emotion || sorted[1]?.[0] || sorted[0]?.[0] || dominantEmotion).toLowerCase();
+
+  return {
+    dominantEmotion,
+    secondaryEmotion,
+    weights,
+  };
+}
+
+function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
+  const emotion = normalizeEmotionProfile(emotionProfile);
+  const isComment = mode === "comment";
+  const emotionOpeners = {
+    curiosity: isComment
+      ? ["궁금해서", "이건 좀 더 보고 싶어서", "왜 그런지 생각해보면"]
+      : ["궁금해서", "왜 이렇게 보였는지 생각해보면", "이건 계속 보게 되더라고요"],
+    empathy: isComment
+      ? ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서"]
+      : ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서"],
+    amusement: isComment
+      ? ["살짝 웃겨서", "생각보다 재밌어서", "괜히 웃음이 나서"]
+      : ["살짝 웃기게도", "생각보다 재밌게", "괜히 웃음이 나서"],
+    sadness: isComment
+      ? ["조금 아쉬워서", "괜히 허전해서", "마음이 조금 가라앉아서"]
+      : ["조금 아쉽게", "괜히 허전하게", "생각보다 씁쓸하게"],
+    anger: isComment
+      ? ["솔직히 좀 답답해서", "조금 화가 나서", "이건 꽤 불편해서"]
+      : ["솔직히 좀 답답하게", "조금 화가 나서", "의외로 불만스럽게"],
+    relief: isComment
+      ? ["생각보다 다행이라서", "괜히 안심돼서", "그래도 편하게 느껴져서"]
+      : ["생각보다 다행스럽게", "괜히 안심돼서", "이건 좀 편하게 읽혔어요"],
+    anticipation: isComment
+      ? ["다음이 궁금해서", "계속 이어질 것 같아서", "이 뒤가 더 궁금해져서"]
+      : ["다음이 궁금해서", "앞으로가 기대돼서", "계속 지켜보게 돼요"],
+    surprise: isComment
+      ? ["의외라서", "생각보다 새로워서", "뜻밖이라서"]
+      : ["의외로", "생각보다", "뜻밖에"],
+  };
+  const emotionHooks = {
+    curiosity: ["이건 다들 어떻게 읽으셨는지도 궁금해요.", "비슷하게 본 분들도 있을지 궁금합니다."],
+    empathy: ["그 마음이 남는 지점이 있네요.", "마음 쓰이는 부분이 조금 길게 남아요."],
+    amusement: ["이건 살짝 웃기게도 남네요.", "웃음이 나는 지점이 꽤 오래 가요."],
+    sadness: ["괜히 아쉬운 마음이 조금 남아요.", "조금 허전하게 읽히는 부분이 있어요."],
+    anger: ["이 부분은 꽤 답답하게 남네요.", "조금 불편하게 읽히는 지점이 있어요."],
+    relief: ["생각보다 다행스럽게 읽히네요.", "괜히 안심되는 지점이 있어요."],
+    anticipation: ["다음 반응이 더 궁금해지네요.", "이 뒤가 어떻게 이어질지 좀 더 보고 싶어요."],
+    surprise: ["생각보다 의외의 지점이 있네요.", "뜻밖의 포인트가 먼저 보였어요."],
+  };
+  const emotionClosings = {
+    curiosity: ["이건 다들 어떻게 읽으셨는지도 궁금해요.", "같은 포인트를 먼저 보신 분들도 있나요."],
+    empathy: ["그 마음이 남는 지점이 있네요.", "괜히 마음이 가는 부분이 있어요."],
+    amusement: ["조금 웃기게도 오래 남네요.", "이런 장면이 은근 기억에 남아요."],
+    sadness: ["괜히 아쉬운 마음이 조금 남아요.", "조금 허전하게 남는 지점이 있어요."],
+    anger: ["이 부분은 꽤 답답하게 남네요.", "조금 불편하게 오래 남는 지점이 있어요."],
+    relief: ["그래도 생각보다 다행스럽네요.", "이건 좀 편하게 받아들여져요."],
+    anticipation: ["다음이 더 궁금해지는 글이네요.", "앞으로가 어떻게 될지 조금 더 보고 싶어요."],
+    surprise: ["생각보다 의외의 여운이 남네요.", "뜻밖의 포인트가 오래 남아요."],
+  };
+
+  return {
+    dominantEmotion: emotion.dominantEmotion,
+    secondaryEmotion: emotion.secondaryEmotion,
+    leadPool: emotionOpeners[emotion.dominantEmotion] || emotionOpeners.curiosity,
+    hookPool: emotionHooks[emotion.dominantEmotion] || emotionHooks.curiosity,
+    closingPool: emotionClosings[emotion.dominantEmotion] || emotionClosings.curiosity,
+  };
+}
+
+function resolveEmotionProfile({
+  seedProfile = null,
+  mutableState = null,
+  reactionRecord = null,
+  contentRecord = null,
+  targetContent = null,
+  targetComment = null,
+  emotionProfile = null,
+} = {}) {
+  const mergedWeights = {};
+  const addWeights = (weights = {}, multiplier = 1) => {
+    const normalized = normalizeEmotionProfile(weights);
+    for (const [emotion, value] of Object.entries(normalized.weights || {})) {
+      mergedWeights[emotion] = (mergedWeights[emotion] || 0) + Number(value) * multiplier;
+    }
+  };
+  const signatureSources = [
+    emotionProfile?.dominantEmotion,
+    emotionProfile?.dominant_emotion,
+    mutableState?.affect_state?.emotion_signature?.dominantEmotion,
+    mutableState?.affect_state?.emotion_signature?.dominant_emotion,
+    seedProfile?.emotion_signature?.dominantEmotion,
+    seedProfile?.emotion_signature?.dominant_emotion,
+    reactionRecord?.dominant_feeling,
+    reactionRecord?.stance_signal,
+    contentRecord?.emotions?.[0],
+    targetContent?.emotions?.[0],
+    targetComment?.emotions?.[0],
+  ].map((value) => normalizeEmotionKey(value)).filter(Boolean);
+
+  addWeights(seedProfile?.emotional_bias || seedProfile?.emotion_bias || {}, 1);
+  addWeights(mutableState?.affect_state?.emotional_bias || {}, 0.8);
+  addWeights(emotionProfile || {}, 1);
+
+  const reactionEmotion = normalizeEmotionKey(reactionRecord?.dominant_feeling || reactionRecord?.stance_signal || "");
+  if (reactionEmotion) {
+    mergedWeights[reactionEmotion] = (mergedWeights[reactionEmotion] || 0) + 0.2;
+  }
+
+  const contentEmotion = normalizeEmotionKey(
+    contentRecord?.emotions?.[0] ||
+      targetContent?.emotions?.[0] ||
+      targetComment?.emotions?.[0] ||
+      "",
+  );
+  if (contentEmotion) {
+    mergedWeights[contentEmotion] = (mergedWeights[contentEmotion] || 0) + 0.12;
+  }
+
+  const normalized = normalizeEmotionProfile({
+    ...emotionProfile,
+    weights: mergedWeights,
+    dominantEmotion: emotionProfile?.dominantEmotion || emotionProfile?.dominant_emotion || signatureSources[0] || null,
+    secondaryEmotion:
+      emotionProfile?.secondaryEmotion ||
+      emotionProfile?.secondary_emotion ||
+      signatureSources[1] ||
+      signatureSources[0] ||
+      null,
+  });
+
+  return normalized;
 }
 
 function isKoreanDominant(text) {
@@ -545,6 +778,7 @@ function buildOpenAIPrompt({
   sourceCommentPreview,
   replyTargetType,
   styleProfile = null,
+  emotionProfile = null,
 } = {}) {
   const promptTitle = localizeSourceLabel(sourceTitle, "이 글");
   const sourceTopicText = Array.isArray(sourceTopics) && sourceTopics.length
@@ -559,6 +793,7 @@ function buildOpenAIPrompt({
     : "원문 전체가 영어 단서라면 한국어 커뮤니티 문장으로 다시 써라.";
   const styleOpeners = uniqueNormalizedList(styleProfile?.openers || styleProfile?.openerMarkers || []);
   const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
+  const emotionTone = buildEmotionTonePack(emotionProfile, mode);
   const styleSamples = uniqueNormalizedList(styleProfile?.sampleComments || []);
 
   const modeLabel = mode === "live" ? "실시간 에이전트 글" : "배치 생성 글";
@@ -574,6 +809,7 @@ function buildOpenAIPrompt({
     "첫 문장은 상황을 잡고, 두 번째 문장은 근거나 비교를 붙이고, 마지막 문장은 판단이나 여운으로 완결해라.",
     "문장 끝은 끊긴 메모처럼 남기지 말고, 본문 자체가 읽히도록 완결된 문장으로 마무리해라.",
     "본문 첫 단어를 '맞아요', '그렇죠', '그래요' 같은 동의 표현으로 시작하지 말고, 바로 상황이나 관찰로 들어가라.",
+    "희로애락 같은 감정은 이름으로 설명하기보다, 문장 리듬과 선택 단어로 드러내라.",
     "제목은 본문 요약처럼 쓰지 말고, 짧은 훅과 관점 차이가 드러나게 따로 잡아라.",
     "댓글인 경우에는 실제 커뮤니티 댓글처럼 간결하고 구어체로 쓰고, 주어를 굳이 설명하지 마라.",
     "번역투보다 실제 커뮤니티 댓글의 짧은 리듬과 맞장구, 질문, 부드러운 반박을 우선해라.",
@@ -587,6 +823,7 @@ function buildOpenAIPrompt({
     styleOpeners.length ? `참고 시작어: ${styleOpeners.join(", ")}` : null,
     styleEndings.length ? `참고 끝맺음: ${styleEndings.join(", ")}` : null,
     styleSamples.length ? `참고 댓글 샘플: ${styleSamples.slice(0, 3).join(" / ")}` : null,
+    emotionTone?.dominantEmotion ? `감정 기조: ${emotionTone.dominantEmotion} / ${emotionTone.secondaryEmotion}` : null,
     promptSnippet ? `대상 본문 단서: ${promptSnippet}` : null,
     promptBody ? `대상 본문 전체: ${promptBody}` : null,
     sourceCommentPreview ? `대상 댓글 단서: ${normalizeText(sourceCommentPreview)}` : null,
@@ -613,6 +850,7 @@ function buildFallbackContexts({
   reactionRecord = null,
   contentRecord = null,
   styleProfile = null,
+  emotionProfile = null,
 } = {}) {
   const title = sourceTitle || "스레드";
   const displayTitle = localizeSourceLabel(title, "이 글");
@@ -641,6 +879,7 @@ function buildFallbackContexts({
   };
   const styleOpeners = uniqueNormalizedList(styleProfile?.openers || styleProfile?.openerMarkers || []);
   const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
+  const emotionTone = buildEmotionTonePack(emotionProfile, mode);
   const postFallbackOpeners = ["", "근데", "저는", "오히려", "솔직히", "개인적으로", "이번엔", "조용히 보면"];
   const commentFallbackOpeners = ["근데", "저는", "오히려", "맞아요", "솔직히", "개인적으로", "음"];
   const isAgreementOpener = (value = "") => /^(맞아요|그렇죠|그래요|네|응)([\s,!.?].*)?$/u.test(normalizeText(value));
@@ -650,7 +889,7 @@ function buildFallbackContexts({
       : (styleOpeners.filter((opener) => !isAgreementOpener(opener)).length
         ? styleOpeners.filter((opener) => !isAgreementOpener(opener))
         : postFallbackOpeners);
-  const lead = pickBySeed(openerPool, variationSeed) || "";
+  const lead = pickBySeed([...emotionTone.leadPool, ...openerPool], variationSeed) || "";
   const wrapUpPool = styleEndings.length
     ? styleEndings.filter((ending) => /[.!?…。]$/u.test(ending))
     : [
@@ -659,7 +898,7 @@ function buildFallbackContexts({
         "결국은 오래 입게 되는 쪽이 더 남는 편이더라고요.",
         "이렇게 읽으면 단순한 글도 판단이 빨라집니다.",
       ];
-  const wrapUp = pickBySeed(wrapUpPool, variationSeed + 1) || "";
+  const wrapUp = pickBySeed([...emotionTone.closingPool, ...wrapUpPool], variationSeed + 1) || "";
   const leadText = lead ? `${lead} ` : "";
   const casualBridgePool = [
     "딱 그 부분이 먼저 보이네요",
@@ -695,6 +934,7 @@ function buildFallbackContexts({
     "비슷하게 본 분들도 있을지 궁금합니다.",
     "같은 포인트를 먼저 보신 분들도 있나요.",
     "저만 이렇게 읽은 건지 조금 궁금하네요.",
+    ...emotionTone.hookPool,
   ];
 
   if (mode === "comment") {
@@ -924,7 +1164,9 @@ function buildGenerationContext({
   model,
   contextCount,
   mode,
+  emotionProfile = null,
 }) {
+  const emotionTone = buildEmotionTonePack(emotionProfile, mode);
   return {
     language: "ko",
     mode,
@@ -941,6 +1183,8 @@ function buildGenerationContext({
     selectedContextAngle: selectedContext?.angle || null,
     selectedTone: selectedContext?.tone || null,
     selectedStyle: styleProfile?.register || null,
+    dominantEmotion: emotionTone?.dominantEmotion || null,
+    secondaryEmotion: emotionTone?.secondaryEmotion || null,
     titleStrategy: "hook_not_summary",
     model: model || null,
     summary: selectedContext
@@ -1054,7 +1298,13 @@ async function resolvePostDraft({
   reactionRecord = null,
   contentRecord = null,
   styleProfile = null,
+  emotionProfile = null,
 } = {}) {
+  const resolvedEmotionProfile = resolveEmotionProfile({
+    reactionRecord,
+    contentRecord,
+    emotionProfile,
+  });
   const fallbackPool = buildFallbackContexts({
     mode,
     agentHandle,
@@ -1070,6 +1320,7 @@ async function resolvePostDraft({
     reactionRecord,
     contentRecord,
     styleProfile,
+    emotionProfile: resolvedEmotionProfile,
   });
 
   const generatedTitle = buildReadablePostTitle({
@@ -1107,6 +1358,7 @@ async function resolvePostDraft({
         model: null,
         contextCount: fallbackPool.length,
         mode,
+        emotionProfile: resolvedEmotionProfile,
       }),
       contextPool: fallbackPool,
     };
@@ -1124,6 +1376,7 @@ async function resolvePostDraft({
       sourceCommentPreview,
       replyTargetType,
       styleProfile,
+      emotionProfile: resolvedEmotionProfile,
     });
     const result = await requestOpenAIContexts({
       apiKey,
@@ -1165,6 +1418,7 @@ async function resolvePostDraft({
           model,
           contextCount: contexts.length,
           mode,
+          emotionProfile: resolvedEmotionProfile,
         }),
         contextPool: contexts,
       };
@@ -1204,6 +1458,7 @@ async function resolvePostDraft({
       model: null,
       contextCount: fallbackPool.length,
       mode,
+      emotionProfile: resolvedEmotionProfile,
     }),
     contextPool: fallbackPool,
   };
@@ -1219,6 +1474,7 @@ export async function createRunPostDraft({
   model,
   fetchImpl,
   styleProfile = null,
+  emotionProfile = null,
 } = {}) {
   const sourceTitle = normalizeText(contentRecord?.title) || "스레드";
   const sourceTopics = Array.isArray(contentRecord?.topics) ? contentRecord.topics : [];
@@ -1248,6 +1504,13 @@ export async function createRunPostDraft({
     reactionRecord,
     contentRecord,
     styleProfile,
+    emotionProfile: resolveEmotionProfile({
+      seedProfile: updatedAgent?.seed_profile,
+      mutableState: updatedAgent?.mutable_state,
+      reactionRecord,
+      contentRecord,
+      emotionProfile,
+    }),
   });
 }
 
@@ -1261,6 +1524,7 @@ export async function createLivePostDraft({
   model,
   fetchImpl,
   styleProfile = null,
+  emotionProfile = null,
 } = {}) {
   const sourceTitle = normalizeText(targetContent?.title) || "최근 패션 흐름";
   const sourceTopics = Array.isArray(targetContent?.topics) ? targetContent.topics : [];
@@ -1280,6 +1544,12 @@ export async function createLivePostDraft({
     sourceSnippet,
     sourceBody: sourceSnippet,
     styleProfile,
+    emotionProfile: resolveEmotionProfile({
+      seedProfile: agent?.seed_profile,
+      mutableState: agent?.mutable_state,
+      contentRecord: targetContent,
+      emotionProfile,
+    }),
   });
 }
 
@@ -1294,6 +1564,7 @@ export async function createLiveCommentDraft({
   model,
   fetchImpl,
   styleProfile = null,
+  emotionProfile = null,
 } = {}) {
   const sourceTitle = normalizeText(targetContent?.title) || "최근 글";
   const sourceTopics = Array.isArray(targetContent?.topics) ? targetContent.topics : [];
@@ -1317,5 +1588,12 @@ export async function createLiveCommentDraft({
     sourceCommentPreview,
     replyTargetType: targetComment ? "comment" : "post",
     styleProfile,
+    emotionProfile: resolveEmotionProfile({
+      seedProfile: agent?.seed_profile,
+      mutableState: agent?.mutable_state,
+      contentRecord: targetContent,
+      targetComment,
+      emotionProfile,
+    }),
   });
 }

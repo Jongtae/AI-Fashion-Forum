@@ -24,6 +24,14 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function clamp(value, min = 0, max = 1) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function round(value) {
+  return Math.round(value * 100) / 100;
+}
+
 function resolveCandidatesFilePath(explicitPath) {
   if (explicitPath) {
     return path.resolve(process.cwd(), explicitPath);
@@ -85,6 +93,10 @@ function deriveTopicInterestVector(candidate = {}, sourceProfile = {}) {
     : profileVector;
 }
 
+function isNonEmptyObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0;
+}
+
 function normalizeAgentArchetype(candidate = {}, sourceProfile = {}) {
   const archetype = String(candidate.archetype || sourceProfile.behaviorHints?.primaryMode || "quiet_observer")
     .trim()
@@ -107,6 +119,23 @@ function normalizeAgentArchetype(candidate = {}, sourceProfile = {}) {
   return mapping[archetype] || "quiet_observer";
 }
 
+function deriveFallbackEmotionBias(candidate = {}, sourceProfile = {}) {
+  const seedAxes = sourceProfile.seedAxes || {};
+  const surfaceSignals = sourceProfile.surfaceSignals || {};
+  const commentStyle = sourceProfile.commentStyle || candidate.commentStyle || {};
+
+  return {
+    curiosity: round(clamp(0.22 + (seedAxes.curiosity ?? candidate.openness ?? 0.5) * 0.48)),
+    empathy: round(clamp(0.18 + (seedAxes.care_drive ?? candidate.conformity ?? 0.5) * 0.36 + (surfaceSignals.avgComments || 0) * 0.03)),
+    amusement: round(clamp(0.1 + (commentStyle.register === "casual_playful" ? 0.34 : 0.06))),
+    sadness: round(clamp(0.08 + (sourceProfile.dominantMood === "critical" ? 0.08 : 0) + (sourceProfile.dominantMood === "observant" ? 0.02 : 0))),
+    anger: round(clamp(0.1 + (seedAxes.skepticism ?? candidate.conflict_tolerance ?? 0.5) * 0.18 + (sourceProfile.behaviorHints?.primaryMode === "contrarian" ? 0.12 : 0))),
+    relief: round(clamp(0.12 + (surfaceSignals.avgComments ? 0.06 : 0) + (candidate.activity_level ?? 0.5) * 0.04)),
+    anticipation: round(clamp(0.14 + (seedAxes.novelty_drive ?? candidate.openness ?? 0.5) * 0.28)),
+    surprise: round(clamp(0.11 + (surfaceSignals.diversityScore ?? 0.5) * 0.16)),
+  };
+}
+
 function deriveSeedProfile(candidate = {}, sourceProfile = {}) {
   const identity = resolveAuthorIdentity({
     authorId: candidate.agent_id || candidate.source_author_id || candidate.sourceAuthorId || sourceProfile.sourceAuthorId || sourceProfile.seedProfileId || "agent",
@@ -119,6 +148,8 @@ function deriveSeedProfile(candidate = {}, sourceProfile = {}) {
   const seedId = sourceProfile.seedProfileId || candidate.source_seed_profile_id || `seed:${candidate.agent_id}`;
   const behaviorHints = sourceProfile.behaviorHints || {};
   const topicalMemory = sourceProfile.topicalMemory || {};
+  const emotionalBiasSource = sourceProfile.emotionalBias || sourceProfile.emotionBias || candidate.emotional_bias || candidate.emotionBias || {};
+  const emotionSignature = sourceProfile.emotionSignature || candidate.emotionSignature || {};
   const voiceNotes = [
     ...(Array.isArray(sourceProfile.memoryPromptHints) ? sourceProfile.memoryPromptHints : []),
     ...(Array.isArray(sourceProfile.voiceNotes) ? sourceProfile.voiceNotes : []),
@@ -149,15 +180,10 @@ function deriveSeedProfile(candidate = {}, sourceProfile = {}) {
       memory_priority:
         behaviorHints.memoryPriority || candidate.reactionSummary?.memoryPriority || "topic_weighted",
     },
-    emotional_bias: {
-      curiosity: sourceProfile.seedAxes?.curiosity ?? candidate.openness ?? 0.5,
-      skepticism:
-        sourceProfile.seedAxes?.skepticism ?? Math.max(0, 1 - (candidate.conformity ?? 0.5)),
-      belonging:
-        sourceProfile.seedAxes?.belonging_drive ??
-        (candidate.relationship_summary?.trust_circle_size ? 0.6 : 0.4),
-      care_drive: sourceProfile.seedAxes?.care_drive ?? 0.5,
-    },
+    emotional_bias: isNonEmptyObject(emotionalBiasSource)
+      ? emotionalBiasSource
+      : deriveFallbackEmotionBias(candidate, sourceProfile),
+    emotion_signature: emotionSignature,
     voice_notes:
       voiceNotes.length > 0
         ? [...new Set(voiceNotes)]
@@ -173,6 +199,11 @@ function deriveSeedProfile(candidate = {}, sourceProfile = {}) {
 }
 
 function buildMutableState(candidate = {}, sourceProfile = {}) {
+  const emotionalBiasSource = sourceProfile.emotionalBias || sourceProfile.emotionBias || candidate.emotional_bias || candidate.emotionBias || {};
+  const emotionalBias = isNonEmptyObject(emotionalBiasSource)
+    ? emotionalBiasSource
+    : deriveFallbackEmotionBias(candidate, sourceProfile);
+  const emotionSignature = sourceProfile.emotionSignature || candidate.emotionSignature || {};
   return createAgentMutableState({
     current_traits: {
       openness: candidate.openness ?? 0.5,
@@ -194,6 +225,8 @@ function buildMutableState(candidate = {}, sourceProfile = {}) {
       social_temperature: sourceProfile.surfaceSignals?.avgComments ?? 0.5,
       novelty_pressure: sourceProfile.surfaceSignals?.diversityScore ?? 0.5,
       confidence: candidate.openness ?? 0.5,
+      emotional_bias: emotionalBias,
+      emotion_signature: emotionSignature,
     },
     self_narrative_summary: Array.isArray(candidate.selfNarratives)
       ? candidate.selfNarratives.join(" ")

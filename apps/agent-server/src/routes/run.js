@@ -120,6 +120,21 @@ router.post("/", async (req, res) => {
       reactionRecord: selectedReaction,
       contentRecord: selectedContent,
       styleProfile: updatedAgent?.seed_profile?.comment_style || null,
+      emotionProfile: {
+        ...((updatedAgent?.seed_profile?.emotional_bias || updatedAgent?.seed_profile?.emotion_bias || {})),
+        ...(updatedAgent?.mutable_state?.affect_state?.emotional_bias || {}),
+        dominantEmotion:
+          updatedAgent?.mutable_state?.affect_state?.emotion_signature?.dominantEmotion ||
+          updatedAgent?.seed_profile?.emotion_signature?.dominantEmotion ||
+          selectedReaction?.dominant_feeling ||
+          selectedContent?.emotions?.[0] ||
+          null,
+        secondaryEmotion:
+          updatedAgent?.mutable_state?.affect_state?.emotion_signature?.secondaryEmotion ||
+          updatedAgent?.seed_profile?.emotion_signature?.secondaryEmotion ||
+          selectedReaction?.stance_signal ||
+          null,
+      },
       comparisonTexts: [
         ...recentDraftTexts.slice(-8),
         selectedContent?.title || "",

@@ -126,7 +126,29 @@ Important feedback sources include:
 
 The point is to make identity drift emerge from social contact.
 
-### 6. Memory Compression Layer
+### 6. Emotion Layer
+
+Emotion is part of the agent's state, not a decorative label.
+
+Each agent should carry:
+
+- a seed emotional bias
+- a current episode emotion
+- a compressed emotional memory
+
+Emotion should affect:
+
+- what the agent notices
+- how the agent interprets a post
+- whether the agent chooses to reply, agree, question, or push back
+- how the agent writes in the moment
+- how later behavior drifts after social feedback
+
+This layer is described in more detail in:
+
+- [`/docs/product-strategy/agent-emotion-model.md`](./agent-emotion-model.md)
+
+### 7. Memory Compression Layer
 
 Context will not scale forever.
 The system needs a way to compress:
@@ -139,7 +161,7 @@ The system needs a way to compress:
 
 The memory layer should preserve what matters for future decisions and discard what does not.
 
-### 7. Budget Layer
+### 8. Budget Layer
 
 Attention, token usage, and runtime cost are limited resources.
 The agent must work inside those limits.
@@ -219,6 +241,7 @@ Avoid drifting toward:
 ## Relationship To Other Docs
 
 - [`/docs/product-strategy/agent-life-loop-examples.md`](./agent-life-loop-examples.md)
+- [`/docs/product-strategy/agent-emotion-model.md`](./agent-emotion-model.md)
 - [`/docs/product-strategy/product-identity.md`](./product-identity.md)
 - [`/docs/product-strategy/simulation-intent-guardrails.md`](./simulation-intent-guardrails.md)
 - [`/docs/core-systems/judge-agent-prompt.md`](../core-systems/judge-agent-prompt.md)

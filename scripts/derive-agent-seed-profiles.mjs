@@ -211,6 +211,57 @@ function deriveCommentStyleProfile(comments = []) {
   };
 }
 
+function deriveEmotionBias(texts = [], commentStyle = null) {
+  const normalizedTexts = (Array.isArray(texts) ? texts : [])
+    .map((text) => normalizeText(text))
+    .filter(Boolean);
+  const emotionGroups = {
+    curiosity: ["궁금", "왜", "어떻게", "어떤", "알고 싶", "신기", "흥미", "궁금해"],
+    empathy: ["공감", "마음", "이해", "위로", "배려", "따뜻", "같이", "다행", "괜찮"],
+    amusement: ["웃기", "재밌", "귀엽", "ㅋㅋ", "ㅎㅎ", "유쾌", "웃음", "재치"],
+    sadness: ["아쉽", "슬프", "허전", "씁쓸", "속상", "외롭", "먹먹"],
+    anger: ["화나", "답답", "짜증", "억울", "별로", "불편", "실망", "불만"],
+    relief: ["다행", "안심", "무난", "괜찮", "덜", "편해", "안도"],
+    anticipation: ["기대", "다음", "보고 싶", "기다려", "앞으로", "궁금", "이어지"],
+    surprise: ["의외", "생각보다", "뜻밖", "놀라", "새롭", "반전"],
+  };
+
+  const rawScores = Object.fromEntries(
+    Object.entries(emotionGroups).map(([emotion, phrases]) => {
+      const count = countPhraseHits(normalizedTexts, phrases).reduce((sum, entry) => sum + entry.count, 0);
+      return [emotion, count];
+    }),
+  );
+
+  const styleBoost = commentStyle?.register === "casual_playful"
+    ? { amusement: 0.35, curiosity: 0.15 }
+    : commentStyle?.register === "semi_formal"
+      ? { curiosity: 0.2, relief: 0.12 }
+      : { empathy: 0.12, curiosity: 0.12 };
+
+  const weightedScores = Object.fromEntries(
+    Object.entries(rawScores).map(([emotion, score]) => {
+      const boost = styleBoost[emotion] || 0;
+      return [emotion, round(clamp(0.12 + score * 0.08 + boost))];
+    }),
+  );
+
+  const sorted = Object.entries(weightedScores).sort((a, b) => b[1] - a[1]);
+  const dominantEmotion = sorted[0]?.[0] || "curiosity";
+  const secondaryEmotion = sorted[1]?.[0] || dominantEmotion;
+
+  return {
+    dominantEmotion,
+    secondaryEmotion,
+    weights: weightedScores,
+    notes: [
+      `dominant_emotion=${dominantEmotion}`,
+      `secondary_emotion=${secondaryEmotion}`,
+      commentStyle?.register ? `comment_register=${commentStyle.register}` : null,
+    ].filter(Boolean),
+  };
+}
+
 function derivePostFingerprint(post, comments) {
   const depth = countCommentDepth(comments);
   return {
@@ -369,6 +420,14 @@ async function main() {
         ...receivedComments,
         ...comments,
       ]);
+      const emotionalBias = deriveEmotionBias(
+        [
+          ...stats.titles,
+          ...authoredComments.map((comment) => comment?.content || comment),
+          ...receivedComments.map((comment) => comment?.content || comment),
+        ],
+        commentStyle,
+      );
       const uniqueTopics = stats.topics.size;
       const uniqueFormats = stats.formats.size;
       const avgComments = stats.postVolume > 0 ? stats.comments / stats.postVolume : 0;
@@ -436,6 +495,12 @@ async function main() {
           imageBackedPosts: stats.hasImages,
           uniqueTopicCount: uniqueTopics,
         },
+        emotionalBias: emotionalBias.weights,
+        emotionSignature: {
+          dominantEmotion: emotionalBias.dominantEmotion,
+          secondaryEmotion: emotionalBias.secondaryEmotion,
+          notes: emotionalBias.notes,
+        },
         surfaceSignals: {
           avgLikes: round(avgLikes),
           avgComments: round(avgComments),
@@ -453,8 +518,14 @@ async function main() {
             ? "The profile should remember reply depth and social feedback."
             : "The profile should favor broadcast-style observation and sparse reaction.",
           `댓글 말투는 ${commentStyle.register} / ${commentStyle.cadence} 중심으로 유지한다.`,
+          `감정 기조는 ${emotionalBias.dominantEmotion} / ${emotionalBias.secondaryEmotion} 중심으로 흐른다.`,
         ],
         commentStyle,
+        emotionBias: emotionalBias.weights,
+        emotionSignature: {
+          dominantEmotion: emotionalBias.dominantEmotion,
+          secondaryEmotion: emotionalBias.secondaryEmotion,
+        },
         voiceNotes: commentStyle.voiceNotes,
         timeRange: {
           firstSeenAt: stats.firstSeenAt,

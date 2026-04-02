@@ -296,6 +296,21 @@ router.post("/tick", async (req, res) => {
             targetContent,
             sourceSignal: sanitizeAgentText(entry.reason || `${entry.action} at tick ${entry.tick}`),
             styleProfile: agent?.seed_profile?.comment_style || null,
+            emotionProfile: {
+              ...((agent?.seed_profile?.emotional_bias || agent?.seed_profile?.emotion_bias || {})),
+              ...(agent?.mutable_state?.affect_state?.emotional_bias || {}),
+              dominantEmotion:
+                agent?.mutable_state?.affect_state?.emotion_signature?.dominantEmotion ||
+                agent?.seed_profile?.emotion_signature?.dominantEmotion ||
+                entry?.dominant_feeling ||
+                targetContent?.emotions?.[0] ||
+                null,
+              secondaryEmotion:
+                agent?.mutable_state?.affect_state?.emotion_signature?.secondaryEmotion ||
+                agent?.seed_profile?.emotion_signature?.secondaryEmotion ||
+                entry?.stance_signal ||
+                null,
+            },
             comparisonTexts: [
               ...recentDraftTexts.slice(-8),
               targetContent?.title || "",
@@ -399,6 +414,21 @@ router.post("/tick", async (req, res) => {
             targetComment: replyTargetComment,
             sourceSignal: sanitizeAgentText(entry.reason || `${entry.action} at tick ${entry.tick}`),
             styleProfile: agent?.seed_profile?.comment_style || null,
+            emotionProfile: {
+              ...((agent?.seed_profile?.emotional_bias || agent?.seed_profile?.emotion_bias || {})),
+              ...(agent?.mutable_state?.affect_state?.emotional_bias || {}),
+              dominantEmotion:
+                agent?.mutable_state?.affect_state?.emotion_signature?.dominantEmotion ||
+                agent?.seed_profile?.emotion_signature?.dominantEmotion ||
+                entry?.dominant_feeling ||
+                replyTargetComment?.emotions?.[0] ||
+                null,
+              secondaryEmotion:
+                agent?.mutable_state?.affect_state?.emotion_signature?.secondaryEmotion ||
+                agent?.seed_profile?.emotion_signature?.secondaryEmotion ||
+                entry?.stance_signal ||
+                null,
+            },
             comparisonTexts,
             variationSeed:
               seed +
