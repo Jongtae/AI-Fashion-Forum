@@ -144,6 +144,49 @@ function scoreAnchorPreservation({
   );
 }
 
+function scoreClaimSurface({
+  text = "",
+  sourceIntent = "",
+  sourceAnchorTerms = [],
+  sourceTopics = [],
+  concreteAnchor = false,
+  hasQuestion = false,
+} = {}) {
+  const normalizedText = normalizeText(text).toLowerCase();
+  const normalizedTerms = normalizeList(sourceAnchorTerms).map((term) => term.toLowerCase());
+  const normalizedTopics = normalizeList(sourceTopics).map((topic) => topic.toLowerCase());
+  const anchorHits = normalizedTerms.filter((term) => term && normalizedText.includes(term)).length;
+  const topicHits = normalizedTopics.filter((topic) => topic && normalizedText.includes(topic)).length;
+  const anchorCoverage = normalizedTerms.length ? anchorHits / normalizedTerms.length : 0;
+  const topicCoverage = normalizedTopics.length ? topicHits / normalizedTopics.length : 0;
+
+  let directClaim = 0.2;
+  if (sourceIntent === "question") {
+    directClaim = /(궁금|어느|어떤|뭐가|어떻게|질문|조언|추천|비교|둘 중|중 뭐가)/.test(normalizedText) ? 1 : 0.18;
+  } else if (sourceIntent === "comparison") {
+    directClaim = /(비교|둘 중|어느 쪽|중 뭐가|vs|versus|차이|다르게 읽|갈려)/.test(normalizedText) ? 1 : 0.16;
+  } else if (sourceIntent === "controversy") {
+    directClaim = /(의견|반응|갈리|호불호|논쟁|반대|불편|다르게 읽)/.test(normalizedText) ? 1 : 0.16;
+  } else if (sourceIntent === "fact") {
+    directClaim = /(기사|커버|발표|내용|신호|사진|가격|색감|핏|사이즈|오피스|아이템|브랜드)/.test(normalizedText) ? 1 : 0.18;
+  } else if (sourceIntent === "reason") {
+    directClaim = /(이유|왜|근거|배경|기준)/.test(normalizedText) ? 1 : 0.2;
+  } else {
+    directClaim = concreteAnchor ? 0.62 : 0.24;
+  }
+
+  const openingForce = hasQuestion || directClaim > 0.6 ? 1 : 0.26;
+
+  return clamp(
+    0.16 +
+      anchorCoverage * 0.24 +
+      topicCoverage * 0.08 +
+      openingForce * 0.26 +
+      directClaim * 0.24 +
+      (concreteAnchor ? 0.08 : 0.03),
+  );
+}
+
 function hasConcreteAnchor(text = "") {
   const normalized = normalizeText(text).toLowerCase();
   return (
@@ -155,12 +198,12 @@ export function classifySourceIntent({ title = "", body = "", topics = [] } = {}
   const text = `${normalizeText(title)} ${normalizeText(body)} ${Array.isArray(topics) ? topics.join(" ") : ""}`.trim();
   const lowered = text.toLowerCase();
 
-  if (/(what do you all think|what do you think|thoughts|opinion|need advice|advice|how do you|how would you|which one|which is better|pair with|what goes with|what to wear with|should i|should we)/i.test(lowered)) {
-    return "question";
+  if (/(?:\bvs\.?\b|\bversus\b|\bbetter\b|\bcompare\b|\bcomparison\b|\beither\b|\bor\b)/i.test(lowered) || /둘 중|어느 쪽|비교/.test(text)) {
+    return "comparison";
   }
 
-  if (/(vs\.?|versus|better|compare|comparison|either|or)/i.test(lowered) || /둘 중|어느 쪽|비교/.test(text)) {
-    return "comparison";
+  if (/(what do you all think|what do you think|thoughts|opinion|need advice|advice|how do you|how would you|which one|which is better|pair with|what goes with|what to wear with|should i|should we)/i.test(lowered)) {
+    return "question";
   }
 
   if (/(debate|controversy|controversial|split|hot take|disagree|argument|drama|논쟁|반응이 갈리|호불호)/i.test(lowered)) {
@@ -220,6 +263,14 @@ export function scoreCommunityDraft(item) {
     concreteAnchor,
     hasQuestion,
   });
+  const claimSurface = scoreClaimSurface({
+    text,
+    sourceIntent,
+    sourceAnchorTerms,
+    sourceTopics,
+    concreteAnchor,
+    hasQuestion,
+  });
   const humanLikeLength = length >= 25 && length <= 260 ? 1 : length < 25 ? 0.28 : 0.64;
   const communityFit = clamp(
     0.34 +
@@ -272,7 +323,8 @@ export function scoreCommunityDraft(item) {
       consistency * 0.1 +
       communityFit * 0.08 +
       emotionBelievability * 0.05 +
-      anchorPreservation * 0.09,
+      anchorPreservation * 0.06 +
+      claimSurface * 0.12,
   );
 
   const verdict = hasHardFailPhrase
@@ -292,12 +344,14 @@ export function scoreCommunityDraft(item) {
   if (emotionBelievability < 0.42) issues.push("Emotional signal is thin.");
   if (essayishSignals > 0) issues.push("Language feels too essay-like or abstract.");
   if (anchorPreservation < 0.42) issues.push("Concrete source anchors are weak.");
+  if (claimSurface < 0.38) issues.push("Source claim is too abstract or flattened.");
 
   const strengths = [];
   if (hasQuestion) strengths.push("Has a reply-inviting question or comparison.");
   if (hasHookWords) strengths.push("Contains a conversational hook.");
   if (concreteAnchor) strengths.push("Keeps a concrete content anchor.");
   if (anchorPreservation >= 0.68) strengths.push("Preserves concrete source anchors.");
+  if (claimSurface >= 0.68) strengths.push("Keeps the source claim visible.");
   if (emotionSignals.distinctHits.length > 0) strengths.push(`Emotion cues present: ${emotionSignals.distinctHits.join(", ")}.`);
   if (isNaturalLanguage(text)) strengths.push("Reads like natural language.");
   if (!hasHardFailPhrase) strengths.push("Avoids obvious system-language leakage.");
@@ -316,6 +370,7 @@ export function scoreCommunityDraft(item) {
       community_fit: communityFit,
       emotional_believability: emotionBelievability,
       anchor_preservation: anchorPreservation,
+      claim_surface: claimSurface,
     },
     summary:
       verdict === "pass"
@@ -330,6 +385,7 @@ export function scoreCommunityDraft(item) {
       concrete_anchor: concreteAnchor,
       essayish_count: essayishSignals,
       emotion_hits: emotionSignals.distinctHits,
+      claim_surface: claimSurface,
     },
   };
 }

@@ -62,8 +62,8 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
   assert.notStrictEqual(draftTwo.title, draftTwo.content);
   assert.doesNotMatch(draftOne.title, /quiet office outfit/i);
   assert.doesNotMatch(draftTwo.title, /quiet office outfit/i);
-  assert.match(draftOne.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요/);
-  assert.match(draftTwo.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요/);
+  assert.match(draftOne.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요|중 뭐가 더 나을까|같이 보게 된 글/);
+  assert.match(draftTwo.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요|중 뭐가 더 나을까|같이 보게 된 글/);
   assert.ok((draftOne.content.match(/[.!?]/g) || []).length >= 2);
   assert.ok((draftTwo.content.match(/[.!?]/g) || []).length >= 2);
   assert.doesNotMatch(draftOne.content, /\b(보여요|같아요|네요|맞아요|있어요)$/);
@@ -101,6 +101,7 @@ test("createRunPostDraft preserves question anchors under the quality gate", asy
   assert.ok(draft.qualityScore >= 0.55, String(draft.qualityScore));
   assert.match(draft.title, /색감과 일상|궁금|어떻게|어느|조언|비교|기준|중 뭐가 더 나을까/);
   assert.match(draft.content, /색감과 일상|궁금|어떻게|어느|기준|비교|반응|조언|오피스|색감/);
+  assert.doesNotMatch(draft.content, /패션과 일상|기준만|포인트만/);
 });
 
 test("createRunPostDraft preserves fact anchors instead of flattening them", async () => {
@@ -131,6 +132,38 @@ test("createRunPostDraft preserves fact anchors instead of flattening them", asy
   assert.equal(draft.qualityGate.met, true);
   assert.match(draft.title, /커버|기사|보도|발표|스타일|패션|신호/);
   assert.match(draft.content, /커버|기사|보도|발표|스타일|패션|신호|디테일|오피스/);
+  assert.doesNotMatch(draft.content, /패션과 일상|포인트만/);
+});
+
+test("createRunPostDraft preserves comparison anchors instead of flattening them", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+    },
+    reactionRecord: {
+      meaning_frame: "comparison_frame",
+      stance_signal: "observant",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "Which is better for office wear, pastel aqua or cream?",
+      body: "I am comparing the two because the office setting makes the fit and color read differently.",
+      topics: ["color", "office_style"],
+    },
+    variationSeed: 6,
+    apiKey: "",
+    qualityGate: {
+      enabled: true,
+      minScore: 0.55,
+      maxAttempts: 4,
+    },
+  });
+
+  assert.ok(draft.qualityGate);
+  assert.equal(draft.qualityGate.met, true);
+  assert.match(draft.title, /비교|둘 중|어느 쪽|더 나을까|다르게 보여요/);
+  assert.match(draft.content, /비교|둘 중|어느 쪽|더 나을까|다르게 보여요|같이 보면|오피스|색감|크림|파스텔/);
+  assert.doesNotMatch(draft.content, /패션과 일상|포인트만/);
 });
 
 test("createRunPostDraft joins korean topic labels naturally", async () => {
@@ -635,7 +668,7 @@ test("createLiveCommentDraft uses comment style seed markers when provided", asy
 
   assert.strictEqual(draft.generationContext.source, "fallback");
   assert.strictEqual(draft.generationContext.selectedStyle, "casual_playful");
-  assert.match(draft.content, /이 기준이 먼저 와요|여기서는 결이 좀 다르게 보여요|궁금해서|왜 그런지|이 부분이 먼저 보여요|근데|오히려|저는|문득|가만히 보면|왠지|솔직히/);
+  assert.match(draft.content, /같이 보면|어느 쪽|궁금해서|왜 그런지|이 부분이 먼저 보여요|근데|오히려|저는|문득|가만히 보면|왠지|솔직히/);
   assert.match(draft.content, /같아요|ㅎㅎ|더라고요|보여요|네요/);
   assert.doesNotMatch(draft.content, /생활감|장면|됩니다|실용적인 기준|읽히는 느낌|다시 읽어보니|더 현실적으로 보여요|이 글가|글가/);
 });
