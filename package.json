@@ -22,6 +22,7 @@
     "rebuild:simulation-world": "node scripts/rebuild-simulation-world.mjs",
     "judge:content-quality": "node scripts/judge-content-quality.mjs",
     "sync:agent-state-candidates": "npm run derive:agent-seeds -- --output tmp/agent-seed-profiles.full.json && npm run init:agent-states -- --input tmp/agent-seed-profiles.full.json --output data/agent-state-candidates.json",
+    "test": "npm test --workspace @ai-fashion-forum/shared-types && npm test --workspace @ai-fashion-forum/agent-core && npm test --workspace @ai-fashion-forum/agent-server && npm test --workspace @ai-fashion-forum/forum-server",
     "build": "npm run build --workspace @ai-fashion-forum/forum-web",
     "preview": "npm run preview --workspace @ai-fashion-forum/forum-web",
     "crawl:images": "npm run crawl:images --workspace @ai-fashion-forum/forum-web",
