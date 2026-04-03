@@ -382,8 +382,8 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   const isComment = mode === "comment";
   const emotionOpeners = {
     curiosity: isComment
-      ? ["이 부분부터 보였어요", "이 기준이 먼저 와요", "처음 걸린 건 이거예요", "문득 이 부분이 보였어요", "가만히 보면 이 기준이 먼저 와요"]
-      : ["이 기준이 먼저 보여요", "처음엔 이 부분부터 봤어요", "처음 눈에 걸린 건 이 쪽이에요", "문득 이 부분이 먼저 보여요", "가만히 보면 이 기준이 더 먼저 와요", "보니까 이 포인트가 먼저 남아요"],
+      ? ["이 부분부터 보였어요", "처음 걸린 건 이거예요", "문득 이 부분이 보였어요", "가만히 보면 먼저 보이네요", "처음 눈에 걸린 건 이 쪽이에요"]
+      : ["먼저 보이는 건 이 쪽이에요", "처음엔 이 부분부터 봤어요", "처음 눈에 걸린 건 이 쪽이에요", "문득 이 부분이 먼저 보여요", "가만히 보면 먼저 보이네요", "보니까 바로 남는 쪽이 있어요"],
     empathy: isComment
       ? ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서", "조금 마음이 가서", "읽다 보니 공감이 먼저 됐어요"]
       : ["마음이 쓰여서", "그 마음이 먼저 와서", "괜히 공감돼서", "조금 마음이 가서", "읽다 보니 공감이 먼저 됐어요"],
@@ -408,8 +408,8 @@ function buildEmotionTonePack(emotionProfile = {}, mode = "run") {
   };
   const emotionHooks = {
     curiosity: isComment
-      ? ["어느 기준으로 보셨는지 궁금해요.", "이 포인트를 어떻게 잡으셨는지 궁금해요.", "처음 어떤 단서가 걸렸는지도 궁금해요.", "같이 보면 어떤 쪽이 먼저 보이셨는지도 궁금해요."]
-      : ["어느 쪽을 먼저 보셨는지 궁금해요.", "기준이 좀 나뉠 것 같아요."],
+      ? ["어느 쪽을 먼저 보셨는지 궁금해요.", "이 부분을 어떻게 먼저 보셨는지 궁금해요.", "처음 어떤 단서가 걸렸는지도 궁금해요.", "같이 보면 어떤 쪽이 먼저 보이셨는지도 궁금해요."]
+      : ["어느 쪽을 먼저 보셨는지 궁금해요.", "어떤 쪽이 더 먼저 보이는지 궁금해요."],
     empathy: ["그 마음이 남는 지점이 있네요.", "마음 쓰이는 부분이 조금 길게 남아요."],
     amusement: ["이건 살짝 웃겨서 남네요.", "웃음이 나는 지점이 꽤 오래 가요."],
     sadness: ["괜히 아쉬운 마음이 조금 남아요.", "조금 허전하게 읽히는 부분이 있어요."],
@@ -926,6 +926,24 @@ export function buildReadablePostTitle({
     }
   }
 
+  const selectionSeed = stringSeed(
+    variationSeed,
+    sourceTitle,
+    sourceSnippet,
+    sourceBody,
+    signal,
+    contextLabel,
+    normalizedTopics.join(","),
+  );
+  const priorityCandidates = uniqueNormalizedList(priorityTitles)
+    .map((candidate) => shortenHookTitle(candidate, 28))
+    .filter(Boolean)
+    .filter((candidate) => {
+      if (!referenceText) {
+        return true;
+      }
+      return jaccardSimilarity(candidate, referenceText) < 0.7;
+    });
   const candidates = uniqueNormalizedList(pool)
     .map((candidate) => shortenHookTitle(candidate, 28))
     .filter(Boolean)
@@ -936,6 +954,14 @@ export function buildReadablePostTitle({
       return jaccardSimilarity(candidate, referenceText) < 0.7;
     });
 
+  if (
+    priorityCandidates.length &&
+    ["question", "comparison", "controversy", "fact", "reason"].includes(sourceIntent) &&
+    Math.abs(selectionSeed) % 100 < 80
+  ) {
+    return priorityCandidates[Math.abs(selectionSeed) % priorityCandidates.length];
+  }
+
   if (!candidates.length) {
     return shortenHookTitle(
       mode === "comment"
@@ -945,17 +971,68 @@ export function buildReadablePostTitle({
     );
   }
 
-  const selectionSeed = stringSeed(
-    variationSeed,
-    sourceTitle,
-    sourceSnippet,
-    sourceBody,
-    signal,
-    contextLabel,
-    normalizedTopics.join(","),
-  );
   const index = Math.abs(selectionSeed) % candidates.length;
   return candidates[index];
+}
+
+function buildSourceClaimLead({
+  sourceIntent = "",
+  sourceAnchorStem = "",
+  sourceAnchorTitle = "",
+  sourceTopics = [],
+  baseSignal = "",
+  mode = "run",
+  contextLabel = "",
+} = {}) {
+  const topicLabel = Array.isArray(sourceTopics) && sourceTopics.length
+    ? joinKoreanTopicList(sourceTopics.map(localizeTopicLabel))
+    : "이 주제";
+  const anchorSource = normalizeText(sourceAnchorStem) || normalizeText(sourceAnchorTitle);
+  const anchor = anchorSource && isKoreanDominant(anchorSource) ? anchorSource : topicLabel;
+  const anchorSubject = attachKoreanParticle(anchor, "subject");
+  const anchorObject = attachKoreanParticle(anchor, "object");
+  const signalLabel = normalizeText(baseSignal) || "이 포인트";
+  const isComment = mode === "comment";
+
+  if (sourceIntent === "question") {
+    return isComment
+      ? `${anchorSubject} 먼저 궁금해졌어요`
+      : `${anchorSubject} 먼저 궁금해져요`;
+  }
+
+  if (sourceIntent === "comparison") {
+    return isComment
+      ? `${attachKoreanParticle(topicLabel, "object")} 같이 보면 어느 쪽이 더 나은지 바로 갈려요`
+      : `${attachKoreanParticle(topicLabel, "object")} 같이 보면 어느 쪽이 더 나은지 바로 보여요`;
+  }
+
+  if (sourceIntent === "controversy") {
+    return isComment
+      ? `${anchorObject} 둘러싼 반응이 갈릴 만해 보여요`
+      : `${anchorObject} 둘러싼 반응이 갈릴 만해 보여요`;
+  }
+
+  if (sourceIntent === "fact") {
+    return isComment
+      ? `${anchor}에서 ${attachKoreanParticle(signalLabel, "subject")} 먼저 보여요`
+      : `${anchor}에서 ${attachKoreanParticle(signalLabel, "subject")} 먼저 보여요`;
+  }
+
+  if (sourceIntent === "reason") {
+    return isComment
+      ? `${anchorSubject} 왜 이렇게 읽히는지 먼저 보게 돼요`
+      : `${anchorSubject} 왜 이렇게 읽히는지 먼저 보게 돼요`;
+  }
+
+  if (contextLabel) {
+    return isComment
+      ? `${contextLabel}에서 ${anchorSubject} 먼저 보여요`
+      : `${contextLabel}에서 ${anchorSubject} 먼저 보여요`;
+  }
+
+  return isComment
+    ? `${anchorSubject} 먼저 보여요`
+    : `${anchorSubject} 먼저 보여요`;
 }
 
 function buildOpenAIPrompt({
@@ -998,11 +1075,12 @@ function buildOpenAIPrompt({
     '형식은 {"contexts":[{"context_id":"...","context_label":"...","angle":"...","content":"...","tone":"..."}]} 이다.',
     "contexts는 정확히 4개를 권장하며, 각 항목은 서로 다른 맥락과 다른 문장 흐름을 가져야 한다.",
     "content는 최소 2문장 이상인 한글 자연문으로, 커뮤니티 글처럼 읽혀야 하며 너무 과장된 템플릿 문구를 반복하지 말아라.",
-    "각 context는 한 턴의 역할이 분명해야 한다. 첫 문장은 맥락 앵커, 둘째 문장은 내 반응이나 관찰, 마지막 문장은 질문/공감/반박/여운 중 하나로 끝내라.",
+    "각 context는 한 턴의 역할이 분명해야 한다. 첫 문장은 원천 질문/사실/비교/논쟁의 앵커를 직접 드러내고, 둘째 문장은 내 반응이나 관찰, 마지막 문장은 질문/공감/반박/여운 중 하나로 끝내라.",
     "문장 끝은 끊긴 메모처럼 남기지 말고, 본문 자체가 읽히도록 완결된 문장으로 마무리해라.",
     "본문 첫 단어를 '맞아요', '그렇죠', '그래요' 같은 동의 표현으로 시작하지 말고, 바로 상황이나 관찰로 들어가라.",
     "seed에 질문, 사실, 비교, 논쟁 포인트가 있으면 그것을 그대로 앵커로 살리고, 추상적인 감상문으로 뭉개지 말아라.",
     "외부 컨텐츠의 사실과 쟁점은 대화가 열리도록 구체적으로 유지하고, 패션과 일상, 기준, 포인트 같은 추상어로만 압축하지 말아라.",
+    "본문 첫 문장은 source claim이 읽히는 문장이어야 하며, 요약문이나 에세이식 설명으로 먼저 밀지 말아라.",
     "희로애락 같은 감정은 이름으로 설명하기보다, 문장 리듬과 선택 단어로 드러내라.",
     "제목은 본문 요약처럼 쓰지 말고, 짧은 훅과 관점 차이가 드러나게 따로 잡아라.",
     "댓글인 경우에는 실제 커뮤니티 댓글처럼 간결하고 구어체로 쓰고, 주어를 굳이 설명하지 마라.",
@@ -1082,6 +1160,15 @@ function buildFallbackContexts({
     discussionAnchors.controversyAnchor,
     ...(Array.isArray(sourceTopics) ? sourceTopics.map(localizeTopicLabel) : []),
   ]);
+  const buildClaimLead = (contextLabelForClaim = "") => buildSourceClaimLead({
+    sourceIntent: inferredIntent,
+    sourceAnchorStem,
+    sourceAnchorTitle,
+    sourceTopics,
+    baseSignal,
+    mode,
+    contextLabel: contextLabelForClaim,
+  });
   const localizedContentRecord = {
     ...(contentRecord || {}),
     title: intentTitle || displayTitle,
@@ -1397,7 +1484,7 @@ function buildFallbackContexts({
         contextLabel: "대화 이어가기",
         angle: "상대의 말을 받아서 대화를 이어가는 반응",
         content: composeReadableBody(
-          `${buildLead(1)}${pickBySeed(["이 부분이", "이 포인트가", "이 흐름이"], variationSeed + 2)} 먼저 보여요`,
+          `${buildLead(1)}${buildClaimLead("대화 이어가기")}`,
           buildObservationTail("reply-continue", 3),
           buildCloser("reply-continue", 4),
         ),
@@ -1408,7 +1495,7 @@ function buildFallbackContexts({
         contextLabel: "질문",
         angle: "상대의 판단 기준을 더 묻는 반응",
         content: composeReadableBody(
-          `${buildLead(4)}${topics}보다 다른 단서가 먼저 보여요`,
+          `${buildLead(4)}${buildClaimLead("질문")}`,
           pickContextDistinct("reply-question", variationSeed, casualQuestionPool, []),
           buildQuestionTail("reply-question", 5),
           buildCloser("reply-question", 6),
@@ -1420,7 +1507,7 @@ function buildFallbackContexts({
         contextLabel: "보완",
         angle: "부드럽게 다른 관점을 보태는 반응",
         content: composeReadableBody(
-          `${buildLead(6)}여기서는 결이 좀 다르게 보여요`,
+          `${buildLead(6)}${buildClaimLead("보완")}`,
           buildObservationTail("reply-nuance", 7),
           buildCloser("reply-nuance", 8),
         ),
@@ -1431,7 +1518,8 @@ function buildFallbackContexts({
         contextLabel: "스레드",
         angle: "댓글과 게시글을 다시 이어 붙이는 반응",
         content: composeReadableBody(
-          `${buildLead(8)}${buildSupportTail("reply-thread", variationSeed + 1)}`,
+          `${buildLead(8)}${buildClaimLead("스레드")}`,
+          `${buildSupportTail("reply-thread", variationSeed + 1)}`,
           pickContextDistinct("reply-thread", variationSeed + 2, threadBridgePool, []),
           buildCloser("reply-thread", 9),
         ),
@@ -1442,7 +1530,8 @@ function buildFallbackContexts({
         contextLabel: "공감",
         angle: "상대의 감정에 공감하면서 힘을 실어주는 반응",
         content: composeReadableBody(
-          `${buildLead(10)}${buildSupportTail("reply-support", variationSeed + 2)}`,
+          `${buildLead(10)}${buildClaimLead("공감")}`,
+          `${buildSupportTail("reply-support", variationSeed + 2)}`,
           pickContextDistinct("reply-support", variationSeed + 3, supportReactionPool, []),
           buildCloser("reply-support", 11),
         ),
@@ -1453,7 +1542,7 @@ function buildFallbackContexts({
         contextLabel: "반대",
         angle: "같은 글을 다른 결로 읽어보는 반응",
         content: composeReadableBody(
-          `${buildLead(12)}조금 다르게 읽었어요`,
+          `${buildLead(12)}${buildClaimLead("반대")}`,
           `같이 보면 느낌이 조금 달라져요`,
           buildCloser("reply-counterpoint", 13),
         ),
@@ -1469,7 +1558,7 @@ function buildFallbackContexts({
         contextLabel: "출근 전",
         angle: "일상에서 다시 보는 반복 착용 기준",
         content: composeReadableBody(
-          `${buildLead(1)}${attachKoreanParticle(sourceAnchorStem, "object")} 아침에 다시 보니까 이건 오래 갈 쪽이더라`,
+          `${buildLead(1)}${buildClaimLead("출근 전")}`,
           `${topics}보다 반복해서 손이 가는지 먼저 보게 돼요`,
           buildQuestionTail("life-rhythm", 2),
           buildCloser("life-rhythm", 3),
@@ -1481,7 +1570,7 @@ function buildFallbackContexts({
         contextLabel: "첫인상",
         angle: "새로운 신호를 먼저 잡는 관점",
         content: composeReadableBody(
-          `${buildLead(3)}먼저 보인 건 ${sourceAnchorStem} 쪽이에요`,
+          `${buildLead(3)}${buildClaimLead("첫인상")}`,
           `겉으로는 단순해 보여도 ${baseSignal} 따라가면 결이 조금 달라져요`,
           buildObservationTail("signal-reading", 4),
           buildCloser("signal-reading", 5),
@@ -1493,7 +1582,7 @@ function buildFallbackContexts({
         contextLabel: "가격 체크",
         angle: "좋아 보이는 인상보다 실제 손익을 따지는 관점",
         content: composeReadableBody(
-          `${buildLead(5)}${attachKoreanParticle(sourceAnchorStem, "subject")} 첫 인상은 괜찮은데, 가격 보면 생각이 달라져요`,
+          `${buildLead(5)}${buildClaimLead("가격 체크")}`,
           `${signalWithObject} 기준으로 오래 갈지부터 보게 돼요`,
           buildCloser("tradeoff-check", 6),
         ),
@@ -1504,7 +1593,7 @@ function buildFallbackContexts({
         contextLabel: "댓글 반응",
         angle: "포럼 대화 맥락에 기대는 반응",
         content: composeReadableBody(
-          `${buildLead(7)}댓글까지 같이 보니까 ${sourceAnchorStem}가 조금 다르게 보여요`,
+          `${buildLead(7)}${buildClaimLead("댓글 반응")}`,
           `${topics}에 대한 반응이 갈리니까 글 하나도 다시 보게 돼요`,
           buildQuestionTail("community-reply", 8),
           buildCloser("community-reply", 9),
@@ -1516,7 +1605,7 @@ function buildFallbackContexts({
         contextLabel: "디테일",
         angle: "작은 디테일을 먼저 짚는 관점",
         content: composeReadableBody(
-          `${buildLead(9)}${sourceAnchorStem}에서 작은 디테일 하나가 먼저 보여요`,
+          `${buildLead(9)}${buildClaimLead("디테일")}`,
           `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라져요`,
           buildObservationTail("micro-observation", 10),
           buildCloser("micro-observation", 11),
@@ -1528,7 +1617,7 @@ function buildFallbackContexts({
         contextLabel: "내 경험",
         angle: "개인 경험을 살짝 섞는 반응",
         content: composeReadableBody(
-          `${buildLead(11)}비슷한 사진이나 옷을 떠올리면 ${attachKoreanParticle(sourceAnchorStem, "subject")} 더 잘 남아요`,
+          `${buildLead(11)}${buildClaimLead("내 경험")}`,
           `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
           buildCloser("personal-memory", 12),
         ),
@@ -1545,7 +1634,7 @@ function buildFallbackContexts({
         contextLabel: "출근 전",
         angle: "출근이나 외출 전에 다시 읽는 생활 기준",
         content: composeReadableBody(
-          `${buildLead(1)}출근 전에 다시 보니까 ${attachKoreanParticle(sourceAnchorStem, "subject")} 더 오래 갈 쪽이더라`,
+          `${buildLead(1)}${buildClaimLead("출근 전")}`,
           `${topics}보다 반복해서 입을 수 있느냐가 먼저 중요해요`,
           buildQuestionTail("life-rhythm", 2),
           buildCloser("life-rhythm", 3),
@@ -1557,7 +1646,7 @@ function buildFallbackContexts({
         contextLabel: "첫인상",
         angle: "글에서 새로 보이는 신호를 먼저 잡는 관점",
         content: composeReadableBody(
-          `${buildLead(3)}먼저 보인 건 ${sourceAnchorStem} 쪽이에요`,
+          `${buildLead(3)}${buildClaimLead("첫인상")}`,
           `겉으로는 단순해 보여도 ${baseSignal} 따라가면 결이 달라져요`,
           buildObservationTail("signal-reading", 4),
           buildCloser("signal-reading", 5),
@@ -1569,7 +1658,7 @@ function buildFallbackContexts({
         contextLabel: "가격 체크",
         angle: "가격과 과장보다 실제 손익을 따지는 관점",
         content: composeReadableBody(
-          `${buildLead(5)}${attachKoreanParticle(sourceAnchorStem, "subject")} 첫 인상은 괜찮은데, 가격 보면 생각이 달라져요`,
+          `${buildLead(5)}${buildClaimLead("가격 체크")}`,
           `${signalWithObject} 기준으로 오래 갈지부터 보게 돼요`,
           buildCloser("tradeoff-check", 6),
         ),
@@ -1580,7 +1669,7 @@ function buildFallbackContexts({
         contextLabel: "댓글 반응",
         angle: "포럼 대화 흐름에 기대는 반응",
         content: composeReadableBody(
-          `${buildLead(7)}댓글까지 같이 보니까 ${sourceAnchorStem}가 조금 다르게 보여요`,
+          `${buildLead(7)}${buildClaimLead("댓글 반응")}`,
           `${topics}에 대한 반응이 갈리니까 글 하나도 다시 보게 돼요`,
           buildQuestionTail("community-reply", 8),
           buildCloser("community-reply", 9),
@@ -1592,7 +1681,7 @@ function buildFallbackContexts({
         contextLabel: "디테일",
         angle: "작은 디테일을 먼저 짚는 관점",
         content: composeReadableBody(
-          `${buildLead(9)}${sourceAnchorStem}에서 작은 디테일 하나가 먼저 보여요`,
+          `${buildLead(9)}${buildClaimLead("디테일")}`,
           `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라져요`,
           buildObservationTail("micro-observation", 10),
           buildCloser("micro-observation", 11),
@@ -1604,7 +1693,7 @@ function buildFallbackContexts({
         contextLabel: "내 경험",
         angle: "개인 경험을 살짝 섞는 반응",
         content: composeReadableBody(
-          `${buildLead(11)}비슷한 사진이나 옷을 떠올리면 ${attachKoreanParticle(sourceAnchorStem, "subject")} 더 잘 남아요`,
+          `${buildLead(11)}${buildClaimLead("내 경험")}`,
           `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
           buildCloser("personal-memory", 12),
         ),
