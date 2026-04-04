@@ -18,8 +18,10 @@ const simEventSchema = new Schema(
         "agent_state_snapshot",
         // content events
         "content_consumed",
+        "comment_consumed",
         "content_ingested_external",
         "forum_post_created",
+        "forum_comment_created",
         "agent_identity_updated",
         // action events
         "action_silence",
