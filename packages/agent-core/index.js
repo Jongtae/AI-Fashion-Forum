@@ -17,3 +17,4 @@ export * from "./social-dynamics.js";
 export * from "./tick-engine.js";
 export * from "./storage-contracts.js";
 export * from "./trace-snapshot-contract.js";
+export * from "./evaluator-agent.js";
