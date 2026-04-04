@@ -6,7 +6,8 @@ const STARTUP_STATE_SNAPSHOT = loadAgentStartupStateSnapshot();
 export const DEFAULT_INITIAL_AGENT_COUNT =
   STARTUP_STATE_SNAPSHOT.agents.length || SAMPLE_STATE_SNAPSHOT.agents.length;
 export const DEFAULT_AGENT_GROWTH_INTERVAL = 4;
-export const DEFAULT_AGENT_MAX_COUNT = 10;
+export const DEFAULT_AGENT_MAX_COUNT =
+  Math.max(10, Number(process.env.AGENT_MAX_COUNT) || 10);
 
 export function buildPopulationGrowthPlan({
   currentCount = DEFAULT_INITIAL_AGENT_COUNT,
