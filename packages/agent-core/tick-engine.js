@@ -205,6 +205,35 @@ export function runTicks(options = {}) {
   };
 }
 
+/**
+ * Serialize a tick-engine result into a portable checkpoint payload.
+ * The returned object is JSON-safe and can be persisted to MongoDB or disk.
+ */
+export function serializeTickState(tickResult) {
+  return {
+    seed: tickResult.seed,
+    tickCount: tickResult.tickCount,
+    finalTick: tickResult.finalTick,
+    finalState: cloneState(tickResult.finalState),
+    entries: JSON.parse(JSON.stringify(tickResult.entries)),
+    snapshotCount: tickResult.snapshots?.length ?? 0,
+  };
+}
+
+/**
+ * Deserialize a checkpoint payload back into a structure that can seed
+ * a new `runTicks()` call via `initialState`.
+ */
+export function deserializeTickState(checkpoint) {
+  return {
+    seed: checkpoint.seed,
+    tickCount: checkpoint.tickCount,
+    finalTick: checkpoint.finalTick,
+    finalState: JSON.parse(JSON.stringify(checkpoint.finalState)),
+    entries: JSON.parse(JSON.stringify(checkpoint.entries || [])),
+  };
+}
+
 export function createBaselineWorldRules() {
   return [
     ({ phase, tick }) => {
