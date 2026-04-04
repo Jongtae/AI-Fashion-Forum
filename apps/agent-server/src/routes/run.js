@@ -136,6 +136,9 @@ router.post("/", async (req, res) => {
   const recentDraftTexts = [];
   const recentDraftComparisons = [];
   const recentDraftTitles = [];
+  const generatedTitleCounts = new Map();
+  const generatedLeadCounts = new Map();
+  const generatedFrameCounts = new Map();
   for (const [index, updatedAgent] of runtime.state.agents.entries()) {
     const exposureSample = exposureByAgent[updatedAgent.agent_id];
     const reactions = exposureSample?.reaction_records || [];
@@ -198,6 +201,11 @@ router.post("/", async (req, res) => {
         ...recentDraftTitles.slice(-16),
         selectedContent?.title || "",
       ].filter(Boolean),
+      populationSignals: {
+        titleCounts: generatedTitleCounts,
+        leadCounts: generatedLeadCounts,
+        frameCounts: generatedFrameCounts,
+      },
       variationSeed,
       provider: LLM_PROVIDER,
       apiKey: SIMULATION_LLM_API_KEY,
@@ -215,6 +223,18 @@ router.post("/", async (req, res) => {
     }
     if (draft.title) {
       recentDraftTitles.push(draft.title);
+      generatedTitleCounts.set(draft.title.trim().replace(/\s+/g, " "), (generatedTitleCounts.get(draft.title.trim().replace(/\s+/g, " ")) || 0) + 1);
+    }
+    const leadKey = (draft.content || "").split(/[.!?。！？\n]/)[0]?.trim()?.replace(/\s+/g, " ");
+    if (leadKey) {
+      generatedLeadCounts.set(leadKey, (generatedLeadCounts.get(leadKey) || 0) + 1);
+    }
+    const frameKey = [draft.generationContext?.sourceIntent || "", draft.generationContext?.selectedContextLabel || ""]
+      .filter(Boolean)
+      .join(":")
+      .trim();
+    if (frameKey) {
+      generatedFrameCounts.set(frameKey, (generatedFrameCounts.get(frameKey) || 0) + 1);
     }
     generatedPosts.push({
       post_id: `${runId}:post:${updatedAgent.agent_id}`,

@@ -1985,24 +1985,62 @@ function maxSimilarityAgainstPool(text = "", comparisonTexts = []) {
 function buildNoveltyInputs(candidate = {}) {
   const title = normalizeText(candidate?.title || "");
   const content = normalizeText(candidate?.content || "");
+  const contextLabel = normalizeText(candidate?.generationContext?.selectedContextLabel || "");
+  const sourceIntent = normalizeText(candidate?.generationContext?.sourceIntent || "");
   return {
     title,
     content,
     combined: normalizeText([title, content].filter(Boolean).join(" ")),
+    contentLead: normalizeText(content.split(/[.!?。！？\n]/)[0] || ""),
+    frameKey: normalizeText([sourceIntent, contextLabel].filter(Boolean).join(":")),
   };
 }
 
-function scoreDraftNovelty(candidate = {}, comparisonTexts = [], comparisonTitles = []) {
+function buildPopulationRepetitionSignals(populationSignals = {}, noveltyInputs = {}) {
+  const titleCounts = populationSignals?.titleCounts instanceof Map ? populationSignals.titleCounts : null;
+  const leadCounts = populationSignals?.leadCounts instanceof Map ? populationSignals.leadCounts : null;
+  const frameCounts = populationSignals?.frameCounts instanceof Map ? populationSignals.frameCounts : null;
+  const titleCount = titleCounts ? Number(titleCounts.get(noveltyInputs.title) || 0) : 0;
+  const leadCount = leadCounts ? Number(leadCounts.get(noveltyInputs.contentLead) || 0) : 0;
+  const frameCount = frameCounts ? Number(frameCounts.get(noveltyInputs.frameKey) || 0) : 0;
+  const titleFrequencyPenalty = clamp(Math.max(0, titleCount - 1) * 0.22);
+  const leadFrequencyPenalty = clamp(Math.max(0, leadCount - 1) * 0.18);
+  const frameFrequencyPenalty = clamp(Math.max(0, frameCount - 2) * 0.16);
+
+  return {
+    titleCount,
+    leadCount,
+    frameCount,
+    titleFrequencyPenalty,
+    leadFrequencyPenalty,
+    frameFrequencyPenalty,
+  };
+}
+
+function scoreDraftNovelty(candidate = {}, comparisonTexts = [], comparisonTitles = [], populationSignals = null) {
   const noveltyInputs = buildNoveltyInputs(candidate);
   const hasTextPool = Array.isArray(comparisonTexts) && comparisonTexts.length > 0;
   const hasTitlePool = Array.isArray(comparisonTitles) && comparisonTitles.length > 0;
+  const repetitionSignals = buildPopulationRepetitionSignals(populationSignals, noveltyInputs);
   if (!hasTextPool && !hasTitlePool) {
     return {
-      noveltyScore: 1,
-      repetitionPenalty: 0,
+      noveltyScore: clamp(
+        1 -
+          Math.max(
+            repetitionSignals.titleFrequencyPenalty,
+            repetitionSignals.leadFrequencyPenalty,
+            repetitionSignals.frameFrequencyPenalty,
+          ),
+      ),
+      repetitionPenalty: Math.max(
+        repetitionSignals.titleFrequencyPenalty,
+        repetitionSignals.leadFrequencyPenalty,
+        repetitionSignals.frameFrequencyPenalty,
+      ),
       maxTitleSimilarity: 0,
       maxContentSimilarity: 0,
       maxCombinedSimilarity: 0,
+      ...repetitionSignals,
     };
   }
 
@@ -2016,6 +2054,9 @@ function scoreDraftNovelty(candidate = {}, comparisonTexts = [], comparisonTitle
     maxCombinedSimilarity * 0.55,
     maxTitleSimilarity * 0.75,
     maxContentSimilarity * 0.45,
+    repetitionSignals.titleFrequencyPenalty,
+    repetitionSignals.leadFrequencyPenalty,
+    repetitionSignals.frameFrequencyPenalty,
   );
 
   return {
@@ -2024,6 +2065,7 @@ function scoreDraftNovelty(candidate = {}, comparisonTexts = [], comparisonTitle
     maxTitleSimilarity: clamp(maxTitleSimilarity),
     maxContentSimilarity: clamp(maxContentSimilarity),
     maxCombinedSimilarity: clamp(maxCombinedSimilarity),
+    ...repetitionSignals,
   };
 }
 
@@ -2367,6 +2409,7 @@ async function resolvePostDraft({
       candidate,
       rest.comparisonTexts || [],
       rest.comparisonTitles || [],
+      rest.populationSignals || null,
     );
     const effectiveScore = clamp(quality.overall_score * 0.78 + novelty.noveltyScore * 0.22);
     const metThreshold = effectiveScore >= gate.minScore;
@@ -2428,6 +2471,8 @@ export async function createRunPostDraft({
   reactionRecord,
   contentRecord,
   comparisonTexts = [],
+  comparisonTitles = [],
+  populationSignals = null,
   variationSeed = 0,
   provider,
   apiKey,
@@ -2464,6 +2509,8 @@ export async function createRunPostDraft({
     model,
     fetchImpl,
     comparisonTexts,
+    comparisonTitles,
+    populationSignals,
     agentHandle: updatedAgent?.handle || "agent",
     sourceTitle,
     sourceTopics,
