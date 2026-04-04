@@ -33,8 +33,16 @@ import { StoredAction } from "../models/StoredAction.js";
 const router = Router();
 
 const FORUM_SERVER_URL = process.env.FORUM_SERVER_URL || "http://localhost:4000";
-const SIMULATION_OPENAI_API_KEY =
-  process.env.OPENAI_SIMULATION_ENABLED === "true" ? process.env.OPENAI_API_KEY || "" : "";
+// LLM provider config — Claude by default, OpenAI backward compat preserved
+const LLM_PROVIDER = process.env.LLM_PROVIDER || "claude";
+const LLM_SIMULATION_ENABLED =
+  process.env.LLM_SIMULATION_ENABLED === "true" ||
+  process.env.OPENAI_SIMULATION_ENABLED === "true";
+const SIMULATION_LLM_API_KEY = LLM_SIMULATION_ENABLED
+  ? (LLM_PROVIDER === "claude"
+      ? process.env.ANTHROPIC_API_KEY
+      : process.env.OPENAI_API_KEY) || ""
+  : "";
 
 const KO_TOPIC_LABELS = {
   style: "스타일",
@@ -319,7 +327,8 @@ router.post("/tick", async (req, res) => {
             entry.reason || "",
           ].filter(Boolean),
           variationSeed: seed + round + entry.tick,
-          apiKey: SIMULATION_OPENAI_API_KEY,
+          provider: LLM_PROVIDER,
+          apiKey: SIMULATION_LLM_API_KEY,
         });
         content = draft.content || entry.reason || "새 글을 올렸다.";
         if (content) {
@@ -435,7 +444,8 @@ router.post("/tick", async (req, res) => {
               round +
               entry.tick +
               stringSeed(entry.actor_id, recentPost._id, replyTargetComment?._id || "post"),
-            apiKey: SIMULATION_OPENAI_API_KEY,
+            provider: LLM_PROVIDER,
+          apiKey: SIMULATION_LLM_API_KEY,
           });
           const replyPayload = {
             content:

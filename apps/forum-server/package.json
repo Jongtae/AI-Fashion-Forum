@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node src/server.js",
     "start": "node src/server.js",
-    "test": "node --test src/**/*.test.js"
+    "test": "node --test src/lib/*.test.js src/routes/*.test.js",
+    "test:integration": "node --test src/forum-server.integration.test.js"
   },
   "dependencies": {
     "@ai-fashion-forum/agent-core": "file:../../packages/agent-core",
