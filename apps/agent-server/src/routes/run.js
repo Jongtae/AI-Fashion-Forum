@@ -36,7 +36,7 @@ const REPLAY_DIR = path.resolve(__dirname, "../../../../data/replays");
 
 const FORUM_SERVER_URL = process.env.FORUM_SERVER_URL || "http://localhost:4000";
 // LLM provider config — Claude by default, OpenAI backward compat preserved
-const LLM_PROVIDER = process.env.LLM_PROVIDER || "claude";
+const LLM_PROVIDER = process.env.LLM_PROVIDER || "openai";
 const LLM_SIMULATION_ENABLED =
   process.env.LLM_SIMULATION_ENABLED === "true" ||
   process.env.OPENAI_SIMULATION_ENABLED === "true";

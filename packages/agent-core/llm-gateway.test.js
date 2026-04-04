@@ -10,9 +10,9 @@ import {
 
 describe("llm-gateway", () => {
   describe("resolveLLMConfig", () => {
-    it("defaults to claude provider", () => {
+    it("defaults to openai provider", () => {
       const config = resolveLLMConfig();
-      assert.strictEqual(config.provider, process.env.LLM_PROVIDER || "claude");
+      assert.strictEqual(config.provider, process.env.LLM_PROVIDER || "openai");
     });
   });
 

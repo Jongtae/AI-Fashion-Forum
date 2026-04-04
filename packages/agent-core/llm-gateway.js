@@ -5,7 +5,7 @@
  * Uses raw fetch only — no SDK dependency.
  */
 
-export const DEFAULT_PROVIDER = "claude";
+export const DEFAULT_PROVIDER = "openai";
 export const DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-20250514";
 export const DEFAULT_OPENAI_MODEL = "gpt-4o";
 
