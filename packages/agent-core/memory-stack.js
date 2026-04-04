@@ -303,11 +303,21 @@ export function rememberContentExposure(runtime, exposureRecord = {}) {
       "",
   );
   const reasonText = normalizeMemoryText(reason) || reactionLabel || "읽은 글이 다음 판단으로 이어졌다.";
+  const reasonClause = reasonText
+    .replace(/\.$/, "")
+    .replace(/^나는\s+/u, "")
+    .replace(/^읽은 글이\s+/u, "")
+    .trim();
+  const topicLead = Array.isArray(contentRecord.topics) && contentRecord.topics.length
+    ? contentRecord.topics.slice(0, 2).join(", ")
+    : "";
 
-  const summary = `읽은 글 “${title}”에서 ${topics}을/를 먼저 보게 됐다.`;
+  const summary = reasonClause
+    ? `읽은 글 “${title}” 뒤로 ${reasonClause}`
+    : `읽은 글 “${title}”에서 ${topics}을/를 먼저 보게 됐다.`;
   const narrativeText = reactionLabel
-    ? `나는 “${title}”을 읽고 ${reactionLabel} 쪽으로 조금 더 기울었다. ${reasonText}`
-    : `나는 “${title}”을 읽고 ${reasonText}`;
+    ? `나는 “${title}”을 읽은 뒤 ${reactionLabel} 쪽으로 조금 더 기울었다. ${reasonText}`
+    : `나는 “${title}”을 읽은 뒤 ${reasonText}`;
 
   const recentItem = createRecentMemoryItem({
     memory_id: `recent:${agentState.agent_id}:${round}:${tick}:exposure`,
@@ -322,6 +332,8 @@ export function rememberContentExposure(runtime, exposureRecord = {}) {
       title,
       topics: Array.isArray(contentRecord.topics) ? contentRecord.topics : [],
       reason: reasonText,
+      reason_clause: reasonClause,
+      topic_lead: topicLead,
       reaction_frame: reactionRecord?.meaning_frame || null,
       reaction_signal: reactionRecord?.stance_signal || null,
       dominant_feeling: reactionRecord?.dominant_feeling || null,
