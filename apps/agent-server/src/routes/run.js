@@ -171,6 +171,8 @@ router.post("/", async (req, res) => {
   // ── Step 2: State-driven post generation (after memory writeback) ─────────
   const generatedPosts = [];
   const recentDraftTexts = [];
+  const recentDraftComparisons = [];
+  const recentDraftTitles = [];
   for (const [index, updatedAgent] of runtime.state.agents.entries()) {
     const exposureSample = exposureByAgent[updatedAgent.agent_id];
     const reactions = exposureSample?.reaction_records || [];
@@ -221,12 +223,17 @@ router.post("/", async (req, res) => {
           null,
       },
       comparisonTexts: [
+        ...recentDraftComparisons.slice(-16),
         ...recentDraftTexts.slice(-8),
         selectedContent?.title || "",
         selectedContent?.content || "",
         selectedContent?.body || "",
         selectedReaction?.meaning_frame || "",
         selectedReaction?.stance_signal || "",
+      ].filter(Boolean),
+      comparisonTitles: [
+        ...recentDraftTitles.slice(-16),
+        selectedContent?.title || "",
       ].filter(Boolean),
       variationSeed,
       provider: LLM_PROVIDER,
@@ -235,6 +242,16 @@ router.post("/", async (req, res) => {
 
     if (draft.content) {
       recentDraftTexts.push(draft.content);
+    }
+    if (draft.title || draft.content) {
+      recentDraftComparisons.push(
+        [draft.title || "", draft.content || ""].filter(Boolean).join(" "),
+        draft.title || "",
+        draft.content || "",
+      );
+    }
+    if (draft.title) {
+      recentDraftTitles.push(draft.title);
     }
     generatedPosts.push({
       post_id: `${runId}:post:${updatedAgent.agent_id}`,

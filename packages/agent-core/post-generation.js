@@ -233,6 +233,10 @@ function jaccardSimilarity(left = "", right = "") {
   return union ? intersection / union : 0;
 }
 
+function clamp(value) {
+  return Math.max(0, Math.min(1, Number(value.toFixed(4))));
+}
+
 function sanitizeDraftContent(value = "") {
   return dedupeAdjacentSentences(
     normalizeKoreanParticlePairs(value)
@@ -1857,6 +1861,51 @@ function maxSimilarityAgainstPool(text = "", comparisonTexts = []) {
   }, 0);
 }
 
+function buildNoveltyInputs(candidate = {}) {
+  const title = normalizeText(candidate?.title || "");
+  const content = normalizeText(candidate?.content || "");
+  return {
+    title,
+    content,
+    combined: normalizeText([title, content].filter(Boolean).join(" ")),
+  };
+}
+
+function scoreDraftNovelty(candidate = {}, comparisonTexts = [], comparisonTitles = []) {
+  const noveltyInputs = buildNoveltyInputs(candidate);
+  const hasTextPool = Array.isArray(comparisonTexts) && comparisonTexts.length > 0;
+  const hasTitlePool = Array.isArray(comparisonTitles) && comparisonTitles.length > 0;
+  if (!hasTextPool && !hasTitlePool) {
+    return {
+      noveltyScore: 1,
+      repetitionPenalty: 0,
+      maxTitleSimilarity: 0,
+      maxContentSimilarity: 0,
+      maxCombinedSimilarity: 0,
+    };
+  }
+
+  const maxTitleSimilarity = maxSimilarityAgainstPool(
+    noveltyInputs.title,
+    hasTitlePool ? comparisonTitles : comparisonTexts,
+  );
+  const maxContentSimilarity = maxSimilarityAgainstPool(noveltyInputs.content, comparisonTexts);
+  const maxCombinedSimilarity = maxSimilarityAgainstPool(noveltyInputs.combined, comparisonTexts);
+  const repetitionPenalty = Math.max(
+    maxCombinedSimilarity * 0.55,
+    maxTitleSimilarity * 0.75,
+    maxContentSimilarity * 0.45,
+  );
+
+  return {
+    noveltyScore: clamp(1 - repetitionPenalty),
+    repetitionPenalty: clamp(repetitionPenalty),
+    maxTitleSimilarity: clamp(maxTitleSimilarity),
+    maxContentSimilarity: clamp(maxContentSimilarity),
+    maxCombinedSimilarity: clamp(maxCombinedSimilarity),
+  };
+}
+
 function selectDiverseContext(contexts, variationSeed = 0, comparisonTexts = []) {
   if (!Array.isArray(contexts) || contexts.length === 0) {
     return null;
@@ -2176,23 +2225,30 @@ async function resolvePostDraft({
       ...rest,
       variationSeed,
     });
-      const quality = scoreCommunityDraft({
-        id: `${rest.mode || "post"}:${variationSeed}`,
-        kind: rest.mode === "comment" ? "comment" : "post",
+    const quality = scoreCommunityDraft({
+      id: `${rest.mode || "post"}:${variationSeed}`,
+      kind: rest.mode === "comment" ? "comment" : "post",
+      title: candidate.title || "",
+      content: candidate.content || "",
+      authorDisplayName: rest.agentHandle || rest.agent?.handle || null,
+      authorType: "agent",
+      replyTargetType: rest.replyTargetType || null,
+      tags: Array.isArray(candidate.generationContext?.sourceContentTopics) ? candidate.generationContext.sourceContentTopics : [],
+      sourceIntent: candidate.generationContext?.sourceIntent || classifySourceIntent({
         title: candidate.title || "",
-        content: candidate.content || "",
-        authorDisplayName: rest.agentHandle || rest.agent?.handle || null,
-        authorType: "agent",
-        replyTargetType: rest.replyTargetType || null,
-        tags: Array.isArray(candidate.generationContext?.sourceContentTopics) ? candidate.generationContext.sourceContentTopics : [],
-        sourceIntent: candidate.generationContext?.sourceIntent || classifySourceIntent({
-          title: candidate.title || "",
-          body: candidate.content || "",
-          topics: candidate.generationContext?.sourceContentTopics || [],
-        }),
-        sourceAnchorTerms: candidate.generationContext?.sourceAnchorTerms || [],
-        sourceTopics: Array.isArray(candidate.generationContext?.sourceContentTopics) ? candidate.generationContext.sourceContentTopics : [],
-      });
+        body: candidate.content || "",
+        topics: candidate.generationContext?.sourceContentTopics || [],
+      }),
+      sourceAnchorTerms: candidate.generationContext?.sourceAnchorTerms || [],
+      sourceTopics: Array.isArray(candidate.generationContext?.sourceContentTopics) ? candidate.generationContext.sourceContentTopics : [],
+    });
+    const novelty = scoreDraftNovelty(
+      candidate,
+      rest.comparisonTexts || [],
+      rest.comparisonTitles || [],
+    );
+    const effectiveScore = clamp(quality.overall_score * 0.78 + novelty.noveltyScore * 0.22);
+    const metThreshold = effectiveScore >= gate.minScore;
 
     const detailedResult = {
       ...candidate,
@@ -2208,31 +2264,33 @@ async function resolvePostDraft({
           minScore: gate.minScore,
           maxAttempts: gate.maxAttempts,
           attempt: attempt + 1,
-          met: quality.overall_score >= gate.minScore,
+          met: metThreshold,
         },
-        qualityScore: quality.overall_score,
+        qualityScore: effectiveScore,
         qualityVerdict: quality.verdict,
+        novelty,
       },
-      qualityScore: quality.overall_score,
+      qualityScore: effectiveScore,
       qualityVerdict: quality.verdict,
       qualityIssues: quality.issues,
       qualityStrengths: quality.strengths,
+      novelty,
       qualityGate: {
         enabled: gate.enabled,
         minScore: gate.minScore,
         maxAttempts: gate.maxAttempts,
         attempt: attempt + 1,
-        met: quality.overall_score >= gate.minScore,
+        met: metThreshold,
       },
     };
 
     attemptResults.push(detailedResult);
 
-    if (!bestResult || quality.overall_score > bestResult.qualityScore) {
+    if (!bestResult || effectiveScore > bestResult.qualityScore) {
       bestResult = detailedResult;
     }
 
-    if (quality.overall_score >= gate.minScore) {
+    if (metThreshold) {
       break;
     }
   }
