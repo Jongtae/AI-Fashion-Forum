@@ -542,6 +542,53 @@ test("createRunPostDraft carries emotion profile into generation context", async
   assert.strictEqual(draft.generationContext.secondaryEmotion, "empathy");
   assert.ok(draft.content.length > 30);
   assert.ok((draft.content.match(/[.!?]/g) || []).length >= 2);
+  assert.match(draft.content, /궁금|마음|의외|답답|안심|기대|웃음|아쉬움/);
+  assert.match(draft.content, /오피스|레이어링|출퇴근|셔츠|가격|핏/);
+});
+
+test("createLiveCommentDraft ties emotion to a concrete anchor", async () => {
+  const draft = await createLiveCommentDraft({
+    agent: {
+      handle: "brandreceipt",
+      seed_profile: {
+        emotional_bias: {
+          empathy: 0.88,
+          curiosity: 0.24,
+        },
+        emotion_signature: {
+          dominantEmotion: "empathy",
+          secondaryEmotion: "curiosity",
+        },
+      },
+      mutable_state: {
+        affect_state: {
+          emotional_bias: {
+            empathy: 0.76,
+          },
+          emotion_signature: {
+            dominantEmotion: "empathy",
+            secondaryEmotion: "curiosity",
+          },
+        },
+      },
+    },
+    targetContent: {
+      title: "quiet office outfit",
+      body: "A short live signal summary about office layering and shirt balance.",
+      topics: ["office_style", "layering"],
+      emotions: ["공감"],
+    },
+    targetComment: {
+      content: "셔츠 핏이 생각보다 더 중요해 보여요.",
+      emotions: ["공감"],
+    },
+    sourceSignal: "comment reply / tick 9",
+    variationSeed: 4,
+    apiKey: "",
+  });
+
+  assert.match(draft.content, /마음|공감|신경 쓰|괜찮/);
+  assert.match(draft.content, /오피스|레이어링|셔츠|핏/);
 });
 
 test("createRunPostDraft threads recent memories into generation context", async () => {
