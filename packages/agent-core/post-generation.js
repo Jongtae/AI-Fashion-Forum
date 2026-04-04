@@ -1321,6 +1321,97 @@ function buildSourceClaimLead({
     : `${anchorSubject} 먼저 보여요`;
 }
 
+function buildEmotionAnchorLine({
+  emotionTone = null,
+  sourceAnchorStem = "",
+  sourceAnchorTitle = "",
+  sourceTopics = [],
+  baseSignal = "",
+  variationSeed = 0,
+  contextLabel = "",
+  mode = "run",
+} = {}) {
+  const dominantEmotion = normalizeEmotionKey(emotionTone?.dominantEmotion || "");
+  if (!dominantEmotion) {
+    return "";
+  }
+
+  const topicLabel = Array.isArray(sourceTopics) && sourceTopics.length
+    ? joinKoreanTopicList(sourceTopics.map(localizeTopicLabel))
+    : "이 글";
+  const anchorSource = normalizeText(sourceAnchorStem) || normalizeText(sourceAnchorTitle);
+  const anchor = anchorSource && isKoreanDominant(anchorSource) ? anchorSource : normalizeText(baseSignal) || topicLabel;
+  const anchorObject = attachKoreanParticle(anchor || topicLabel, "object");
+  const signalObject = attachKoreanParticle(normalizeText(baseSignal) || topicLabel, "object");
+  const signalNominative = normalizeKoreanParticlePairs(`${normalizeText(baseSignal) || topicLabel}이(가)`);
+  const isComment = mode === "comment";
+
+  const pools = {
+    curiosity: [
+      `${anchorObject} 보니까 왜 여기서 갈리는지 더 궁금해져요`,
+      `${signalNominative} 붙는 순간 어디서 먼저 눈길이 가는지 궁금해져요`,
+      `${anchorObject} 다시 보니 어떤 기준이 먼저 작동했는지 더 알고 싶어요`,
+    ],
+    empathy: [
+      `${anchorObject} 보면 괜히 마음이 먼저 쓰여요`,
+      `${signalNominative} 붙으니 그냥 지나치기엔 마음이 좀 남아요`,
+      `${anchorObject} 쪽은 공감이 먼저 와서 쉽게 안 넘겨져요`,
+    ],
+    amusement: [
+      `${anchorObject} 쪽은 은근 웃음이 먼저 나와요`,
+      `${signalNominative} 붙는 순간 괜히 재밌어서 한 번 더 보게 돼요`,
+      `${anchorObject} 보고 있으면 묘하게 웃긴 결이 살아나요`,
+    ],
+    sadness: [
+      `${anchorObject} 보고 나면 조금 아쉬움이 남아요`,
+      `${signalNominative} 붙으니 괜히 허전한 쪽이 더 또렷해져요`,
+      `${anchorObject} 쪽은 보고 나서도 씁쓸함이 조금 남네요`,
+    ],
+    anger: [
+      `${anchorObject} 쪽은 솔직히 좀 답답해요`,
+      `${signalNominative} 붙는 순간 왜 불편한지 더 또렷해져요`,
+      `${anchorObject} 보니 거슬리는 지점이 더 선명해져요`,
+    ],
+    relief: [
+      `${anchorObject} 보고 나니 그래도 한숨 놓이네요`,
+      `${signalNominative} 붙는 순간 생각보다 안심되는 쪽이 보여요`,
+      `${anchorObject} 쪽은 괜찮다는 마음이 먼저 들어요`,
+    ],
+    anticipation: [
+      `${anchorObject} 뒤에 어떤 반응이 붙을지 더 기대돼요`,
+      `${signalNominative} 붙으니 다음 얘기까지 보고 싶어져요`,
+      `${anchorObject} 쪽은 이후 흐름이 더 궁금해져요`,
+    ],
+    surprise: [
+      `${anchorObject} 쪽은 생각보다 의외예요`,
+      `${signalNominative} 붙는 순간 예상보다 낯설어서 다시 보게 돼요`,
+      `${anchorObject} 보니 뜻밖의 포인트가 먼저 걸려요`,
+    ],
+  };
+
+  const contextLift = contextLabel
+    ? {
+        "출근 전": `${contextLabel} 기준으로 보면 ${anchorObject} 묘하게 마음에 걸려요`,
+        첫인상: `${contextLabel}에서는 ${anchorObject} 의외로 먼저 걸려요`,
+        "가격 체크": `${contextLabel}에선 ${signalNominative} 붙는 순간 살짝 답답해지기도 해요`,
+        "댓글 반응": `${contextLabel}에선 ${anchorObject} 둘러싼 감정이 더 직접 보여요`,
+        디테일: `${contextLabel}에서는 ${anchorObject} 보고 든 궁금함이 더 또렷해요`,
+        "내 경험": `${contextLabel}으로 보면 ${anchorObject} 보자마자 기분이 더 바로 붙어요`,
+        질문: `${contextLabel}으로 가면 ${anchorObject} 보고 왜 그런지 더 궁금해져요`,
+        공감: `${contextLabel}에선 ${anchorObject} 쪽 마음이 더 바로 전해져요`,
+        반대: `${contextLabel}로 읽으면 ${anchorObject}에서 걸리는 답답함이 더 선명해요`,
+      }[contextLabel]
+    : "";
+
+  const basePool = pools[dominantEmotion] || pools.curiosity;
+  const choice = pickBySeed(
+    contextLift ? [contextLift, ...basePool] : basePool,
+    variationSeed + stringSeed(mode, contextLabel, dominantEmotion, anchor, baseSignal),
+  );
+
+  return isComment ? choice : choice;
+}
+
 function buildLLMPrompt({
   mode,
   agentHandle,
@@ -1489,6 +1580,16 @@ function buildFallbackContexts({
   const emotionTone = buildEmotionTonePack(emotionProfile, mode);
   const resolvedMemoryContext = buildMemoryContext(memoryContext || {});
   const buildMemoryLine = (contextLabel = "") => buildMemoryReferenceLine(resolvedMemoryContext, { contextLabel, mode });
+  const buildEmotionLine = (contextLabel = "", seedOffset = 0) => buildEmotionAnchorLine({
+    emotionTone,
+    sourceAnchorStem,
+    sourceAnchorTitle,
+    sourceTopics,
+    baseSignal,
+    variationSeed: variationSeed + seedOffset,
+    contextLabel,
+    mode,
+  });
   const postFallbackOpeners = ["", "근데", "오히려", "솔직히", "개인적으로", "이번엔", "조용히 보면", "문득", "가만히 보면", "처음엔", "한 번 더 보면", "왠지", "보니까", "결국", "생각보다"];
   const commentFallbackOpeners = ["", "근데", "오히려", "솔직히", "개인적으로", "음", "이 부분은", "그 포인트는", "문득", "가만히 보면", "한 번 더 보면", "왠지", "처음엔", "생각보다", "보니까"];
   const intentOpeners = {
@@ -1793,6 +1894,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(1)}${buildClaimLead("대화 이어가기")}`,
           buildMemoryLine("대화 이어가기"),
+          buildEmotionLine("대화 이어가기", 1),
           buildObservationTail("reply-continue", 3),
           buildCloser("reply-continue", 4),
         ),
@@ -1805,6 +1907,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(4)}${buildClaimLead("질문")}`,
           buildMemoryLine("질문"),
+          buildEmotionLine("질문", 2),
           pickContextDistinct("reply-question", variationSeed, casualQuestionPool, []),
           buildQuestionTail("reply-question", 5),
           buildCloser("reply-question", 6),
@@ -1818,6 +1921,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(6)}${buildClaimLead("보완")}`,
           buildMemoryLine("보완"),
+          buildEmotionLine("보완", 3),
           buildObservationTail("reply-nuance", 7),
           buildCloser("reply-nuance", 8),
         ),
@@ -1830,6 +1934,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(8)}${buildClaimLead("스레드")}`,
           buildMemoryLine("스레드"),
+          buildEmotionLine("스레드", 4),
           `${buildSupportTail("reply-thread", variationSeed + 1)}`,
           pickContextDistinct("reply-thread", variationSeed + 2, threadBridgePool, []),
           buildCloser("reply-thread", 9),
@@ -1843,6 +1948,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(10)}${buildClaimLead("공감")}`,
           buildMemoryLine("공감"),
+          buildEmotionLine("공감", 5),
           `${buildSupportTail("reply-support", variationSeed + 2)}`,
           pickContextDistinct("reply-support", variationSeed + 3, supportReactionPool, []),
           buildCloser("reply-support", 11),
@@ -1856,6 +1962,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(12)}${buildClaimLead("반대")}`,
           buildMemoryLine("반대"),
+          buildEmotionLine("반대", 6),
           `같이 보면 느낌이 조금 달라져요`,
           buildCloser("reply-counterpoint", 13),
         ),
@@ -1873,6 +1980,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(1)}${buildClaimLead("출근 전")}`,
           buildMemoryLine("출근 전"),
+          buildEmotionLine("출근 전", 11),
           `출근 전에 맞춰 보면 ${topics}보다 세탁 주기랑 손 가는 속도부터 먼저 떠올라요`,
           buildQuestionTail("life-rhythm", 2),
           buildCloser("life-rhythm", 3),
@@ -1886,6 +1994,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(3)}${buildClaimLead("첫인상")}`,
           buildMemoryLine("첫인상"),
+          buildEmotionLine("첫인상", 12),
           `첫 사진만 볼 때보다 설명 한 줄과 ${baseSignal} 같이 보면 어디에 힘 준 글인지 더 분명해져요`,
           buildObservationTail("signal-reading", 4),
           buildCloser("signal-reading", 5),
@@ -1899,6 +2008,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(5)}${buildClaimLead("가격 체크")}`,
           buildMemoryLine("가격 체크"),
+          buildEmotionLine("가격 체크", 13),
           `${signalWithObject} 붙여 보면 예쁜지보다 가격표 앞에서 바로 식는 부분이 어딘지가 먼저 보여요`,
           buildCloser("tradeoff-check", 6),
         ),
@@ -1911,6 +2021,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(7)}${buildClaimLead("댓글 반응")}`,
           buildMemoryLine("댓글 반응"),
+          buildEmotionLine("댓글 반응", 14),
           `${topics}보다 댓글에서 어디가 갈렸는지 보니 본문보다 반응이 더 큰 힌트가 돼요`,
           buildQuestionTail("community-reply", 8),
           buildCloser("community-reply", 9),
@@ -1924,6 +2035,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(9)}${buildClaimLead("디테일")}`,
           buildMemoryLine("디테일"),
+          buildEmotionLine("디테일", 15),
           `${topics}만 볼 때는 지나치던 소매 끝이나 길이 같은 차이가 ${signalWithObject} 붙으면 갑자기 크게 보여요`,
           buildObservationTail("micro-observation", 10),
           buildCloser("micro-observation", 11),
@@ -1937,6 +2049,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(11)}${buildClaimLead("내 경험")}`,
           buildMemoryLine("내 경험"),
+          buildEmotionLine("내 경험", 16),
           `${topicsWithObject} 볼 때도 예전에 비슷한 걸 샀다가 어땠는지가 ${baseSignal}보다 먼저 같이 떠올라요`,
           buildCloser("personal-memory", 12),
         ),
@@ -1955,6 +2068,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(1)}${buildClaimLead("출근 전")}`,
           buildMemoryLine("출근 전"),
+          buildEmotionLine("출근 전", 21),
           `${topics}보다 반복해서 입을 수 있느냐가 먼저 중요해요`,
           buildQuestionTail("life-rhythm", 2),
           buildCloser("life-rhythm", 3),
@@ -1968,6 +2082,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(3)}${buildClaimLead("첫인상")}`,
           buildMemoryLine("첫인상"),
+          buildEmotionLine("첫인상", 22),
           `겉으로는 단순해 보여도 ${baseSignal} 따라가면 결이 달라져요`,
           buildObservationTail("signal-reading", 4),
           buildCloser("signal-reading", 5),
@@ -1981,6 +2096,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(5)}${buildClaimLead("가격 체크")}`,
           buildMemoryLine("가격 체크"),
+          buildEmotionLine("가격 체크", 23),
           `${signalWithObject} 기준으로 오래 갈지부터 보게 돼요`,
           buildCloser("tradeoff-check", 6),
         ),
@@ -1993,6 +2109,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(7)}${buildClaimLead("댓글 반응")}`,
           buildMemoryLine("댓글 반응"),
+          buildEmotionLine("댓글 반응", 24),
           `${topics}에 대한 반응이 갈리니까 글 하나도 다시 보게 돼요`,
           buildQuestionTail("community-reply", 8),
           buildCloser("community-reply", 9),
@@ -2006,6 +2123,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(9)}${buildClaimLead("디테일")}`,
           buildMemoryLine("디테일"),
+          buildEmotionLine("디테일", 25),
           `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라져요`,
           buildObservationTail("micro-observation", 10),
           buildCloser("micro-observation", 11),
@@ -2019,6 +2137,7 @@ function buildFallbackContexts({
         content: composeReadableBody(
           `${buildLead(11)}${buildClaimLead("내 경험")}`,
           buildMemoryLine("내 경험"),
+          buildEmotionLine("내 경험", 26),
           `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
           buildCloser("personal-memory", 12),
         ),

@@ -64,3 +64,28 @@ test("scoreCommunityDraft rewards concrete anchor preservation", () => {
   assert.ok(specific.dimension_scores.anchor_preservation > flattened.dimension_scores.anchor_preservation);
   assert.ok(specific.dimension_scores.claim_surface > flattened.dimension_scores.claim_surface);
 });
+
+test("scoreCommunityDraft rewards believable emotion tied to the concrete anchor", () => {
+  const emotional = scoreCommunityDraft({
+    kind: "comment",
+    title: "오피스룩 댓글",
+    content: "오피스룩에 셔츠 핏 얘기가 붙으니 괜히 마음이 먼저 쓰여요. 파스텔 아쿠아보다 크림이 더 편하다는 말도 이해돼요.",
+    sourceIntent: "comparison",
+    sourceAnchorTerms: ["파스텔 아쿠아", "크림", "오피스룩", "셔츠"],
+    sourceTopics: ["color", "office_style"],
+  });
+
+  const flat = scoreCommunityDraft({
+    kind: "comment",
+    title: "오피스룩 댓글",
+    content: "오피스룩에 대한 이야기예요. 비교 포인트가 보이고 기준이 남아요.",
+    sourceIntent: "comparison",
+    sourceAnchorTerms: ["파스텔 아쿠아", "크림", "오피스룩", "셔츠"],
+    sourceTopics: ["color", "office_style"],
+  });
+
+  assert.ok(
+    emotional.dimension_scores.emotional_believability > flat.dimension_scores.emotional_believability,
+    `${emotional.dimension_scores.emotional_believability} <= ${flat.dimension_scores.emotional_believability}`,
+  );
+});
