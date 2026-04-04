@@ -1,4 +1,5 @@
 import { classifySourceIntent, deriveDiscussionAnchors, scoreCommunityDraft } from "./content-quality.js";
+import { requestLLMContexts, extractLLMResponseText, resolveLLMConfig, DEFAULT_CLAUDE_MODEL, DEFAULT_OPENAI_MODEL } from "./llm-gateway.js";
 
 function pickBySeed(items = [], seed = 0) {
   if (!items.length) {
@@ -586,35 +587,7 @@ function parseContextsPayload(value) {
     .filter(Boolean);
 }
 
-function extractResponseText(result) {
-  if (!result || typeof result !== "object") {
-    return "";
-  }
-
-  if (typeof result.output_text === "string" && result.output_text.trim()) {
-    return result.output_text.trim();
-  }
-
-  const output = Array.isArray(result.output) ? result.output : [];
-  for (const item of output) {
-    if (typeof item?.content === "string" && item.content.trim()) {
-      return item.content.trim();
-    }
-
-    if (Array.isArray(item?.content)) {
-      for (const contentItem of item.content) {
-        if (typeof contentItem?.text === "string" && contentItem.text.trim()) {
-          return contentItem.text.trim();
-        }
-        if (typeof contentItem?.output_text === "string" && contentItem.output_text.trim()) {
-          return contentItem.output_text.trim();
-        }
-      }
-    }
-  }
-
-  return "";
-}
+// extractResponseText moved to llm-gateway.js as extractLLMResponseText
 
 function parseJsonFromResponseText(text) {
   const cleaned = normalizeText(text);
@@ -1035,7 +1008,7 @@ function buildSourceClaimLead({
     : `${anchorSubject} 먼저 보여요`;
 }
 
-function buildOpenAIPrompt({
+function buildLLMPrompt({
   mode,
   agentHandle,
   sourceTitle,
@@ -1805,43 +1778,14 @@ function selectDiverseContext(contexts, variationSeed = 0, comparisonTexts = [])
   return bestContext;
 }
 
-async function requestOpenAIContexts({
-  apiKey,
-  model,
-  prompt,
-  fetchImpl = globalThis.fetch,
-}) {
-  const response = await fetchImpl("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      input: [
-        {
-          role: "user",
-          content: [{ type: "input_text", text: prompt }],
-        },
-      ],
-    }),
-  });
-
-  const result = await response.json();
-  if (!response.ok) {
-    const message = result?.error?.message || `OpenAI request failed (${response.status})`;
-    throw new Error(message);
-  }
-
-  return result;
-}
+// requestOpenAIContexts moved to llm-gateway.js
 
 async function resolvePostDraftOnce({
   mode,
   variationSeed = 0,
-  apiKey = process.env.OPENAI_API_KEY || "",
-  model = process.env.OPENAI_POST_CONTEXT_MODEL || "gpt-4o",
+  provider,
+  apiKey,
+  model,
   fetchImpl = globalThis.fetch,
   comparisonTexts = [],
   agentHandle,
@@ -1857,6 +1801,14 @@ async function resolvePostDraftOnce({
   styleProfile = null,
   emotionProfile = null,
 } = {}) {
+  const llmConfig = resolveLLMConfig();
+  const resolvedProvider = provider || llmConfig.provider;
+  const resolvedApiKey = apiKey ?? llmConfig.apiKey;
+  const resolvedModel = model || (
+    provider
+      ? (provider === "claude" ? DEFAULT_CLAUDE_MODEL : DEFAULT_OPENAI_MODEL)
+      : llmConfig.model
+  );
   const sourceIntent = classifySourceIntent({
     title: sourceTitle,
     body: sourceBody || sourceSnippet || "",
@@ -1926,7 +1878,7 @@ async function resolvePostDraftOnce({
     sourceAnchorTerms,
   });
 
-  if (!apiKey) {
+  if (!resolvedApiKey) {
     const selectedFallback =
       selectDiverseContext(fallbackPool, variationSeed, comparisonTexts) ||
       selectContext(fallbackPool, variationSeed) ||
@@ -1957,7 +1909,7 @@ async function resolvePostDraftOnce({
   }
 
   try {
-    const prompt = buildOpenAIPrompt({
+    const prompt = buildLLMPrompt({
       mode,
       agentHandle,
       sourceTitle,
@@ -1971,13 +1923,14 @@ async function resolvePostDraftOnce({
       emotionProfile: resolvedEmotionProfile,
       sourceAnchorTerms,
     });
-    const result = await requestOpenAIContexts({
-      apiKey,
-      model,
+    const result = await requestLLMContexts({
+      provider: resolvedProvider,
+      apiKey: resolvedApiKey,
+      model: resolvedModel,
       prompt,
       fetchImpl,
     });
-    const parsed = parseJsonFromResponseText(extractResponseText(result));
+    const parsed = parseJsonFromResponseText(extractLLMResponseText(result, resolvedProvider));
     const contexts = parseContextsPayload(parsed);
 
     if (contexts.length > 0) {
@@ -2000,7 +1953,7 @@ async function resolvePostDraftOnce({
       }),
         content: sanitizedContent || selected?.content || fallbackPool[0]?.content || "",
         generationContext: buildGenerationContext({
-          source: "openai",
+          source: resolvedProvider,
           selectedContext: selected,
           sourceTitle,
           sourceTopics,
@@ -2009,7 +1962,7 @@ async function resolvePostDraftOnce({
           sourceCommentPreview,
           replyTargetType,
           styleProfile,
-          model,
+          model: resolvedModel,
           contextCount: contexts.length,
           mode,
           emotionProfile: resolvedEmotionProfile,
@@ -2167,6 +2120,7 @@ export async function createRunPostDraft({
   contentRecord,
   comparisonTexts = [],
   variationSeed = 0,
+  provider,
   apiKey,
   model,
   fetchImpl,
@@ -2189,6 +2143,7 @@ export async function createRunPostDraft({
   return resolvePostDraft({
     mode: "run",
     variationSeed,
+    provider,
     apiKey,
     model,
     fetchImpl,
@@ -2219,6 +2174,7 @@ export async function createLivePostDraft({
   sourceSignal,
   comparisonTexts = [],
   variationSeed = 0,
+  provider,
   apiKey,
   model,
   fetchImpl,
@@ -2233,6 +2189,7 @@ export async function createLivePostDraft({
   return resolvePostDraft({
     mode: "live",
     variationSeed,
+    provider,
     apiKey,
     model,
     fetchImpl,
@@ -2261,6 +2218,7 @@ export async function createLiveCommentDraft({
   sourceSignal,
   comparisonTexts = [],
   variationSeed = 0,
+  provider,
   apiKey,
   model,
   fetchImpl,
@@ -2276,6 +2234,7 @@ export async function createLiveCommentDraft({
   return resolvePostDraft({
     mode: "comment",
     variationSeed,
+    provider,
     apiKey,
     model,
     fetchImpl,

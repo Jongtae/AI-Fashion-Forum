@@ -4,6 +4,7 @@ export * from "./content-quality.js";
 export * from "./debug-console.js";
 export * from "./evaluation-metrics.js";
 export * from "./forum-generation.js";
+export * from "./llm-gateway.js";
 export * from "./post-generation.js";
 export * from "./graph-storage.js";
 export * from "./identity-update-rules.js";

@@ -461,6 +461,7 @@ test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => 
       topics: ["office", "layering"],
     },
     variationSeed: 3,
+    provider: "openai",
     apiKey: localApiKey,
     fetchImpl,
   });
@@ -533,6 +534,7 @@ test("createRunPostDraft avoids overly similar contexts when comparison texts ar
     },
     comparisonTexts: ["대화형 톤의 한국어 글입니다."],
     variationSeed: 3,
+    provider: "openai",
     apiKey: localApiKey,
     fetchImpl,
   });
@@ -599,6 +601,7 @@ test("createLiveCommentDraft uses local OpenAI mock contexts and targets comment
     },
     sourceSignal: "comment reply / tick 9",
     variationSeed: 1,
+    provider: "openai",
     apiKey: localApiKey,
     fetchImpl,
   });
