@@ -6,6 +6,8 @@ import {
   classifyDifferentiationTrend,
   createBaselineWorldRules,
   createDifferentiationTimeline,
+  selectExposure,
+  applyExposureDrift,
   runTicks,
 } from "@ai-fashion-forum/agent-core";
 
@@ -67,6 +69,41 @@ function buildRoundRuns({ initialState, rounds, ticksPerRound, seed }) {
 
   for (let roundIndex = 0; roundIndex < rounds; roundIndex += 1) {
     const runSeed = seed + roundIndex;
+    const roundRng = seededRandom(runSeed * 997 + 17);
+    const exposurePool = buildExposurePool(currentState);
+    const driftRecords = [];
+
+    for (const agent of currentState.agents || []) {
+      const { exposedPosts, scores } = selectExposure({
+        agent,
+        recentPosts: exposurePool,
+        maxExposure: 5,
+        rng: roundRng,
+      });
+
+      if (exposedPosts.length === 0) {
+        driftRecords.push({
+          agent_id: agent.agent_id,
+          exposureCount: 0,
+          interest_deltas: {},
+          belief_deltas: {},
+          trait_deltas: {},
+          scores,
+        });
+        continue;
+      }
+
+      const { driftRecord } = applyExposureDrift({
+        agent,
+        exposedPosts,
+        rng: roundRng,
+      });
+      driftRecords.push({
+        ...driftRecord,
+        scores,
+      });
+    }
+
     const result = runTicks({
       seed: runSeed,
       tickCount: ticksPerRound,
@@ -74,11 +111,52 @@ function buildRoundRuns({ initialState, rounds, ticksPerRound, seed }) {
       worldRules: createBaselineWorldRules(),
     });
 
-    runResults.push(result);
+    runResults.push({
+      ...result,
+      exposurePoolCount: exposurePool.length,
+      driftRecords,
+    });
     currentState = result.finalState;
   }
 
   return runResults;
+}
+
+function seededRandom(seed) {
+  let s = seed >>> 0;
+  return () => {
+    s += 0x6d2b79f5;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function buildExposurePool(state = {}) {
+  const contents = Array.isArray(state?.contents) ? state.contents : [];
+  return contents.map((content, index) => ({
+    post_id: content.content_id || `content-${index + 1}`,
+    agent_id: content.author_id || `seed-author-${index + 1}`,
+    body: content.body || content.title || "",
+    tags: Array.isArray(content.topics) ? content.topics : [],
+    meaning_frame: Array.isArray(content.topics) && content.topics.length ? content.topics[0] : null,
+    stance_signal: deriveStanceSignal(content),
+  }));
+}
+
+function deriveStanceSignal(content = {}) {
+  const emotions = Array.isArray(content?.emotions) ? content.emotions.map((value) => String(value).toLowerCase()) : [];
+  if (emotions.some((value) => ["anger", "irritation", "frustration"].includes(value))) {
+    return "critical";
+  }
+  if (emotions.some((value) => ["delight", "joy", "excitement"].includes(value))) {
+    return "enthusiastic";
+  }
+  if (emotions.some((value) => ["curiosity", "surprise"].includes(value))) {
+    return "supportive";
+  }
+  return null;
 }
 
 function summarizeTrend(timeline) {
@@ -133,6 +211,12 @@ const report = {
     interpretation,
   },
   rounds: timeline,
+  drift: {
+    rounds_with_exposure: runResults.filter((result) => (result.exposurePoolCount || 0) > 0).length,
+    average_exposure_pool: runResults.length
+      ? Number((runResults.reduce((sum, result) => sum + (result.exposurePoolCount || 0), 0) / runResults.length).toFixed(2))
+      : 0,
+  },
 };
 
 ensureDir(outputPath);
