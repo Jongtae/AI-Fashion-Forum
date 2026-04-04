@@ -20,6 +20,7 @@
     "backfill:author-identities": "node scripts/backfill-author-identities.mjs",
     "backfill:post-titles": "node scripts/backfill-post-titles.mjs",
     "rebuild:simulation-world": "node scripts/rebuild-simulation-world.mjs",
+    "validate:agent-differentiation": "node scripts/offline-differentiation-report.mjs",
     "judge:content-quality": "node scripts/judge-content-quality.mjs",
     "sync:agent-state-candidates": "npm run derive:agent-seeds -- --output tmp/agent-seed-profiles.full.json && npm run init:agent-states -- --input tmp/agent-seed-profiles.full.json --output data/agent-state-candidates.json",
     "test": "npm test --workspace @ai-fashion-forum/shared-types && npm test --workspace @ai-fashion-forum/agent-core && npm test --workspace @ai-fashion-forum/agent-server && npm test --workspace @ai-fashion-forum/forum-server",
