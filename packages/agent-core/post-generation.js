@@ -1,6 +1,27 @@
 import { classifySourceIntent, deriveDiscussionAnchors, scoreCommunityDraft } from "./content-quality.js";
 import { requestLLMContexts, extractLLMResponseText, resolveLLMConfig, DEFAULT_CLAUDE_MODEL, DEFAULT_OPENAI_MODEL } from "./llm-gateway.js";
 
+const LOCAL_SOURCE_TITLE_PATTERNS = [
+  { pattern: /\boffice\b/gi, label: "오피스" },
+  { pattern: /\boutfit\b/gi, label: "착장" },
+  { pattern: /\blayering\b/gi, label: "레이어링" },
+  { pattern: /\bcommute\b/gi, label: "출퇴근" },
+  { pattern: /\bshirt(s)?\b/gi, label: "셔츠" },
+  { pattern: /\btee(s)?\b/gi, label: "티셔츠" },
+  { pattern: /\bblazer(s)?\b/gi, label: "블레이저" },
+  { pattern: /\bjacket(s)?\b/gi, label: "자켓" },
+  { pattern: /\bcoat(s)?\b/gi, label: "코트" },
+  { pattern: /\bdress(es)?\b/gi, label: "드레스" },
+  { pattern: /\bbag(s)?\b/gi, label: "가방" },
+  { pattern: /\bshoe(s)?\b/gi, label: "신발" },
+  { pattern: /\bsneaker(s)?\b/gi, label: "스니커즈" },
+  { pattern: /\bprice|pricing\b/gi, label: "가격" },
+  { pattern: /\bfit\b/gi, label: "핏" },
+  { pattern: /\bsize|sizing\b/gi, label: "사이즈" },
+  { pattern: /\bcolor\b/gi, label: "색감" },
+  { pattern: /\bstyle\b/gi, label: "스타일" },
+];
+
 function pickBySeed(items = [], seed = 0) {
   if (!items.length) {
     return null;
@@ -18,6 +39,14 @@ function pickDistinctBySeed(items = [], seed = 0, excluded = []) {
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
+}
+
+function extractLocalizedSourceTitleTerms(value = "") {
+  const normalized = normalizeText(value);
+  const matches = LOCAL_SOURCE_TITLE_PATTERNS.flatMap(({ pattern, label }) => (
+    normalized.match(pattern) ? [label] : []
+  ));
+  return [...new Set(matches)];
 }
 
 function localizeSourceTitle(value = "", sourceTopics = [], sourceIntent = "") {
@@ -66,7 +95,14 @@ function localizeSourceTitle(value = "", sourceTopics = [], sourceIntent = "") {
   }
 
   if (!isKoreanDominant(normalized)) {
-    return sourceTopics.length > 1 ? `${topicPair} 같이 보게 된 글` : `${primaryTopic} 같이 보게 된 글`;
+    const localizedTerms = extractLocalizedSourceTitleTerms(normalized);
+    if (localizedTerms.length >= 2) {
+      return `${joinKoreanTopicList(localizedTerms.slice(0, 2))} 얘기`;
+    }
+    if (localizedTerms.length === 1) {
+      return `${localizedTerms[0]} 얘기`;
+    }
+    return sourceTopics.length > 1 ? `${topicPair} 관련 글` : `${primaryTopic} 관련 글`;
   }
 
   return sanitizeForumLanguage(normalized);
@@ -670,70 +706,73 @@ const RUN_TITLE_HOOKS = [
   {
     contextLabel: "출근 전",
     titles: [
-      "출근 전에 먼저 보인 이유",
-      "평소 입을 때 더 보이는 포인트",
-      "아침에 다시 보게 된 이유",
-      "오늘 다시 본 기준",
-      "출근길에 다시 읽은 포인트",
-      "오늘 아침에 더 남은 이유",
+      "출근길에 바로 떠오른 조합",
+      "내일 아침에 다시 볼 것",
+      "몇 번 입을지부터 보인 글",
+      "출근 전에 손이 갈지 본 글",
+      "아침 일정에 넣어본 조합",
+      "바로 입을지부터 따져본 글",
     ],
   },
   {
     contextLabel: "첫인상",
     titles: [
-      "처음 보인 포인트",
-      "먼저 걸린 단서",
-      "눈에 먼저 들어온 이유",
-      "첫인상을 바꾼 지점",
-      "처음 보이고 오래 남은 이유",
-      "먼저 눈에 걸린 기준",
+      "첫 화면보다 더 남은 부분",
+      "처음엔 예뻤는데 다시 본 지점",
+      "첫 컷보다 설명이 센 글",
+      "처음 느낌을 바꾼 단서",
+      "첫인상보다 뒤가 남는 글",
+      "다시 보니 달라진 지점",
     ],
   },
   {
     contextLabel: "가격 체크",
     titles: [
-      "가격보다 먼저 본 것",
-      "몇 번 입을지 먼저 본 이유",
-      "손이 갈지 먼저 본 메모",
-      "좋아 보여도 다시 본 이유",
-      "가격보다 오래 남는 쪽",
-      "가격을 다시 보게 된 이유",
+      "가격표 붙는 순간 달라진 글",
+      "예뻐도 결제 전에 막힌 이유",
+      "사기 직전에 다시 본 부분",
+      "값 붙자마자 보인 차이",
+      "장바구니 전에 걸린 지점",
+      "비싸도 남는지 체크한 글",
     ],
   },
   {
     contextLabel: "댓글 반응",
     titles: [
-      "댓글이 바꾼 시선",
-      "반응 보고 다시 본 글",
-      "대화가 먼저 붙은 글",
-      "댓글이 넓힌 말",
-      "댓글까지 보고 다시 본 이유",
-      "반응이 갈린 지점",
+      "댓글 보고 해석이 갈린 글",
+      "반응 붙고 달라진 포인트",
+      "댓글이 본문보다 센 글",
+      "대화가 붙자마자 커진 글",
+      "반응 때문에 다시 읽은 부분",
+      "댓글 한 줄이 바꾼 해석",
     ],
   },
   {
     contextLabel: "디테일",
     titles: [
-      "작은 차이가 먼저 보인 이유",
-      "디테일 하나가 남은 글",
-      "먼저 걸린 디테일",
-      "작은 부분이 바꾼 판단",
-      "작은 부분이 오래 남은 이유",
-      "디테일이 먼저 남은 글",
+      "소매 끝에서 갈린 인상",
+      "작은 차이가 전체를 바꾼 글",
+      "길이 하나가 먼저 보인 글",
+      "디테일 때문에 다시 본 부분",
+      "작은 요소가 더 센 글",
+      "마감 하나로 달라진 인상",
     ],
   },
   {
     contextLabel: "내 경험",
     titles: [
-      "비슷한 옷이 먼저 떠오른 이유",
-      "전에 본 느낌과 닮은 지점",
-      "기억이 먼저 걸린 포인트",
-      "내 경험이 먼저 반응한 글",
-      "기억이 먼저 붙은 이유",
-      "내 경험이 다시 떠오른 글",
+      "예전에 입어본 쪽이 떠오른 글",
+      "내 옷장 생각부터 난 글",
+      "예전 실패가 먼저 떠오른 이유",
+      "내 경험이 바로 겹친 부분",
+      "전에 샀던 옷이 떠오른 글",
+      "내 기억 때문에 다시 본 글",
     ],
   },
 ];
+
+const ABSTRACT_TITLE_PATTERN = /(일상|기준|이유|포인트)/g;
+const META_TITLE_PATTERN = /(두고 다시 읽은 말|관련 신호|먼저 보인 내용|다시 보게 된 이유|다시 읽은 기준|오래 남는 이유|다시 멈춰 본 부분|다시 열어본 부분)/;
 
 const COMMENT_TITLE_HOOKS = [
   {
@@ -823,11 +862,12 @@ export function buildReadablePostTitle({
     term.length <= 28 &&
     !/[?？]/.test(term) &&
     !/(어떻게|뭐가|궁금|나을까|보여요|보게 돼요|갈릴 것 같아요)/.test(term) &&
-    !/(관련 얘기예요|기준은 사람마다|얘기는 보는 포인트가 갈릴 수 있어요|기준을 다시 보게 돼요)$/.test(term)
+    !/(관련 얘기예요|기준은 사람마다|얘기는 보는 포인트가 갈릴 수 있어요|기준을 다시 보게 돼요)$/.test(term) &&
+    !META_TITLE_PATTERN.test(term)
   ));
   const normalizedAnchors = compactAnchors.length
     ? compactAnchors
-    : uniqueNormalizedList(sourceAnchorTerms).filter((term) => isKoreanDominant(term));
+    : uniqueNormalizedList(sourceAnchorTerms).filter((term) => isKoreanDominant(term) && !META_TITLE_PATTERN.test(term));
   const primaryAnchor = normalizedAnchors[0] || "";
   const secondaryAnchor = normalizedAnchors[1] || primaryAnchor;
   const primaryTopic = normalizedTopics[0] || localizeTopicLabel(selectedContext?.contextLabel || selectedContextLabel || "");
@@ -852,6 +892,19 @@ export function buildReadablePostTitle({
 
   const pool = [];
   const priorityTitles = [];
+  const normalizeTitleCandidate = (candidate = "") => {
+    const normalized = shortenHookTitle(candidate, 28);
+    if (!normalized) return "";
+    if (/두고 다시 읽은 말.*두고 다시 읽은 말/.test(normalized)) return "";
+    if (normalized.length <= 4) return "";
+    if (/^다시 멈춰 본 부분(?:을 .+)?$/.test(normalized)) return "";
+    if (/^다시 열어본 부분$/.test(normalized)) return "";
+    return normalized
+      .replace(/이번 글에서 먼저 보인 /g, "")
+      .replace(/오늘 다시 읽은 포인트/g, "다시 멈춰 본 부분")
+      .replace(/이 글이 오래 남는 이유/g, "다시 열어본 부분")
+      .trim();
+  };
 
   if (sourceIntent === "question") {
     priorityTitles.push(
@@ -885,15 +938,15 @@ export function buildReadablePostTitle({
     );
   } else if (sourceIntent === "reason") {
     priorityTitles.push(
-      primaryAnchor && primaryAnchor.length <= 34 ? primaryAnchor : null,
+      primaryAnchor && primaryAnchor.length >= 6 && primaryAnchor.length <= 34 ? primaryAnchor : null,
       primaryAnchor && !/이유$/.test(primaryAnchor) ? `${primaryAnchorObject} 다시 보게 된 이유` : null,
       `${primaryTopicObject} 다시 보게 된 이유`,
     );
   } else if (sourceIntent === "discussion" || sourceIntent === "observation") {
     priorityTitles.push(
-      primaryAnchor && primaryAnchor.length <= 34 ? primaryAnchor : null,
-      primaryAnchor ? `${primaryAnchorObject} 두고 다시 읽은 말` : null,
-      `${primaryTopicObject} 다시 읽은 말`,
+      primaryAnchor && primaryAnchor.length >= 6 && primaryAnchor.length <= 34 ? primaryAnchor : null,
+      primaryAnchor ? `${primaryAnchorObject} 먼저 붙든 글` : null,
+      `${primaryTopicObject} 먼저 붙든 글`,
     );
   }
 
@@ -924,21 +977,21 @@ export function buildReadablePostTitle({
     pool.push(...(hookSet?.titles || []));
     pool.push(
       localizedSourceTitle && localizedSourceTitle.length <= 28 ? localizedSourceTitle : null,
-      `${primaryTopicObject} 먼저 보게 된 이유`,
-      `${secondaryTopic}까지 같이 본 기준`,
-      `오늘 다시 읽은 포인트`,
-      `이 글이 오래 남는 이유`,
-      `한 번 더 보게 된 사진`,
-      `${primaryTopicObject} 다시 본 기준`,
-      `${secondaryTopic} 쪽이 더 남는 이유`,
-      `${contextLabel || "이번 글"}에서 먼저 보인 ${primaryTopic}`,
-      `${contextLabel || "이번 글"}로 다시 읽은 기준`,
-      `${primaryTopic}보다 먼저 보인 포인트`,
-      `${primaryTopic}이 더 남는 이유`,
-      `${attachKoreanParticle(topicPair, "object")} 같이 본 글`,
-      `${contextLabel || "이번 글"}에서 ${primaryTopicObject} 다시 본 이유`,
-      `${attachKoreanParticle(topicPair, "object")} 같이 보게 된 글`,
-      `${topicPair} 사이의 기준`,
+      `${primaryTopicObject} 먼저 메모한 글`,
+      `${secondaryTopic}까지 같이 잡힌 글`,
+      `다시 멈춰 본 부분`,
+      `다시 열어본 부분`,
+      `스크롤 멈춘 지점`,
+      `${primaryTopicObject} 두고 체크한 글`,
+      `${secondaryTopic} 쪽으로 시선이 간 글`,
+      `${contextLabel || "이번 글"}에서 멈춘 장면`,
+      `${contextLabel || "이번 글"}에서 다시 체크한 단서`,
+      `${primaryTopic}보다 먼저 들어온 부분`,
+      `${primaryTopic} 쪽으로 기운 글`,
+      `${attachKoreanParticle(topicPair, "object")} 같이 붙잡은 글`,
+      `${contextLabel || "이번 글"}에서 메모한 지점`,
+      `${attachKoreanParticle(topicPair, "object")} 같이 두고 본 글`,
+      `${topicPair} 사이에서 멈춘 지점`,
     );
   }
 
@@ -986,9 +1039,9 @@ export function buildReadablePostTitle({
       );
     } else {
       pool.push(
-        `${contextLabel}에서 먼저 보인 포인트`,
-        `${contextLabel}로 다시 읽은 기준`,
-        `${contextLabel}에서 더 남는 이유`,
+        `${contextLabel}에서 멈춘 지점`,
+        `${contextLabel}로 다시 체크한 부분`,
+        `${contextLabel}에서 다시 열린 장면`,
       );
     }
   }
@@ -1002,8 +1055,44 @@ export function buildReadablePostTitle({
     contextLabel,
     normalizedTopics.join(","),
   );
+  const scoreTitleCandidate = (candidate = "") => {
+    const normalized = normalizeText(candidate);
+    if (!normalized) return Number.NEGATIVE_INFINITY;
+
+    const abstractHits = (normalized.match(ABSTRACT_TITLE_PATTERN) || []).length;
+    const containsPrimaryAnchor = primaryAnchor && normalized.includes(primaryAnchor);
+    const containsSecondaryAnchor = secondaryAnchor && secondaryAnchor !== primaryAnchor && normalized.includes(secondaryAnchor);
+    const containsSignal = signal && signal.length <= 12 && normalized.includes(signal);
+    const containsContext = contextLabel && normalized.includes(contextLabel);
+    const containsQuestion = /어떻게|무엇|뭐가|어느|궁금|\?/.test(normalized);
+    const containsComparison = /비교|둘 중|중 뭐가 더 나을까|갈린|차이/.test(normalized);
+    const containsFact = /기사|보도|발표|커버|사진|설명|내용|단서|반응|가격표|장바구니|소매|길이|댓글/.test(normalized);
+    const containsMetaFrame = /다시 멈춰 본 부분|다시 열어본 부분|멈춘 장면|메모한 지점|체크한 단서|스크롤 멈춘 지점/.test(normalized);
+    const referencePenalty = referenceText ? jaccardSimilarity(normalized, referenceText) * 0.2 : 0;
+
+    let score = 1;
+    if (containsPrimaryAnchor) score += 2.2;
+    if (containsSecondaryAnchor) score += 0.9;
+    if (containsSignal) score += 0.8;
+    if (containsContext) score += 0.4;
+    if (containsFact) score += 0.9;
+    if (containsMetaFrame) score += 0.5;
+    score -= abstractHits * 0.85;
+    score -= referencePenalty;
+    if (META_TITLE_PATTERN.test(normalized)) score -= 2.2;
+    if (/^(이번 글|이 글)/.test(normalized)) score -= 1.4;
+    if (/얘기$/.test(normalized)) score -= 0.9;
+
+    if (sourceIntent === "question" && containsQuestion) score += 1.1;
+    if (sourceIntent === "comparison" && containsComparison) score += 1.1;
+    if (sourceIntent === "fact" && containsFact) score += 1.0;
+    if (sourceIntent === "controversy" && /갈린|나뉘|반응/.test(normalized)) score += 1.0;
+    if (sourceIntent === "reason" && /왜|배경|막힌|붙는 순간/.test(normalized)) score += 0.9;
+
+    return score;
+  };
   const priorityCandidates = uniqueNormalizedList(priorityTitles)
-    .map((candidate) => shortenHookTitle(candidate, 28))
+    .map((candidate) => normalizeTitleCandidate(candidate))
     .filter(Boolean)
     .filter((candidate) => {
       if (!referenceText) {
@@ -1012,7 +1101,7 @@ export function buildReadablePostTitle({
       return jaccardSimilarity(candidate, referenceText) < 0.7;
     });
   const candidates = uniqueNormalizedList(pool)
-    .map((candidate) => shortenHookTitle(candidate, 28))
+    .map((candidate) => normalizeTitleCandidate(candidate))
     .filter(Boolean)
     .filter((candidate) => {
       if (!referenceText) {
@@ -1033,13 +1122,27 @@ export function buildReadablePostTitle({
     return shortenHookTitle(
       mode === "comment"
         ? "댓글이 남긴 작은 포인트"
-        : "오늘 다시 읽은 기준",
+        : "다시 멈춰 본 장면",
       28,
     );
   }
 
-  const index = Math.abs(selectionSeed) % candidates.length;
-  return candidates[index];
+  const ranked = candidates
+    .map((candidate, index) => ({
+      candidate,
+      score: scoreTitleCandidate(candidate),
+      index,
+    }))
+    .sort((left, right) => {
+      if (right.score !== left.score) {
+        return right.score - left.score;
+      }
+      return left.index - right.index;
+    });
+
+  const shortlist = ranked.slice(0, Math.min(6, ranked.length));
+  const index = Math.abs(selectionSeed) % shortlist.length;
+  return shortlist[index]?.candidate || ranked[0]?.candidate || candidates[0];
 }
 
 function buildSourceClaimLead({
@@ -1092,6 +1195,24 @@ function buildSourceClaimLead({
   }
 
   if (contextLabel) {
+    if (contextLabel === "출근 전") {
+      return `${anchorSubject} 출근 전에 맞춰 보면 바로 걸려요`;
+    }
+    if (contextLabel === "첫인상") {
+      return `${anchorSubject} 첫 컷보다 뒤에서 더 크게 보여요`;
+    }
+    if (contextLabel === "가격 체크") {
+      return `${anchorObject} 보다가도 가격표 붙는 순간 다시 보게 돼요`;
+    }
+    if (contextLabel === "댓글 반응") {
+      return `${anchorObject} 둘러싼 댓글 흐름이 먼저 눈에 들어와요`;
+    }
+    if (contextLabel === "디테일") {
+      return `${anchorObject} 볼 때 작은 디테일이 먼저 걸려요`;
+    }
+    if (contextLabel === "내 경험") {
+      return `${anchorObject} 보자마자 예전에 입던 쪽이 같이 떠올라요`;
+    }
     return isComment
       ? `${contextLabel}에서 ${anchorSubject} 먼저 보여요`
       : `${contextLabel}에서 ${anchorSubject} 먼저 보여요`;
@@ -1483,62 +1604,62 @@ function buildFallbackContexts({
     run: {
       "life-rhythm": {
         question: [
-          "이걸 몇 번 더 입게 되는지가 제일 궁금해요",
-          "반복해서 손이 가는지부터 보게 돼요",
+          "실제로 이번 주에 몇 번 손이 갈지가 더 궁금해요",
+          "한 번 예쁜 것보다 반복해서 입을 수 있을지가 먼저 보여요",
         ],
         closing: [
-          "그래서 더 오래 볼 것 같아요",
-          "이런 건 자주 손이 가요",
-          "결국 반복할지부터 남아요",
+          "결국 스케줄에 넣을 수 있느냐로 남아요",
+          "이런 건 출근 전 다시 찾게 돼요",
+          "결국 옷장 앞에서 다시 꺼낼지가 남아요",
         ],
       },
       "signal-reading": {
         observation: [
-          "겉보다 안쪽 결이 더 중요해 보여요",
-          "한 번 더 보면 신호가 조금 달라져요",
+          "사진 첫 컷보다 설명 한 줄이 더 크게 작동해요",
+          "겉으로 예쁜 것보다 어디에 힘 준 글인지가 더 보여요",
         ],
         closing: [
-          "그래서 첫인상이 조금 바뀌어요",
-          "이런 신호는 오래 남아요",
-          "나중에 다시 보면 더 보여요",
+          "그래서 첫인상보다 두 번째 읽기가 더 셌어요",
+          "이런 글은 뒤에 남는 단서가 따로 있어요",
+          "한 번 넘기고 나서 다시 생각나는 쪽이에요",
         ],
       },
       "tradeoff-check": {
         closing: [
-          "결국 오래 갈지부터 보게 돼요",
-          "가격보다 오래 남는지 먼저 보게 돼요",
-          "손이 자주 가는지 먼저 남아요",
-          "생각보다 오래 볼지로 판단해요",
+          "결국 결제 직전에 남는 핑계를 보게 돼요",
+          "가격표 붙는 순간 어디서 식는지가 먼저 보여요",
+          "예뻐도 장바구니까지 가는지는 또 다른 문제예요",
+          "비슷한 값이면 뭘 포기할지부터 따져보게 돼요",
         ],
       },
       "community-reply": {
         question: [
-          "반응이 갈리는 지점이 어디인지 궁금해요",
-          "다들 어디를 먼저 보셨는지도 궁금해요",
+          "댓글에서 왜 갈렸는지가 더 궁금해져요",
+          "다들 본문보다 어느 댓글에 더 반응했는지도 궁금해요",
         ],
         closing: [
-          "그래서 댓글도 같이 보게 돼요",
-          "반응이 갈리면 더 오래 보게 돼요",
-          "이런 글은 댓글까지 붙어야 보여요",
+          "그래서 본문보다 댓글 순서를 먼저 훑게 돼요",
+          "이런 글은 반응 붙는 순간 성격이 바뀌어요",
+          "댓글까지 봐야 어디서 갈렸는지 보여요",
         ],
       },
       "micro-observation": {
         observation: [
-          "작은 차이가 판단을 바꾸기도 해요",
-          "이런 디테일이 오래 남더라고요",
+          "소매 끝이나 길이 같은 게 전체 인상을 먼저 바꿔요",
+          "이런 건 작은 디테일 하나가 전체 밸런스를 끌고 가요",
         ],
         closing: [
-          "그래서 디테일이 더 남아요",
-          "작은 차이가 오래 가요",
-          "이 포인트는 다시 보게 돼요",
+          "그래서 전체보다 작은 쪽이 더 오래 남아요",
+          "결국 기억나는 건 큰 그림보다 마감이에요",
+          "이런 글은 디테일 하나 때문에 다시 열어보게 돼요",
         ],
       },
       "personal-memory": {
         closing: [
-          "이런 건 기억이 붙어서 더 오래 남아요",
-          "비슷한 기억이 있으면 판단이 빨라져요",
-          "내 경험이랑 겹치면 더 오래 가요",
-          "예전 기억이랑 붙으면 판단이 바뀌어요",
+          "예전에 샀던 비슷한 옷이 바로 같이 떠올라요",
+          "내 실패 기억이 붙으면 판단이 훨씬 빨라져요",
+          "직접 입어본 기억이 붙는 순간 기준이 확 바뀌어요",
+          "내 옷장 안 경험이 붙어서 그냥 넘기진 못하겠어요",
         ],
       },
     },
@@ -1642,7 +1763,7 @@ function buildFallbackContexts({
         angle: "일상에서 다시 보는 반복 착용 기준",
         content: composeReadableBody(
           `${buildLead(1)}${buildClaimLead("출근 전")}`,
-          `${topics}보다 반복해서 손이 가는지 먼저 보게 돼요`,
+          `출근 전에 맞춰 보면 ${topics}보다 세탁 주기랑 손 가는 속도부터 먼저 떠올라요`,
           buildQuestionTail("life-rhythm", 2),
           buildCloser("life-rhythm", 3),
         ),
@@ -1654,7 +1775,7 @@ function buildFallbackContexts({
         angle: "새로운 신호를 먼저 잡는 관점",
         content: composeReadableBody(
           `${buildLead(3)}${buildClaimLead("첫인상")}`,
-          `겉으로는 단순해 보여도 ${baseSignal} 따라가면 결이 조금 달라져요`,
+          `첫 사진만 볼 때보다 설명 한 줄과 ${baseSignal} 같이 보면 어디에 힘 준 글인지 더 분명해져요`,
           buildObservationTail("signal-reading", 4),
           buildCloser("signal-reading", 5),
         ),
@@ -1666,7 +1787,7 @@ function buildFallbackContexts({
         angle: "좋아 보이는 인상보다 실제 손익을 따지는 관점",
         content: composeReadableBody(
           `${buildLead(5)}${buildClaimLead("가격 체크")}`,
-          `${signalWithObject} 기준으로 오래 갈지부터 보게 돼요`,
+          `${signalWithObject} 붙여 보면 예쁜지보다 가격표 앞에서 바로 식는 부분이 어딘지가 먼저 보여요`,
           buildCloser("tradeoff-check", 6),
         ),
         tone: "신중한",
@@ -1677,7 +1798,7 @@ function buildFallbackContexts({
         angle: "포럼 대화 맥락에 기대는 반응",
         content: composeReadableBody(
           `${buildLead(7)}${buildClaimLead("댓글 반응")}`,
-          `${topics}에 대한 반응이 갈리니까 글 하나도 다시 보게 돼요`,
+          `${topics}보다 댓글에서 어디가 갈렸는지 보니 본문보다 반응이 더 큰 힌트가 돼요`,
           buildQuestionTail("community-reply", 8),
           buildCloser("community-reply", 9),
         ),
@@ -1689,7 +1810,7 @@ function buildFallbackContexts({
         angle: "작은 디테일을 먼저 짚는 관점",
         content: composeReadableBody(
           `${buildLead(9)}${buildClaimLead("디테일")}`,
-          `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라져요`,
+          `${topics}만 볼 때는 지나치던 소매 끝이나 길이 같은 차이가 ${signalWithObject} 붙으면 갑자기 크게 보여요`,
           buildObservationTail("micro-observation", 10),
           buildCloser("micro-observation", 11),
         ),
@@ -1701,7 +1822,7 @@ function buildFallbackContexts({
         angle: "개인 경험을 살짝 섞는 반응",
         content: composeReadableBody(
           `${buildLead(11)}${buildClaimLead("내 경험")}`,
-          `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
+          `${topicsWithObject} 볼 때도 예전에 비슷한 걸 샀다가 어땠는지가 ${baseSignal}보다 먼저 같이 떠올라요`,
           buildCloser("personal-memory", 12),
         ),
         tone: "회고적인",

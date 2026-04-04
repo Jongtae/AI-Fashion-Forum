@@ -62,8 +62,8 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
   assert.notStrictEqual(draftTwo.title, draftTwo.content);
   assert.doesNotMatch(draftOne.title, /quiet office outfit/i);
   assert.doesNotMatch(draftTwo.title, /quiet office outfit/i);
-  assert.match(draftOne.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요|중 뭐가 더 나을까|같이 보게 된 글/);
-  assert.match(draftTwo.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요|중 뭐가 더 나을까|같이 보게 된 글/);
+  assert.match(draftOne.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요|중 뭐가 더 나을까|같이 보게 된 글|멈춘|메모|체크|붙든/);
+  assert.match(draftTwo.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요|중 뭐가 더 나을까|같이 보게 된 글|멈춘|메모|체크|붙든/);
   assert.ok((draftOne.content.match(/[.!?]/g) || []).length >= 2);
   assert.ok((draftTwo.content.match(/[.!?]/g) || []).length >= 2);
   assert.doesNotMatch(draftOne.content, /\b(보여요|같아요|네요|맞아요|있어요)$/);
@@ -255,8 +255,8 @@ test("createRunPostDraft joins korean topic labels naturally", async () => {
     apiKey: "",
   });
 
-  assert.match(draft.content, /가격과 일상|가격과 현실|가격과 기준/);
-  assert.doesNotMatch(draft.content, /가격와 일상|가격와 현실|가격와 기준/);
+  assert.match(draft.content, /가격과 일상|가격과 현실|가격과 기준|오피스와 착장|오피스와 레이어링/);
+  assert.doesNotMatch(draft.content, /가격와 일상|가격와 현실|가격와 기준|오피스와 착장와|오피스와 레이어링와/);
 });
 
 test("createRunPostDraft avoids repetitive agreement openers", async () => {
@@ -417,6 +417,34 @@ test("createRunPostDraft produces varied titles across seeds", async () => {
   }
 });
 
+test("createRunPostDraft avoids collapsing most titles into abstract framing", async () => {
+  const titles = [];
+  for (let seed = 0; seed < 12; seed += 1) {
+    const draft = await createRunPostDraft({
+      updatedAgent: {
+        handle: "officemirror",
+      },
+      reactionRecord: {
+        meaning_frame: "care_context",
+        stance_signal: "empathetic",
+        dominant_feeling: "curious",
+      },
+      contentRecord: {
+        title: "quiet office outfit",
+        body: "A small look at weekday layering and commute comfort.",
+        topics: ["pricing", "care_context"],
+      },
+      variationSeed: seed,
+      apiKey: "",
+    });
+    titles.push(draft.title);
+  }
+
+  const abstractHeavyTitles = titles.filter((title) => /일상|기준|이유|포인트/.test(title));
+  assert.ok(abstractHeavyTitles.length <= 6, titles.join(" | "));
+  assert.ok(titles.some((title) => /가격|레이어링|장바구니|출근길|소매|옷장|결제|메모|멈춘/.test(title)), titles.join(" | "));
+});
+
 test("createRunPostDraft carries emotion profile into generation context", async () => {
   const draft = await createRunPostDraft({
     updatedAgent: {
@@ -501,6 +529,33 @@ test("createRunPostDraft threads recent memories into generation context", async
   assert.match(draft.generationContext.recentMemorySummary, /가격보다 핏/);
   assert.match(draft.generationContext.selfNarrativeSummary, /가격보다 핏/);
   assert.match(draft.content, /기억|다시|생각|읽고|보게 됐|먼저/);
+});
+
+test("createRunPostDraft surfaces context-specific concrete body details", async () => {
+  const outputs = [];
+  for (let seed = 0; seed < 12; seed += 1) {
+    const draft = await createRunPostDraft({
+      updatedAgent: {
+        handle: "officemirror",
+      },
+      reactionRecord: {
+        meaning_frame: "care_context",
+        stance_signal: "empathetic",
+        dominant_feeling: "curious",
+      },
+      contentRecord: {
+        title: "quiet office outfit",
+        body: "A small look at weekday layering and commute comfort.",
+        topics: ["pricing", "care_context"],
+      },
+      variationSeed: seed,
+      apiKey: "",
+    });
+    outputs.push(draft.content);
+  }
+
+  const joined = outputs.join(" ");
+  assert.match(joined, /세탁 주기|가격표|댓글|소매 끝|길이|옷장|장바구니/);
 });
 
 test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => {
