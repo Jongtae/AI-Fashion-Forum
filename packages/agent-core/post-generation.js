@@ -65,6 +65,10 @@ function localizeSourceTitle(value = "", sourceTopics = [], sourceIntent = "") {
     return normalized.length <= 48 ? normalized : `${topicPair} 관련 신호`;
   }
 
+  if (!isKoreanDominant(normalized)) {
+    return sourceTopics.length > 1 ? `${topicPair} 같이 보게 된 글` : `${primaryTopic} 같이 보게 된 글`;
+  }
+
   return sanitizeForumLanguage(normalized);
 }
 
@@ -807,13 +811,28 @@ export function buildReadablePostTitle({
   selectedContextLabel,
   variationSeed = 0,
   sourceIntent = "",
+  sourceAnchorTerms = [],
 } = {}) {
   const normalizedTopics = uniqueNormalizedList((Array.isArray(sourceTopics) ? sourceTopics : []).map(localizeTopicLabel));
+  const compactAnchors = uniqueNormalizedList(sourceAnchorTerms).filter((term) => (
+    isKoreanDominant(term) &&
+    term.length <= 28 &&
+    !/[?？]/.test(term) &&
+    !/(어떻게|뭐가|궁금|나을까|보여요|보게 돼요|갈릴 것 같아요)/.test(term) &&
+    !/(관련 얘기예요|기준은 사람마다|얘기는 보는 포인트가 갈릴 수 있어요|기준을 다시 보게 돼요)$/.test(term)
+  ));
+  const normalizedAnchors = compactAnchors.length
+    ? compactAnchors
+    : uniqueNormalizedList(sourceAnchorTerms).filter((term) => isKoreanDominant(term));
+  const primaryAnchor = normalizedAnchors[0] || "";
+  const secondaryAnchor = normalizedAnchors[1] || primaryAnchor;
   const primaryTopic = normalizedTopics[0] || localizeTopicLabel(selectedContext?.contextLabel || selectedContextLabel || "");
   const secondaryTopic = normalizedTopics[1] || primaryTopic;
   const topicPair = joinKoreanTopicList([primaryTopic, secondaryTopic]);
+  const anchorPair = joinKoreanTopicList([primaryAnchor, secondaryAnchor]);
   const primaryTopicObject = attachKoreanParticle(primaryTopic, "object");
   const secondaryTopicObject = attachKoreanParticle(secondaryTopic, "object");
+  const primaryAnchorObject = attachKoreanParticle(primaryAnchor, "object");
   const contextLabel = normalizeText(selectedContext?.contextLabel || selectedContextLabel);
   const signal = sanitizeForumLanguage(sourceSignal);
   const localizedSourceTitle = localizeSourceTitle(sourceTitle, sourceTopics, sourceIntent);
@@ -833,17 +852,22 @@ export function buildReadablePostTitle({
   if (sourceIntent === "question") {
     priorityTitles.push(
       localizedSourceTitle && localizedSourceTitle.length <= 36 ? localizedSourceTitle : null,
+      primaryAnchor ? `${primaryAnchor}은 어떻게 보여요?` : null,
+      primaryAnchor && secondaryAnchor && primaryAnchor !== secondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
       `${topicPair} 중 뭐가 더 나을까?`,
       `${primaryTopic}은 어떻게 보세요?`,
     );
   } else if (sourceIntent === "comparison") {
     priorityTitles.push(
+      primaryAnchor && secondaryAnchor && primaryAnchor !== secondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
       `${topicPair} 중 뭐가 더 나을까?`,
+      primaryAnchor ? `${primaryAnchorObject} 비교해본 이유` : null,
       `${topicPair}을 같이 비교한 이유`,
-      `${topicPair} 사이의 기준`,
+      `${topicPair} 비교에서 갈리는 지점`,
     );
   } else if (sourceIntent === "controversy") {
     priorityTitles.push(
+      primaryAnchor ? `${primaryAnchor} 반응이 갈리는 이유` : null,
       `${topicPair} 쪽에서 의견이 갈리는 이유`,
       `${topicPair} 반응이 갈리는 지점`,
       `${topicPair}에서 의견이 나뉘는 포인트`,
@@ -851,8 +875,21 @@ export function buildReadablePostTitle({
   } else if (sourceIntent === "fact") {
     priorityTitles.push(
       localizedSourceTitle && localizedSourceTitle.length <= 48 ? localizedSourceTitle : null,
+      primaryAnchor ? `${primaryAnchor} 얘기에서 먼저 보인 것` : null,
       `${topicPair} 관련 신호`,
-      `${primaryTopicObject}에서 먼저 보인 내용`,
+      `${primaryTopic}에서 먼저 보인 내용`,
+    );
+  } else if (sourceIntent === "reason") {
+    priorityTitles.push(
+      primaryAnchor && primaryAnchor.length <= 34 ? primaryAnchor : null,
+      primaryAnchor && !/이유$/.test(primaryAnchor) ? `${primaryAnchorObject} 다시 보게 된 이유` : null,
+      `${primaryTopicObject} 다시 보게 된 이유`,
+    );
+  } else if (sourceIntent === "discussion" || sourceIntent === "observation") {
+    priorityTitles.push(
+      primaryAnchor && primaryAnchor.length <= 34 ? primaryAnchor : null,
+      primaryAnchor ? `${primaryAnchorObject} 두고 다시 읽은 말` : null,
+      `${primaryTopicObject} 다시 읽은 말`,
     );
   }
 
@@ -906,24 +943,30 @@ export function buildReadablePostTitle({
       "이 조합 괜찮을까?",
       "어떤 쪽이 더 나을까?",
       "다들 어떻게 보세요?",
+      primaryAnchor ? `${primaryAnchor}은 어떻게 보여요?` : null,
       `${primaryTopic}은 어떻게 보세요?`,
       `${topicPair} 중 뭐가 더 나을까?`,
     );
   } else if (sourceIntent === "comparison") {
     pool.push(
+      primaryAnchor && secondaryAnchor && primaryAnchor !== secondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
       `${joinKoreanTopicList([primaryTopic, secondaryTopic])} 중 뭐가 더 나을까?`,
       "둘 중 어느 쪽이 더 먼저 보이나요?",
       "비교해보면 결이 갈려요",
       "어느 쪽이 더 자연스러워 보이나요?",
+      `${topicPair} 비교에서 갈리는 지점`,
+      `${topicPair}을 같이 비교한 이유`,
     );
   } else if (sourceIntent === "controversy") {
     pool.push(
+      primaryAnchor ? `${primaryAnchor} 얘기라 반응이 갈려요` : null,
       "반응이 갈릴 수밖에 없는 이유가 있어요",
       "이 지점은 의견이 나뉘겠어요",
       "왜 갈리는지 보게 돼요",
     );
   } else if (sourceIntent === "fact") {
     pool.push(
+      primaryAnchor ? `${primaryAnchor} 얘기가 먼저 보여요` : null,
       `${primaryTopic} 관련 신호를 먼저 보게 돼요`,
       `${primaryTopic}에서 먼저 눈에 걸린 내용`,
       `${topicPair}를 같이 보게 된 이유`,
@@ -1158,6 +1201,8 @@ function buildFallbackContexts({
   styleProfile = null,
   emotionProfile = null,
   sourceIntent = "",
+  sourceAnchorTerms: incomingSourceAnchorTerms = [],
+  memoryContext = null,
 } = {}) {
   const title = sanitizeForumLanguage(sourceTitle) || "스레드";
   const inferredIntent = sourceIntent || classifySourceIntent({ title, body: sourceBody || sourceSnippet || "", topics: sourceTopics || [] });
@@ -1183,6 +1228,7 @@ function buildFallbackContexts({
     .replace(/[?？]+$/u, "")
     .trim() || sourceAnchorTitle;
   const sourceAnchorTerms = uniqueNormalizedList([
+    ...(Array.isArray(incomingSourceAnchorTerms) ? incomingSourceAnchorTerms : []),
     sourceAnchorTitle,
     displayTitle,
     intentTitle,
@@ -1190,6 +1236,7 @@ function buildFallbackContexts({
     discussionAnchors.factualAnchor,
     discussionAnchors.comparisonAnchor,
     discussionAnchors.controversyAnchor,
+    ...(Array.isArray(discussionAnchors.anchorTerms) ? discussionAnchors.anchorTerms : []),
     ...(Array.isArray(sourceTopics) ? sourceTopics.map(localizeTopicLabel) : []),
   ]);
   const buildClaimLead = (contextLabelForClaim = "") => buildSourceClaimLead({
@@ -1910,11 +1957,13 @@ async function resolvePostDraftOnce({
       selectedContextLabel: null,
       variationSeed,
       sourceIntent,
+      sourceAnchorTerms: Array.isArray(discussionAnchors.anchorTerms) ? discussionAnchors.anchorTerms : [],
     }),
     discussionAnchors.questionAnchor,
     discussionAnchors.factualAnchor,
     discussionAnchors.comparisonAnchor,
     discussionAnchors.controversyAnchor,
+    ...(Array.isArray(discussionAnchors.anchorTerms) ? discussionAnchors.anchorTerms : []),
     ...(Array.isArray(sourceTopics) ? sourceTopics.map(localizeTopicLabel) : []),
   ]);
   const fallbackPool = buildFallbackContexts({
@@ -1933,7 +1982,8 @@ async function resolvePostDraftOnce({
     contentRecord,
     styleProfile,
     emotionProfile: resolvedEmotionProfile,
-    sourceIntent,
+      sourceIntent,
+      sourceAnchorTerms,
     memoryContext: resolvedMemoryContext,
   });
 
@@ -2021,12 +2071,13 @@ async function resolvePostDraftOnce({
           sourceTopics,
           sourceSignal,
           sourceSnippet,
-        sourceBody,
-        sourceCommentPreview,
-        selectedContext: selected,
-        variationSeed,
-        sourceIntent,
-      }),
+          sourceBody,
+          sourceCommentPreview,
+          selectedContext: selected,
+          variationSeed,
+          sourceIntent,
+          sourceAnchorTerms,
+        }),
         content: sanitizedContent || selected?.content || fallbackPool[0]?.content || "",
         generationContext: buildGenerationContext({
           source: resolvedProvider,
@@ -2065,12 +2116,13 @@ async function resolvePostDraftOnce({
       sourceTopics,
       sourceSignal: [sourceSignal, memorySignal].filter(Boolean).join(" / "),
       sourceSnippet,
-        sourceBody,
-        sourceCommentPreview,
-        selectedContext: selectedFallback,
-        variationSeed,
-        sourceIntent,
-      }),
+      sourceBody,
+      sourceCommentPreview,
+      selectedContext: selectedFallback,
+      variationSeed,
+      sourceIntent,
+      sourceAnchorTerms,
+    }),
     content: sanitizedContent || selectedFallback?.content || "",
     generationContext: buildGenerationContext({
       source: "fallback",

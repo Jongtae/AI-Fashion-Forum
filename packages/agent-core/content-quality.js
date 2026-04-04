@@ -93,6 +93,106 @@ function normalizeList(values = []) {
   return [...new Set((Array.isArray(values) ? values : []).map((value) => normalizeText(value)).filter(Boolean))];
 }
 
+const SOURCE_TERM_PATTERNS = [
+  { pattern: /\bpastel aqua\b/gi, label: "파스텔 아쿠아" },
+  { pattern: /\bcream\b/gi, label: "크림" },
+  { pattern: /\bshirt(s)?\b/gi, label: "셔츠" },
+  { pattern: /\btee(s)?\b/gi, label: "티셔츠" },
+  { pattern: /\bblazer(s)?\b/gi, label: "블레이저" },
+  { pattern: /\bjacket(s)?\b/gi, label: "자켓" },
+  { pattern: /\bcoat(s)?\b/gi, label: "코트" },
+  { pattern: /\bdress(es)?\b/gi, label: "드레스" },
+  { pattern: /\bbag(s)?\b/gi, label: "가방" },
+  { pattern: /\bshoe(s)?\b/gi, label: "신발" },
+  { pattern: /\bsneaker(s)?\b/gi, label: "스니커즈" },
+  { pattern: /\btrouser(s)?\b/gi, label: "트라우저" },
+  { pattern: /\bpant(s)?\b/gi, label: "팬츠" },
+  { pattern: /\bskirt(s)?\b/gi, label: "스커트" },
+  { pattern: /\bjean(s)?\b/gi, label: "데님" },
+  { pattern: /\baccessor(y|ies)\b/gi, label: "액세서리" },
+  { pattern: /\blayering\b/gi, label: "레이어링" },
+  { pattern: /\boffice wear\b/gi, label: "오피스룩" },
+  { pattern: /\boffice style\b/gi, label: "오피스 스타일" },
+  { pattern: /\boffice\b/gi, label: "오피스" },
+  { pattern: /\bfit\b/gi, label: "핏" },
+  { pattern: /\bsize|sizing\b/gi, label: "사이즈" },
+  { pattern: /\bprice|pricing\b/gi, label: "가격" },
+  { pattern: /\bcolor\b/gi, label: "색감" },
+  { pattern: /\bstyle\b/gi, label: "스타일" },
+  { pattern: /\boutfit\b/gi, label: "착장" },
+  { pattern: /\bootd\b/gi, label: "OOTD" },
+  { pattern: /\bcover\b/gi, label: "커버" },
+  { pattern: /\belle\b/gi, label: "ELLE" },
+  { pattern: /\bsofia coppola\b/gi, label: "소피아 코폴라" },
+];
+
+function stripSourceNoise(text = "") {
+  return normalizeText(
+    String(text || "")
+      .replace(/https?:\/\/\S+/g, " ")
+      .replace(/\b\w+\.(com|net|org|co\.jp|jp|kr)\/\S*/gi, " ")
+      .replace(/[#@][\p{L}\p{N}_-]+/gu, " ")
+      .replace(/\s+/g, " "),
+  );
+}
+
+function localizeTopicLabelLocal(topic = "") {
+  const label = normalizeText(topic);
+  if (!label) return "";
+  const directMap = {
+    fashion: "패션",
+    style: "스타일",
+    opinion: "의견",
+    color: "색감",
+    office_style: "오피스 스타일",
+    accessories: "액세서리",
+    dress: "드레스",
+    bottoms: "하의",
+    casualwear: "캐주얼",
+    streetwear: "스트리트웨어",
+    layering: "레이어링",
+    outerwear: "아우터",
+    price: "가격",
+    sizing_fit: "사이즈와 핏",
+    ootd: "OOTD",
+    jfashion: "일본 패션",
+  };
+  return directMap[label] || label.replace(/_/g, " ");
+}
+
+function joinLabels(labels = []) {
+  const items = normalizeList(labels);
+  if (!items.length) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]}와 ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}와 ${items[items.length - 1]}`;
+}
+
+function extractSourceTerms(text = "", topics = []) {
+  const normalized = stripSourceNoise(text);
+  const labels = SOURCE_TERM_PATTERNS.flatMap(({ pattern, label }) => (
+    normalized.match(pattern) ? [label] : []
+  ));
+  const topicLabels = (Array.isArray(topics) ? topics : []).map((topic) => localizeTopicLabelLocal(topic));
+  return normalizeList([...labels, ...topicLabels]).slice(0, 6);
+}
+
+function splitSourceSentences(text = "") {
+  return stripSourceNoise(text)
+    .split(/(?<=[.!?？])\s+/)
+    .map((sentence) => normalizeText(sentence))
+    .filter(Boolean);
+}
+
+function pickSourceSentence(sentences = [], matcher) {
+  return sentences.find((sentence) => matcher(sentence)) || "";
+}
+
+function buildTopicFallback(topics = [], fallback = "이 글") {
+  const labels = (Array.isArray(topics) ? topics : []).map((topic) => localizeTopicLabelLocal(topic)).filter(Boolean);
+  return joinLabels(labels.slice(0, 2)) || fallback;
+}
+
 function hasQuestionOrComparison(text = "") {
   const normalized = normalizeText(text).toLowerCase();
   return (
@@ -393,24 +493,86 @@ export function scoreCommunityDraft(item) {
 export function deriveDiscussionAnchors({ title = "", body = "", topics = [] } = {}) {
   const intent = classifySourceIntent({ title, body, topics });
   const normalizedTopics = Array.isArray(topics) ? topics.map((topic) => normalizeText(topic)).filter(Boolean) : [];
-  const topicLabel = normalizedTopics[0] || "이 글";
-  const secondaryTopic = normalizedTopics[1] || normalizedTopics[0] || "이 주제";
-  const sourceText = normalizeText(title) || normalizeText(body);
+  const topicLabel = buildTopicFallback(normalizedTopics, "이 글");
+  const secondaryTopic = localizeTopicLabelLocal(normalizedTopics[1] || normalizedTopics[0] || "") || topicLabel;
+  const sourceText = stripSourceNoise(`${title} ${body}`);
+  const sourceTitle = stripSourceNoise(title);
+  const sourceBody = stripSourceNoise(body);
+  const sourceTerms = extractSourceTerms(sourceText, normalizedTopics);
+  const sourceSentences = splitSourceSentences(`${sourceTitle}. ${sourceBody}`);
+  const concreteSourceLine = [sourceTitle, ...sourceSentences]
+    .map((entry) => normalizeText(entry))
+    .find((entry) => entry && entry.length >= 8 && entry.length <= 80) || "";
+  const baseAnchor = joinLabels(sourceTerms.slice(0, 2)) || topicLabel;
+  const comparisonPair = joinLabels(sourceTerms.slice(0, 2)) || joinLabels([topicLabel, secondaryTopic]);
+  const questionSentence = pickSourceSentence(sourceSentences, (sentence) => hasQuestionOrComparison(sentence));
+  const comparisonSentence = pickSourceSentence(
+    sourceSentences,
+    (sentence) => /(better|vs|versus|which|pair with|goes with|what to wear with|둘 중|비교|어느 쪽)/i.test(sentence),
+  );
+  const controversySentence = pickSourceSentence(
+    sourceSentences,
+    (sentence) => /(controvers|debate|split|hot take|drama|호불호|논쟁|갈리|불편|의견)/i.test(sentence),
+  );
+  const factSentence = pickSourceSentence(
+    sourceSentences,
+    (sentence) => /(cover|article|report|released|launch|announced|look|style|기사|보도|발표|커버)/i.test(sentence),
+  );
 
   const questionAnchor = (() => {
-    if (intent === "question") return sourceText || `${topicLabel}은 어떻게 보세요?`;
-    if (intent === "comparison") return `${topicLabel}와 ${secondaryTopic} 중 뭐가 더 나아 보여요?`;
-    if (intent === "controversy") return "반응이 갈리는 이유가 있어 보여요";
-    if (intent === "fact") return sourceText || `${topicLabel} 관련 신호`;
-    return `${topicLabel} 기준을 다시 보게 돼요`;
+    if (intent === "question") {
+      if (/pair with|goes with|wear with/i.test(sourceText)) {
+        return `${baseAnchor}엔 뭐가 잘 맞을까?`;
+      }
+      if (/need advice|advice/i.test(sourceText)) {
+        return `${baseAnchor} 쪽 조언이 궁금해요`;
+      }
+      if (questionSentence && /which|better|둘 중|비교/i.test(questionSentence)) {
+        return `${comparisonPair} 중 뭐가 더 나을까?`;
+      }
+      return `${baseAnchor}은 어떻게 보여요?`;
+    }
+    if (intent === "comparison") return `${comparisonPair} 중 뭐가 더 나을까?`;
+    if (intent === "controversy") return `${baseAnchor} 얘기라 반응이 갈릴 것 같아요`;
+    if (intent === "fact") return factSentence ? `${baseAnchor} 얘기가 먼저 보여요` : `${baseAnchor} 관련 얘기예요`;
+    if ((intent === "reason" || intent === "discussion" || intent === "observation") && concreteSourceLine && !hasQuestionOrComparison(concreteSourceLine)) {
+      return concreteSourceLine;
+    }
+    return `${baseAnchor} 쪽을 어떻게 읽을지부터 남아요`;
   })();
 
-  const factualAnchor = sourceText || `${topicLabel} 관련 내용`;
-  const comparisonAnchor = `${topicLabel}와 ${secondaryTopic}`;
-  const controversyAnchor =
-    intent === "controversy" || intent === "comparison"
-      ? `${topicLabel} 쪽에서 의견이 갈릴 수 있어요`
-      : `${topicLabel} 기준이 사람마다 다를 것 같아요`;
+  const factualAnchor = (() => {
+    if ((intent === "reason" || intent === "discussion" || intent === "observation") && concreteSourceLine) {
+      return concreteSourceLine;
+    }
+    if (factSentence && sourceTerms.length) {
+      return `${joinLabels(sourceTerms.slice(0, 3))} 얘기예요`;
+    }
+    if (factSentence) {
+      return `${topicLabel} 관련 얘기예요`;
+    }
+    return `${baseAnchor} 관련 얘기예요`;
+  })();
+
+  const comparisonAnchor = (() => {
+    if (comparisonSentence || intent === "comparison" || intent === "question") {
+      return `${comparisonPair} 중 뭐가 더 나을까?`;
+    }
+    return comparisonPair;
+  })();
+
+  const controversyAnchor = (() => {
+    if (controversySentence || intent === "controversy") {
+      return `${baseAnchor} 쪽은 의견이 갈릴 것 같아요`;
+    }
+    if ((intent === "reason" || intent === "discussion" || intent === "observation") && concreteSourceLine) {
+      return `${concreteSourceLine} 얘기는 보는 포인트가 갈릴 수 있어요`;
+    }
+    if (intent === "comparison") {
+      return `${comparisonPair} 쪽은 반응이 갈릴 것 같아요`;
+    }
+    return `${baseAnchor} 기준은 사람마다 다를 것 같아요`;
+  })();
 
   return {
     intent,
@@ -420,5 +582,7 @@ export function deriveDiscussionAnchors({ title = "", body = "", topics = [] } =
     controversyAnchor,
     topicLabel,
     secondaryTopic,
+    anchorTerms: sourceTerms,
+    sourceSentence: questionSentence || comparisonSentence || controversySentence || factSentence || sourceTitle || sourceBody || "",
   };
 }
