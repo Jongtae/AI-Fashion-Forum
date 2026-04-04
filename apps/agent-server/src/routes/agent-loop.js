@@ -4,6 +4,8 @@ import {
   createBaselineWorldRules,
   createLivePostDraft,
   createLiveCommentDraft,
+  serializeTickState,
+  evaluateRoundHeuristic,
 } from "@ai-fashion-forum/agent-core";
 import {
   applyCharacterOverridesToState,
@@ -29,6 +31,7 @@ import { AgentState } from "../models/AgentState.js";
 import { ActionTrace } from "../models/ActionTrace.js";
 import { SimEvent } from "../models/SimEvent.js";
 import { StoredAction } from "../models/StoredAction.js";
+import { SimCheckpoint } from "../models/SimCheckpoint.js";
 
 const router = Router();
 
@@ -43,6 +46,8 @@ const SIMULATION_LLM_API_KEY = LLM_SIMULATION_ENABLED
       ? process.env.ANTHROPIC_API_KEY
       : process.env.OPENAI_API_KEY) || ""
   : "";
+
+const CHECKPOINT_INTERVAL = Math.max(1, Number(process.env.CHECKPOINT_INTERVAL) || 5);
 
 const KO_TOPIC_LABELS = {
   style: "스타일",
@@ -689,6 +694,40 @@ router.post("/tick", async (req, res) => {
     initialCount: DEFAULT_INITIAL_AGENT_COUNT,
   });
 
+  // ── Auto-checkpoint every N rounds ──────────────────────────────────────
+  let checkpointId = null;
+  if (round % CHECKPOINT_INTERVAL === 0) {
+    try {
+      const serialized = serializeTickState(result);
+      checkpointId = `chk-loop-r${round}-t${serialized.finalTick}-${Date.now()}`;
+      await SimCheckpoint.create({
+        checkpointId,
+        simulationId: `agent-loop`,
+        seed,
+        tick: serialized.finalTick,
+        tickCount: serialized.tickCount,
+        finalTick: serialized.finalTick,
+        stateSnapshot: serialized.finalState,
+        entries: serialized.entries,
+        label: `auto-checkpoint round ${round}`,
+      });
+    } catch (err) {
+      console.warn("[agent-loop] checkpoint save failed:", err.message);
+      checkpointId = null;
+    }
+  }
+
+  // ── Heuristic evaluation ────────────────────────────────────────────────
+  const evaluation = evaluateRoundHeuristic({
+    agents: currentWorld?.agents || [],
+    posts: createdPosts.map(p => ({
+      agent_id: p.authorId,
+      body: p.content,
+      meaning_frame: p.tags?.[0] || null,
+      stance_signal: p.tags?.[1] || null,
+    })),
+  });
+
   res.json({
     round,
     ticks: result.tickCount,
@@ -700,6 +739,9 @@ router.post("/tick", async (req, res) => {
     agentGrowth: growthPlan,
     writebackMode,
     writebackDisabled: !writeForumArtifacts,
+    checkpoint: checkpointId,
+    evaluation: evaluation.scores,
+    evaluationRecommendations: evaluation.recommendations,
     entries: result.entries.map((e) => ({ tick: e.tick, actor: e.actor_id, action: e.action })),
   });
 });
