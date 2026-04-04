@@ -197,6 +197,45 @@ test("createRunPostDraft preserves concrete Korean reason anchors instead of fla
   assert.doesNotMatch(draft.content, /패션과 일상|포인트만/);
 });
 
+test("createRunPostDraft tracks novelty against recent drafts", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+    },
+    reactionRecord: {
+      meaning_frame: "comparison_frame",
+      stance_signal: "observant",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "Which is better for office wear, pastel aqua or cream?",
+      body: "I am comparing the two because the office setting makes the colors read differently.",
+      topics: ["color", "office_style"],
+    },
+    comparisonTexts: [
+      "파스텔 아쿠아와 셔츠 중 뭐가 더 나을까 색감엔 뭐가 잘 맞을까는 먼저 궁금해져요.",
+      "색감과 일상 비교에서 갈리는 지점 비교해보면 색감과 일상을 같이 보면 어느 쪽이 더 나은지 바로 보여요.",
+    ],
+    comparisonTitles: [
+      "파스텔 아쿠아와 셔츠 중 뭐가 더 나을까",
+      "색감과 일상 비교에서 갈리는 지점",
+    ],
+    variationSeed: 11,
+    apiKey: "",
+    qualityGate: {
+      enabled: true,
+      minScore: 0.55,
+      maxAttempts: 4,
+    },
+  });
+
+  assert.ok(draft.novelty);
+  assert.equal(draft.qualityGate.enabled, true);
+  assert.ok(typeof draft.novelty.maxCombinedSimilarity === "number");
+  assert.ok(typeof draft.novelty.noveltyScore === "number");
+  assert.ok(draft.novelty.noveltyScore < 1, JSON.stringify(draft.novelty));
+});
+
 test("createRunPostDraft joins korean topic labels naturally", async () => {
   const draft = await createRunPostDraft({
     updatedAgent: {
