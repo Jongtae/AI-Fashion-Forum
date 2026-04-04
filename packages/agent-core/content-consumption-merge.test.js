@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import {
   applyInternalContentConsumption,
   applyExternalContentConsumption,
@@ -34,7 +35,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.belief_strength).toBeGreaterThan(baseAgent.belief_strength);
+      assert.ok(result.agent.belief_strength > baseAgent.belief_strength, `expected ${result.agent.belief_strength} > ${baseAgent.belief_strength}`);
     });
 
     it("should increase interest in relevant topics", () => {
@@ -51,7 +52,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.interest_vector["fit"]).toBeGreaterThan(baseAgent.interest_vector["fit"]);
+      assert.ok(result.agent.interest_vector["fit"] > baseAgent.interest_vector["fit"], `expected ${result.agent.interest_vector["fit"]} > ${baseAgent.interest_vector["fit"]}`);
     });
 
     it("should update relationship engagement", () => {
@@ -68,9 +69,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.relationship_state["U123"].engagement).toBeGreaterThan(
-        baseAgent.relationship_state["U123"].engagement
-      );
+      assert.ok(result.agent.relationship_state["U123"].engagement > baseAgent.relationship_state["U123"].engagement, `expected ${result.agent.relationship_state["U123"].engagement} > ${baseAgent.relationship_state["U123"].engagement}`);
     });
 
     it("should record last_consumed_tick", () => {
@@ -87,7 +86,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.relationship_state["U123"].last_consumed_tick).toBe(42);
+      assert.strictEqual(result.agent.relationship_state["U123"].last_consumed_tick, 42);
     });
 
     it("should add narrative entry", () => {
@@ -104,8 +103,8 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.self_narrative.length).toBeGreaterThan(0);
-      expect(result.agent.self_narrative[0].type).toBe("consumed_internal_content");
+      assert.ok(result.agent.self_narrative.length > 0, `expected ${result.agent.self_narrative.length} > 0`);
+      assert.strictEqual(result.agent.self_narrative[0].type, "consumed_internal_content");
     });
 
     it("should calculate receptivity from author affinity, topic, and social proof", () => {
@@ -122,8 +121,8 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.deltaLog.total_receptivity).toBeGreaterThan(0);
-      expect(result.deltaLog.total_receptivity).toBeLessThanOrEqual(1);
+      assert.ok(result.deltaLog.total_receptivity > 0, `expected ${result.deltaLog.total_receptivity} > 0`);
+      assert.ok(result.deltaLog.total_receptivity <= 1, `expected ${result.deltaLog.total_receptivity} <= 1`);
     });
 
     it("should reduce receptivity for unknown author", () => {
@@ -153,9 +152,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(resultKnown.deltaLog.total_receptivity).toBeGreaterThan(
-        resultUnknown.deltaLog.total_receptivity
-      );
+      assert.ok(resultKnown.deltaLog.total_receptivity > resultUnknown.deltaLog.total_receptivity, `expected ${resultKnown.deltaLog.total_receptivity} > ${resultUnknown.deltaLog.total_receptivity}`);
     });
   });
 
@@ -173,7 +170,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.belief_strength).toBeGreaterThan(baseAgent.belief_strength);
+      assert.ok(result.agent.belief_strength > baseAgent.belief_strength, `expected ${result.agent.belief_strength} > ${baseAgent.belief_strength}`);
     });
 
     it("should increase perspective_breadth on novel content", () => {
@@ -189,7 +186,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.perspective_breadth).toBeGreaterThan(baseAgent.perspective_breadth);
+      assert.ok(result.agent.perspective_breadth > baseAgent.perspective_breadth, `expected ${result.agent.perspective_breadth} > ${baseAgent.perspective_breadth}`);
     });
 
     it("should soften belief on contradictory content if openness is high", () => {
@@ -212,7 +209,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.belief_strength).toBeLessThan(openAgent.belief_strength);
+      assert.ok(result.agent.belief_strength < openAgent.belief_strength, `expected ${result.agent.belief_strength} < ${openAgent.belief_strength}`);
     });
 
     it("should harden belief on contradictory content if closed-minded", () => {
@@ -235,7 +232,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.belief_strength).toBeGreaterThan(closedAgent.belief_strength);
+      assert.ok(result.agent.belief_strength > closedAgent.belief_strength, `expected ${result.agent.belief_strength} > ${closedAgent.belief_strength}`);
     });
 
     it("should add narrative entry", () => {
@@ -251,8 +248,8 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.self_narrative.length).toBeGreaterThan(0);
-      expect(result.agent.self_narrative[0].type).toBe("consumed_external_content");
+      assert.ok(result.agent.self_narrative.length > 0, `expected ${result.agent.self_narrative.length} > 0`);
+      assert.strictEqual(result.agent.self_narrative[0].type, "consumed_external_content");
     });
 
     it("should increase interest in novel topics more than familiar topics", () => {
@@ -268,9 +265,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.interest_vector["pricing"]).toBeGreaterThan(
-        baseAgent.interest_vector["pricing"]
-      );
+      assert.ok(result.agent.interest_vector["pricing"] > baseAgent.interest_vector["pricing"], `expected ${result.agent.interest_vector["pricing"]} > ${baseAgent.interest_vector["pricing"]}`);
     });
 
     it("should cap belief_strength at 1.0", () => {
@@ -286,7 +281,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.belief_strength).toBeLessThanOrEqual(1);
+      assert.ok(result.agent.belief_strength <= 1, `expected ${result.agent.belief_strength} <= 1`);
     });
   });
 
@@ -313,8 +308,8 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.belief_strength).toBeGreaterThan(baseAgent.belief_strength);
-      expect(result.agent.perspective_breadth).toBeGreaterThan(baseAgent.perspective_breadth);
+      assert.ok(result.agent.belief_strength > baseAgent.belief_strength, `expected ${result.agent.belief_strength} > ${baseAgent.belief_strength}`);
+      assert.ok(result.agent.perspective_breadth > baseAgent.perspective_breadth, `expected ${result.agent.perspective_breadth} > ${baseAgent.perspective_breadth}`);
     });
 
     it("should apply both paths sequentially", () => {
@@ -339,9 +334,9 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.consumption_count).toBe(2);
-      expect(result.internal_count).toBe(1);
-      expect(result.external_count).toBe(1);
+      assert.strictEqual(result.consumption_count, 2);
+      assert.strictEqual(result.internal_count, 1);
+      assert.strictEqual(result.external_count, 1);
     });
 
     it("should generate writebacks for each consumption", () => {
@@ -372,9 +367,9 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.writebacks.length).toBe(3);
-      expect(result.writebacks[0].memory_channel).toBe("content_internal");
-      expect(result.writebacks[2].memory_channel).toBe("content_external");
+      assert.strictEqual(result.writebacks.length, 3);
+      assert.strictEqual(result.writebacks[0].memory_channel, "content_internal");
+      assert.strictEqual(result.writebacks[2].memory_channel, "content_external");
     });
 
     it("should handle empty consumption lists", () => {
@@ -386,8 +381,8 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.agent_id).toBe(baseAgent.agent_id);
-      expect(result.consumption_count).toBe(0);
+      assert.strictEqual(result.agent.agent_id, baseAgent.agent_id);
+      assert.strictEqual(result.consumption_count, 0);
     });
 
     it("should accumulate perspective_breadth from external content", () => {
@@ -403,7 +398,7 @@ describe("content-consumption-merge", () => {
         round: 1,
       });
 
-      expect(result.agent.perspective_breadth).toBeGreaterThan(baseAgent.perspective_breadth);
+      assert.ok(result.agent.perspective_breadth > baseAgent.perspective_breadth, `expected ${result.agent.perspective_breadth} > ${baseAgent.perspective_breadth}`);
     });
   });
 
@@ -411,17 +406,17 @@ describe("content-consumption-merge", () => {
     it("should execute all scenarios successfully", () => {
       const scenarios = createConsumptionScenarios();
 
-      expect(scenarios.scenarios.length).toBe(3);
-      expect(scenarios.scenarios[0].name).toBe("internal_trusted_author");
-      expect(scenarios.scenarios[1].name).toBe("external_contradictory");
-      expect(scenarios.scenarios[2].name).toBe("merged_dual_path");
+      assert.strictEqual(scenarios.scenarios.length, 3);
+      assert.strictEqual(scenarios.scenarios[0].name, "internal_trusted_author");
+      assert.strictEqual(scenarios.scenarios[1].name, "external_contradictory");
+      assert.strictEqual(scenarios.scenarios[2].name, "merged_dual_path");
     });
 
     it("should show higher receptivity for trusted author (internal)", () => {
       const scenarios = createConsumptionScenarios();
       const internalResult = scenarios.scenarios[0].result;
 
-      expect(internalResult.deltaLog.total_receptivity).toBeGreaterThan(0.3);
+      assert.ok(internalResult.deltaLog.total_receptivity > 0.3, `expected ${internalResult.deltaLog.total_receptivity} > 0.3`);
     });
 
     it("should update beliefs differently for external vs internal", () => {
@@ -431,7 +426,7 @@ describe("content-consumption-merge", () => {
       const mergedAgent = scenarios.scenarios[2].result.agent;
 
       // Merged should show cumulative effect
-      expect(mergedAgent.belief_strength).toBeGreaterThanOrEqual(internalBelief);
+      assert.ok(mergedAgent.belief_strength >= internalBelief, `expected ${mergedAgent.belief_strength} >= ${internalBelief}`);
     });
 
     it("should accumulate perspective breadth only from external", () => {
@@ -441,9 +436,9 @@ describe("content-consumption-merge", () => {
       const mergedAgent = scenarios.scenarios[2].result.agent;
 
       // External increases perspective_breadth
-      expect(externalAgent.perspective_breadth).toBeGreaterThan(internalAgent.perspective_breadth);
+      assert.ok(externalAgent.perspective_breadth > internalAgent.perspective_breadth, `expected ${externalAgent.perspective_breadth} > ${internalAgent.perspective_breadth}`);
       // Merged inherits and potentially accumulates
-      expect(mergedAgent.perspective_breadth).toBeGreaterThanOrEqual(externalAgent.perspective_breadth);
+      assert.ok(mergedAgent.perspective_breadth >= externalAgent.perspective_breadth, `expected ${mergedAgent.perspective_breadth} >= ${externalAgent.perspective_breadth}`);
     });
   });
 });

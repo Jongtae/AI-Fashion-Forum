@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import {
   applyPostActionDelta,
   applyCommentActionDelta,
@@ -28,8 +29,8 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.engagement_level).toBeGreaterThan(baseAgent.engagement_level);
-      expect(result.agent.belief_strength).toBeGreaterThan(baseAgent.belief_strength);
+      assert.ok(result.agent.engagement_level > baseAgent.engagement_level, `expected ${result.agent.engagement_level} > ${baseAgent.engagement_level}`);
+      assert.ok(result.agent.belief_strength > baseAgent.belief_strength, `expected ${result.agent.belief_strength} > ${baseAgent.belief_strength}`);
     });
 
     it("should increase post action bias after posting", () => {
@@ -40,7 +41,7 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.action_bias_post).toBeGreaterThan(baseAgent.action_bias_post);
+      assert.ok(result.agent.action_bias_post > baseAgent.action_bias_post, `expected ${result.agent.action_bias_post} > ${baseAgent.action_bias_post}`);
     });
 
     it("should decrease silence bias after posting", () => {
@@ -51,7 +52,7 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.action_bias_silence).toBeLessThan(baseAgent.action_bias_silence ?? 0.2);
+      assert.ok(result.agent.action_bias_silence < (baseAgent.action_bias_silence ?? 0.2), `expected ${result.agent.action_bias_silence} < ${baseAgent.action_bias_silence ?? 0.2}`);
     });
 
     it("should add narrative entry for post", () => {
@@ -62,10 +63,10 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.self_narrative.length).toBeGreaterThan(0);
-      expect(result.agent.self_narrative[0].type).toBe("action_post");
-      expect(result.writebackRecord.summary).toMatch(/[가-힣]/);
-      expect(result.writebackRecord.summary).not.toMatch(/Posted with/i);
+      assert.ok(result.agent.self_narrative.length > 0, `expected ${result.agent.self_narrative.length} > 0`);
+      assert.strictEqual(result.agent.self_narrative[0].type, "action_post");
+      assert.match(result.writebackRecord.summary, /[가-힣]/);
+      assert.doesNotMatch(result.writebackRecord.summary, /Posted with/i);
     });
 
     it("should cap values at 1.0", () => {
@@ -82,8 +83,8 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.engagement_level).toBeLessThanOrEqual(1);
-      expect(result.agent.belief_strength).toBeLessThanOrEqual(1);
+      assert.ok(result.agent.engagement_level <= 1, `expected ${result.agent.engagement_level} <= 1`);
+      assert.ok(result.agent.belief_strength <= 1, `expected ${result.agent.belief_strength} <= 1`);
     });
   });
 
@@ -97,7 +98,7 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.engagement_level).toBeGreaterThan(baseAgent.engagement_level);
+      assert.ok(result.agent.engagement_level > baseAgent.engagement_level, `expected ${result.agent.engagement_level} > ${baseAgent.engagement_level}`);
     });
 
     it("should increase belief strength more with disagreement", () => {
@@ -119,9 +120,7 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(disagreementResult.agent.belief_strength).toBeGreaterThan(
-        agreementResult.agent.belief_strength
-      );
+      assert.ok(disagreementResult.agent.belief_strength > agreementResult.agent.belief_strength, `expected ${disagreementResult.agent.belief_strength} > ${agreementResult.agent.belief_strength}`);
     });
 
     it("should update relationship state with target author", () => {
@@ -134,9 +133,9 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.relationship_state["U123"]).toBeDefined();
-      expect(result.agent.relationship_state["U123"].engagement).toBeGreaterThan(0);
-      expect(result.agent.relationship_state["U123"].affinity).toBeGreaterThan(0);
+      assert.notStrictEqual(result.agent.relationship_state["U123"], undefined);
+      assert.ok(result.agent.relationship_state["U123"].engagement > 0, `expected ${result.agent.relationship_state["U123"].engagement} > 0`);
+      assert.ok(result.agent.relationship_state["U123"].affinity > 0, `expected ${result.agent.relationship_state["U123"].affinity} > 0`);
     });
 
     it("should decrease affinity on strong disagreement", () => {
@@ -149,9 +148,7 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.relationship_state["U123"].affinity).toBeLessThan(
-        baseAgent.relationship_state["U123"]?.affinity ?? 0.5
-      );
+      assert.ok(result.agent.relationship_state["U123"].affinity < (baseAgent.relationship_state["U123"]?.affinity ?? 0.5), `expected ${result.agent.relationship_state["U123"].affinity} < ${baseAgent.relationship_state["U123"]?.affinity ?? 0.5}`);
     });
 
     it("should increase comment bias", () => {
@@ -163,7 +160,7 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.action_bias_comment).toBeGreaterThan(baseAgent.action_bias_comment);
+      assert.ok(result.agent.action_bias_comment > baseAgent.action_bias_comment, `expected ${result.agent.action_bias_comment} > ${baseAgent.action_bias_comment}`);
     });
 
     it("should add narrative entry for comment", () => {
@@ -176,11 +173,11 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.self_narrative.length).toBeGreaterThan(0);
-      expect(result.agent.self_narrative[0].type).toBe("action_comment");
-      expect(result.agent.self_narrative[0].disagreement).toBe(-0.3);
-      expect(result.writebackRecord.summary).toMatch(/[가-힣]/);
-      expect(result.writebackRecord.summary).not.toMatch(/Commented on/i);
+      assert.ok(result.agent.self_narrative.length > 0, `expected ${result.agent.self_narrative.length} > 0`);
+      assert.strictEqual(result.agent.self_narrative[0].type, "action_comment");
+      assert.strictEqual(result.agent.self_narrative[0].disagreement, -0.3);
+      assert.match(result.writebackRecord.summary, /[가-힣]/);
+      assert.doesNotMatch(result.writebackRecord.summary, /Commented on/i);
     });
   });
 
@@ -194,8 +191,8 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.engagement_level).toBeGreaterThan(baseAgent.engagement_level);
-      expect(result.agent.engagement_level).toBeLessThan(baseAgent.engagement_level + 0.05);
+      assert.ok(result.agent.engagement_level > baseAgent.engagement_level, `expected ${result.agent.engagement_level} > ${baseAgent.engagement_level}`);
+      assert.ok(result.agent.engagement_level < baseAgent.engagement_level + 0.05, `expected ${result.agent.engagement_level} < ${baseAgent.engagement_level + 0.05}`);
     });
 
     it("should NOT increase belief strength significantly", () => {
@@ -208,7 +205,7 @@ describe("action-state-transitions", () => {
       });
 
       // Belief strength should be unchanged (reactions don't articulate belief)
-      expect(result.agent.belief_strength).toBe(baseAgent.belief_strength);
+      assert.strictEqual(result.agent.belief_strength, baseAgent.belief_strength);
     });
 
     it("should increase react action bias", () => {
@@ -220,7 +217,7 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.action_bias_react).toBeGreaterThan(baseAgent.action_bias_react);
+      assert.ok(result.agent.action_bias_react > baseAgent.action_bias_react, `expected ${result.agent.action_bias_react} > ${baseAgent.action_bias_react}`);
     });
 
     it("should boost affinity for support reactions", () => {
@@ -232,7 +229,7 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.relationship_state["U123"].affinity).toBeGreaterThan(0.5);
+      assert.ok(result.agent.relationship_state["U123"].affinity > 0.5, `expected ${result.agent.relationship_state["U123"].affinity} > 0.5`);
     });
 
     it("should have smaller affinity boost for non-support reactions", () => {
@@ -252,9 +249,7 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(supportResult.agent.relationship_state["U123"].affinity).toBeGreaterThan(
-        curiouscResult.agent.relationship_state["U124"].affinity
-      );
+      assert.ok(supportResult.agent.relationship_state["U123"].affinity > curiouscResult.agent.relationship_state["U124"].affinity, `expected ${supportResult.agent.relationship_state["U123"].affinity} > ${curiouscResult.agent.relationship_state["U124"].affinity}`);
     });
 
     it("should increment reaction frequency index", () => {
@@ -266,7 +261,7 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.reaction_frequency_index).toBeGreaterThan(0);
+      assert.ok(result.agent.reaction_frequency_index > 0, `expected ${result.agent.reaction_frequency_index} > 0`);
     });
 
     it("should add lightweight narrative entry", () => {
@@ -278,11 +273,11 @@ describe("action-state-transitions", () => {
         round: 1,
       });
 
-      expect(result.agent.self_narrative.length).toBeGreaterThan(0);
-      expect(result.agent.self_narrative[0].type).toBe("action_react");
-      expect(result.agent.self_narrative[0].reaction_type).toBe("support");
-      expect(result.writebackRecord.summary).toMatch(/[가-힣]/);
-      expect(result.writebackRecord.summary).not.toMatch(/engagement \+/i);
+      assert.ok(result.agent.self_narrative.length > 0, `expected ${result.agent.self_narrative.length} > 0`);
+      assert.strictEqual(result.agent.self_narrative[0].type, "action_react");
+      assert.strictEqual(result.agent.self_narrative[0].reaction_type, "support");
+      assert.match(result.writebackRecord.summary, /[가-힣]/);
+      assert.doesNotMatch(result.writebackRecord.summary, /engagement \+/i);
     });
   });
 
@@ -290,10 +285,10 @@ describe("action-state-transitions", () => {
     it("should calculate baseline action biases", () => {
       const bias = calculateActionBias(baseAgent);
 
-      expect(bias).toHaveProperty("post_bias");
-      expect(bias).toHaveProperty("comment_bias");
-      expect(bias).toHaveProperty("react_bias");
-      expect(bias).toHaveProperty("silence_bias");
+      assert.ok("post_bias" in bias);
+      assert.ok("comment_bias" in bias);
+      assert.ok("react_bias" in bias);
+      assert.ok("silence_bias" in bias);
     });
 
     it("should scale biases based on state", () => {
@@ -305,8 +300,8 @@ describe("action-state-transitions", () => {
 
       const bias = calculateActionBias(lowEngagementAgent);
 
-      expect(bias.silence_bias).toBeGreaterThan(0.3);
-      expect(bias.react_bias).toBeGreaterThan(bias.comment_bias);
+      assert.ok(bias.silence_bias > 0.3, `expected ${bias.silence_bias} > 0.3`);
+      assert.ok(bias.react_bias > bias.comment_bias, `expected ${bias.react_bias} > ${bias.comment_bias}`);
     });
 
     it("should increase post_bias with assertion tendency", () => {
@@ -318,7 +313,7 @@ describe("action-state-transitions", () => {
       const biasBefore = calculateActionBias(baseAgent);
       const biasAfter = calculateActionBias(assertiveAgent);
 
-      expect(biasAfter.post_bias).toBeGreaterThan(biasBefore.post_bias);
+      assert.ok(biasAfter.post_bias > biasBefore.post_bias, `expected ${biasAfter.post_bias} > ${biasBefore.post_bias}`);
     });
   });
 
@@ -326,10 +321,10 @@ describe("action-state-transitions", () => {
     it("should execute post -> comment -> react sequence", () => {
       const scenarios = createActionStateScenarios();
 
-      expect(scenarios.scenarios.length).toBeGreaterThan(0);
-      expect(scenarios.scenarios[0].name).toBe("post_commitment");
-      expect(scenarios.scenarios[1].name).toBe("comment_disagreement");
-      expect(scenarios.scenarios[2].name).toBe("reactions_accumulation");
+      assert.ok(scenarios.scenarios.length > 0, `expected ${scenarios.scenarios.length} > 0`);
+      assert.strictEqual(scenarios.scenarios[0].name, "post_commitment");
+      assert.strictEqual(scenarios.scenarios[1].name, "comment_disagreement");
+      assert.strictEqual(scenarios.scenarios[2].name, "reactions_accumulation");
     });
 
     it("should maintain monotonic engagement increase across sequence", () => {
@@ -339,12 +334,8 @@ describe("action-state-transitions", () => {
       const commentAgent = scenarios.scenarios[1].result.agent;
       const finalAgent = scenarios.scenarios[2].final_agent;
 
-      expect(commentAgent.engagement_level).toBeGreaterThanOrEqual(
-        postAgent.engagement_level
-      );
-      expect(finalAgent.engagement_level).toBeGreaterThanOrEqual(
-        commentAgent.engagement_level
-      );
+      assert.ok(commentAgent.engagement_level >= postAgent.engagement_level, `expected ${commentAgent.engagement_level} >= ${postAgent.engagement_level}`);
+      assert.ok(finalAgent.engagement_level >= commentAgent.engagement_level, `expected ${finalAgent.engagement_level} >= ${commentAgent.engagement_level}`);
     });
 
     it("should accumulate narrative entries", () => {
@@ -354,12 +345,8 @@ describe("action-state-transitions", () => {
       const commentAgent = scenarios.scenarios[1].result.agent;
       const finalAgent = scenarios.scenarios[2].final_agent;
 
-      expect(commentAgent.self_narrative.length).toBeGreaterThan(
-        postAgent.self_narrative.length
-      );
-      expect(finalAgent.self_narrative.length).toBeGreaterThan(
-        commentAgent.self_narrative.length
-      );
+      assert.ok(commentAgent.self_narrative.length > postAgent.self_narrative.length, `expected ${commentAgent.self_narrative.length} > ${postAgent.self_narrative.length}`);
+      assert.ok(finalAgent.self_narrative.length > commentAgent.self_narrative.length, `expected ${finalAgent.self_narrative.length} > ${commentAgent.self_narrative.length}`);
     });
   });
 });

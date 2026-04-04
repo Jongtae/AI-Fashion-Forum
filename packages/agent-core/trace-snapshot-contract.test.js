@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import {
   createSnapshot,
   createEvent,
@@ -24,13 +25,13 @@ describe("trace-snapshot-contract", () => {
         tick: 0,
       });
 
-      expect(snapshot.snapshot_id).toBe("SN:A01:1:0");
-      expect(snapshot.agent_id).toBe("A01");
-      expect(snapshot.round).toBe(1);
-      expect(snapshot.tick).toBe(0);
-      expect(snapshot.schema_version).toBe("1.0");
-      expect(snapshot.timestamp).toBeDefined();
-      expect(snapshot.agent_state).toBeDefined();
+      assert.strictEqual(snapshot.snapshot_id, "SN:A01:1:0");
+      assert.strictEqual(snapshot.agent_id, "A01");
+      assert.strictEqual(snapshot.round, 1);
+      assert.strictEqual(snapshot.tick, 0);
+      assert.strictEqual(snapshot.schema_version, "1.0");
+      assert.notStrictEqual(snapshot.timestamp, undefined);
+      assert.notStrictEqual(snapshot.agent_state, undefined);
     });
 
     it("should include context in snapshot", () => {
@@ -43,8 +44,8 @@ describe("trace-snapshot-contract", () => {
         context: { trigger: "action_execution", custom_field: "value" },
       });
 
-      expect(snapshot.context.trigger).toBe("action_execution");
-      expect(snapshot.context.custom_field).toBe("value");
+      assert.strictEqual(snapshot.context.trigger, "action_execution");
+      assert.strictEqual(snapshot.context.custom_field, "value");
     });
 
     it("should track previous_event_id for causal chain", () => {
@@ -57,7 +58,7 @@ describe("trace-snapshot-contract", () => {
         context: { previous_event_id: "EV:A01:1:0:action" },
       });
 
-      expect(snapshot.previous_event_id).toBe("EV:A01:1:0:action");
+      assert.strictEqual(snapshot.previous_event_id, "EV:A01:1:0:action");
     });
   });
 
@@ -71,11 +72,11 @@ describe("trace-snapshot-contract", () => {
         action_id: "ACT:A01:1:0:comment",
       });
 
-      expect(event.event_id).toBe("EV:A01:1:0:action");
-      expect(event.agent_id).toBe("A01");
-      expect(event.event_type).toBe("action");
-      expect(event.action_id).toBe("ACT:A01:1:0:comment");
-      expect(event.timestamp).toBeDefined();
+      assert.strictEqual(event.event_id, "EV:A01:1:0:action");
+      assert.strictEqual(event.agent_id, "A01");
+      assert.strictEqual(event.event_type, "action");
+      assert.strictEqual(event.action_id, "ACT:A01:1:0:comment");
+      assert.notStrictEqual(event.timestamp, undefined);
     });
 
     it("should support consumption_internal event type", () => {
@@ -88,8 +89,8 @@ describe("trace-snapshot-contract", () => {
         contentType: "post",
       });
 
-      expect(event.event_type).toBe("consumption_internal");
-      expect(event.content_id).toBe("C001");
+      assert.strictEqual(event.event_type, "consumption_internal");
+      assert.strictEqual(event.content_id, "C001");
     });
 
     it("should support consumption_external event type", () => {
@@ -102,8 +103,8 @@ describe("trace-snapshot-contract", () => {
         metadata: { source: "external.com" },
       });
 
-      expect(event.event_type).toBe("consumption_external");
-      expect(event.metadata.source).toBe("external.com");
+      assert.strictEqual(event.event_type, "consumption_external");
+      assert.strictEqual(event.metadata.source, "external.com");
     });
 
     it("should include dwell_ticks in metadata", () => {
@@ -115,7 +116,7 @@ describe("trace-snapshot-contract", () => {
         metadata: { dwell_ticks: 3 },
       });
 
-      expect(event.dwell_ticks).toBe(3);
+      assert.strictEqual(event.dwell_ticks, 3);
     });
   });
 
@@ -131,11 +132,11 @@ describe("trace-snapshot-contract", () => {
         },
       });
 
-      expect(trace.trace_id).toContain("EV:A01:1:0:action");
-      expect(trace.previous_snapshot_id).toBe("SN:A01:1:0");
-      expect(trace.next_snapshot_id).toBe("SN:A01:1:1");
-      expect(trace.state_delta.belief_strength_delta).toBe(0.02);
-      expect(trace.state_delta.engagement_delta).toBe(0.01);
+      assert.ok(trace.trace_id.includes("EV:A01:1:0:action"));
+      assert.strictEqual(trace.previous_snapshot_id, "SN:A01:1:0");
+      assert.strictEqual(trace.next_snapshot_id, "SN:A01:1:1");
+      assert.strictEqual(trace.state_delta.belief_strength_delta, 0.02);
+      assert.strictEqual(trace.state_delta.engagement_delta, 0.01);
     });
 
     it("should include writeback_ids for causal chain", () => {
@@ -146,7 +147,7 @@ describe("trace-snapshot-contract", () => {
         writebackIds: ["WB:A01:1:0:comment"],
       });
 
-      expect(trace.writeback_ids).toContain("WB:A01:1:0:comment");
+      assert.ok(trace.writeback_ids.includes("WB:A01:1:0:comment"));
     });
 
     it("should include schema version for evolution tracking", () => {
@@ -156,7 +157,7 @@ describe("trace-snapshot-contract", () => {
         nextSnapshotId: "SN:A01:1:1",
       });
 
-      expect(trace.schema_version).toBe("1.0");
+      assert.strictEqual(trace.schema_version, "1.0");
     });
   });
 
@@ -185,12 +186,12 @@ describe("trace-snapshot-contract", () => {
         round: 1,
       });
 
-      expect(record.snapshot_before.snapshot_id).toBe("SN:A01:1:0");
-      expect(record.snapshot_after.snapshot_id).toBe("SN:A01:1:0");
-      expect(record.event.event_type).toBe("action");
-      expect(record.trace.previous_snapshot_id).toBe(record.snapshot_before.snapshot_id);
-      expect(record.trace.next_snapshot_id).toBe(record.snapshot_after.snapshot_id);
-      expect(record.writeback.writeback_id).toBe("WB:A01:1:0:comment");
+      assert.strictEqual(record.snapshot_before.snapshot_id, "SN:A01:1:0");
+      assert.strictEqual(record.snapshot_after.snapshot_id, "SN:A01:1:0");
+      assert.strictEqual(record.event.event_type, "action");
+      assert.strictEqual(record.trace.previous_snapshot_id, record.snapshot_before.snapshot_id);
+      assert.strictEqual(record.trace.next_snapshot_id, record.snapshot_after.snapshot_id);
+      assert.strictEqual(record.writeback.writeback_id, "WB:A01:1:0:comment");
     });
   });
 
@@ -219,9 +220,9 @@ describe("trace-snapshot-contract", () => {
         round: 1,
       });
 
-      expect(record.event.event_type).toBe("consumption_internal");
-      expect(record.event.metadata.consumption_type).toBe("internal");
-      expect(record.trace.state_delta.belief_strength_delta).toBe(0.02);
+      assert.strictEqual(record.event.event_type, "consumption_internal");
+      assert.strictEqual(record.event.metadata.consumption_type, "internal");
+      assert.strictEqual(record.trace.state_delta.belief_strength_delta, 0.02);
     });
 
     it("should record external content consumption", () => {
@@ -248,8 +249,8 @@ describe("trace-snapshot-contract", () => {
         round: 1,
       });
 
-      expect(record.event.event_type).toBe("consumption_external");
-      expect(record.event.metadata.consumption_type).toBe("external");
+      assert.strictEqual(record.event.event_type, "consumption_external");
+      assert.strictEqual(record.event.metadata.consumption_type, "external");
     });
   });
 
@@ -260,9 +261,9 @@ describe("trace-snapshot-contract", () => {
 
       const engine = new TraceReplayEngine(snapshot);
 
-      expect(engine.currentSnapshot.snapshot_id).toBe(snapshot.snapshot_id);
-      expect(engine.traceHistory.length).toBe(0);
-      expect(engine.eventHistory.length).toBe(0);
+      assert.strictEqual(engine.currentSnapshot.snapshot_id, snapshot.snapshot_id);
+      assert.strictEqual(engine.traceHistory.length, 0);
+      assert.strictEqual(engine.eventHistory.length, 0);
     });
 
     it("should apply traces and update current snapshot", () => {
@@ -281,9 +282,9 @@ describe("trace-snapshot-contract", () => {
       const engine = new TraceReplayEngine(snap1);
       const result = engine.applyTrace(trace, snap2);
 
-      expect(result.success).toBe(true);
-      expect(engine.currentSnapshot.snapshot_id).toBe(snap2.snapshot_id);
-      expect(engine.traceHistory.length).toBe(1);
+      assert.strictEqual(result.success, true);
+      assert.strictEqual(engine.currentSnapshot.snapshot_id, snap2.snapshot_id);
+      assert.strictEqual(engine.traceHistory.length, 1);
     });
 
     it("should validate trace causality", () => {
@@ -304,7 +305,7 @@ describe("trace-snapshot-contract", () => {
 
       const engine = new TraceReplayEngine(snap1);
 
-      expect(() => engine.applyTrace(trace, snap3)).toThrow();
+      assert.throws(() => engine.applyTrace(trace, snap3));
     });
 
     it("should record events", () => {
@@ -321,8 +322,8 @@ describe("trace-snapshot-contract", () => {
       const engine = new TraceReplayEngine(snapshot);
       engine.recordEvent(event);
 
-      expect(engine.eventHistory.length).toBe(1);
-      expect(engine.eventHistory[0].event_id).toBe(event.event_id);
+      assert.strictEqual(engine.eventHistory.length, 1);
+      assert.strictEqual(engine.eventHistory[0].event_id, event.event_id);
     });
 
     it("should find traces modifying specific fields", () => {
@@ -356,8 +357,8 @@ describe("trace-snapshot-contract", () => {
       const beliefTraces = engine.findTracesModifyingField("belief");
       const engagementTraces = engine.findTracesModifyingField("engagement");
 
-      expect(beliefTraces.length).toBe(1);
-      expect(engagementTraces.length).toBe(1);
+      assert.strictEqual(beliefTraces.length, 1);
+      assert.strictEqual(engagementTraces.length, 1);
     });
 
     it("should compare two snapshots and generate diff", () => {
@@ -370,12 +371,12 @@ describe("trace-snapshot-contract", () => {
       const engine = new TraceReplayEngine(snap1);
       const diff = engine.compareTwoSnapshots(snap1, snap2);
 
-      expect(diff.belief_delta).toBe(0.04);
-      expect(diff.engagement_delta).toBe(0.02);
-      expect(diff.before_round).toBe(1);
-      expect(diff.after_round).toBe(1);
-      expect(diff.before_tick).toBe(0);
-      expect(diff.after_tick).toBe(2);
+      assert.ok(Math.abs(diff.belief_delta - 0.04) < 1e-10, `expected belief_delta ≈ 0.04, got ${diff.belief_delta}`);
+      assert.ok(Math.abs(diff.engagement_delta - 0.02) < 1e-10, `expected engagement_delta ≈ 0.02, got ${diff.engagement_delta}`);
+      assert.strictEqual(diff.before_round, 1);
+      assert.strictEqual(diff.after_round, 1);
+      assert.strictEqual(diff.before_tick, 0);
+      assert.strictEqual(diff.after_tick, 2);
     });
 
     it("should provide full trajectory", () => {
@@ -404,9 +405,9 @@ describe("trace-snapshot-contract", () => {
 
       const trajectory = engine.getTrajectory();
 
-      expect(trajectory.trace_count).toBe(1);
-      expect(trajectory.event_count).toBe(1);
-      expect(trajectory.current_snapshot.snapshot_id).toBe(snap2.snapshot_id);
+      assert.strictEqual(trajectory.trace_count, 1);
+      assert.strictEqual(trajectory.event_count, 1);
+      assert.strictEqual(trajectory.current_snapshot.snapshot_id, snap2.snapshot_id);
     });
   });
 
@@ -414,20 +415,20 @@ describe("trace-snapshot-contract", () => {
     it("should execute complete lifecycle with replay", () => {
       const scenario = createStorageScenario();
 
-      expect(scenario.snapshots.length).toBe(3);
-      expect(scenario.events.length).toBe(2);
-      expect(scenario.traces.length).toBe(2);
-      expect(scenario.writebacks.length).toBe(2);
+      assert.strictEqual(scenario.snapshots.length, 3);
+      assert.strictEqual(scenario.events.length, 2);
+      assert.strictEqual(scenario.traces.length, 2);
+      assert.strictEqual(scenario.writebacks.length, 2);
     });
 
     it("should maintain causal chain through replay", () => {
       const scenario = createStorageScenario();
 
       // Verify trace connectivity
-      expect(scenario.traces[0].previous_snapshot_id).toBe(scenario.snapshots[0].snapshot_id);
-      expect(scenario.traces[0].next_snapshot_id).toBe(scenario.snapshots[1].snapshot_id);
-      expect(scenario.traces[1].previous_snapshot_id).toBe(scenario.snapshots[1].snapshot_id);
-      expect(scenario.traces[1].next_snapshot_id).toBe(scenario.snapshots[2].snapshot_id);
+      assert.strictEqual(scenario.traces[0].previous_snapshot_id, scenario.snapshots[0].snapshot_id);
+      assert.strictEqual(scenario.traces[0].next_snapshot_id, scenario.snapshots[1].snapshot_id);
+      assert.strictEqual(scenario.traces[1].previous_snapshot_id, scenario.snapshots[1].snapshot_id);
+      assert.strictEqual(scenario.traces[1].next_snapshot_id, scenario.snapshots[2].snapshot_id);
     });
 
     it("should accumulate state changes through trajectory", () => {
@@ -437,9 +438,9 @@ describe("trace-snapshot-contract", () => {
       const snap0 = scenario.snapshots[0].agent_state;
       const snap2 = scenario.snapshots[2].agent_state;
 
-      expect(snap2.engagement_level).toBeGreaterThan(snap0.engagement_level);
-      expect(snap2.belief_strength).toBeGreaterThan(snap0.belief_strength);
-      expect(trajectory.trace_count).toBe(2);
+      assert.ok(snap2.engagement_level > snap0.engagement_level, `expected ${snap2.engagement_level} > ${snap0.engagement_level}`);
+      assert.ok(snap2.belief_strength > snap0.belief_strength, `expected ${snap2.belief_strength} > ${snap0.belief_strength}`);
+      assert.strictEqual(trajectory.trace_count, 2);
     });
 
     it("should be able to query what changed the agent", () => {
@@ -448,8 +449,8 @@ describe("trace-snapshot-contract", () => {
       const beliefChanges = scenario.engine.findTracesModifyingField("belief");
       const engagementChanges = scenario.engine.findTracesModifyingField("engagement");
 
-      expect(beliefChanges.length).toBeGreaterThan(0);
-      expect(engagementChanges.length).toBeGreaterThan(0);
+      assert.ok(beliefChanges.length > 0, `expected ${beliefChanges.length} > 0`);
+      assert.ok(engagementChanges.length > 0, `expected ${engagementChanges.length} > 0`);
     });
   });
 });
