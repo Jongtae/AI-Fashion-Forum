@@ -43,6 +43,143 @@ function computeVectorDistance(left, right) {
   return average(keys.map((key) => Math.abs((left[key] || 0) - (right[key] || 0))));
 }
 
+export function computeAgentPairwiseDistanceMetrics(agents = []) {
+  const pairwiseDistances = [];
+  let nearestPair = null;
+  let farthestPair = null;
+
+  agents.forEach((agent, agentIndex) => {
+    agents.slice(agentIndex + 1).forEach((otherAgent) => {
+      const distance = average([
+        computeVectorDistance(agent.belief_vector, otherAgent.belief_vector),
+        computeVectorDistance(agent.interest_vector, otherAgent.interest_vector),
+      ]);
+
+      const pair = {
+        left_agent_id: agent.agent_id,
+        right_agent_id: otherAgent.agent_id,
+        distance: clamp(distance),
+      };
+
+      pairwiseDistances.push(pair.distance);
+
+      if (!nearestPair || pair.distance < nearestPair.distance) {
+        nearestPair = pair;
+      }
+
+      if (!farthestPair || pair.distance > farthestPair.distance) {
+        farthestPair = pair;
+      }
+    });
+  });
+
+  return {
+    pair_count: pairwiseDistances.length,
+    average_distance: clamp(average(pairwiseDistances)),
+    min_distance: nearestPair?.distance ?? 0,
+    max_distance: farthestPair?.distance ?? 0,
+    nearest_pair: nearestPair,
+    farthest_pair: farthestPair,
+  };
+}
+
+export function classifyDifferentiationTrend(timeline = [], thresholds = {}) {
+  if (!Array.isArray(timeline) || timeline.length === 0) {
+    return {
+      verdict: "insufficient_data",
+      reason: "No timeline data available.",
+      thresholds: {
+        convergenceDropRatio: thresholds.convergenceDropRatio ?? 0.08,
+        divergenceRiseRatio: thresholds.divergenceRiseRatio ?? 0.08,
+        stableBand: thresholds.stableBand ?? 0.03,
+      },
+    };
+  }
+
+  const convergenceDropRatio = thresholds.convergenceDropRatio ?? 0.08;
+  const divergenceRiseRatio = thresholds.divergenceRiseRatio ?? 0.08;
+  const stableBand = thresholds.stableBand ?? 0.03;
+  const first = timeline[0]?.average_distance ?? 0;
+  const last = timeline[timeline.length - 1]?.average_distance ?? 0;
+  const delta = clamp(Math.abs(last - first));
+  const ratio = first > 0 ? (last - first) / first : 0;
+
+  if (first === 0 && last > stableBand) {
+    return {
+      verdict: "diverging",
+      reason: "Initial distance was near zero and later rounds became measurably differentiated.",
+      thresholds: {
+        convergenceDropRatio,
+        divergenceRiseRatio,
+        stableBand,
+      },
+    };
+  }
+
+  if (ratio <= -convergenceDropRatio) {
+    return {
+      verdict: "converging",
+      reason: `Average pairwise distance dropped by ${(Math.abs(ratio) * 100).toFixed(1)}% across rounds.`,
+      thresholds: {
+        convergenceDropRatio,
+        divergenceRiseRatio,
+        stableBand,
+      },
+    };
+  }
+
+  if (ratio >= divergenceRiseRatio) {
+    return {
+      verdict: "diverging",
+      reason: `Average pairwise distance increased by ${(ratio * 100).toFixed(1)}% across rounds.`,
+      thresholds: {
+        convergenceDropRatio,
+        divergenceRiseRatio,
+        stableBand,
+      },
+    };
+  }
+
+  if (delta <= stableBand) {
+    return {
+      verdict: "stable",
+      reason: `Average pairwise distance stayed within a ${stableBand.toFixed(2)} band across rounds.`,
+      thresholds: {
+        convergenceDropRatio,
+        divergenceRiseRatio,
+        stableBand,
+      },
+    };
+  }
+
+  return {
+    verdict: "stable",
+    reason: "Agents changed over time but did not collapse or separate sharply enough to classify as convergence or divergence.",
+    thresholds: {
+      convergenceDropRatio,
+      divergenceRiseRatio,
+      stableBand,
+    },
+  };
+}
+
+export function createDifferentiationTimeline(runResults = []) {
+  return runResults.map((result, index) => {
+    const snapshot = result?.finalState || result?.snapshot || {};
+    const agents = Array.isArray(snapshot?.agents) ? snapshot.agents : [];
+    const pairwise = computeAgentPairwiseDistanceMetrics(agents);
+
+    return {
+      round: index + 1,
+      seed: result?.seed ?? null,
+      tick_count: result?.tickCount ?? result?.tick_count ?? 0,
+      final_tick: result?.finalTick ?? result?.final_tick ?? 0,
+      agent_count: agents.length,
+      ...pairwise,
+    };
+  });
+}
+
 export function computeAgentConsistencyScore(agentState, replayEntries = []) {
   const beliefAnchors = Object.keys(agentState.belief_vector || {});
   const narrative = (agentState.self_narrative || []).join(" ").toLowerCase();
