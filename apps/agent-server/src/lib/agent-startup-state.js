@@ -301,11 +301,33 @@ function candidateToAgentState(candidate = {}, index = 0) {
           ? Math.max(1, Math.round((sourceProfile.topicalMemory.totalComments || 0) / 2))
           : 1,
     },
+    recent_memories: Array.isArray(candidate.recentMemories)
+      ? [...candidate.recentMemories]
+      : Array.isArray(candidate.selfNarratives)
+        ? candidate.selfNarratives.slice(-3).map((text, index) => ({
+            memory_id: `recent:${seedIdFor(candidate, sourceProfile)}:${index}`,
+            agent_id:
+              candidate.agent_id ||
+              candidate.source_author_id ||
+              candidate.sourceAuthorId ||
+              sourceProfile.sourceAuthorId ||
+              sourceProfile.seedProfileId ||
+              `seed:${index}`,
+            tick: index,
+            kind: "seed_recent_memory",
+            summary: typeof text === "string" ? text : text?.summary || text?.text || "",
+            details: {
+              source: "seed_profile",
+            },
+          }))
+        : [],
     self_narrative: Array.isArray(candidate.selfNarratives)
       ? [...candidate.selfNarratives]
       : Array.isArray(sourceProfile.memoryPromptHints)
         ? [...sourceProfile.memoryPromptHints]
         : [],
+    self_narratives: Array.isArray(candidate.selfNarratives) ? [...candidate.selfNarratives] : [],
+    memory_writebacks: Array.isArray(candidate.memoryWritebacks) ? [...candidate.memoryWritebacks] : [],
     seed_profile: seedProfile,
     mutable_state: mutableState,
     comment_style: sourceProfile.commentStyle || candidate.commentStyle || null,

@@ -77,7 +77,111 @@ function buildNarrativeText(agentState, entry) {
 }
 
 function createEmptyRecentBuffers(agents) {
-  return new Map(agents.map((agent) => [agent.agent_id, []]));
+  return new Map(
+    agents.map((agent) => {
+      const memoryWindow = Math.max(1, Number(agent?.memory_window) || 12);
+      const seededRecent = seedRecentBuffersForAgent(agent, memoryWindow);
+      return [agent.agent_id, seededRecent.slice(-memoryWindow)];
+    }),
+  );
+}
+
+function normalizeMemoryText(value = "") {
+  return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
+}
+
+function createRecentMemoryFromEntry(agentId, entry, tick = 0, index = 0, kind = "seed_recent_memory") {
+  if (!entry) {
+    return null;
+  }
+
+  if (typeof entry === "string") {
+    const summary = normalizeMemoryText(entry);
+    if (!summary) {
+      return null;
+    }
+
+    return createRecentMemoryItem({
+      memory_id: `recent:${agentId}:${kind}:${tick}:${index}`,
+      agent_id: agentId,
+      tick,
+      kind,
+      summary,
+      details: {
+        source: "agent_state",
+      },
+    });
+  }
+
+  if (typeof entry === "object") {
+    const summary = normalizeMemoryText(
+      entry.summary ||
+        entry.text ||
+        entry.narrative ||
+        entry.reason ||
+        entry.content ||
+        entry.note ||
+        "",
+    );
+    if (!summary) {
+      return null;
+    }
+
+    return createRecentMemoryItem({
+      memory_id: entry.memory_id || `recent:${agentId}:${kind}:${tick}:${index}`,
+      agent_id: entry.agent_id || agentId,
+      tick: typeof entry.tick === "number" ? entry.tick : tick,
+      kind: entry.kind || kind,
+      summary,
+      details: entry.details || {
+        source: "agent_state",
+      },
+    });
+  }
+
+  return null;
+}
+
+function seedRecentBuffersForAgent(agent = {}, memoryWindow = 12) {
+  const agentId = agent?.agent_id;
+  if (!agentId) {
+    return [];
+  }
+
+  const seededEntries = Array.isArray(agent.recentMemories) && agent.recentMemories.length
+    ? agent.recentMemories
+    : Array.isArray(agent.self_narrative)
+      ? agent.self_narrative
+      : [];
+
+  return seededEntries
+    .map((entry, index) => createRecentMemoryFromEntry(agentId, entry, agent.joined_tick || 0, index))
+    .filter(Boolean)
+    .slice(-memoryWindow);
+}
+
+function appendAgentMemoryTrail(agentState, { recentItem = null, narrativeEntry = null, memoryWindow = null } = {}) {
+  if (!agentState || !agentState.agent_id) {
+    return;
+  }
+
+  const windowSize = Math.max(1, Number(memoryWindow) || Number(agentState.memory_window) || 12);
+
+  if (recentItem) {
+    agentState.recentMemories = [...(Array.isArray(agentState.recentMemories) ? agentState.recentMemories : []), recentItem].slice(-windowSize);
+  }
+
+  if (narrativeEntry) {
+    const narrativeText = typeof narrativeEntry === "string"
+      ? narrativeEntry
+      : narrativeEntry.text || narrativeEntry.summary || "";
+    if (narrativeText) {
+      agentState.self_narrative = [
+        ...(Array.isArray(agentState.self_narrative) ? agentState.self_narrative : []),
+        narrativeText,
+      ].slice(-windowSize);
+    }
+  }
 }
 
 export function createMemoryRuntime({
@@ -151,13 +255,161 @@ export function rememberReplayEntry(runtime, replayEntry) {
   runtime.recentBuffers.set(agentState.agent_id, nextRecent);
   runtime.durableMemories = [...runtime.durableMemories, durableMemory];
   runtime.selfNarratives = [...runtime.selfNarratives, narrativeEntry];
-
-  agentState.self_narrative = [
-    ...agentState.self_narrative,
-    narrativeEntry.text,
-  ].slice(-agentState.memory_window);
+  appendAgentMemoryTrail(agentState, {
+    recentItem,
+    narrativeEntry,
+    memoryWindow: agentState.memory_window,
+  });
 
   if (runtime.storeFilePath) {
+    persistStore(runtime.storeFilePath, {
+      durableMemories: runtime.durableMemories,
+      selfNarratives: runtime.selfNarratives,
+    });
+  }
+
+  return {
+    recentItem,
+    durableMemory,
+    narrativeEntry,
+  };
+}
+
+export function rememberContentExposure(runtime, exposureRecord = {}) {
+  const {
+    agentId = exposureRecord.agent_id || exposureRecord.agentId || "",
+    contentRecord = {},
+    reactionRecord = null,
+    tick = 0,
+    round = 0,
+    reason = "",
+    memoryWindow = null,
+    source = "content_exposure",
+  } = exposureRecord;
+
+  const agentState = runtime?.state?.agents?.find((candidate) => candidate.agent_id === agentId);
+  if (!agentState) {
+    return null;
+  }
+
+  const title = normalizeMemoryText(contentRecord.title || contentRecord.content_id || "읽은 글") || "읽은 글";
+  const topics = Array.isArray(contentRecord.topics) && contentRecord.topics.length
+    ? contentRecord.topics.slice(0, 3).join(", ")
+    : "일반";
+  const reactionLabel = normalizeMemoryText(
+    reactionRecord?.memory_write_hint?.narrative_hint ||
+      reactionRecord?.meaning_frame ||
+      reactionRecord?.stance_signal ||
+      "",
+  );
+  const reasonText = normalizeMemoryText(reason) || reactionLabel || "읽은 글이 다음 판단으로 이어졌다.";
+
+  const summary = `읽은 글 “${title}”에서 ${topics}을/를 먼저 보게 됐다.`;
+  const narrativeText = reactionLabel
+    ? `나는 “${title}”을 읽고 ${reactionLabel} 쪽으로 조금 더 기울었다. ${reasonText}`
+    : `나는 “${title}”을 읽고 ${reasonText}`;
+
+  const recentItem = createRecentMemoryItem({
+    memory_id: `recent:${agentState.agent_id}:${round}:${tick}:exposure`,
+    agent_id: agentState.agent_id,
+    tick,
+    kind: "content_exposure",
+    summary,
+    details: {
+      round,
+      source,
+      content_id: contentRecord.content_id || contentRecord._id || null,
+      title,
+      topics: Array.isArray(contentRecord.topics) ? contentRecord.topics : [],
+      reason: reasonText,
+      reaction_frame: reactionRecord?.meaning_frame || null,
+      reaction_signal: reactionRecord?.stance_signal || null,
+      dominant_feeling: reactionRecord?.dominant_feeling || null,
+    },
+  });
+
+  const durableMemory = createDurableMemoryRecord({
+    memory_id: `durable:${agentState.agent_id}:${round}:${tick}:exposure`,
+    agent_id: agentState.agent_id,
+    tick,
+    summary,
+    salience: Number(
+      Math.min(
+        1,
+        0.42 +
+          (Array.isArray(contentRecord.topics) && contentRecord.topics.length ? 0.12 : 0) +
+          (reactionRecord?.resonance_score ? Math.min(0.18, reactionRecord.resonance_score * 0.2) : 0),
+      ).toFixed(3),
+    ),
+    tags: [
+      "content_exposure",
+      ...(Array.isArray(contentRecord.topics) ? contentRecord.topics : []),
+      reactionRecord?.meaning_frame,
+      reactionRecord?.stance_signal,
+    ].filter(Boolean),
+    source,
+    details: {
+      content_id: contentRecord.content_id || contentRecord._id || null,
+      title,
+      reason: reasonText,
+    },
+  });
+
+  const narrativeEntry = createNarrativeEntry({
+    narrative_id: `narrative:${agentState.agent_id}:${round}:${tick}:exposure`,
+    agent_id: agentState.agent_id,
+    tick,
+    text: narrativeText,
+    source_memory_id: durableMemory.memory_id,
+    tone: reactionRecord?.dominant_feeling || "reflective",
+  });
+
+  if (runtime?.recentBuffers) {
+    const existingRecent = runtime.recentBuffers.get(agentState.agent_id) || [];
+    const windowSize = Math.max(1, Number(memoryWindow) || Number(agentState.memory_window) || 12);
+    runtime.recentBuffers.set(
+      agentState.agent_id,
+      [...existingRecent, recentItem].slice(-windowSize),
+    );
+  }
+
+  if (runtime) {
+    runtime.durableMemories = [...(runtime.durableMemories || []), durableMemory];
+    runtime.selfNarratives = [...(runtime.selfNarratives || []), narrativeEntry];
+  }
+
+  appendAgentMemoryTrail(agentState, {
+    recentItem,
+    narrativeEntry,
+    memoryWindow,
+  });
+
+  if (!agentState.mutable_state) {
+    agentState.mutable_state = {
+      current_traits: {},
+      current_interests: {},
+      current_beliefs: {},
+      attention_bias: {},
+      affect_state: {},
+      self_narrative_summary: "",
+      recent_arc: "stable",
+      stance_markers: [],
+      drift_log: [],
+    };
+  }
+
+  const previousSummary = typeof agentState.mutable_state.self_narrative_summary === "string"
+    ? agentState.mutable_state.self_narrative_summary.trim()
+    : "";
+  agentState.mutable_state.self_narrative_summary = previousSummary
+    ? `${previousSummary} ${narrativeText}`.slice(-320)
+    : narrativeText;
+  agentState.mutable_state.drift_log = [
+    ...(Array.isArray(agentState.mutable_state.drift_log) ? agentState.mutable_state.drift_log : []),
+    `${tick}틱: ${title}를 읽고 ${reactionLabel || "관찰"} 쪽으로 조금 이동했다.`,
+  ].slice(-8);
+
+  if (runtime?.storeFilePath) {
     persistStore(runtime.storeFilePath, {
       durableMemories: runtime.durableMemories,
       selfNarratives: runtime.selfNarratives,
@@ -409,6 +661,11 @@ export function rememberSprint1Reaction(runtime, reactionRecord) {
   );
   runtime.durableMemories = [...runtime.durableMemories, durableMemory];
   runtime.selfNarratives = [...runtime.selfNarratives, narrativeEntry];
+  appendAgentMemoryTrail(updatedAgent, {
+    recentItem,
+    narrativeEntry,
+    memoryWindow: updatedAgent.memory_window,
+  });
 
   const agentIndex = runtime.state.agents.findIndex((candidate) => candidate.agent_id === agentState.agent_id);
   runtime.state.agents[agentIndex] = updatedAgent;

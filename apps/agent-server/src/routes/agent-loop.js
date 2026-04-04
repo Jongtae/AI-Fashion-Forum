@@ -4,6 +4,7 @@ import {
   createBaselineWorldRules,
   createLivePostDraft,
   createLiveCommentDraft,
+  rememberContentExposure,
   serializeTickState,
   evaluateRoundHeuristic,
 } from "@ai-fashion-forum/agent-core";
@@ -304,29 +305,49 @@ router.post("/tick", async (req, res) => {
       let content;
       try {
         const targetContent = buildKoreanTargetContent({ agent, entry });
-          const draft = await createLivePostDraft({
-            agent,
-            targetContent,
-            sourceSignal: sanitizeAgentText(entry.reason || `${entry.action} at tick ${entry.tick}`),
-            styleProfile: agent?.seed_profile?.comment_style || null,
-            emotionProfile: {
-              ...((agent?.seed_profile?.emotional_bias || agent?.seed_profile?.emotion_bias || {})),
-              ...(agent?.mutable_state?.affect_state?.emotional_bias || {}),
-              dominantEmotion:
-                agent?.mutable_state?.affect_state?.emotion_signature?.dominantEmotion ||
-                agent?.seed_profile?.emotion_signature?.dominantEmotion ||
-                entry?.dominant_feeling ||
-                targetContent?.emotions?.[0] ||
-                null,
-              secondaryEmotion:
-                agent?.mutable_state?.affect_state?.emotion_signature?.secondaryEmotion ||
-                agent?.seed_profile?.emotion_signature?.secondaryEmotion ||
-                entry?.stance_signal ||
-                null,
-            },
-            comparisonTexts: [
-              ...recentDraftTexts.slice(-8),
-              targetContent?.title || "",
+        const exposureRuntime = {
+          state: { agents: [agent] },
+          recentBuffers: new Map(),
+          durableMemories: [],
+          selfNarratives: [],
+        };
+        rememberContentExposure(exposureRuntime, {
+          agentId: agent.agent_id,
+          contentRecord: {
+            content_id: entry.target_content_id || entry.action_id || `simulated:${entry.actor_id}:${entry.tick}:post`,
+            title: targetContent?.title || "최근 글",
+            body: targetContent?.body || "",
+            topics: targetContent?.topics || [],
+          },
+          tick: entry.tick,
+          round,
+          reason: entry.reason || targetContent?.body || targetContent?.title || "",
+          source: "agent_loop_post",
+        });
+
+        const draft = await createLivePostDraft({
+          agent,
+          targetContent,
+          sourceSignal: sanitizeAgentText(entry.reason || `${entry.action} at tick ${entry.tick}`),
+          styleProfile: agent?.seed_profile?.comment_style || null,
+          emotionProfile: {
+            ...((agent?.seed_profile?.emotional_bias || agent?.seed_profile?.emotion_bias || {})),
+            ...(agent?.mutable_state?.affect_state?.emotional_bias || {}),
+            dominantEmotion:
+              agent?.mutable_state?.affect_state?.emotion_signature?.dominantEmotion ||
+              agent?.seed_profile?.emotion_signature?.dominantEmotion ||
+              entry?.dominant_feeling ||
+              targetContent?.emotions?.[0] ||
+              null,
+            secondaryEmotion:
+              agent?.mutable_state?.affect_state?.emotion_signature?.secondaryEmotion ||
+              agent?.seed_profile?.emotion_signature?.secondaryEmotion ||
+              entry?.stance_signal ||
+              null,
+          },
+          comparisonTexts: [
+            ...recentDraftTexts.slice(-8),
+            targetContent?.title || "",
             targetContent?.body || "",
             ...(targetContent?.topics || []),
             entry.reason || "",
@@ -403,6 +424,31 @@ router.post("/tick", async (req, res) => {
           ? recentPosts[(seed + round + entry.tick) % recentPosts.length]
           : null;
         if (recentPost) {
+          const exposureRuntime = {
+            state: { agents: [agent] },
+            recentBuffers: new Map(),
+            durableMemories: [],
+            selfNarratives: [],
+          };
+          rememberContentExposure(exposureRuntime, {
+            agentId: agent.agent_id,
+            contentRecord: {
+              content_id: recentPost._id?.toString() || recentPost.id || `recent:${entry.actor_id}:${entry.tick}`,
+              title: recentPost.title || "최근 글",
+              body: recentPost.content || "",
+              topics: Array.isArray(recentPost.tags) ? recentPost.tags : [],
+            },
+            reactionRecord: {
+              dominant_feeling: entry.dominant_feeling || null,
+              meaning_frame: entry.meaning_frame || null,
+              stance_signal: entry.stance_signal || null,
+            },
+            tick: entry.tick,
+            round,
+            reason: entry.reason || recentPost.content || recentPost.title || "",
+            source: "agent_loop_comment",
+          });
+
           const recentComments = await forumGet(`/api/posts/${recentPost._id}/comments`);
           const eligibleComments = (Array.isArray(recentComments) ? recentComments : []).filter(
             (comment) => comment.authorId !== entry.actor_id
@@ -671,6 +717,7 @@ router.post("/tick", async (req, res) => {
             seedAxes: agentToSeedAxes(agent),
             mutableAxes: agentToMutableAxes(agent),
             archetype: agent.archetype,
+            recentMemories: agent.recentMemories ?? [],
             selfNarratives: agent.self_narrative ?? [],
             exposureSummary: persistedSnapshot.exposure_summary,
             reactionSummary: persistedSnapshot.reaction_summary,
