@@ -166,6 +166,37 @@ test("createRunPostDraft preserves comparison anchors instead of flattening them
   assert.doesNotMatch(draft.content, /패션과 일상|포인트만/);
 });
 
+test("createRunPostDraft preserves concrete Korean reason anchors instead of flattening them", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+    },
+    reactionRecord: {
+      meaning_frame: "practicality_filter",
+      stance_signal: "practical",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "자주 입는 출근룩이 새 신상보다 더 오래 남는 이유",
+      body: "출근 전 반복해서 손이 가는 옷이 결국 남는다는 관찰.",
+      topics: ["office_style", "utility"],
+    },
+    variationSeed: 9,
+    apiKey: "",
+    qualityGate: {
+      enabled: true,
+      minScore: 0.55,
+      maxAttempts: 4,
+    },
+  });
+
+  assert.ok(draft.qualityGate);
+  assert.equal(draft.qualityGate.met, true);
+  assert.match(draft.title, /출근룩|신상|오래 남는 이유|다시 보게 된 이유/);
+  assert.match(draft.content, /출근룩|신상|오래 남는 이유|출근 전/);
+  assert.doesNotMatch(draft.content, /패션과 일상|포인트만/);
+});
+
 test("createRunPostDraft joins korean topic labels naturally", async () => {
   const draft = await createRunPostDraft({
     updatedAgent: {
