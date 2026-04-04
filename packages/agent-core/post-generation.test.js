@@ -236,6 +236,52 @@ test("createRunPostDraft tracks novelty against recent drafts", async () => {
   assert.ok(draft.novelty.noveltyScore < 1, JSON.stringify(draft.novelty));
 });
 
+test("createRunPostDraft penalizes overused run-level title and opener frames", async () => {
+  const baseInput = {
+    updatedAgent: {
+      handle: "officemirror",
+    },
+    reactionRecord: {
+      meaning_frame: "comparison_frame",
+      stance_signal: "observant",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "Which is better for office wear, pastel aqua or cream?",
+      body: "I am comparing the two because the office setting makes the colors read differently.",
+      topics: ["color", "office_style"],
+    },
+    comparisonTexts: [],
+    comparisonTitles: [],
+    variationSeed: 11,
+    apiKey: "",
+    qualityGate: {
+      enabled: true,
+      minScore: 0.55,
+      maxAttempts: 2,
+    },
+  };
+  const firstDraft = await createRunPostDraft(baseInput);
+  const firstLead = (firstDraft.content || "").split(/[.!?。！？\n]/)[0]?.trim()?.replace(/\s+/g, " ");
+  const draft = await createRunPostDraft({
+    ...baseInput,
+    populationSignals: {
+      titleCounts: new Map([[firstDraft.title.trim().replace(/\s+/g, " "), 4]]),
+      leadCounts: new Map(firstLead ? [[firstLead, 3]] : []),
+      frameCounts: new Map([[`${firstDraft.generationContext?.sourceIntent}:${firstDraft.generationContext?.selectedContextLabel}`, 7]]),
+    },
+  });
+
+  assert.ok(draft.novelty.titleCount >= 0);
+  assert.ok(draft.novelty.leadCount >= 0);
+  assert.ok(draft.novelty.frameCount >= 0);
+  assert.ok(draft.novelty.repetitionPenalty > 0, JSON.stringify(draft.novelty));
+  assert.ok(
+    draft.novelty.titleFrequencyPenalty > 0 || draft.novelty.leadFrequencyPenalty > 0,
+    JSON.stringify(draft.novelty),
+  );
+});
+
 test("createRunPostDraft joins korean topic labels naturally", async () => {
   const draft = await createRunPostDraft({
     updatedAgent: {
