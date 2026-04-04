@@ -18,3 +18,5 @@ export * from "./tick-engine.js";
 export * from "./storage-contracts.js";
 export * from "./trace-snapshot-contract.js";
 export * from "./evaluator-agent.js";
+export * from "./budget-tracker.js";
+export * from "./cross-exposure.js";
