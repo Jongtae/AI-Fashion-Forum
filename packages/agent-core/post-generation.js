@@ -259,6 +259,53 @@ function sanitizeDraftContent(value = "") {
   );
 }
 
+function extractMemoryText(entry = "") {
+  if (!entry) {
+    return "";
+  }
+
+  if (typeof entry === "string") {
+    return sanitizeForumLanguage(entry);
+  }
+
+  return sanitizeForumLanguage(
+    entry.summary ||
+      entry.text ||
+      entry.narrative ||
+      entry.reason ||
+      entry.note ||
+      "",
+  );
+}
+
+function buildMemoryContext(memoryContext = {}) {
+  const recentMemories = Array.isArray(memoryContext?.recentMemories)
+    ? memoryContext.recentMemories
+    : [];
+  const selfNarratives = Array.isArray(memoryContext?.selfNarratives)
+    ? memoryContext.selfNarratives
+    : [];
+  const recentMemoryTexts = uniqueNormalizedList(
+    recentMemories.map((entry) => extractMemoryText(entry)).filter(Boolean),
+  );
+  const selfNarrativeTexts = uniqueNormalizedList(
+    selfNarratives.map((entry) => extractMemoryText(entry)).filter(Boolean),
+  );
+  const recentMemorySummary = recentMemoryTexts.slice(-3).join(" / ");
+  const selfNarrativeSummary = selfNarrativeTexts.slice(-3).join(" / ");
+
+  return {
+    recentMemories,
+    selfNarratives,
+    recentMemoryTexts,
+    selfNarrativeTexts,
+    recentMemorySummary,
+    selfNarrativeSummary,
+    memoryCount: recentMemories.length,
+    narrativeCount: selfNarratives.length,
+  };
+}
+
 function composeReadableBody(...parts) {
   const text = parts
     .flat()
@@ -1021,6 +1068,7 @@ function buildLLMPrompt({
   styleProfile = null,
   emotionProfile = null,
   sourceAnchorTerms = [],
+  memoryContext = null,
 } = {}) {
   const promptTitle = localizeSourceLabel(sourceTitle, "이 글");
   const sourceTopicText = Array.isArray(sourceTopics) && sourceTopics.length
@@ -1037,6 +1085,15 @@ function buildLLMPrompt({
   const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
   const emotionTone = buildEmotionTonePack(emotionProfile, mode);
   const styleSamples = uniqueNormalizedList(styleProfile?.sampleComments || []);
+  const resolvedMemoryContext = buildMemoryContext(memoryContext || {});
+  const memoryLines = [
+    resolvedMemoryContext.recentMemorySummary
+      ? `최근 읽은 기억: ${resolvedMemoryContext.recentMemorySummary}`
+      : null,
+    resolvedMemoryContext.selfNarrativeSummary
+      ? `최근 자기 서사: ${resolvedMemoryContext.selfNarrativeSummary}`
+      : null,
+  ].filter(Boolean);
 
   const modeLabel = mode === "live" ? "실시간 에이전트 글" : "배치 생성 글";
 
@@ -1070,6 +1127,8 @@ function buildLLMPrompt({
     styleOpeners.length ? `참고 시작어: ${styleOpeners.join(", ")}` : null,
     styleEndings.length ? `참고 끝맺음: ${styleEndings.join(", ")}` : null,
     styleSamples.length ? `참고 댓글 샘플: ${styleSamples.slice(0, 3).join(" / ")}` : null,
+    memoryLines.length ? memoryLines.join("\n") : null,
+    "최근 읽은 기억이 있다면 그 기억을 다음 글의 근거로 써라. 왜 생각이 조금 바뀌었는지 드러내고, 같은 말만 반복하지 마라.",
     emotionTone?.dominantEmotion ? `감정 기조: ${emotionTone.dominantEmotion} / ${emotionTone.secondaryEmotion}` : null,
     promptSnippet ? `대상 본문 단서: ${promptSnippet}` : null,
     promptBody ? `대상 본문 전체: ${promptBody}` : null,
@@ -1692,8 +1751,10 @@ function buildGenerationContext({
   sourceIntent = "",
   sourceAnchorTerms = [],
   qualityGate = null,
+  memoryContext = null,
 }) {
   const emotionTone = buildEmotionTonePack(emotionProfile, mode);
+  const resolvedMemoryContext = buildMemoryContext(memoryContext || {});
   return {
     language: "ko",
     mode,
@@ -1715,6 +1776,10 @@ function buildGenerationContext({
     sourceIntent: sourceIntent || null,
     sourceAnchorTerms: Array.isArray(sourceAnchorTerms) ? sourceAnchorTerms : [],
     titleStrategy: "hook_not_summary",
+    recentMemorySummary: resolvedMemoryContext.recentMemorySummary || "",
+    selfNarrativeSummary: resolvedMemoryContext.selfNarrativeSummary || "",
+    recentMemoryCount: resolvedMemoryContext.memoryCount || 0,
+    selfNarrativeCount: resolvedMemoryContext.narrativeCount || 0,
     model: model || null,
     summary: selectedContext
       ? `${attachKoreanParticle(sourceTitle || "이 글", "object")} ${selectedContext.contextLabel} 흐름으로 자연스럽게 풀어냈다.`
@@ -1800,6 +1865,7 @@ async function resolvePostDraftOnce({
   contentRecord = null,
   styleProfile = null,
   emotionProfile = null,
+  memoryContext = null,
 } = {}) {
   const llmConfig = resolveLLMConfig();
   const resolvedProvider = provider || llmConfig.provider;
@@ -1814,6 +1880,13 @@ async function resolvePostDraftOnce({
     body: sourceBody || sourceSnippet || "",
     topics: sourceTopics || [],
   });
+  const resolvedMemoryContext = buildMemoryContext(memoryContext || {});
+  const memorySignal = [
+    resolvedMemoryContext.recentMemorySummary,
+    resolvedMemoryContext.selfNarrativeSummary,
+  ]
+    .filter(Boolean)
+    .join(" / ");
   const resolvedEmotionProfile = resolveEmotionProfile({
     reactionRecord,
     contentRecord,
@@ -1829,7 +1902,7 @@ async function resolvePostDraftOnce({
       mode,
       sourceTitle,
       sourceTopics,
-      sourceSignal,
+      sourceSignal: [sourceSignal, memorySignal].filter(Boolean).join(" / "),
       sourceSnippet,
       sourceBody,
       sourceCommentPreview,
@@ -1849,7 +1922,7 @@ async function resolvePostDraftOnce({
     agentHandle,
     sourceTitle,
     sourceTopics,
-    sourceSignal: sanitizeDraftContent(sourceSignal),
+    sourceSignal: sanitizeDraftContent([sourceSignal, memorySignal].filter(Boolean).join(" / ")),
     sourceSnippet,
     sourceBody,
     sourceCommentPreview,
@@ -1861,13 +1934,14 @@ async function resolvePostDraftOnce({
     styleProfile,
     emotionProfile: resolvedEmotionProfile,
     sourceIntent,
+    memoryContext: resolvedMemoryContext,
   });
 
   const generatedTitle = buildReadablePostTitle({
     mode,
     sourceTitle,
     sourceTopics,
-    sourceSignal,
+    sourceSignal: [sourceSignal, memorySignal].filter(Boolean).join(" / "),
     sourceSnippet,
     sourceBody,
     sourceCommentPreview,
@@ -1903,6 +1977,7 @@ async function resolvePostDraftOnce({
         emotionProfile: resolvedEmotionProfile,
         sourceIntent,
         sourceAnchorTerms,
+        memoryContext: resolvedMemoryContext,
       }),
       contextPool: fallbackPool,
     };
@@ -1914,7 +1989,7 @@ async function resolvePostDraftOnce({
       agentHandle,
       sourceTitle,
       sourceTopics,
-      sourceSignal,
+      sourceSignal: [sourceSignal, memorySignal].filter(Boolean).join(" / "),
       sourceSnippet,
       sourceBody,
       sourceCommentPreview,
@@ -1922,6 +1997,7 @@ async function resolvePostDraftOnce({
       styleProfile,
       emotionProfile: resolvedEmotionProfile,
       sourceAnchorTerms,
+      memoryContext: resolvedMemoryContext,
     });
     const result = await requestLLMContexts({
       provider: resolvedProvider,
@@ -1958,7 +2034,7 @@ async function resolvePostDraftOnce({
           sourceTitle,
           sourceTopics,
           sourceSnippet,
-          sourceSignal,
+          sourceSignal: [sourceSignal, memorySignal].filter(Boolean).join(" / "),
           sourceCommentPreview,
           replyTargetType,
           styleProfile,
@@ -1968,6 +2044,7 @@ async function resolvePostDraftOnce({
           emotionProfile: resolvedEmotionProfile,
           sourceIntent,
           sourceAnchorTerms,
+          memoryContext: resolvedMemoryContext,
         }),
         contextPool: contexts,
       };
@@ -1986,7 +2063,7 @@ async function resolvePostDraftOnce({
       mode,
       sourceTitle,
       sourceTopics,
-      sourceSignal,
+      sourceSignal: [sourceSignal, memorySignal].filter(Boolean).join(" / "),
       sourceSnippet,
         sourceBody,
         sourceCommentPreview,
@@ -2001,7 +2078,7 @@ async function resolvePostDraftOnce({
       sourceTitle,
       sourceTopics,
       sourceSnippet,
-      sourceSignal,
+      sourceSignal: [sourceSignal, memorySignal].filter(Boolean).join(" / "),
       sourceCommentPreview,
       replyTargetType,
       styleProfile,
@@ -2011,6 +2088,7 @@ async function resolvePostDraftOnce({
       emotionProfile: resolvedEmotionProfile,
       sourceIntent,
       sourceAnchorTerms,
+      memoryContext: resolvedMemoryContext,
     }),
     contextPool: fallbackPool,
   };
@@ -2127,6 +2205,7 @@ export async function createRunPostDraft({
   styleProfile = null,
   emotionProfile = null,
   qualityGate = null,
+  memoryContext = null,
 } = {}) {
   const sourceTitle = normalizeText(contentRecord?.title) || "스레드";
   const sourceTopics = Array.isArray(contentRecord?.topics) ? contentRecord.topics : [];
@@ -2139,6 +2218,12 @@ export async function createRunPostDraft({
     .map(normalizeText)
     .filter(Boolean)
     .join(" / ");
+  const resolvedMemoryContext =
+    memoryContext ||
+    buildMemoryContext({
+      recentMemories: updatedAgent?.recentMemories || [],
+      selfNarratives: updatedAgent?.self_narrative || [],
+    });
 
   return resolvePostDraft({
     mode: "run",
@@ -2165,6 +2250,7 @@ export async function createRunPostDraft({
       contentRecord,
       emotionProfile,
     }),
+    memoryContext: resolvedMemoryContext,
   });
 }
 
@@ -2181,10 +2267,17 @@ export async function createLivePostDraft({
   styleProfile = null,
   emotionProfile = null,
   qualityGate = null,
+  memoryContext = null,
 } = {}) {
   const sourceTitle = normalizeText(targetContent?.title) || "최근 패션 흐름";
   const sourceTopics = Array.isArray(targetContent?.topics) ? targetContent.topics : [];
   const sourceSnippet = normalizeText(targetContent?.body) || normalizeText(targetContent?.content);
+  const resolvedMemoryContext =
+    memoryContext ||
+    buildMemoryContext({
+      recentMemories: agent?.recentMemories || [],
+      selfNarratives: agent?.self_narrative || [],
+    });
 
   return resolvePostDraft({
     mode: "live",
@@ -2208,6 +2301,7 @@ export async function createLivePostDraft({
       contentRecord: targetContent,
       emotionProfile,
     }),
+    memoryContext: resolvedMemoryContext,
   });
 }
 
@@ -2225,11 +2319,18 @@ export async function createLiveCommentDraft({
   styleProfile = null,
   emotionProfile = null,
   qualityGate = null,
+  memoryContext = null,
 } = {}) {
   const sourceTitle = normalizeText(targetContent?.title) || "최근 글";
   const sourceTopics = Array.isArray(targetContent?.topics) ? targetContent.topics : [];
   const sourceSnippet = normalizeText(targetContent?.body) || normalizeText(targetContent?.content);
   const sourceCommentPreview = sanitizeForumLanguage(targetComment?.content);
+  const resolvedMemoryContext =
+    memoryContext ||
+    buildMemoryContext({
+      recentMemories: agent?.recentMemories || [],
+      selfNarratives: agent?.self_narrative || [],
+    });
 
   return resolvePostDraft({
     mode: "comment",
@@ -2257,5 +2358,6 @@ export async function createLiveCommentDraft({
       targetComment,
       emotionProfile,
     }),
+    memoryContext: resolvedMemoryContext,
   });
 }

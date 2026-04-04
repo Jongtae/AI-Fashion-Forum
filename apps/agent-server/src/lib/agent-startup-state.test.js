@@ -40,6 +40,15 @@ test("loads derived candidates when the candidate file exists", () => {
             belief_vector: { "fit-before-brand": 0.74 },
             relationship_summary: { trust_circle_size: 2 },
             selfNarratives: ["Seed voice from derived candidate input."],
+            recentMemories: [
+              {
+                memory_id: "recent:A99:0",
+                agent_id: "A99",
+                tick: 0,
+                kind: "seed_recent_memory",
+                summary: "읽은 글에서 사이즈와 핏을 먼저 봤다.",
+              },
+            ],
             rawSnapshot: {
               sourceProfile: {
                 seedProfileId: "seed:A99",
@@ -79,6 +88,8 @@ test("loads derived candidates when the candidate file exists", () => {
   assert.equal(snapshot.agents[0].handle, "seedvoice");
   assert.equal(snapshot.agents[0].display_name, "Seed Voice");
   assert.equal(snapshot.agents[0].seed_profile.seed_id, "seed:A99");
+  assert.equal(snapshot.agents[0].recentMemories.length, 1);
+  assert.match(snapshot.agents[0].recentMemories[0].summary, /사이즈와 핏/);
   assert.equal(meta.source, "agent-state-candidates");
   assert.equal(meta.agentCount, 1);
 });

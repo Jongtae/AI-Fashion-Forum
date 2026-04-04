@@ -400,6 +400,39 @@ test("createRunPostDraft carries emotion profile into generation context", async
   assert.ok((draft.content.match(/[.!?]/g) || []).length >= 2);
 });
 
+test("createRunPostDraft threads recent memories into generation context", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+      recentMemories: [
+        {
+          summary: "읽은 글에서 가격보다 핏을 먼저 보게 됐다.",
+        },
+      ],
+      self_narrative: [
+        "가격보다 핏을 먼저 보는 편으로 조금 더 기울었다.",
+      ],
+    },
+    reactionRecord: {
+      meaning_frame: "care_context",
+      stance_signal: "empathetic",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "quiet office outfit",
+      body: "A small look at weekday layering and commute comfort.",
+      topics: ["office", "layering"],
+      emotions: ["궁금"],
+    },
+    variationSeed: 8,
+    apiKey: "",
+  });
+
+  assert.match(draft.generationContext.recentMemorySummary, /가격보다 핏/);
+  assert.match(draft.generationContext.selfNarrativeSummary, /가격보다 핏/);
+  assert.match(draft.content, /기억|다시|생각|읽고|보게 됐|먼저/);
+});
+
 test("createRunPostDraft uses OpenAI contexts and selects by seed", async () => {
   const localApiKey = "local-test-key";
   let requestBody = null;

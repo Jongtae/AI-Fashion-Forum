@@ -187,7 +187,14 @@ export function createAgentState(input) {
     interest_vector = {},
     belief_vector = {},
     relationship_summary = {},
+    recent_memories = [],
+    recentMemories = [],
     self_narrative = [],
+    selfNarrative = [],
+    self_narratives = [],
+    selfNarratives = [],
+    memory_writebacks = [],
+    memoryWritebacks = [],
     seed_profile = null,
     mutable_state = null,
     avatar_url = "",
@@ -204,6 +211,19 @@ export function createAgentState(input) {
   assertNumber("conformity", conformity);
   assertNumber("conflict_tolerance", conflict_tolerance);
   assertNumber("memory_window", memory_window);
+  assertArray("recent_memories", recent_memories);
+  assertArray("recentMemories", recentMemories);
+  assertArray("self_narrative", self_narrative);
+  assertArray("selfNarrative", selfNarrative);
+  assertArray("self_narratives", self_narratives);
+  assertArray("selfNarratives", selfNarratives);
+  assertArray("memory_writebacks", memory_writebacks);
+  assertArray("memoryWritebacks", memoryWritebacks);
+
+  const resolvedRecentMemories = recent_memories.length ? recent_memories : recentMemories;
+  const resolvedSelfNarrative = self_narrative.length ? self_narrative : selfNarrative;
+  const resolvedSelfNarratives = self_narratives.length ? self_narratives : selfNarratives;
+  const resolvedMemoryWritebacks = memory_writebacks.length ? memory_writebacks : memoryWritebacks;
 
   return {
     agent_id,
@@ -219,7 +239,14 @@ export function createAgentState(input) {
     interest_vector,
     belief_vector,
     relationship_summary,
-    self_narrative,
+    recent_memories: resolvedRecentMemories,
+    recentMemories: resolvedRecentMemories,
+    self_narrative: resolvedSelfNarrative,
+    selfNarrative: resolvedSelfNarrative,
+    self_narratives: resolvedSelfNarratives,
+    selfNarratives: resolvedSelfNarratives,
+    memory_writebacks: resolvedMemoryWritebacks,
+    memoryWritebacks: resolvedMemoryWritebacks,
     seed_profile,
     mutable_state,
     avatar_url,

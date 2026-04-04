@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { Router } from "express";
 import {
   createSprint1ExposureSample,
+  rememberContentExposure,
   rememberSprint1Reaction,
   createMemoryRuntime,
   createRunPostDraft,
@@ -122,6 +123,21 @@ router.post("/", async (req, res) => {
     if (!selectedReaction || !selectedContent) {
       continue;
     }
+
+    rememberContentExposure(runtime, {
+      agentId: updatedAgent.agent_id,
+      contentRecord: selectedContent,
+      reactionRecord: selectedReaction,
+      round: 1,
+      tick: selectedReaction.rank || variationSeed,
+      reason:
+        selectedReaction.memory_write_hint?.narrative_hint ||
+        selectedReaction.reason ||
+        selectedReaction.explanation ||
+        selectedContent?.title ||
+        selectedContent?.body ||
+        "",
+    });
 
     const draft = await createRunPostDraft({
       updatedAgent,
