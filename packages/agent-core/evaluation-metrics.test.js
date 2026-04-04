@@ -42,7 +42,12 @@ test("createDifferentiationTimeline builds round summaries from run results", ()
   assert.ok(timeline[0].average_distance > 0);
 });
 
-test("classifyDifferentiationTrend distinguishes convergence, stability, and divergence", () => {
+test("classifyDifferentiationTrend distinguishes frozen, convergence, stability, and divergence", () => {
+  const frozen = classifyDifferentiationTrend([
+    { average_distance: 0.4 },
+    { average_distance: 0.4 },
+    { average_distance: 0.4 },
+  ]);
   const converging = classifyDifferentiationTrend([
     { average_distance: 0.4 },
     { average_distance: 0.33 },
@@ -56,6 +61,7 @@ test("classifyDifferentiationTrend distinguishes convergence, stability, and div
     { average_distance: 0.45 },
   ]);
 
+  assert.equal(frozen.verdict, "frozen");
   assert.equal(converging.verdict, "converging");
   assert.equal(stable.verdict, "stable");
   assert.equal(diverging.verdict, "diverging");

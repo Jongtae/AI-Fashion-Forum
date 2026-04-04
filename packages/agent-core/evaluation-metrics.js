@@ -99,10 +99,13 @@ export function classifyDifferentiationTrend(timeline = [], thresholds = {}) {
   const convergenceDropRatio = thresholds.convergenceDropRatio ?? 0.08;
   const divergenceRiseRatio = thresholds.divergenceRiseRatio ?? 0.08;
   const stableBand = thresholds.stableBand ?? 0.03;
+  const frozenBand = thresholds.frozenBand ?? 0.0005;
   const first = timeline[0]?.average_distance ?? 0;
   const last = timeline[timeline.length - 1]?.average_distance ?? 0;
   const delta = clamp(Math.abs(last - first));
   const ratio = first > 0 ? (last - first) / first : 0;
+  const averages = timeline.map((entry) => entry?.average_distance ?? 0);
+  const span = averages.length > 0 ? Math.max(...averages) - Math.min(...averages) : 0;
 
   if (first === 0 && last > stableBand) {
     return {
@@ -112,6 +115,20 @@ export function classifyDifferentiationTrend(timeline = [], thresholds = {}) {
         convergenceDropRatio,
         divergenceRiseRatio,
         stableBand,
+        frozenBand,
+      },
+    };
+  }
+
+  if (timeline.length > 1 && span <= frozenBand) {
+    return {
+      verdict: "frozen",
+      reason: `Average pairwise distance moved by less than ${frozenBand.toFixed(4)} across rounds.`,
+      thresholds: {
+        convergenceDropRatio,
+        divergenceRiseRatio,
+        stableBand,
+        frozenBand,
       },
     };
   }
@@ -124,6 +141,7 @@ export function classifyDifferentiationTrend(timeline = [], thresholds = {}) {
         convergenceDropRatio,
         divergenceRiseRatio,
         stableBand,
+        frozenBand,
       },
     };
   }
@@ -136,6 +154,7 @@ export function classifyDifferentiationTrend(timeline = [], thresholds = {}) {
         convergenceDropRatio,
         divergenceRiseRatio,
         stableBand,
+        frozenBand,
       },
     };
   }
@@ -148,6 +167,7 @@ export function classifyDifferentiationTrend(timeline = [], thresholds = {}) {
         convergenceDropRatio,
         divergenceRiseRatio,
         stableBand,
+        frozenBand,
       },
     };
   }
@@ -159,6 +179,7 @@ export function classifyDifferentiationTrend(timeline = [], thresholds = {}) {
       convergenceDropRatio,
       divergenceRiseRatio,
       stableBand,
+      frozenBand,
     },
   };
 }

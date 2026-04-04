@@ -92,7 +92,7 @@ export function selectExposure({ agent, recentPosts, maxExposure = 5, rng = Math
  * @param {object[]} exposedPosts - Posts the agent was exposed to
  * @returns {{ driftRecord: object }}
  */
-export function applyExposureDrift({ agent, exposedPosts }) {
+export function applyExposureDrift({ agent, exposedPosts, rng = Math.random }) {
   const drift = {
     agent_id: agent.agent_id,
     interest_deltas: {},
@@ -111,7 +111,7 @@ export function applyExposureDrift({ agent, exposedPosts }) {
     for (const topic of topics) {
       const key = String(topic).toLowerCase().replace(/\s+/g, "_");
       const current = agent.interest_vector?.[key] || 0;
-      const delta = round2(0.02 + Math.random() * 0.03); // +0.02~0.05
+      const delta = round2(0.02 + rng() * 0.03); // +0.02~0.05
       const newVal = round2(clamp(current + delta));
       if (agent.interest_vector) {
         agent.interest_vector[key] = newVal;
@@ -132,11 +132,11 @@ export function applyExposureDrift({ agent, exposedPosts }) {
     // Supportive stance → reinforce, skeptical → small counter-push
     let delta = 0;
     if (stance === "supportive" || stance === "enthusiastic") {
-      delta = round2(0.01 + Math.random() * 0.02);
+      delta = round2(0.01 + rng() * 0.02);
     } else if (stance === "skeptical" || stance === "critical") {
-      delta = round2(-(0.01 + Math.random() * 0.02));
+      delta = round2(-(0.01 + rng() * 0.02));
     } else {
-      delta = round2((Math.random() - 0.5) * 0.02);
+      delta = round2((rng() - 0.5) * 0.02);
     }
 
     if (agent.belief_vector) {
