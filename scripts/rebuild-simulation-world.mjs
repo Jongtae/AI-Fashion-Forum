@@ -221,7 +221,9 @@ async function main() {
 
   console.log(`[rebuild] Running controlled simulation via ${AGENT_SERVER_URL}/api/run`);
   const runResult = await runSimulation({ seed: args.seed, ticks: args.ticks, speed: args.speed });
-  console.log(`[rebuild] Simulation complete: posts=${runResult.posts_created} replay=${runResult.replay_file} report=${runResult.report_file}`);
+  console.log(
+    `[rebuild] Simulation complete: posts=${runResult.posts_created} comments=${runResult.comments_created} ratio=${runResult.interaction_metrics?.comment_post_ratio ?? 0} maxDepth=${runResult.interaction_metrics?.max_reply_depth ?? 0} replay=${runResult.replay_file} report=${runResult.report_file}`,
+  );
 
   console.log(`[rebuild] Running agent loop via ${AGENT_SERVER_URL}/api/agent-loop/tick`);
   const loopResult = await runAgentLoop({ seed: args.seed, ticks: Math.max(1, Math.min(10, args.ticks)), speed: args.speed });

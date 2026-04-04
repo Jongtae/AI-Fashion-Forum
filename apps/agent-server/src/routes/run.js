@@ -23,6 +23,13 @@ import {
   createSpawnedAgentState,
 } from "../lib/agent-state.js";
 import { loadAgentStartupStateSnapshot } from "../lib/agent-startup-state.js";
+import {
+  buildThreadStatsByPostId,
+  computeCommentThreadStats,
+  getSocialPriority,
+  rankReplyTargets,
+  rankTargetPosts,
+} from "../lib/social-threading.js";
 import { SimEvent } from "../models/SimEvent.js";
 import {
   buildPopulationGrowthPlan,
@@ -56,56 +63,12 @@ function stringSeed(...parts) {
     .reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
 }
 
-function getSocialPriority(agent = {}) {
-  const archetype = agent.archetype || "";
-  const base = Number(agent.activity_level || 0.4);
-
-  if (archetype === "empathetic_responder") return base + 0.35;
-  if (archetype === "community_regular") return base + 0.28;
-  if (archetype === "contrarian_commenter") return base + 0.22;
-  if (archetype === "quiet_observer") return base - 0.08;
-  return base + 0.1;
-}
-
 function pickDeterministic(items = [], seed = 0) {
   if (!items.length) {
     return null;
   }
 
   return items[Math.abs(seed) % items.length];
-}
-
-function countTopicOverlap(agent = {}, post = {}) {
-  const interestKeys = new Set(Object.keys(agent.interest_vector || {}));
-  const postTopics = new Set([
-    ...(Array.isArray(post.tags) ? post.tags : []),
-    ...(Array.isArray(post.generationContext?.sourceTopics) ? post.generationContext.sourceTopics : []),
-  ]);
-
-  let matches = 0;
-  for (const topic of postTopics) {
-    if (interestKeys.has(topic)) {
-      matches += 1;
-    }
-  }
-
-  return matches;
-}
-
-function rankTargetPosts({ agent, posts, existingCommentCounts = new Map(), seed = 0 }) {
-  return [...posts]
-    .filter((post) => post.agent_id !== agent.agent_id && post.forumPostId)
-    .map((post, index) => {
-      const overlap = countTopicOverlap(agent, post);
-      const commentCount = existingCommentCounts.get(post.forumPostId) || 0;
-      const questionBonus = /\?|\b어떻게\b|\b왜\b|\b괜찮\b/.test(`${post.title || ""} ${post.body || ""}`) ? 0.18 : 0;
-      const seededTieBreak = ((seed + index + stringSeed(agent.agent_id, post.forumPostId)) % 17) / 100;
-      const score = overlap * 0.3 + Math.min(commentCount * 0.22, 0.44) + questionBonus + seededTieBreak;
-
-      return { post, score };
-    })
-    .sort((left, right) => right.score - left.score)
-    .map((entry) => entry.post);
 }
 
 async function postToForum(urlPath, body) {
@@ -330,10 +293,12 @@ router.post("/", async (req, res) => {
     const firstPassAgents = socialAgents.slice(0, Math.min(socialAgents.length, Math.max(6, Math.floor(successfulPosts.length * 0.45))));
 
     for (const [index, agent] of firstPassAgents.entries()) {
+      const threadStatsByPostId = buildThreadStatsByPostId(successfulPosts, createdComments);
       const rankedPosts = rankTargetPosts({
         agent,
         posts: successfulPosts,
         existingCommentCounts,
+        threadStatsByPostId,
         seed: seed + index,
       });
       const targetPost = pickDeterministic(rankedPosts.slice(0, 4), seed + index) || rankedPosts[0];
@@ -481,6 +446,126 @@ router.post("/", async (req, res) => {
         console.warn(`[run] second-pass reply failed for ${replyingAgent.agent_id}:`, error.message);
       }
     }
+
+    const thirdPassBudget = Math.min(
+      createdComments.length,
+      Math.max(3, Math.floor(firstPassAgents.length * 0.45)),
+    );
+    const usedThirdPassPairs = new Set();
+
+    for (let index = 0; index < thirdPassBudget; index += 1) {
+      const threadStatsByPostId = buildThreadStatsByPostId(successfulPosts, createdComments);
+      const rankedPosts = [...successfulPosts]
+        .map((post) => ({
+          post,
+          stats: threadStatsByPostId.get(post.forumPostId) || { maxDepth: 1, totalComments: 0 },
+        }))
+        .filter(({ stats }) => (stats.totalComments || 0) > 0)
+        .sort((left, right) => {
+          const leftScore = (left.stats.maxDepth || 1) * 2 + (left.stats.totalComments || 0);
+          const rightScore = (right.stats.maxDepth || 1) * 2 + (right.stats.totalComments || 0);
+          return rightScore - leftScore;
+        });
+      const targetThread = rankedPosts[index % rankedPosts.length];
+      if (!targetThread) {
+        continue;
+      }
+
+      const targetPost = targetThread.post;
+      const threadComments = createdComments.filter((comment) => comment.forumPostId === targetPost.forumPostId);
+      const rankedReplies = rankReplyTargets({
+        agent: socialAgents[index % socialAgents.length] || {},
+        post: targetPost,
+        comments: threadComments,
+        threadStats: targetThread.stats,
+        seed: seed + index + 211,
+      });
+      const targetComment = rankedReplies[0];
+      if (!targetComment) {
+        continue;
+      }
+
+      const replyingAgent = socialAgents.find((candidate) => {
+        const pairKey = `${candidate.agent_id}:${targetComment._id?.toString?.() || targetComment._id}`;
+        return (
+          candidate.agent_id !== targetComment.authorId &&
+          candidate.agent_id !== targetPost.agent_id &&
+          !usedThirdPassPairs.has(pairKey)
+        );
+      });
+      if (!replyingAgent) {
+        continue;
+      }
+
+      const pairKey = `${replyingAgent.agent_id}:${targetComment._id?.toString?.() || targetComment._id}`;
+      usedThirdPassPairs.add(pairKey);
+
+      const draft = await createLiveCommentDraft({
+        agent: replyingAgent,
+        targetContent: {
+          title: targetPost.title || "최근 글",
+          body: targetPost.body || "",
+          topics: targetPost.generationContext?.sourceTopics || targetPost.tags || [],
+        },
+        targetComment: {
+          content: targetComment.content || "",
+        },
+        sourceSignal:
+          targetComment.replyTargetType === "comment"
+            ? "이어지는 답글 흐름에 다시 끼어들었다."
+            : "붙은 반응을 보고 한 번 더 대화를 이었다.",
+        comparisonTexts: [
+          targetPost.title || "",
+          targetPost.body || "",
+          ...threadComments.slice(-6).map((comment) => comment.content || ""),
+        ].filter(Boolean),
+        variationSeed:
+          seed +
+          index +
+          stringSeed(replyingAgent.agent_id, targetComment._id, targetPost.forumPostId, "third-pass"),
+        provider: LLM_PROVIDER,
+        apiKey: SIMULATION_LLM_API_KEY,
+        styleProfile: replyingAgent?.seed_profile?.comment_style || null,
+        emotionProfile: {
+          ...((replyingAgent?.seed_profile?.emotional_bias || replyingAgent?.seed_profile?.emotion_bias || {})),
+          ...(replyingAgent?.mutable_state?.affect_state?.emotional_bias || {}),
+        },
+      });
+
+      try {
+        const reply = await postToForum(`/api/posts/${targetPost.forumPostId}/comments`, {
+          content: draft.content || "이 얘기는 한 번 더 이어가고 싶다.",
+          authorId: replyingAgent.agent_id,
+          authorType: "agent",
+          authorDisplayName: replyingAgent.display_name || replyingAgent.handle || replyingAgent.agent_id,
+          authorHandle: replyingAgent.handle || replyingAgent.display_name || replyingAgent.agent_id,
+          authorAvatarUrl: replyingAgent.avatar_url || "",
+          authorLocale: replyingAgent.avatar_locale || "",
+          agentRound: 1,
+          agentTick: firstPassAgents.length + secondPassBudget + index,
+          generationContext: draft.generationContext ?? null,
+          replyToCommentId: targetComment._id?.toString(),
+          replyTargetType: "comment",
+          replyTargetId: targetComment._id?.toString(),
+          replyTargetAuthorId: targetComment.authorId,
+          replyTargetPreview: (targetComment.content || "").slice(0, 180),
+        });
+
+        createdComments.push({
+          ...reply,
+          forumPostId: targetPost.forumPostId,
+          authorId: replyingAgent.agent_id,
+          replyTargetType: "comment",
+          targetPostAuthorId: targetPost.agent_id,
+        });
+        existingCommentCounts.set(
+          targetPost.forumPostId,
+          (existingCommentCounts.get(targetPost.forumPostId) || 0) + 1,
+        );
+      } catch (error) {
+        console.warn(`[run] third-pass reply failed for ${replyingAgent.agent_id}:`, error.message);
+      }
+    }
   }
 
   // ── Step 4: Tick engine (deterministic with seed) ─────────────────────────
@@ -568,6 +653,14 @@ router.post("/", async (req, res) => {
     },
     agentEvolution,
   });
+  const threadStats = computeCommentThreadStats(createdComments);
+  const interactionMetrics = {
+    comment_post_ratio: createdPosts.length
+      ? Number((createdComments.length / Math.max(createdPosts.length, 1)).toFixed(3))
+      : 0,
+    average_reply_depth: threadStats.averageDepth,
+    max_reply_depth: threadStats.maxDepth,
+  };
 
   // ── Step 7: Replay export ─────────────────────────────────────────────────
   const replayExport = {
@@ -601,6 +694,7 @@ router.post("/", async (req, res) => {
     comments: createdComments,
     tick_entries: tickResult.entries,
     report,
+    interaction_metrics: interactionMetrics,
   };
 
   fs.mkdirSync(REPLAY_DIR, { recursive: true });
@@ -636,6 +730,7 @@ router.post("/", async (req, res) => {
     replay_file: replayFile,
     report_file: reportFile,
     report: report.metrics,
+    interaction_metrics: interactionMetrics,
     sprint1_verdicts: sprint1Verdicts,
     agent_growth: report.agent_growth,
     agent_evolution: agentEvolution,

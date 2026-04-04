@@ -27,6 +27,11 @@ import {
   buildPopulationGrowthPlan,
   DEFAULT_INITIAL_AGENT_COUNT,
 } from "../lib/population-growth.js";
+import {
+  buildThreadStatsByPostId,
+  rankReplyTargets,
+  rankTargetPosts,
+} from "../lib/social-threading.js";
 import { getForumWritebackMode, shouldWriteForumArtifacts } from "../lib/forum-writeback.js";
 import { AgentState } from "../models/AgentState.js";
 import { ActionTrace } from "../models/ActionTrace.js";
@@ -416,13 +421,52 @@ router.post("/tick", async (req, res) => {
         });
       }
     } else if (entry.action === "comment") {
-      // Find a recent agent post to comment on via forum-server
+      // Find a recent active thread to comment on via forum-server
       try {
-        const feedResult = await forumGet("/api/posts?limit=5&authorType=agent");
+        const feedResult = await forumGet("/api/posts?limit=12&authorType=agent");
         const recentPosts = Array.isArray(feedResult?.posts) ? feedResult.posts : [];
-        const recentPost = recentPosts.length
-          ? recentPosts[(seed + round + entry.tick) % recentPosts.length]
-          : null;
+        const recentCommentsByPostId = new Map();
+        const existingCommentCounts = new Map();
+
+        for (const post of recentPosts) {
+          const postId = post._id?.toString() || post.id || null;
+          if (!postId) {
+            continue;
+          }
+          const recentComments = await forumGet(`/api/posts/${postId}/comments`);
+          const comments = Array.isArray(recentComments) ? recentComments : [];
+          recentCommentsByPostId.set(postId, comments);
+          existingCommentCounts.set(postId, comments.length);
+        }
+
+        const rankedPosts = rankTargetPosts({
+          agent,
+          posts: recentPosts.map((post) => ({
+            ...post,
+            forumPostId: post._id?.toString() || post.id || null,
+            agent_id: post.authorId,
+            body: post.content || "",
+          })),
+          existingCommentCounts,
+          threadStatsByPostId: buildThreadStatsByPostId(
+            recentPosts.map((post) => ({
+              ...post,
+              forumPostId: post._id?.toString() || post.id || null,
+              agent_id: post.authorId,
+              body: post.content || "",
+            })),
+            recentPosts.flatMap((post) => {
+              const postId = post._id?.toString() || post.id || null;
+              const comments = recentCommentsByPostId.get(postId) || [];
+              return comments.map((comment) => ({
+                ...comment,
+                forumPostId: postId,
+              }));
+            }),
+          ),
+          seed: seed + round + entry.tick,
+        });
+        const recentPost = rankedPosts[0] || null;
         if (recentPost) {
           const exposureRuntime = {
             state: { agents: [agent] },
@@ -449,10 +493,33 @@ router.post("/tick", async (req, res) => {
             source: "agent_loop_comment",
           });
 
-          const recentComments = await forumGet(`/api/posts/${recentPost._id}/comments`);
-          const eligibleComments = (Array.isArray(recentComments) ? recentComments : []).filter(
-            (comment) => comment.authorId !== entry.actor_id
-          );
+          const recentComments =
+            recentCommentsByPostId.get(recentPost._id?.toString() || recentPost.id || "") || [];
+          const eligibleComments = rankReplyTargets({
+            agent,
+            post: {
+              ...recentPost,
+              forumPostId: recentPost._id?.toString() || recentPost.id || null,
+              agent_id: recentPost.authorId,
+              body: recentPost.content || "",
+            },
+            comments: recentComments,
+            threadStats: buildThreadStatsByPostId(
+              [
+                {
+                  ...recentPost,
+                  forumPostId: recentPost._id?.toString() || recentPost.id || null,
+                  agent_id: recentPost.authorId,
+                  body: recentPost.content || "",
+                },
+              ],
+              recentComments.map((comment) => ({
+                ...comment,
+                forumPostId: recentPost._id?.toString() || recentPost.id || null,
+              })),
+            ).get(recentPost._id?.toString() || recentPost.id || null),
+            seed: seed + round + entry.tick,
+          }).filter((comment) => comment.authorId !== entry.actor_id);
           const comparisonTexts = [
             ...recentDraftTexts.slice(-8),
             ...recentPosts.flatMap((post) => [post.title || "", post.content || ""]),
@@ -460,10 +527,7 @@ router.post("/tick", async (req, res) => {
             recentPost.title || "",
             recentPost.content || "",
           ].filter(Boolean);
-          const replyTargetComment =
-            eligibleComments.length > 0
-              ? eligibleComments[(seed + round + entry.tick) % eligibleComments.length]
-              : null;
+          const replyTargetComment = eligibleComments[0] || null;
           const draft = await createLiveCommentDraft({
             agent,
             targetContent: {
