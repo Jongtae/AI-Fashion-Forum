@@ -337,6 +337,37 @@ function buildMemoryContext(memoryContext = {}) {
   );
   const recentMemorySummary = recentMemoryTexts.slice(-3).join(" / ");
   const selfNarrativeSummary = selfNarrativeTexts.slice(-3).join(" / ");
+  const latestRecentMemory = recentMemories.length ? recentMemories[recentMemories.length - 1] : null;
+  const latestNarrative = selfNarratives.length ? selfNarratives[selfNarratives.length - 1] : null;
+  const latestMemoryText = extractMemoryText(latestRecentMemory);
+  const latestNarrativeText = extractMemoryText(latestNarrative);
+  const latestMemoryDetails =
+    latestRecentMemory && typeof latestRecentMemory === "object" && latestRecentMemory.details
+      ? latestRecentMemory.details
+      : {};
+  const reconsideredTitle = sanitizeForumLanguage(
+    latestMemoryDetails?.title ||
+      latestMemoryDetails?.content_title ||
+      "",
+  );
+  const reconsideredTopics = uniqueNormalizedList(
+    Array.isArray(latestMemoryDetails?.topics) ? latestMemoryDetails.topics.map(localizeTopicLabel) : [],
+  );
+  const reconsideredTopic = reconsideredTopics[0] || "";
+  const changeReason = sanitizeForumLanguage(
+    latestMemoryDetails?.reason_clause ||
+      latestMemoryDetails?.reason ||
+      latestNarrativeText ||
+      latestMemoryText ||
+      "",
+  );
+  const memoryReferenceCue = [reconsideredTitle, reconsideredTopic, changeReason]
+    .filter(Boolean)
+    .join(" / ");
+  const changeSummary = [latestMemoryText, latestNarrativeText]
+    .filter(Boolean)
+    .slice(-2)
+    .join(" / ");
 
   return {
     recentMemories,
@@ -345,9 +376,72 @@ function buildMemoryContext(memoryContext = {}) {
     selfNarrativeTexts,
     recentMemorySummary,
     selfNarrativeSummary,
+    latestMemoryText,
+    latestNarrativeText,
+    reconsideredTitle,
+    reconsideredTopic,
+    changeReason,
+    changeSummary,
+    memoryReferenceCue,
     memoryCount: recentMemories.length,
     narrativeCount: selfNarratives.length,
   };
+}
+
+function buildMemoryReferenceLine(memoryContext = {}, { contextLabel = "", mode = "run" } = {}) {
+  const changeReason = sanitizeForumLanguage(memoryContext?.changeReason || "");
+  const reconsideredTopic = sanitizeForumLanguage(memoryContext?.reconsideredTopic || "");
+  const reconsideredTitle = localizeSourceLabel(
+    memoryContext?.reconsideredTitle || "",
+    reconsideredTopic || "비슷한 글",
+  );
+  const referenceSubject = reconsideredTitle || reconsideredTopic || "비슷한 글";
+
+  if (!changeReason && !referenceSubject) {
+    return "";
+  }
+
+  const trimmedReason = changeReason
+    .replace(/^나는\s+/u, "")
+    .replace(/^“?[^”]+”?\s*을 읽은 뒤\s*/u, "")
+    .replace(/^읽은 글\s*/u, "")
+    .replace(/\.$/, "")
+    .trim();
+
+  if (mode === "comment") {
+    if (trimmedReason && referenceSubject) {
+      return `저도 전에 ${attachKoreanParticle(referenceSubject, "object")} 보고 ${trimmedReason}`;
+    }
+    if (trimmedReason) {
+      return `저도 비슷한 글을 보고 ${trimmedReason}`;
+    }
+    return `저도 전에 ${attachKoreanParticle(referenceSubject, "object")} 본 뒤로 보는 기준이 조금 달라졌어요`;
+  }
+
+  if (contextLabel === "가격 체크" && trimmedReason) {
+    return `${attachKoreanParticle(referenceSubject, "object")} 보고 난 뒤로 ${trimmedReason}`;
+  }
+
+  if (contextLabel === "댓글 반응" && trimmedReason) {
+    return `전에 ${attachKoreanParticle(referenceSubject, "object")} 읽고 ${trimmedReason}`;
+  }
+
+  if (contextLabel === "내 경험") {
+    if (trimmedReason) {
+      return `예전엔 그냥 넘겼는데 ${attachKoreanParticle(referenceSubject, "object")} 본 뒤로 ${trimmedReason}`;
+    }
+    return `전에 비슷한 글을 본 뒤로 같은 장면도 그냥 넘기지 않게 됐어요`;
+  }
+
+  if (trimmedReason && referenceSubject) {
+    return `전에 ${attachKoreanParticle(referenceSubject, "object")} 읽은 뒤로 ${trimmedReason}`;
+  }
+
+  if (trimmedReason) {
+    return `전에 읽은 글 이후로 ${trimmedReason}`;
+  }
+
+  return "";
 }
 
 function composeReadableBody(...parts) {
@@ -624,13 +718,17 @@ const KO_TOPIC_LABELS = {
   style: "스타일",
   fashion: "패션",
   fit: "핏",
+  sizing_fit: "사이즈와 핏",
   brand: "브랜드",
   color: "색감",
   outerwear: "아우터",
   layering: "레이어링",
   office: "오피스",
+  office_style: "오피스 스타일",
   commute: "출퇴근",
+  price: "가격",
   pricing: "가격",
+  utility: "실용",
   trend_fatigue: "트렌드 피로",
   forum_drama: "포럼 이슈",
   status_signal: "상태 신호",
@@ -1261,6 +1359,9 @@ function buildLLMPrompt({
     resolvedMemoryContext.selfNarrativeSummary
       ? `최근 자기 서사: ${resolvedMemoryContext.selfNarrativeSummary}`
       : null,
+    resolvedMemoryContext.memoryReferenceCue
+      ? `이번 글에 직접 반영할 변화 단서: ${resolvedMemoryContext.memoryReferenceCue}`
+      : null,
   ].filter(Boolean);
 
   const modeLabel = mode === "live" ? "실시간 에이전트 글" : "배치 생성 글";
@@ -1296,7 +1397,7 @@ function buildLLMPrompt({
     styleEndings.length ? `참고 끝맺음: ${styleEndings.join(", ")}` : null,
     styleSamples.length ? `참고 댓글 샘플: ${styleSamples.slice(0, 3).join(" / ")}` : null,
     memoryLines.length ? memoryLines.join("\n") : null,
-    "최근 읽은 기억이 있다면 그 기억을 다음 글의 근거로 써라. 왜 생각이 조금 바뀌었는지 드러내고, 같은 말만 반복하지 마라.",
+    "최근 읽은 기억이 있다면 그 기억을 다음 글의 근거로 써라. 무엇을 읽고 기준이 바뀌었는지, 왜 다시 보게 됐는지를 직접 드러내고 같은 말만 반복하지 마라.",
     emotionTone?.dominantEmotion ? `감정 기조: ${emotionTone.dominantEmotion} / ${emotionTone.secondaryEmotion}` : null,
     promptSnippet ? `대상 본문 단서: ${promptSnippet}` : null,
     promptBody ? `대상 본문 전체: ${promptBody}` : null,
@@ -1386,6 +1487,8 @@ function buildFallbackContexts({
   const styleOpeners = uniqueNormalizedList(styleProfile?.openers || styleProfile?.openerMarkers || []);
   const styleEndings = uniqueNormalizedList(styleProfile?.endings || styleProfile?.endingMarkers || []);
   const emotionTone = buildEmotionTonePack(emotionProfile, mode);
+  const resolvedMemoryContext = buildMemoryContext(memoryContext || {});
+  const buildMemoryLine = (contextLabel = "") => buildMemoryReferenceLine(resolvedMemoryContext, { contextLabel, mode });
   const postFallbackOpeners = ["", "근데", "오히려", "솔직히", "개인적으로", "이번엔", "조용히 보면", "문득", "가만히 보면", "처음엔", "한 번 더 보면", "왠지", "보니까", "결국", "생각보다"];
   const commentFallbackOpeners = ["", "근데", "오히려", "솔직히", "개인적으로", "음", "이 부분은", "그 포인트는", "문득", "가만히 보면", "한 번 더 보면", "왠지", "처음엔", "생각보다", "보니까"];
   const intentOpeners = {
@@ -1689,6 +1792,7 @@ function buildFallbackContexts({
         angle: "상대의 말을 받아서 대화를 이어가는 반응",
         content: composeReadableBody(
           `${buildLead(1)}${buildClaimLead("대화 이어가기")}`,
+          buildMemoryLine("대화 이어가기"),
           buildObservationTail("reply-continue", 3),
           buildCloser("reply-continue", 4),
         ),
@@ -1700,6 +1804,7 @@ function buildFallbackContexts({
         angle: "상대의 판단 기준을 더 묻는 반응",
         content: composeReadableBody(
           `${buildLead(4)}${buildClaimLead("질문")}`,
+          buildMemoryLine("질문"),
           pickContextDistinct("reply-question", variationSeed, casualQuestionPool, []),
           buildQuestionTail("reply-question", 5),
           buildCloser("reply-question", 6),
@@ -1712,6 +1817,7 @@ function buildFallbackContexts({
         angle: "부드럽게 다른 관점을 보태는 반응",
         content: composeReadableBody(
           `${buildLead(6)}${buildClaimLead("보완")}`,
+          buildMemoryLine("보완"),
           buildObservationTail("reply-nuance", 7),
           buildCloser("reply-nuance", 8),
         ),
@@ -1723,6 +1829,7 @@ function buildFallbackContexts({
         angle: "댓글과 게시글을 다시 이어 붙이는 반응",
         content: composeReadableBody(
           `${buildLead(8)}${buildClaimLead("스레드")}`,
+          buildMemoryLine("스레드"),
           `${buildSupportTail("reply-thread", variationSeed + 1)}`,
           pickContextDistinct("reply-thread", variationSeed + 2, threadBridgePool, []),
           buildCloser("reply-thread", 9),
@@ -1735,6 +1842,7 @@ function buildFallbackContexts({
         angle: "상대의 감정에 공감하면서 힘을 실어주는 반응",
         content: composeReadableBody(
           `${buildLead(10)}${buildClaimLead("공감")}`,
+          buildMemoryLine("공감"),
           `${buildSupportTail("reply-support", variationSeed + 2)}`,
           pickContextDistinct("reply-support", variationSeed + 3, supportReactionPool, []),
           buildCloser("reply-support", 11),
@@ -1747,6 +1855,7 @@ function buildFallbackContexts({
         angle: "같은 글을 다른 결로 읽어보는 반응",
         content: composeReadableBody(
           `${buildLead(12)}${buildClaimLead("반대")}`,
+          buildMemoryLine("반대"),
           `같이 보면 느낌이 조금 달라져요`,
           buildCloser("reply-counterpoint", 13),
         ),
@@ -1763,6 +1872,7 @@ function buildFallbackContexts({
         angle: "일상에서 다시 보는 반복 착용 기준",
         content: composeReadableBody(
           `${buildLead(1)}${buildClaimLead("출근 전")}`,
+          buildMemoryLine("출근 전"),
           `출근 전에 맞춰 보면 ${topics}보다 세탁 주기랑 손 가는 속도부터 먼저 떠올라요`,
           buildQuestionTail("life-rhythm", 2),
           buildCloser("life-rhythm", 3),
@@ -1775,6 +1885,7 @@ function buildFallbackContexts({
         angle: "새로운 신호를 먼저 잡는 관점",
         content: composeReadableBody(
           `${buildLead(3)}${buildClaimLead("첫인상")}`,
+          buildMemoryLine("첫인상"),
           `첫 사진만 볼 때보다 설명 한 줄과 ${baseSignal} 같이 보면 어디에 힘 준 글인지 더 분명해져요`,
           buildObservationTail("signal-reading", 4),
           buildCloser("signal-reading", 5),
@@ -1787,6 +1898,7 @@ function buildFallbackContexts({
         angle: "좋아 보이는 인상보다 실제 손익을 따지는 관점",
         content: composeReadableBody(
           `${buildLead(5)}${buildClaimLead("가격 체크")}`,
+          buildMemoryLine("가격 체크"),
           `${signalWithObject} 붙여 보면 예쁜지보다 가격표 앞에서 바로 식는 부분이 어딘지가 먼저 보여요`,
           buildCloser("tradeoff-check", 6),
         ),
@@ -1798,6 +1910,7 @@ function buildFallbackContexts({
         angle: "포럼 대화 맥락에 기대는 반응",
         content: composeReadableBody(
           `${buildLead(7)}${buildClaimLead("댓글 반응")}`,
+          buildMemoryLine("댓글 반응"),
           `${topics}보다 댓글에서 어디가 갈렸는지 보니 본문보다 반응이 더 큰 힌트가 돼요`,
           buildQuestionTail("community-reply", 8),
           buildCloser("community-reply", 9),
@@ -1810,6 +1923,7 @@ function buildFallbackContexts({
         angle: "작은 디테일을 먼저 짚는 관점",
         content: composeReadableBody(
           `${buildLead(9)}${buildClaimLead("디테일")}`,
+          buildMemoryLine("디테일"),
           `${topics}만 볼 때는 지나치던 소매 끝이나 길이 같은 차이가 ${signalWithObject} 붙으면 갑자기 크게 보여요`,
           buildObservationTail("micro-observation", 10),
           buildCloser("micro-observation", 11),
@@ -1822,6 +1936,7 @@ function buildFallbackContexts({
         angle: "개인 경험을 살짝 섞는 반응",
         content: composeReadableBody(
           `${buildLead(11)}${buildClaimLead("내 경험")}`,
+          buildMemoryLine("내 경험"),
           `${topicsWithObject} 볼 때도 예전에 비슷한 걸 샀다가 어땠는지가 ${baseSignal}보다 먼저 같이 떠올라요`,
           buildCloser("personal-memory", 12),
         ),
@@ -1839,6 +1954,7 @@ function buildFallbackContexts({
         angle: "출근이나 외출 전에 다시 읽는 생활 기준",
         content: composeReadableBody(
           `${buildLead(1)}${buildClaimLead("출근 전")}`,
+          buildMemoryLine("출근 전"),
           `${topics}보다 반복해서 입을 수 있느냐가 먼저 중요해요`,
           buildQuestionTail("life-rhythm", 2),
           buildCloser("life-rhythm", 3),
@@ -1851,6 +1967,7 @@ function buildFallbackContexts({
         angle: "글에서 새로 보이는 신호를 먼저 잡는 관점",
         content: composeReadableBody(
           `${buildLead(3)}${buildClaimLead("첫인상")}`,
+          buildMemoryLine("첫인상"),
           `겉으로는 단순해 보여도 ${baseSignal} 따라가면 결이 달라져요`,
           buildObservationTail("signal-reading", 4),
           buildCloser("signal-reading", 5),
@@ -1863,6 +1980,7 @@ function buildFallbackContexts({
         angle: "가격과 과장보다 실제 손익을 따지는 관점",
         content: composeReadableBody(
           `${buildLead(5)}${buildClaimLead("가격 체크")}`,
+          buildMemoryLine("가격 체크"),
           `${signalWithObject} 기준으로 오래 갈지부터 보게 돼요`,
           buildCloser("tradeoff-check", 6),
         ),
@@ -1874,6 +1992,7 @@ function buildFallbackContexts({
         angle: "포럼 대화 흐름에 기대는 반응",
         content: composeReadableBody(
           `${buildLead(7)}${buildClaimLead("댓글 반응")}`,
+          buildMemoryLine("댓글 반응"),
           `${topics}에 대한 반응이 갈리니까 글 하나도 다시 보게 돼요`,
           buildQuestionTail("community-reply", 8),
           buildCloser("community-reply", 9),
@@ -1886,6 +2005,7 @@ function buildFallbackContexts({
         angle: "작은 디테일을 먼저 짚는 관점",
         content: composeReadableBody(
           `${buildLead(9)}${buildClaimLead("디테일")}`,
+          buildMemoryLine("디테일"),
           `${topics}만 볼 때랑 ${signalWithObject} 붙여 볼 때 느낌이 달라져요`,
           buildObservationTail("micro-observation", 10),
           buildCloser("micro-observation", 11),
@@ -1898,6 +2018,7 @@ function buildFallbackContexts({
         angle: "개인 경험을 살짝 섞는 반응",
         content: composeReadableBody(
           `${buildLead(11)}${buildClaimLead("내 경험")}`,
+          buildMemoryLine("내 경험"),
           `${topicsWithObject} 볼 때도 ${baseSignal}처럼 바로 떠오르는 기준이 있어야 해요`,
           buildCloser("personal-memory", 12),
         ),
@@ -1950,6 +2071,8 @@ function buildGenerationContext({
     titleStrategy: "hook_not_summary",
     recentMemorySummary: resolvedMemoryContext.recentMemorySummary || "",
     selfNarrativeSummary: resolvedMemoryContext.selfNarrativeSummary || "",
+    memoryReferenceCue: resolvedMemoryContext.memoryReferenceCue || "",
+    changeSummary: resolvedMemoryContext.changeSummary || "",
     recentMemoryCount: resolvedMemoryContext.memoryCount || 0,
     selfNarrativeCount: resolvedMemoryContext.narrativeCount || 0,
     model: model || null,

@@ -54,8 +54,9 @@ test("rememberContentExposure appends read content to recent memories and self n
   assert.equal(updatedAgent.recentMemories.length, 1);
   assert.match(updatedAgent.recentMemories[0].summary, /읽은 글/);
   assert.match(updatedAgent.recentMemories[0].details.title, /pastel aqua/);
+  assert.match(updatedAgent.recentMemories[0].details.reason_clause, /색감보다 오피스 기준/);
   assert.ok(updatedAgent.self_narrative.length >= 1);
-  assert.match(updatedAgent.self_narrative[0], /읽고/);
+  assert.match(updatedAgent.self_narrative[0], /읽은 뒤/);
   assert.match(updatedAgent.mutable_state.self_narrative_summary, /색감보다 오피스 기준/);
 
   const memoryTimeline = queryMemoryTimeline(runtime, "A01");
@@ -63,4 +64,3 @@ test("rememberContentExposure appends read content to recent memories and self n
   assert.equal(memoryTimeline.durable.length, 1);
   assert.equal(memoryTimeline.selfNarrative.length, 1);
 });
-

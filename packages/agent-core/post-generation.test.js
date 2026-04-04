@@ -574,7 +574,45 @@ test("createRunPostDraft threads recent memories into generation context", async
 
   assert.match(draft.generationContext.recentMemorySummary, /가격보다 핏/);
   assert.match(draft.generationContext.selfNarrativeSummary, /가격보다 핏/);
-  assert.match(draft.content, /기억|다시|생각|읽고|보게 됐|먼저/);
+  assert.match(draft.generationContext.memoryReferenceCue, /가격보다 핏|quiet office outfit|오피스/);
+  assert.match(draft.generationContext.changeSummary, /가격보다 핏|기울었다/);
+  assert.match(draft.content, /전에|읽은 뒤|기준이|다시|먼저/);
+});
+
+test("createRunPostDraft makes feedback loop visible in later copy", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+      recentMemories: [
+        {
+          summary: "읽은 글 “office shirt pairing” 뒤로 가격보다 핏을 먼저 보게 됐다.",
+          details: {
+            title: "office shirt pairing",
+            topics: ["office_style", "fit"],
+            reason_clause: "가격보다 핏을 먼저 보게 됐다",
+          },
+        },
+      ],
+      self_narrative: [
+        "나는 “office shirt pairing”을 읽은 뒤 가격보다 핏을 먼저 보는 편으로 조금 더 기울었다.",
+      ],
+    },
+    reactionRecord: {
+      meaning_frame: "tradeoff_filter",
+      stance_signal: "observant",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "quiet office outfit",
+      body: "A small look at weekday layering and commute comfort.",
+      topics: ["office", "layering"],
+    },
+    variationSeed: 5,
+    apiKey: "",
+  });
+
+  assert.match(draft.content, /전에|읽은 뒤/);
+  assert.match(draft.content, /가격보다 핏|office shirt pairing|오피스|핏/);
 });
 
 test("createRunPostDraft surfaces context-specific concrete body details", async () => {
