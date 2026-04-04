@@ -8,6 +8,7 @@ import runRouter from "./routes/run.js";
 import loggingRouter from "./routes/logging.js";
 import checkpointRouter from "./routes/checkpoint.js";
 import observationRouter from "./routes/observation.js";
+import simulationRouter from "./routes/simulation.js";
 import { startForumEventSubscriber } from "./services/forum-event-subscriber.js";
 
 const PORT = Number(process.env.AGENT_SERVER_PORT || 4001);
@@ -25,6 +26,7 @@ app.use("/api/run", runRouter);
 app.use("/api/logging", loggingRouter);
 app.use("/api/checkpoints", checkpointRouter);
 app.use("/api/observation", observationRouter);
+app.use("/api/simulation", simulationRouter);
 app.use("/api", sprint1SamplesRouter);
 
 // eslint-disable-next-line no-unused-vars
