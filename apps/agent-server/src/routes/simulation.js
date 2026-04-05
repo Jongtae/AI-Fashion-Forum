@@ -12,6 +12,7 @@ import {
   selectExposure,
   applyExposureDrift,
   measureDrift,
+  generateCommunityPost,
 } from "@ai-fashion-forum/agent-core";
 import {
   createStateSnapshot,
@@ -207,8 +208,12 @@ router.post("/run", async (req, res) => {
       },
     });
 
-    // ── Step 3: Generate posts (LLM when available, rich template otherwise) ─
+    // ── Step 3: Generate posts ─────────────────────────────────────────
+    // LLM mode: call createLivePostDraft with API key
+    // Template mode: use generateCommunityPost for realistic community posts
     const roundPosts = [];
+    const recentBodies = roundPosts.map((p) => p.body);
+
     for (const entry of tickResult.entries) {
       if (entry.action !== "post" && entry.action !== "comment") continue;
       if (SIMULATION_LLM_API_KEY && !budget.canAfford(1)) break;
@@ -217,31 +222,72 @@ router.post("/run", async (req, res) => {
       if (!agent) continue;
 
       const interestTopics = Object.keys(agent.interest_vector || {}).slice(0, 3);
-      const primaryTopic = interestTopics[0] || "스타일";
+      const postSeed = seed + round * 100 + entry.tick + roundPosts.length;
 
-      try {
-        const draft = await createLivePostDraft({
-          agent,
-          targetContent: {
-            title: `${primaryTopic} 관련 메모`,
-            body: entry.reason || "최근 흐름을 읽어봤다.",
-            topics: interestTopics,
-          },
-          sourceSignal: entry.reason || "",
-          styleProfile: agent?.seed_profile?.comment_style || null,
-          emotionProfile: {
-            ...(agent?.seed_profile?.emotional_bias || {}),
-            ...(agent?.mutable_state?.affect_state?.emotional_bias || {}),
-          },
-          comparisonTexts: roundPosts.slice(-5).map((p) => p.body).filter(Boolean),
-          variationSeed: seed + round * 100 + entry.tick,
-          provider: LLM_PROVIDER,
-          apiKey: SIMULATION_LLM_API_KEY, // empty string → uses rich fallback templates
-        });
+      if (SIMULATION_LLM_API_KEY) {
+        // ── LLM mode ─────────────────────────────────────────────────
+        try {
+          const draft = await createLivePostDraft({
+            agent,
+            targetContent: {
+              title: `${interestTopics[0] || "스타일"} 관련 메모`,
+              body: entry.reason || "최근 흐름을 읽어봤다.",
+              topics: interestTopics,
+            },
+            sourceSignal: entry.reason || "",
+            styleProfile: agent?.seed_profile?.comment_style || null,
+            emotionProfile: {
+              ...(agent?.seed_profile?.emotional_bias || {}),
+              ...(agent?.mutable_state?.affect_state?.emotional_bias || {}),
+            },
+            comparisonTexts: recentBodies.slice(-5),
+            variationSeed: postSeed,
+            provider: LLM_PROVIDER,
+            apiKey: SIMULATION_LLM_API_KEY,
+          });
 
-        const usedLLM = SIMULATION_LLM_API_KEY && draft.generationContext?.source !== "fallback";
-        if (usedLLM) budget.record();
-
+          budget.record();
+          const body = draft.content || entry.reason || "글을 남겼다.";
+          roundPosts.push({
+            post_id: `sim-r${round}-${entry.action_id}`,
+            agent_id: agent.agent_id,
+            authorId: agent.agent_id,
+            handle: agent.handle,
+            display_name: agent.display_name,
+            avatar_url: agent.avatar_url || "",
+            avatar_locale: agent.avatar_locale || "",
+            body,
+            title: draft.title || null,
+            tags: interestTopics,
+            round,
+            tick: entry.tick,
+            source: "llm",
+            generationContext: draft.generationContext || null,
+          });
+          recentBodies.push(body);
+        } catch {
+          // LLM failed → fall through to community template
+          const post = generateCommunityPost({ agent, seed: postSeed, recentBodies });
+          roundPosts.push({
+            post_id: `sim-r${round}-${entry.action_id}`,
+            agent_id: agent.agent_id,
+            authorId: agent.agent_id,
+            handle: agent.handle,
+            display_name: agent.display_name,
+            avatar_url: agent.avatar_url || "",
+            avatar_locale: agent.avatar_locale || "",
+            body: post.content,
+            title: post.title,
+            tags: post.tags,
+            round,
+            tick: entry.tick,
+            source: "template",
+          });
+          recentBodies.push(post.content);
+        }
+      } else {
+        // ── Template mode (no API key) ───────────────────────────────
+        const post = generateCommunityPost({ agent, seed: postSeed, recentBodies });
         roundPosts.push({
           post_id: `sim-r${round}-${entry.action_id}`,
           agent_id: agent.agent_id,
@@ -250,33 +296,14 @@ router.post("/run", async (req, res) => {
           display_name: agent.display_name,
           avatar_url: agent.avatar_url || "",
           avatar_locale: agent.avatar_locale || "",
-          body: draft.content || entry.reason || "글을 남겼다.",
-          title: draft.title || null,
-          tags: interestTopics,
-          meaning_frame: interestTopics[0] || null,
-          stance_signal: null,
+          body: post.content,
+          title: post.title,
+          tags: post.tags,
           round,
           tick: entry.tick,
-          source: usedLLM ? "llm" : "template",
-          generationContext: draft.generationContext || null,
+          source: "template",
         });
-      } catch {
-        roundPosts.push({
-          post_id: `sim-r${round}-${entry.action_id}`,
-          agent_id: agent.agent_id,
-          authorId: agent.agent_id,
-          handle: agent.handle,
-          display_name: agent.display_name,
-          avatar_url: agent.avatar_url || "",
-          avatar_locale: agent.avatar_locale || "",
-          body: entry.reason || "글을 남겼다.",
-          tags: interestTopics,
-          meaning_frame: interestTopics[0] || null,
-          stance_signal: null,
-          round,
-          tick: entry.tick,
-          source: "error_fallback",
-        });
+        recentBodies.push(post.content);
       }
     }
 
