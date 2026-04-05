@@ -499,6 +499,191 @@ function particle(word, type) {
   }
 }
 
+const LOW_SIGNAL_SUBJECT_PATTERNS = [
+  /^need advice$/iu,
+  /^what do you/i,
+  /^what pair/i,
+  /^click for more/i,
+  /^thoughts?$/iu,
+  /^help$/iu,
+  /^question$/iu,
+  /https?:\/\//i,
+  /instagram|tiktok|facebook|myslink|suno\.com/i,
+  /^♬/u,
+  /⬇️|👀|🆙|#\s/u,
+];
+
+const SIGNAL_SUBJECT_LOCALIZATION = [
+  { pattern: /\bwide[\s-]?pant(s)?\b/gi, label: "와이드팬츠" },
+  { pattern: /\bshirt(s)?\b/gi, label: "셔츠" },
+  { pattern: /\bjacket(s)?\b/gi, label: "자켓" },
+  { pattern: /\bcoat(s)?\b/gi, label: "코트" },
+  { pattern: /\bsneaker(s)?\b/gi, label: "스니커즈" },
+  { pattern: /\bshoe(s)?\b/gi, label: "신발" },
+  { pattern: /\bdenim|jean(s)?\b/gi, label: "데님" },
+  { pattern: /\bslacks?\b|\btrouser(s)?\b/gi, label: "슬랙스" },
+  { pattern: /\bblazer(s)?\b/gi, label: "블레이저" },
+  { pattern: /\bcardigan(s)?\b/gi, label: "가디건" },
+  { pattern: /\bhoodie(s)?\b/gi, label: "후드" },
+  { pattern: /\btee(s)?\b|\bt-?shirt(s)?\b/gi, label: "티셔츠" },
+  { pattern: /\bbag(s)?\b/gi, label: "가방" },
+  { pattern: /\bcover\b/gi, label: "커버" },
+  { pattern: /\bairport\b/gi, label: "공항패션" },
+  { pattern: /\bcelebrity\b/gi, label: "연예인" },
+  { pattern: /\btravel|trip|vacation|beach\b/gi, label: "여행" },
+  { pattern: /\bdog|cat|pet\b/gi, label: "반려동물" },
+  { pattern: /\bprice|pricing\b/gi, label: "가격" },
+  { pattern: /\bsale|discount\b/gi, label: "세일" },
+  { pattern: /\bstyle\b/gi, label: "스타일" },
+  { pattern: /\boutfit\b/gi, label: "착장" },
+  { pattern: /\boffice\b/gi, label: "오피스룩" },
+];
+
+const CATEGORY_SUBJECT_DEFAULTS = {
+  fashion: ["코디", "화제 아이템", "스타일 포인트"],
+  beauty: ["뷰티 아이템", "화제 사진", "오늘 본 룩"],
+  celebrity: ["화제 사진", "커버 반응", "연예인 착장"],
+  culture: ["화제 장면", "오늘 본 사진", "반응 갈린 포인트"],
+  retail: ["세일 정보", "가격 변화", "쇼핑 포인트"],
+  pricing: ["가격 변화", "세일 정보", "쇼핑 타이밍"],
+  office_style: ["오피스 코디", "출근 조합", "출근룩 포인트"],
+  travel: ["여행 준비", "여행 사진", "여행룩"],
+  pet: ["반려동물 사진", "산책룩", "반려동물 얘기"],
+  daily: ["오늘 본 글", "화제 글", "화제 포인트"],
+};
+
+function normalizeSeedText(value = "") {
+  return String(value || "")
+    .replace(/https?:\/\/\S+/gi, " ")
+    .replace(/[#*_`~]+/g, " ")
+    .replace(/[⬇️👀🆙🌖🇲🇨🦊]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function countHangul(text = "") {
+  return (String(text).match(/[가-힣]/g) || []).length;
+}
+
+function countLatin(text = "") {
+  return (String(text).match(/[A-Za-z]/g) || []).length;
+}
+
+function isKoreanDominant(text = "") {
+  const normalized = normalizeSeedText(text);
+  const hangulCount = countHangul(normalized);
+  if (hangulCount === 0) {
+    return false;
+  }
+  return hangulCount >= countLatin(normalized);
+}
+
+function isLowSignalSubject(text = "") {
+  const normalized = normalizeSeedText(text);
+  if (!normalized) {
+    return true;
+  }
+  if (normalized.length <= 2) {
+    return true;
+  }
+  if (LOW_SIGNAL_SUBJECT_PATTERNS.some((pattern) => pattern.test(normalized))) {
+    return true;
+  }
+  return false;
+}
+
+function uniqueList(values = []) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function extractLocalizedSeedTerms(values = []) {
+  return uniqueList((Array.isArray(values) ? values : []).flatMap((value) => {
+    const normalized = normalizeSeedText(value);
+    if (!normalized) {
+      return [];
+    }
+    return SIGNAL_SUBJECT_LOCALIZATION.flatMap(({ pattern, label }) => (normalized.match(pattern) ? [label] : []));
+  }));
+}
+
+function pickBySeed(items = [], seed = 0) {
+  if (!items.length) {
+    return "";
+  }
+  return items[Math.abs(Number(seed) || 0) % items.length];
+}
+
+function pickFallbackSubject(discussionSeed = {}, reactionType = "general_reaction", seed = 0) {
+  const categories = Array.isArray(discussionSeed.categoryTags) ? discussionSeed.categoryTags : [];
+  const categoryDefaults = categories.flatMap((tag) => CATEGORY_SUBJECT_DEFAULTS[tag] || []);
+  const reactionDefaults = {
+    product_reaction: ["신상 아이템", "실물 후기", "이번 출시"],
+    price_reaction: ["세일 정보", "가격 변화", "쇼핑 타이밍"],
+    celebrity_reaction: ["화제 사진", "커버 반응", "연예인 착장"],
+    season_reaction: ["날씨", "계절 코디", "오늘 코디"],
+    trend_reaction: ["화제 아이템", "화제 코디", "유행 포인트"],
+    comparison_reaction: ["두 조합", "비교 포인트", "고르는 기준"],
+    event_reaction: ["행사 후기", "주말 일정", "이벤트 분위기"],
+    general_reaction: ["화제 글", "오늘 본 글", "화제 포인트"],
+  }[reactionType] || ["요즘 얘기", "오늘 본 글", "화제 포인트"];
+
+  return pickBySeed(uniqueList([...categoryDefaults, ...reactionDefaults]), seed) || "요즘 얘기";
+}
+
+function buildSeedSubject(discussionSeed = {}, reactionType = "general_reaction", seed = 0) {
+  const rawSubject = normalizeSeedText(discussionSeed.subjectKo || "");
+  const rawTitle = normalizeSeedText(discussionSeed.rawTitle || "");
+  const context = normalizeSeedText(discussionSeed.contextKo || "");
+  const localizedTerms = extractLocalizedSeedTerms([rawSubject, rawTitle, context]);
+
+  const directCandidates = [rawSubject, rawTitle].filter((value) => (
+    value &&
+    isKoreanDominant(value) &&
+    !isLowSignalSubject(value) &&
+    value.length <= 24
+  ));
+  const candidate = uniqueList([...directCandidates, ...localizedTerms])[0];
+  if (candidate) {
+    return candidate;
+  }
+
+  return pickFallbackSubject(discussionSeed, reactionType, seed);
+}
+
+function escapeRegExp(text = "") {
+  return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizeReactiveTitle(title = "", subject = "") {
+  const normalizedSubject = normalizeSeedText(subject);
+  let normalized = normalizeSeedText(title);
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (normalizedSubject) {
+    const escapedSubject = escapeRegExp(normalizedSubject);
+    normalized = normalized
+      .replace(new RegExp(`${escapedSubject}은`, "g"), particle(normalizedSubject, "은는"))
+      .replace(new RegExp(`${escapedSubject}는`, "g"), particle(normalizedSubject, "은는"))
+      .replace(new RegExp(`${escapedSubject}이`, "g"), particle(normalizedSubject, "이가"))
+      .replace(new RegExp(`${escapedSubject}가`, "g"), particle(normalizedSubject, "이가"))
+      .replace(new RegExp(`${escapedSubject}을`, "g"), particle(normalizedSubject, "을를"))
+      .replace(new RegExp(`${escapedSubject}를`, "g"), particle(normalizedSubject, "을를"))
+      .replace(new RegExp(`${escapedSubject}과`, "g"), particle(normalizedSubject, "와과"))
+      .replace(new RegExp(`${escapedSubject}와`, "g"), particle(normalizedSubject, "와과"));
+  }
+
+  return normalized
+    .replace(/\b요즘\s+요즘\b/gu, "요즘")
+    .replace(/\b오늘\s+오늘\b/gu, "오늘")
+    .replace(/갑자기\s+요즘\s+/gu, "요즘 ")
+    .replace(/갑자기\s+오늘\s+/gu, "오늘 ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // ── Reaction type title patterns ────────────────────────────────────────────
 // Slots: {subject}, {context}, {angle}, {tension}
 
@@ -791,9 +976,7 @@ export function generateSignalReactivePost({ seed = 0, agent = {}, discussionSee
   const rng = seededRandom(seed);
 
   const reactionType = discussionSeed.reactionType || "general_reaction";
-  // Cap subject at 20 chars to keep titles natural length
-  const rawSubject = discussionSeed.subjectKo || "이것";
-  const subject = rawSubject.length > 20 ? rawSubject.slice(0, 20).replace(/\s+\S*$/, "") : rawSubject;
+  const subject = buildSeedSubject(discussionSeed, reactionType, seed);
   const context = discussionSeed.contextKo || "";
   const tension = discussionSeed.tensionPoint || "좀 고민이 되네요";
   const angles = discussionSeed.possibleAngles || [];
@@ -814,7 +997,7 @@ export function generateSignalReactivePost({ seed = 0, agent = {}, discussionSee
     .replace(/\{tension\}/g, tension)
     .replace(/\{angle\}/g, angle);
 
-  let title = fillSlots(titlePattern);
+  let title = normalizeReactiveTitle(fillSlots(titlePattern), subject);
   let body = fillSlots(bodyPattern);
 
   // Apply archetype voice
