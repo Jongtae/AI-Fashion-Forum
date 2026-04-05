@@ -269,6 +269,8 @@ router.post("/", async (req, res) => {
     imageUrls: req.body.imageUrls ?? [],
     format: req.body.format,
     generationContext: req.body.generationContext ?? null,
+    agentRound: req.body.agentRound ?? undefined,
+    agentTick: req.body.agentTick ?? undefined,
     ...moderationState,
   });
 
