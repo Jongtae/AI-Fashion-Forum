@@ -1379,3 +1379,103 @@ test("createRunPostDraft discussion-seed posts open from concrete community fami
   assert.match(opener, /사진 뜨자마자|반응이 어디서 갈리는지|아이템부터 찾게/);
   assert.doesNotMatch(opener, /올리기 좀 망설였는데|평소엔 읽기만 하는데 이건 궁금해서|조용히 눈팅하다 글 남겨요ㅎ/);
 });
+
+test("createRunPostDraft sanitizes generic English discussion subjects in titles", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "stylehunter",
+      archetype: "community_regular",
+    },
+    reactionRecord: {
+      meaning_frame: "recommendation",
+      stance_signal: "curious",
+      dominant_feeling: "questioning",
+    },
+    contentRecord: {
+      title: "Need advice",
+      body: "",
+      topics: ["fashion"],
+    },
+    discussionSeed: {
+      seedId: "seed-generic-help",
+      reactionType: "general_reaction",
+      subjectKo: "Need advice",
+      contextKo: "Trying to go for a style like these but I just don't know where to shop.",
+      tensionPoint: "추천 기준이 궁금해요",
+      possibleAngles: ["어디서 사는지", "비슷한 스타일 추천"],
+      categoryTags: ["fashion"],
+    },
+    variationSeed: 61,
+    apiKey: "",
+  });
+
+  assert.ok(/[가-힣]/.test(draft.title), `Expected Korean title but got: ${draft.title}`);
+  assert.doesNotMatch(draft.title, /Need advice|Click for more|Forest of Eternal|Hymn of Human/i);
+  assert.match(draft.title, /스타일|코디|아이템|포인트|얘기/);
+});
+
+test("createRunPostDraft drops symbol-heavy raw seed subjects from titles", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "signalwatch",
+      archetype: "quiet_observer",
+    },
+    reactionRecord: {
+      meaning_frame: "trend_watch",
+      stance_signal: "observant",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "Forest of Eternal Return",
+      body: "",
+      topics: ["fashion"],
+    },
+    discussionSeed: {
+      seedId: "seed-symbol-noise",
+      reactionType: "general_reaction",
+      subjectKo: "♬ Forest of Eternal Return: https:// suno.com/song/31848301",
+      rawTitle: "♬ Forest of Eternal Return: https:// suno.com/song/31848301",
+      contextKo: "game changer라는 말만 있고 패션 해시태그만 붙어 있는 글",
+      tensionPoint: "뭐가 핵심인지 애매해요",
+      possibleAngles: ["먼저 보이는 포인트", "화제가 되는 이유"],
+      categoryTags: ["fashion"],
+    },
+    variationSeed: 77,
+    apiKey: "",
+  });
+
+  assert.ok(/[가-힣]/.test(draft.title), `Expected Korean title but got: ${draft.title}`);
+  assert.doesNotMatch(draft.title, /Forest of Eternal|suno\.com|♬/i);
+});
+
+test("createRunPostDraft normalizes duplicated adverbs and broken particles in seed titles", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "trendwatch",
+      archetype: "trend_seeker",
+    },
+    reactionRecord: {
+      meaning_frame: "trend_watch",
+      stance_signal: "observant",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "Wide pants trending",
+      body: "",
+      topics: ["fashion"],
+    },
+    discussionSeed: {
+      seedId: "seed-widepants",
+      reactionType: "trend_reaction",
+      subjectKo: "Wide pants trending",
+      contextKo: "wide pants are showing up everywhere this week",
+      tensionPoint: "실제로 입기 쉬운지 궁금해요",
+      possibleAngles: ["실착 후기", "유행 포인트"],
+      categoryTags: ["fashion"],
+    },
+    variationSeed: 91,
+    apiKey: "",
+  });
+
+  assert.doesNotMatch(draft.title, /요즘 요즘|코디은|코디를|코디과/);
+});
