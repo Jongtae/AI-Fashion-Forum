@@ -22,8 +22,13 @@ const DEFAULT_PUBLIC_SEED_CORPUS_PATH = path.resolve(
   __dirname,
   "../../data/seed-corpus/public/recent-fashion-corpus.json",
 );
+const DEFAULT_WORLD_EVENT_SIGNAL_PATH = path.resolve(
+  __dirname,
+  "../../data/crawled-documents/world-event-signals.json",
+);
 
 const publicSeedCorpusCache = new Map();
+const worldEventSignalCache = new Map();
 
 function assertContentProvider(provider) {
   if (!provider || typeof provider.getRecords !== "function") {
@@ -65,6 +70,18 @@ function resolvePublicSeedCorpusPath(explicitPath) {
   return DEFAULT_PUBLIC_SEED_CORPUS_PATH;
 }
 
+function resolveWorldEventSignalPath(explicitPath) {
+  if (explicitPath) {
+    return path.resolve(process.cwd(), explicitPath);
+  }
+
+  if (process.env.WORLD_EVENT_SIGNAL_FILE) {
+    return path.resolve(process.cwd(), process.env.WORLD_EVENT_SIGNAL_FILE);
+  }
+
+  return DEFAULT_WORLD_EVENT_SIGNAL_PATH;
+}
+
 async function loadPublicSeedCorpusBundle({ corpusPath } = {}) {
   const resolvedPath = resolvePublicSeedCorpusPath(corpusPath);
   if (publicSeedCorpusCache.has(resolvedPath)) {
@@ -87,6 +104,32 @@ async function loadPublicSeedCorpusBundle({ corpusPath } = {}) {
     return bundle;
   } catch (error) {
     publicSeedCorpusCache.set(resolvedPath, null);
+    return null;
+  }
+}
+
+async function loadWorldEventSignalBundle({ signalPath } = {}) {
+  const resolvedPath = resolveWorldEventSignalPath(signalPath);
+  if (worldEventSignalCache.has(resolvedPath)) {
+    return worldEventSignalCache.get(resolvedPath);
+  }
+
+  try {
+    const raw = await fs.readFile(resolvedPath, "utf8");
+    const parsed = JSON.parse(raw);
+    const records = Array.isArray(parsed?.records) ? parsed.records : [];
+    const bundle = {
+      signalPath: resolvedPath,
+      exportedAt: parsed?.exportedAt || null,
+      schemaVersion: parsed?.schemaVersion || null,
+      source: parsed?.source || null,
+      summary: parsed?.summary || null,
+      records,
+    };
+    worldEventSignalCache.set(resolvedPath, bundle);
+    return bundle;
+  } catch (error) {
+    worldEventSignalCache.set(resolvedPath, null);
     return null;
   }
 }
@@ -185,6 +228,107 @@ function derivePublicEmotions(record = {}, text = "") {
     .filter(Boolean);
 
   return [...new Set(emotions.length > 0 ? emotions : ["curiosity"])];
+}
+
+function deriveWorldEventSourceType(record = {}) {
+  if (record.eventType === "question_prompt" || record.eventType === "comparison_question") {
+    return "social_post";
+  }
+  if (record.categories?.primaryCategory === "celebrity") {
+    return "social_post";
+  }
+  return "external_article";
+}
+
+function deriveWorldEventFormat(record = {}) {
+  if (record.eventType === "comparison_question") return "buy_decision";
+  if (record.eventType === "question_prompt") return "empathy_post";
+  if (record.categories?.primaryCategory === "celebrity") return "style_signal";
+  if (record.categories?.primaryCategory === "culture") return "trend_report";
+  if (record.categories?.primaryCategory === "beauty") return "trend_report";
+  if (record.categories?.primaryCategory === "retail") return "buy_decision";
+  return "trend_report";
+}
+
+function deriveWorldEventTopics(record = {}) {
+  const topicBag = Array.isArray(record.topicBag) ? record.topicBag : [];
+  const topics = topicBag.map((item) => item?.key).filter(Boolean);
+  if (topics.length > 0) return [...new Set(topics)].slice(0, 6);
+
+  const primaryCategory = record.categories?.primaryCategory;
+  return primaryCategory ? [primaryCategory] : ["community"];
+}
+
+function deriveWorldEventEmotions(record = {}) {
+  const hooks = record.anchorPayload || {};
+  const emotions = [];
+
+  if ((hooks.questionAnchors || []).length > 0) emotions.push("curiosity");
+  if ((hooks.comparisonAnchors || []).length > 0) emotions.push("curiosity");
+  if (record.categories?.primaryCategory === "celebrity") emotions.push("interest");
+  if (record.categories?.primaryCategory === "culture") emotions.push("reflection");
+  if (record.categories?.primaryCategory === "beauty") emotions.push("anticipation");
+  if (record.categories?.primaryCategory === "retail") emotions.push("caution");
+  if (record.relevanceSignals?.conversationHeat > 0.45) emotions.push("frustration");
+
+  return [...new Set(emotions.length > 0 ? emotions : ["curiosity"])];
+}
+
+function buildWorldEventProviderRecord(record, index) {
+  const sourceType = deriveWorldEventSourceType(record);
+  const format = deriveWorldEventFormat(record);
+  const title = sanitizeSeedText(record.raw?.title || record.normalizedSummary || `world signal ${index + 1}`).slice(0, 140);
+  const body = sanitizeSeedText(
+    [
+      ...(record.anchorPayload?.factAnchors || []).slice(0, 1),
+      ...(record.anchorPayload?.questionAnchors || []).slice(0, 1),
+      ...(record.anchorPayload?.discussionHooks || []).slice(0, 2),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  ) || title;
+  const topics = deriveWorldEventTopics(record);
+  const emotions = deriveWorldEventEmotions(record);
+
+  return createProviderRecord({
+    provider_id: "world-event-signals",
+    provider_item_id: record.signalId || `world-signal-${index}`,
+    source_type: sourceType,
+    format,
+    author_id: `signal:${record.source?.sourcePlatform || "external"}`,
+    created_tick: index,
+    title,
+    body,
+    topics,
+    emotions,
+    source_metadata: {
+      origin: "world_event_signal",
+      signal_id: record.signalId,
+      event_type: record.eventType,
+      primary_category: record.categories?.primaryCategory || null,
+      category_scores: record.categories?.categoryScores || [],
+      anchor_payload: record.anchorPayload || {},
+      relevance_signals: record.relevanceSignals || {},
+      agent_hooks: record.agentHooks || {},
+      source_platform: record.source?.sourcePlatform || null,
+      source_community: record.source?.sourceCommunity || null,
+      source_url: record.source?.sourceUrl || null,
+      source_created_at: record.source?.createdAt || null,
+      popularity_score: Number(record.relevanceSignals?.sourceSignalScore || 0.3),
+      controversy_signal:
+        record.eventType === "comparison_question"
+          ? 0.65
+          : record.agentHooks?.detectionTriggers?.includes("format:claim")
+            ? 0.45
+            : 0.18,
+      novelty_bucket:
+        (record.relevanceSignals?.freshnessScore || 0) >= 0.85
+          ? "fresh"
+          : (record.relevanceSignals?.freshnessScore || 0) >= 0.55
+            ? "resurfacing"
+            : "steady",
+    },
+  });
 }
 
 function buildPublicProviderRecord(record, index) {
@@ -529,6 +673,29 @@ export async function createPublicSeedContentProvider({
   };
 }
 
+export async function createWorldEventSignalContentProvider({
+  signalPath,
+} = {}) {
+  const signalBundle = await loadWorldEventSignalBundle({ signalPath });
+  if (!signalBundle) {
+    return null;
+  }
+
+  return {
+    provider_id: "world-event-signals",
+    interface: CONTENT_PROVIDER_INTERFACE,
+    async getRecords({ startTick = 0 } = {}) {
+      return signalBundle.records.map((record, index) => {
+        const providerRecord = buildWorldEventProviderRecord(record, startTick + index);
+        return {
+          ...providerRecord,
+          created_tick: startTick + index,
+        };
+      });
+    },
+  };
+}
+
 export async function collectNormalizedProviderContent({
   provider,
   startTick = 0,
@@ -569,6 +736,18 @@ export async function createSprint1StarterPackBundle(options = {}) {
 
   return collectNormalizedProviderContent({
     provider: createSprint1StarterContentProvider(options),
+    startTick: options.startTick || 0,
+  });
+}
+
+export async function createWorldEventSignalBundle(options = {}) {
+  const provider = await createWorldEventSignalContentProvider(options);
+  if (!provider) {
+    return null;
+  }
+
+  return collectNormalizedProviderContent({
+    provider,
     startTick: options.startTick || 0,
   });
 }

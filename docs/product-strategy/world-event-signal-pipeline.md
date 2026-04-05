@@ -152,3 +152,13 @@ The next implementation step should connect `world-event-signals.json` to the ag
 - expose only a small scored subset each round
 - write memory from the chosen events
 - generate posts from anchors, not from abstract summaries
+
+## Current status
+
+This repository now completes the first half of that connection:
+
+- `world-event-signals.json` is transformed into ContentRecord-style external signal candidates
+- the content indexing layer includes those records in the `external-signals` collection
+- local exposure sampling can now surface `origin=world_event_signal` records in the candidate pool
+
+The next remaining step is to connect those surfaced records to actual runtime exposure, memory writeback, and post-generation decisions.
