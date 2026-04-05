@@ -128,7 +128,7 @@ function applyTickOutcome(world, actor, action) {
   if (action.type === "post") {
     agent.self_narrative = [
       ...agent.self_narrative,
-      `${world.tick}틱: 눈에 보이는 글을 남겼다.`,
+      "오늘은 그냥 넘기기 아쉬워서 결국 글을 남겼다.",
     ].slice(-5);
   }
 

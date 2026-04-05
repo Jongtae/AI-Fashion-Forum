@@ -58,6 +58,8 @@ test("rememberContentExposure appends read content to recent memories and self n
   assert.ok(updatedAgent.self_narrative.length >= 1);
   assert.match(updatedAgent.self_narrative[0], /읽은 뒤/);
   assert.match(updatedAgent.mutable_state.self_narrative_summary, /색감보다 오피스 기준/);
+  assert.doesNotMatch(updatedAgent.mutable_state.drift_log[0], /^\d+틱:/);
+  assert.match(updatedAgent.mutable_state.drift_log[0], /기준이 조금 기울었다/);
 
   const memoryTimeline = queryMemoryTimeline(runtime, "A01");
   assert.equal(memoryTimeline.recent.length, 1);
