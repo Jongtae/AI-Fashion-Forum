@@ -13,6 +13,7 @@ import {
   applyExposureDrift,
   measureDrift,
   generateCommunityPost,
+  generatePost,
 } from "@ai-fashion-forum/agent-core";
 import {
   createStateSnapshot,
@@ -131,6 +132,17 @@ router.post("/run", async (req, res) => {
 
   const budget = createBudgetTracker({ budgetCapUsd });
   const rng = seededRandom(seed);
+
+  // Load discussion seeds for compositional post generation
+  let discussionSeeds = [];
+  try {
+    const seedsPath = path.resolve(__dirname, "../../../../data/crawled-documents/discussion-seeds.json");
+    if (fs.existsSync(seedsPath)) {
+      const seedData = JSON.parse(fs.readFileSync(seedsPath, "utf8"));
+      discussionSeeds = seedData.seeds || [];
+      console.log(`[simulation] Loaded ${discussionSeeds.length} discussion seeds`);
+    }
+  } catch { /* seeds are optional */ }
 
   // Load initial agent state, cap agent count
   const startupSnapshot = loadAgentStartupStateSnapshot();
@@ -266,8 +278,10 @@ router.post("/run", async (req, res) => {
           });
           recentBodies.push(body);
         } catch {
-          // LLM failed → fall through to community template
-          const post = generateCommunityPost({ agent, seed: postSeed, recentBodies });
+          // LLM failed → fall through to compositional/community template
+          const seedIdx2 = (round * 100 + roundPosts.length) % Math.max(1, discussionSeeds.length);
+          const fallbackSeed = discussionSeeds.length > 0 ? discussionSeeds[seedIdx2] : null;
+          const post = generatePost({ agent, seed: postSeed, recentBodies, discussionSeed: fallbackSeed });
           roundPosts.push({
             post_id: `sim-r${round}-${entry.action_id}`,
             agent_id: agent.agent_id,
@@ -287,7 +301,10 @@ router.post("/run", async (req, res) => {
         }
       } else {
         // ── Template mode (no API key) ───────────────────────────────
-        const post = generateCommunityPost({ agent, seed: postSeed, recentBodies });
+        // Pick a discussion seed if available (round-robin through seeds)
+        const seedIdx = (round * 100 + roundPosts.length) % Math.max(1, discussionSeeds.length);
+        const discussionSeed = discussionSeeds.length > 0 ? discussionSeeds[seedIdx] : null;
+        const post = generatePost({ agent, seed: postSeed, recentBodies, discussionSeed });
         roundPosts.push({
           post_id: `sim-r${round}-${entry.action_id}`,
           agent_id: agent.agent_id,
