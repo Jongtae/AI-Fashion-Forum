@@ -16,19 +16,24 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const DEFAULT_INPUT_KOREAN = path.resolve(__dirname, "../data/crawled-documents/korean-signals-raw.json");
 const DEFAULT_INPUT_WORLD = path.resolve(__dirname, "../data/crawled-documents/world-event-signals.json");
 const DEFAULT_OUTPUT = path.resolve(__dirname, "../data/crawled-documents/discussion-seeds.json");
+const DEFAULT_MAX_AGE_DAYS = 7;
 
 function parseArgs(argv) {
-  const args = { input: null, output: DEFAULT_OUTPUT };
+  const args = { input: null, output: DEFAULT_OUTPUT, maxAgeDays: DEFAULT_MAX_AGE_DAYS };
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === "--input" && argv[i + 1]) args.input = path.resolve(process.cwd(), argv[++i]);
     if (argv[i] === "--output" && argv[i + 1]) args.output = path.resolve(process.cwd(), argv[++i]);
+    if (argv[i] === "--max-age-days" && argv[i + 1]) {
+      const n = Number.parseInt(argv[++i], 10);
+      if (!Number.isNaN(n) && n > 0) args.maxAgeDays = n;
+    }
   }
   return args;
 }
@@ -186,6 +191,40 @@ function computeFreshness(dateStr) {
   return Math.max(0, Math.min(1, 1 - daysOld * 0.1));
 }
 
+export function resolveSeedSourceTimestamp(record = {}) {
+  return (
+    record?.source?.publishedAt ||
+    record?.source?.occurredAt ||
+    record?.source?.createdAt ||
+    record?.source?.crawledAt ||
+    null
+  );
+}
+
+export function isFreshSeedSource(record = {}, {
+  maxAgeDays = DEFAULT_MAX_AGE_DAYS,
+  now = new Date(),
+} = {}) {
+  const sourcePlatform = record?.source?.platform || "";
+  const timelessPlatforms = new Set(["weather", "exchange_rate", "musinsa", "curated"]);
+  if (timelessPlatforms.has(sourcePlatform)) {
+    return true;
+  }
+
+  const timestamp = resolveSeedSourceTimestamp(record);
+  if (!timestamp) {
+    return true;
+  }
+
+  const parsed = new Date(timestamp);
+  if (Number.isNaN(parsed.getTime())) {
+    return true;
+  }
+
+  const ageDays = (now.getTime() - parsed.getTime()) / (1000 * 60 * 60 * 24);
+  return ageDays <= maxAgeDays;
+}
+
 // ── Seeded random ─────────────────────────────────────────────────────────
 
 function seededRandom(seed) {
@@ -284,7 +323,7 @@ function mapEventType(eventType) {
 // ── Main ──────────────────────────────────────────────────────────────────
 
 async function main() {
-  const { input, output } = parseArgs(process.argv);
+  const { input, output, maxAgeDays } = parseArgs(process.argv);
   const rng = seededRandom(42);
   const seeds = [];
 
@@ -295,6 +334,7 @@ async function main() {
     const records = raw.records || [];
     console.log(`[extract-seeds] Loading ${records.length} records from ${path.basename(koreanPath)}`);
     for (const record of records) {
+      if (!isFreshSeedSource(record, { maxAgeDays })) continue;
       const seed = extractFromKoreanSignal(record, rng);
       if (seed && seed.subjectKo) seeds.push(seed);
     }
@@ -310,6 +350,7 @@ async function main() {
       const records = raw.records || [];
       console.log(`[extract-seeds] Loading ${records.length} records from world-event-signals.json`);
       for (const record of records) {
+        if (!isFreshSeedSource(record, { maxAgeDays })) continue;
         const seed = extractFromWorldEventRecord(record, rng);
         if (seed && seed.subjectKo) seeds.push(seed);
       }
@@ -325,6 +366,7 @@ async function main() {
   const result = {
     extractedAt: new Date().toISOString(),
     source: "extract-discussion-seeds.mjs",
+    maxAgeDays,
     seedCount: seeds.length,
     reactionTypeDistribution: {},
     seeds,
@@ -342,4 +384,13 @@ async function main() {
   console.log("[extract-seeds] Distribution:", result.reactionTypeDistribution);
 }
 
-main().catch((err) => { console.error(err); process.exit(1); });
+const isDirectRun =
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

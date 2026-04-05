@@ -47,6 +47,7 @@ const DEFAULT_OUTPUT = path.resolve(
   "../data/crawled-documents/korean-signals-raw.json",
 );
 const DEFAULT_LIMIT = 50;
+const DEFAULT_MAX_AGE_DAYS = 7;
 const USER_AGENT =
   process.env.CRAWL_USER_AGENT ||
   "AI-Fashion-Forum/1.0 (korean-signal-crawler)";
@@ -56,7 +57,7 @@ const USER_AGENT =
 // ---------------------------------------------------------------------------
 
 function parseArgs(argv) {
-  const args = { output: DEFAULT_OUTPUT, limit: DEFAULT_LIMIT };
+  const args = { output: DEFAULT_OUTPUT, limit: DEFAULT_LIMIT, maxAgeDays: DEFAULT_MAX_AGE_DAYS };
   for (let i = 2; i < argv.length; i += 1) {
     const v = argv[i];
     const next = argv[i + 1];
@@ -66,6 +67,10 @@ function parseArgs(argv) {
     } else if (v === "--limit" && next) {
       const n = Number.parseInt(next, 10);
       if (!Number.isNaN(n) && n > 0) args.limit = n;
+      i += 1;
+    } else if (v === "--max-age-days" && next) {
+      const n = Number.parseInt(next, 10);
+      if (!Number.isNaN(n) && n > 0) args.maxAgeDays = n;
       i += 1;
     }
   }
@@ -108,7 +113,7 @@ function extractXmlTag(xml, tagName) {
 /**
  * Extract RSS <item> blocks and return an array of { title, description, link }.
  */
-function parseRssItems(xml) {
+export function parseRssItems(xml) {
   const itemRegex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
   const items = [];
   let m;
@@ -117,9 +122,16 @@ function parseRssItems(xml) {
     const title = extractXmlTag(block, "title")[0] || "";
     const description = extractXmlTag(block, "description")[0] || "";
     const link = extractXmlTag(block, "link")[0] || "";
-    items.push({ title, description, link });
+    const pubDate = extractXmlTag(block, "pubDate")[0] || extractXmlTag(block, "dc:date")[0] || "";
+    items.push({ title, description, link, pubDate });
   }
   return items;
+}
+
+function parseDateMaybe(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 export function extractHtmlAnchors(html = "", {
@@ -267,6 +279,36 @@ export function selectBalancedRecords(records = [], limit = DEFAULT_LIMIT) {
   return selected;
 }
 
+export function isFreshEnough(record, {
+  maxAgeDays = DEFAULT_MAX_AGE_DAYS,
+  now = new Date(),
+} = {}) {
+  const platform = record?.source?.platform || "unknown";
+  const timelessPlatforms = new Set(["weather", "exchange_rate", "musinsa", "curated"]);
+  if (timelessPlatforms.has(platform)) {
+    return true;
+  }
+
+  const datedValue =
+    record?.source?.publishedAt ||
+    record?.source?.occurredAt ||
+    record?.source?.createdAt ||
+    record?.source?.crawledAt ||
+    null;
+  const parsed = parseDateMaybe(datedValue);
+  if (!parsed) {
+    return true;
+  }
+
+  const ageMs = now.getTime() - parsed.getTime();
+  const ageDays = ageMs / (1000 * 60 * 60 * 24);
+  return ageDays <= maxAgeDays;
+}
+
+export function filterFreshRecords(records = [], options = {}) {
+  return (Array.isArray(records) ? records : []).filter((record) => isFreshEnough(record, options));
+}
+
 function guessCategoryTags(text = "") {
   const tags = [];
   const lower = text.toLowerCase();
@@ -313,6 +355,7 @@ async function fetchGoogleTrendsKR() {
         platform: "google_trends",
         url: item.link || SOURCES.google_trends_kr.url,
         crawledAt: now,
+        publishedAt: item.pubDate || now,
       },
       subjectKo: item.title,
       contextKo: item.description
@@ -378,11 +421,12 @@ async function fetchMastodonKR() {
 
         allRecords.push({
           signalId: nextSignalId(),
-          source: {
-            platform: "mastodon",
-            url: post.url || "",
-            crawledAt: now,
-          },
+      source: {
+        platform: "mastodon",
+        url: post.url || "",
+        crawledAt: now,
+        publishedAt: post.created_at || now,
+      },
           subjectKo: cleanSubject,
           contextKo: cleanContext,
           reactionType: classifyReaction(text),
@@ -427,6 +471,7 @@ async function fetchNaverNewsFashion() {
         platform: "naver_news",
         url: item.href,
         crawledAt: now,
+        publishedAt: now,
       },
       subjectKo: title,
       contextKo: `네이버 생활/문화 섹션에서 화제가 된 기사: ${title}`,
@@ -460,6 +505,7 @@ async function fetchHankyungTrend() {
         platform: "hankyung",
         url: item.link || SOURCES.hankyung_trend.url,
         crawledAt: now,
+        publishedAt: item.pubDate || now,
       },
       subjectKo: title,
       contextKo: description || `한경 라이프 기사: ${title}`,
@@ -555,6 +601,7 @@ async function fetchFashionbiz() {
         platform: "fashionbiz",
         url: item.link || SOURCES.fashionbiz.url,
         crawledAt: now,
+        publishedAt: item.pubDate || now,
       },
       subjectKo: item.title,
       contextKo: item.description || `패션비즈 뉴스: ${item.title}`,
@@ -679,7 +726,7 @@ function generateCuratedSeeds() {
 
   // Pick 8-12 per run
   const count = Math.min(12, shuffled.length);
-  const selected = shuffled.slice(0, count);
+  const selected = shuffled.filter((seed) => seed.includeByDefault !== false).slice(0, count);
 
   console.log(`[crawl-kr]   Curated: ${selected.length} topics`);
 
@@ -701,7 +748,7 @@ function generateCuratedSeeds() {
 // ---------------------------------------------------------------------------
 
 async function main() {
-  const { output, limit } = parseArgs(process.argv);
+  const { output, limit, maxAgeDays } = parseArgs(process.argv);
   const allRecords = [];
   const errors = [];
 
@@ -739,7 +786,8 @@ async function main() {
   }
 
   // Apply limit with light source balancing so later sources do not get starved.
-  const selected = selectBalancedRecords(deduped, limit);
+  const fresh = filterFreshRecords(deduped, { maxAgeDays });
+  const selected = selectBalancedRecords(fresh, limit);
 
   // Re-number signalIds sequentially
   selected.forEach((r, i) => {
@@ -751,8 +799,10 @@ async function main() {
     source: "crawl-korean-signals.mjs",
     sourceSummary: {
       totalCandidates: deduped.length,
+      totalFresh: fresh.length,
       totalSelected: selected.length,
       limit,
+      maxAgeDays,
       errors,
     },
     records: selected,
