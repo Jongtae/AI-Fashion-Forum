@@ -110,6 +110,7 @@ function localizeSourceTitle(value = "", sourceTopics = [], sourceIntent = "") {
 
 function sanitizeForumLanguage(value = "") {
   return normalizeText(value)
+    .replace(/([가-힣]+)\s*(와|과)\s+([가-힣]+)/gu, (_, left, _particle, right) => `${attachKoreanParticle(left, "with")} ${right}`)
     .replace(/생활감/g, "일상")
     .replace(/장면/g, "사진")
     .replace(/됩니다/g, "돼요")
@@ -322,6 +323,26 @@ function extractMemoryText(entry = "") {
   );
 }
 
+function isSystemMemoryText(value = "") {
+  const text = normalizeText(value);
+  if (!text) {
+    return false;
+  }
+
+  return (
+    /^\d+틱:/u.test(text) ||
+    /현재 주제 흐름/u.test(text) ||
+    /이번 신호/u.test(text) ||
+    /이 신호/u.test(text) ||
+    /먼저 붙든 글/u.test(text) ||
+    /두고 체크한 글/u.test(text) ||
+    /메모한 지점/u.test(text) ||
+    /스크롤 멈춘 지점/u.test(text) ||
+    /쪽으로 조금 이동했다/u.test(text) ||
+    /기준이 조금 기울었다/u.test(text)
+  );
+}
+
 function buildMemoryContext(memoryContext = {}) {
   const recentMemories = Array.isArray(memoryContext?.recentMemories)
     ? memoryContext.recentMemories
@@ -330,10 +351,10 @@ function buildMemoryContext(memoryContext = {}) {
     ? memoryContext.selfNarratives
     : [];
   const recentMemoryTexts = uniqueNormalizedList(
-    recentMemories.map((entry) => extractMemoryText(entry)).filter(Boolean),
+    recentMemories.map((entry) => extractMemoryText(entry)).filter((text) => text && !isSystemMemoryText(text)),
   );
   const selfNarrativeTexts = uniqueNormalizedList(
-    selfNarratives.map((entry) => extractMemoryText(entry)).filter(Boolean),
+    selfNarratives.map((entry) => extractMemoryText(entry)).filter((text) => text && !isSystemMemoryText(text)),
   );
   const recentMemorySummary = recentMemoryTexts.slice(-3).join(" / ");
   const selfNarrativeSummary = selfNarrativeTexts.slice(-3).join(" / ");
@@ -341,6 +362,8 @@ function buildMemoryContext(memoryContext = {}) {
   const latestNarrative = selfNarratives.length ? selfNarratives[selfNarratives.length - 1] : null;
   const latestMemoryText = extractMemoryText(latestRecentMemory);
   const latestNarrativeText = extractMemoryText(latestNarrative);
+  const safeLatestMemoryText = isSystemMemoryText(latestMemoryText) ? "" : latestMemoryText;
+  const safeLatestNarrativeText = isSystemMemoryText(latestNarrativeText) ? "" : latestNarrativeText;
   const latestMemoryDetails =
     latestRecentMemory && typeof latestRecentMemory === "object" && latestRecentMemory.details
       ? latestRecentMemory.details
@@ -355,16 +378,16 @@ function buildMemoryContext(memoryContext = {}) {
   );
   const reconsideredTopic = reconsideredTopics[0] || "";
   const changeReason = sanitizeForumLanguage(
-    latestMemoryDetails?.reason_clause ||
+      latestMemoryDetails?.reason_clause ||
       latestMemoryDetails?.reason ||
-      latestNarrativeText ||
-      latestMemoryText ||
+      safeLatestNarrativeText ||
+      safeLatestMemoryText ||
       "",
   );
   const memoryReferenceCue = [reconsideredTitle, reconsideredTopic, changeReason]
     .filter(Boolean)
     .join(" / ");
-  const changeSummary = [latestMemoryText, latestNarrativeText]
+  const changeSummary = [safeLatestMemoryText, safeLatestNarrativeText]
     .filter(Boolean)
     .slice(-2)
     .join(" / ");
@@ -376,8 +399,8 @@ function buildMemoryContext(memoryContext = {}) {
     selfNarrativeTexts,
     recentMemorySummary,
     selfNarrativeSummary,
-    latestMemoryText,
-    latestNarrativeText,
+    latestMemoryText: safeLatestMemoryText,
+    latestNarrativeText: safeLatestNarrativeText,
     reconsideredTitle,
     reconsideredTopic,
     changeReason,
@@ -954,12 +977,13 @@ export function buildReadablePostTitle({
   sourceIntent = "",
   sourceAnchorTerms = [],
 } = {}) {
+  const isHookLikeAnchor = (value = "") => /(?:어떻게 보세요|이거 어떠세요|보고 든 생각|얘기 좀 해요|반응은 어때요|다들 어떻게 봐요|어디가 걸렸어요|어디서 갈려요|먼저 보인 이유|후기 있으세요|느낌이 달라요)/.test(value);
   const normalizedTopics = uniqueNormalizedList((Array.isArray(sourceTopics) ? sourceTopics : []).map(localizeTopicLabel));
   const compactAnchors = uniqueNormalizedList(sourceAnchorTerms).filter((term) => (
     isKoreanDominant(term) &&
     term.length <= 28 &&
     !/[?？]/.test(term) &&
-    !/(어떻게|뭐가|궁금|나을까|보여요|보게 돼요|갈릴 것 같아요)/.test(term) &&
+    !/(어떻게|뭐가|궁금|나을까|보여요|보게 돼요|갈릴 것 같아요|이거 어떠세요|보고 든 생각|얘기 좀 해요|반응은 어때요|다들 어떻게 봐요|어디가 걸렸어요|어디서 갈려요|먼저 보인 이유|후기 있으세요|느낌이 달라요)/.test(term) &&
     !/(관련 얘기예요|기준은 사람마다|얘기는 보는 포인트가 갈릴 수 있어요|기준을 다시 보게 돼요)$/.test(term) &&
     !META_TITLE_PATTERN.test(term)
   ));
@@ -968,13 +992,15 @@ export function buildReadablePostTitle({
     : uniqueNormalizedList(sourceAnchorTerms).filter((term) => isKoreanDominant(term) && !META_TITLE_PATTERN.test(term));
   const primaryAnchor = normalizedAnchors[0] || "";
   const secondaryAnchor = normalizedAnchors[1] || primaryAnchor;
+  const cleanPrimaryAnchor = isHookLikeAnchor(primaryAnchor) ? "" : primaryAnchor;
+  const cleanSecondaryAnchor = isHookLikeAnchor(secondaryAnchor) ? "" : secondaryAnchor;
   const primaryTopic = normalizedTopics[0] || localizeTopicLabel(selectedContext?.contextLabel || selectedContextLabel || "");
   const secondaryTopic = normalizedTopics[1] || primaryTopic;
   const topicPair = joinKoreanTopicList([primaryTopic, secondaryTopic]);
-  const anchorPair = joinKoreanTopicList([primaryAnchor, secondaryAnchor]);
+  const anchorPair = joinKoreanTopicList([cleanPrimaryAnchor, cleanSecondaryAnchor]);
   const primaryTopicObject = attachKoreanParticle(primaryTopic, "object");
   const secondaryTopicObject = attachKoreanParticle(secondaryTopic, "object");
-  const primaryAnchorObject = attachKoreanParticle(primaryAnchor, "object");
+  const primaryAnchorObject = attachKoreanParticle(cleanPrimaryAnchor, "object");
   const contextLabel = normalizeText(selectedContext?.contextLabel || selectedContextLabel);
   const signal = sanitizeForumLanguage(sourceSignal);
   const localizedSourceTitle = localizeSourceTitle(sourceTitle, sourceTopics, sourceIntent);
@@ -994,35 +1020,37 @@ export function buildReadablePostTitle({
     const normalized = shortenHookTitle(candidate, 28);
     if (!normalized) return "";
     if (/두고 다시 읽은 말.*두고 다시 읽은 말/.test(normalized)) return "";
+    if (/어때요를|보세요를|생각을 보고 든 생각/.test(normalized)) return "";
     if (normalized.length <= 4) return "";
     if (/^다시 멈춰 본 부분(?:을 .+)?$/.test(normalized)) return "";
     if (/^다시 열어본 부분$/.test(normalized)) return "";
+    if (/붙든 글|체크한 글|메모한 지점|멈춘 지점|다시 체크한 단서|시선이 간 글/.test(normalized)) return "";
     return normalized
       .replace(/이번 글에서 먼저 보인 /g, "")
-      .replace(/오늘 다시 읽은 포인트/g, "다시 멈춰 본 부분")
-      .replace(/이 글이 오래 남는 이유/g, "다시 열어본 부분")
+      .replace(/오늘 다시 읽은 포인트/g, "이거 어떻게 보세요")
+      .replace(/이 글이 오래 남는 이유/g, "이거 왜 이렇게 보세요")
       .trim();
   };
 
   if (sourceIntent === "question") {
     priorityTitles.push(
       localizedSourceTitle && localizedSourceTitle.length <= 36 ? localizedSourceTitle : null,
-      primaryAnchor ? `${primaryAnchor}은 어떻게 보여요?` : null,
-      primaryAnchor && secondaryAnchor && primaryAnchor !== secondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
+      cleanPrimaryAnchor ? `${cleanPrimaryAnchor}은 어떻게 보여요?` : null,
+      cleanPrimaryAnchor && cleanSecondaryAnchor && cleanPrimaryAnchor !== cleanSecondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
       `${topicPair} 중 뭐가 더 나을까?`,
       `${primaryTopic}은 어떻게 보세요?`,
     );
   } else if (sourceIntent === "comparison") {
     priorityTitles.push(
-      primaryAnchor && secondaryAnchor && primaryAnchor !== secondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
+      cleanPrimaryAnchor && cleanSecondaryAnchor && cleanPrimaryAnchor !== cleanSecondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
       `${topicPair} 중 뭐가 더 나을까?`,
-      primaryAnchor ? `${primaryAnchorObject} 비교해본 이유` : null,
+      cleanPrimaryAnchor ? `${primaryAnchorObject} 비교해본 이유` : null,
       `${topicPair}을 같이 비교한 이유`,
       `${topicPair} 비교에서 갈리는 지점`,
     );
   } else if (sourceIntent === "controversy") {
     priorityTitles.push(
-      primaryAnchor ? `${primaryAnchor} 반응이 갈리는 이유` : null,
+      cleanPrimaryAnchor ? `${cleanPrimaryAnchor} 반응이 갈리는 이유` : null,
       `${topicPair} 쪽에서 의견이 갈리는 이유`,
       `${topicPair} 반응이 갈리는 지점`,
       `${topicPair}에서 의견이 나뉘는 포인트`,
@@ -1030,21 +1058,23 @@ export function buildReadablePostTitle({
   } else if (sourceIntent === "fact") {
     priorityTitles.push(
       localizedSourceTitle && localizedSourceTitle.length <= 48 ? localizedSourceTitle : null,
-      primaryAnchor ? `${primaryAnchor} 얘기에서 먼저 보인 것` : null,
+      cleanPrimaryAnchor ? `${cleanPrimaryAnchor} 얘기에서 먼저 보인 것` : null,
       `${topicPair} 관련 신호`,
       `${primaryTopic}에서 먼저 보인 내용`,
     );
   } else if (sourceIntent === "reason") {
     priorityTitles.push(
-      primaryAnchor && primaryAnchor.length >= 6 && primaryAnchor.length <= 34 ? primaryAnchor : null,
-      primaryAnchor && !/이유$/.test(primaryAnchor) ? `${primaryAnchorObject} 다시 보게 된 이유` : null,
-      `${primaryTopicObject} 다시 보게 된 이유`,
+      localizedSourceTitle && isKoreanDominant(localizedSourceTitle) && localizedSourceTitle.length <= 34 ? localizedSourceTitle : null,
+      cleanPrimaryAnchor && cleanPrimaryAnchor.length >= 6 && cleanPrimaryAnchor.length <= 34 ? cleanPrimaryAnchor : null,
+      cleanPrimaryAnchor && !/이유$/.test(cleanPrimaryAnchor) ? `${primaryAnchorObject} 보고 든 생각` : null,
+      `${primaryTopic} 이거 어떠세요?`,
     );
   } else if (sourceIntent === "discussion" || sourceIntent === "observation") {
     priorityTitles.push(
-      primaryAnchor && primaryAnchor.length >= 6 && primaryAnchor.length <= 34 ? primaryAnchor : null,
-      primaryAnchor ? `${primaryAnchorObject} 먼저 붙든 글` : null,
-      `${primaryTopicObject} 먼저 붙든 글`,
+      localizedSourceTitle && isKoreanDominant(localizedSourceTitle) && localizedSourceTitle.length <= 34 ? localizedSourceTitle : null,
+      cleanPrimaryAnchor && cleanPrimaryAnchor.length >= 6 && cleanPrimaryAnchor.length <= 34 ? cleanPrimaryAnchor : null,
+      cleanPrimaryAnchor ? `${primaryAnchorObject} 어떻게 보세요?` : null,
+      `${primaryTopic} 얘기 좀 해요`,
     );
   }
 
@@ -1056,18 +1086,18 @@ export function buildReadablePostTitle({
       localizedSourceTitle && localizedSourceTitle.length <= 28 ? localizedSourceTitle : null,
       `${primaryTopicObject} 보고 남긴 짧은 말`,
       `${secondaryTopicObject} 같이 본 뒤의 생각`,
-      `대화를 이어 붙인 한 줄`,
-      `댓글 흐름에서 남은 포인트`,
-      `한 번 더 물어본 이유`,
+      `댓글로 이어진 한마디`,
+      `댓글에서 다들 갈리는 부분`,
+      `한 번 더 물어보고 싶은 점`,
       `${primaryTopicObject} 다시 읽고 남긴 말`,
       `${secondaryTopic} 쪽이 더 남는 이유`,
-      `${contextLabel || "댓글"}에서 먼저 남은 말`,
-      `${contextLabel || "댓글"}로 이어진 짧은 반응`,
+      `${contextLabel || "댓글"}에서 다들 어떻게 보세요?`,
+      `${contextLabel || "댓글"}에 달고 싶은 말`,
       `${primaryTopicObject} 보고 남긴 답`,
-      `${primaryTopicObject} 다시 보게 된 댓글`,
-      `${attachKoreanParticle(topicPair, "object")} 같이 본 말`,
-      `${contextLabel || "댓글"}에서 ${primaryTopicObject} 다시 본 이유`,
-      `${attachKoreanParticle(topicPair, "object")} 두고 남긴 말`,
+      `${primaryTopicObject} 댓글 달아본 후기`,
+      `${topicPair} 같이 본 말`,
+      `${contextLabel || "댓글"}에서 ${primaryTopicObject} 어떻게 보세요?`,
+      `${topicPair} 두고 드는 생각`,
     );
   } else {
     const hookSet = RUN_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel) || null;
@@ -1075,21 +1105,19 @@ export function buildReadablePostTitle({
     pool.push(...(hookSet?.titles || []));
     pool.push(
       localizedSourceTitle && localizedSourceTitle.length <= 28 ? localizedSourceTitle : null,
-      `${primaryTopicObject} 먼저 메모한 글`,
-      `${secondaryTopic}까지 같이 잡힌 글`,
-      `다시 멈춰 본 부분`,
-      `다시 열어본 부분`,
-      `스크롤 멈춘 지점`,
-      `${primaryTopicObject} 두고 체크한 글`,
-      `${secondaryTopic} 쪽으로 시선이 간 글`,
-      `${contextLabel || "이번 글"}에서 멈춘 장면`,
-      `${contextLabel || "이번 글"}에서 다시 체크한 단서`,
-      `${primaryTopic}보다 먼저 들어온 부분`,
-      `${primaryTopic} 쪽으로 기운 글`,
-      `${attachKoreanParticle(topicPair, "object")} 같이 붙잡은 글`,
-      `${contextLabel || "이번 글"}에서 메모한 지점`,
-      `${attachKoreanParticle(topicPair, "object")} 같이 두고 본 글`,
-      `${topicPair} 사이에서 멈춘 지점`,
+      `${primaryTopic} 쪽은 다들 어떻게 봐요?`,
+      `${secondaryTopic}까지 보면 느낌이 달라요?`,
+      `이거 어떻게 보세요?`,
+      `${primaryTopicObject} 먼저 보인 이유`,
+      `${secondaryTopic} 쪽 반응은 어때요?`,
+      `${contextLabel || "이번 글"}이면 어디부터 보세요?`,
+      `${contextLabel || "이번 글"}에서 먼저 걸린 부분`,
+      `${primaryTopic} 쪽 후기 있으세요?`,
+      `${primaryTopic} 얘기 어디서 갈려요?`,
+      `${topicPair} 같이 보면 뭐가 먼저 보여요?`,
+      `${contextLabel || "이번 글"}에서 다들 어디가 먼저 보여요?`,
+      `${topicPair} 보고 어디가 걸렸어요?`,
+      `${topicPair} 얘기 요즘 어디서 갈려요?`,
     );
   }
 
@@ -1098,13 +1126,13 @@ export function buildReadablePostTitle({
       "이 조합 괜찮을까?",
       "어떤 쪽이 더 나을까?",
       "다들 어떻게 보세요?",
-      primaryAnchor ? `${primaryAnchor}은 어떻게 보여요?` : null,
+      cleanPrimaryAnchor ? `${cleanPrimaryAnchor}은 어떻게 보여요?` : null,
       `${primaryTopic}은 어떻게 보세요?`,
       `${topicPair} 중 뭐가 더 나을까?`,
     );
   } else if (sourceIntent === "comparison") {
     pool.push(
-      primaryAnchor && secondaryAnchor && primaryAnchor !== secondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
+      cleanPrimaryAnchor && cleanSecondaryAnchor && cleanPrimaryAnchor !== cleanSecondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
       `${joinKoreanTopicList([primaryTopic, secondaryTopic])} 중 뭐가 더 나을까?`,
       "둘 중 어느 쪽이 더 먼저 보이나요?",
       "비교해보면 결이 갈려요",
@@ -1114,14 +1142,14 @@ export function buildReadablePostTitle({
     );
   } else if (sourceIntent === "controversy") {
     pool.push(
-      primaryAnchor ? `${primaryAnchor} 얘기라 반응이 갈려요` : null,
+      cleanPrimaryAnchor ? `${cleanPrimaryAnchor} 얘기라 반응이 갈려요` : null,
       "반응이 갈릴 수밖에 없는 이유가 있어요",
       "이 지점은 의견이 나뉘겠어요",
       "왜 갈리는지 보게 돼요",
     );
   } else if (sourceIntent === "fact") {
     pool.push(
-      primaryAnchor ? `${primaryAnchor} 얘기가 먼저 보여요` : null,
+      cleanPrimaryAnchor ? `${cleanPrimaryAnchor} 얘기가 먼저 보여요` : null,
       `${primaryTopic} 관련 신호를 먼저 보게 돼요`,
       `${primaryTopic}에서 먼저 눈에 걸린 내용`,
       `${topicPair}를 같이 보게 된 이유`,
@@ -1178,6 +1206,8 @@ export function buildReadablePostTitle({
     score -= abstractHits * 0.85;
     score -= referencePenalty;
     if (META_TITLE_PATTERN.test(normalized)) score -= 2.2;
+    if (/붙든 글|체크한 글|메모한 지점|멈춘 지점|다시 체크한 단서|시선이 간 글/.test(normalized)) score -= 4;
+    if (/보고 든 생각.*보고 든 생각|어떠세요.*어떻게 보세요/.test(normalized)) score -= 4;
     if (/^(이번 글|이 글)/.test(normalized)) score -= 1.4;
     if (/얘기$/.test(normalized)) score -= 0.9;
 
@@ -1471,6 +1501,8 @@ function buildLLMPrompt({
     "seed에 질문, 사실, 비교, 논쟁 포인트가 있으면 그것을 그대로 앵커로 살리고, 추상적인 감상문으로 뭉개지 말아라.",
     "외부 컨텐츠의 사실과 쟁점은 대화가 열리도록 구체적으로 유지하고, 패션과 일상, 기준, 포인트 같은 추상어로만 압축하지 말아라.",
     "본문 첫 문장은 source claim이 읽히는 문장이어야 하며, 요약문이나 에세이식 설명으로 먼저 밀지 말아라.",
+    "시스템 문구나 내부 로그처럼 보이는 표현은 절대 쓰지 마라. 예: '0틱', '이번 신호', '먼저 붙든 글', '두고 체크한 글'.",
+    "실제 커뮤니티 유저처럼 써라. 추천 요청, 후기, 코디 공유, 가격 비교, 잡담, 짧은 질문처럼 읽혀야 한다.",
     "희로애락 같은 감정은 이름으로 설명하기보다, 문장 리듬과 선택 단어로 드러내라.",
     "제목은 본문 요약처럼 쓰지 말고, 짧은 훅과 관점 차이가 드러나게 따로 잡아라.",
     "댓글인 경우에는 실제 커뮤니티 댓글처럼 간결하고 구어체로 쓰고, 주어를 굳이 설명하지 마라.",
@@ -1532,8 +1564,8 @@ function buildFallbackContexts({
   const normalizedSignal = sanitizeForumLanguage(sourceSignal);
   const baseSignal =
     normalizedSignal && normalizedSignal.length <= 10 && !/[\s.?!]/.test(normalizedSignal)
-      ? localizeSourceLabel(normalizedSignal, "이 신호")
-      : "이번 신호";
+      ? localizeSourceLabel(normalizedSignal, "이 얘기")
+      : "이 얘기";
   const signalWithObject = attachKoreanParticle(baseSignal, "object");
   const topicsWithObject = attachKoreanParticle(topics, "object");
   const sourceCommentLabel = isKoreanDominant(sourceCommentPreview)

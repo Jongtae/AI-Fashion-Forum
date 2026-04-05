@@ -418,7 +418,7 @@ export function rememberContentExposure(runtime, exposureRecord = {}) {
     : narrativeText;
   agentState.mutable_state.drift_log = [
     ...(Array.isArray(agentState.mutable_state.drift_log) ? agentState.mutable_state.drift_log : []),
-    `${tick}틱: ${title}를 읽고 ${reactionLabel || "관찰"} 쪽으로 조금 이동했다.`,
+    `${title}를 읽은 뒤 ${reactionLabel || "관찰"} 쪽으로 기준이 조금 기울었다.`,
   ].slice(-8);
 
   if (runtime?.storeFilePath) {
@@ -597,7 +597,7 @@ function applySprint1Drift(agentState, reactionRecord) {
   ).slice(-6);
   mutableState.drift_log = [
     ...(mutableState.drift_log || []),
-    `${reactionRecord.rank}틱: ${reactionRecord.meaning_frame}가 ${beliefDelta.key} 쪽으로 ${beliefDelta.amount}만큼 이동했다.`,
+    `${reactionRecord.meaning_frame}를 거치면서 ${beliefDelta.key} 쪽 기준이 조금 또렷해졌다.`,
   ].slice(-8);
 
   nextAgent.mutable_state = mutableState;

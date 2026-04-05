@@ -8,6 +8,18 @@ import {
 } from "./tick-engine.js";
 
 describe("serializeTickState / deserializeTickState roundtrip", () => {
+  it("does not append raw tick-system narration to agent self narrative", () => {
+    const result = runTicks({
+      seed: 42,
+      tickCount: 12,
+      worldRules: createBaselineWorldRules(),
+    });
+
+    const allNarratives = result.finalState.agents.flatMap((agent) => agent.self_narrative || []);
+    assert.ok(allNarratives.length > 0);
+    assert.ok(allNarratives.every((entry) => !/^\d+틱: 눈에 보이는 글을 남겼다\./.test(String(entry))));
+  });
+
   it("preserves seed, tick count, and final tick", () => {
     const result = runTicks({
       seed: 77,

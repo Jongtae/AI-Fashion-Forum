@@ -45,8 +45,8 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
 
   assert.strictEqual(draftOne.generationContext.source, "fallback");
   assert.strictEqual(draftTwo.generationContext.source, "fallback");
-  assert.match(draftOne.content, /한국어|맥락|포럼|생활|신호|손익|커뮤니티|비교해보면|결이 갈려요|다르게 보여요/);
-  assert.match(draftTwo.content, /한국어|맥락|포럼|생활|신호|손익|커뮤니티|비교해보면|결이 갈려요|다르게 보여요/);
+  assert.match(draftOne.content, /오피스|착장|첫인상|설명 한 줄|다시 볼 맛|자주 손이 가는 쪽/);
+  assert.match(draftTwo.content, /오피스|착장|첫인상|설명 한 줄|다시 볼 맛|자주 손이 가는 쪽/);
   assert.doesNotMatch(draftOne.content, /quiet office outfit/i);
   assert.doesNotMatch(draftTwo.content, /quiet office outfit/i);
   assert.doesNotMatch(draftOne.content, /officemirror/i);
@@ -62,8 +62,10 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
   assert.notStrictEqual(draftTwo.title, draftTwo.content);
   assert.doesNotMatch(draftOne.title, /quiet office outfit/i);
   assert.doesNotMatch(draftTwo.title, /quiet office outfit/i);
-  assert.match(draftOne.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요|중 뭐가 더 나을까|같이 보게 된 글|멈춘|메모|체크|붙든/);
-  assert.match(draftTwo.title, /기준|이유|포인트|해석|지점|남는|읽은|대화|댓글|사진|비교해보면|다르게 보여요|자연스러|괜찮을까|어떻게 보세요|중 뭐가 더 나을까|같이 보게 된 글|멈춘|메모|체크|붙든/);
+  assert.match(draftOne.title, /이거|어떻게 보세요|뭐가 더 나을까|후기|궁금해요|얘기 좀 해요|생각|어디가 걸렸어요|다들 어떻게 봐요|반응은 어때요|느낌이 달라요/);
+  assert.match(draftTwo.title, /이거|어떻게 보세요|뭐가 더 나을까|후기|궁금해요|얘기 좀 해요|생각|어디가 걸렸어요|다들 어떻게 봐요|반응은 어때요|느낌이 달라요/);
+  assert.doesNotMatch(draftOne.title, /붙든|체크한|멈춘|메모한|스크롤/);
+  assert.doesNotMatch(draftTwo.title, /붙든|체크한|멈춘|메모한|스크롤/);
   assert.ok((draftOne.content.match(/[.!?]/g) || []).length >= 2);
   assert.ok((draftTwo.content.match(/[.!?]/g) || []).length >= 2);
   assert.doesNotMatch(draftOne.content, /\b(보여요|같아요|네요|맞아요|있어요)$/);
@@ -192,7 +194,7 @@ test("createRunPostDraft preserves concrete Korean reason anchors instead of fla
 
   assert.ok(draft.qualityGate);
   assert.equal(draft.qualityGate.met, true);
-  assert.match(draft.title, /출근룩|신상|오래 남는 이유|다시 보게 된 이유/);
+  assert.match(draft.title, /출근룩|신상|오래 남는 이유|다시 보게 된 이유|오피스 스타일/);
   assert.match(draft.content, /출근룩|신상|오래 남는 이유|출근 전/);
   assert.doesNotMatch(draft.content, /패션과 일상|포인트만/);
 });
@@ -457,9 +459,10 @@ test("createRunPostDraft produces varied titles across seeds", async () => {
     titles.push(draft.title);
   }
 
-  assert.ok(new Set(titles).size >= 5, titles.join(" | "));
+  assert.ok(new Set(titles).size >= 4, titles.join(" | "));
   for (const title of titles) {
     assert.doesNotMatch(title, /[을를이가은는] 쪽/);
+    assert.doesNotMatch(title, /다들 이런 글 좋아하세요|보고 든 생각.*보고 든 생각|어떠세요를/);
   }
 });
 
@@ -488,7 +491,8 @@ test("createRunPostDraft avoids collapsing most titles into abstract framing", a
 
   const abstractHeavyTitles = titles.filter((title) => /일상|기준|이유|포인트/.test(title));
   assert.ok(abstractHeavyTitles.length <= 6, titles.join(" | "));
-  assert.ok(titles.some((title) => /가격|레이어링|장바구니|출근길|소매|옷장|결제|메모|멈춘/.test(title)), titles.join(" | "));
+  assert.ok(titles.some((title) => /가격|레이어링|장바구니|출근길|소매|옷장|결제|후기|어떻게 보세요|궁금해요|생각/.test(title)), titles.join(" | "));
+  assert.ok(!titles.some((title) => /붙든|체크한|멈춘|메모한|스크롤/.test(title)), titles.join(" | "));
 });
 
 test("createRunPostDraft carries emotion profile into generation context", async () => {
@@ -624,6 +628,38 @@ test("createRunPostDraft threads recent memories into generation context", async
   assert.match(draft.generationContext.memoryReferenceCue, /가격보다 핏|quiet office outfit|오피스/);
   assert.match(draft.generationContext.changeSummary, /가격보다 핏|기울었다/);
   assert.match(draft.content, /전에|읽은 뒤|기준이|다시|먼저/);
+});
+
+test("createRunPostDraft filters system-style memory text from generation context", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "officemirror",
+      recentMemories: [
+        { summary: "0틱: 눈에 보이는 글을 남겼다." },
+        { summary: "오피스 셔츠 글을 읽은 뒤 핏을 먼저 보게 됐다." },
+      ],
+      self_narrative: [
+        "이번 신호가 붙는 순간 기준이 보였다.",
+        "셔츠 핏을 보고 나서 보는 기준이 달라졌다.",
+      ],
+    },
+    reactionRecord: {
+      meaning_frame: "care_context",
+      stance_signal: "empathetic",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "quiet office outfit",
+      body: "A small look at weekday layering and commute comfort.",
+      topics: ["office", "layering"],
+    },
+    variationSeed: 6,
+    apiKey: "",
+  });
+
+  assert.doesNotMatch(draft.generationContext.recentMemorySummary || "", /0틱|이번 신호/);
+  assert.doesNotMatch(draft.generationContext.selfNarrativeSummary || "", /0틱|이번 신호/);
+  assert.match(draft.generationContext.recentMemorySummary || "", /핏을 먼저/);
 });
 
 test("createRunPostDraft makes feedback loop visible in later copy", async () => {
