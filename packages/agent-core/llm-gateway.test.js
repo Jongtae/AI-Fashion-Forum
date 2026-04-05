@@ -6,6 +6,8 @@ import {
   resolveLLMConfig,
   requestClaudeContexts,
   requestOpenAIContexts,
+  DEFAULT_TIMEOUT_MS,
+  DEFAULT_MAX_RETRIES,
 } from "./llm-gateway.js";
 
 describe("llm-gateway", () => {
@@ -145,6 +147,119 @@ describe("llm-gateway", () => {
         () => requestClaudeContexts({ apiKey: "bad", prompt: "test", fetchImpl: mockFetch }),
         { message: "Invalid API key" }
       );
+    });
+  });
+
+  describe("timeout and retry", () => {
+    it("exports timeout and retry constants", () => {
+      assert.strictEqual(typeof DEFAULT_TIMEOUT_MS, "number");
+      assert.ok(DEFAULT_TIMEOUT_MS > 0);
+      assert.strictEqual(typeof DEFAULT_MAX_RETRIES, "number");
+      assert.ok(DEFAULT_MAX_RETRIES >= 1);
+    });
+
+    it("retries on 429 and succeeds", async () => {
+      let attempts = 0;
+      const mockFetch = async (url, opts) => {
+        attempts++;
+        if (attempts <= 2) {
+          return {
+            ok: false,
+            status: 429,
+            headers: { get: () => "0" },
+            json: async () => ({ error: { message: "rate limited" } }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ output_text: "success" }),
+        };
+      };
+
+      const result = await requestOpenAIContexts({
+        apiKey: "test",
+        prompt: "test",
+        fetchImpl: mockFetch,
+        timeoutMs: 5000,
+        maxRetries: 3,
+      });
+      assert.strictEqual(result.output_text, "success");
+      assert.strictEqual(attempts, 3);
+    });
+
+    it("retries on 500 and eventually throws", async () => {
+      let attempts = 0;
+      const mockFetch = async () => {
+        attempts++;
+        return {
+          ok: false,
+          status: 500,
+          headers: { get: () => null },
+          json: async () => ({ error: { message: "server error" } }),
+        };
+      };
+
+      await assert.rejects(
+        () => requestOpenAIContexts({
+          apiKey: "test",
+          prompt: "test",
+          fetchImpl: mockFetch,
+          timeoutMs: 5000,
+          maxRetries: 2,
+        }),
+      );
+      assert.strictEqual(attempts, 3); // initial + 2 retries
+    });
+
+    it("throws on timeout", async () => {
+      const mockFetch = async (url, opts) => {
+        return new Promise((resolve, reject) => {
+          const onAbort = () => {
+            const err = new Error("aborted");
+            err.name = "AbortError";
+            reject(err);
+          };
+          if (opts.signal) {
+            opts.signal.addEventListener("abort", onAbort);
+          }
+        });
+      };
+
+      await assert.rejects(
+        () => requestOpenAIContexts({
+          apiKey: "test",
+          prompt: "test",
+          fetchImpl: mockFetch,
+          timeoutMs: 100,
+          maxRetries: 0,
+        }),
+        (err) => err.message.includes("timed out"),
+      );
+    });
+
+    it("does not retry on 401 (non-retryable)", async () => {
+      let attempts = 0;
+      const mockFetch = async () => {
+        attempts++;
+        return {
+          ok: false,
+          status: 401,
+          headers: { get: () => null },
+          json: async () => ({ error: { message: "Invalid API key" } }),
+        };
+      };
+
+      await assert.rejects(
+        () => requestOpenAIContexts({
+          apiKey: "bad",
+          prompt: "test",
+          fetchImpl: mockFetch,
+          timeoutMs: 5000,
+          maxRetries: 3,
+        }),
+        { message: "Invalid API key" },
+      );
+      assert.strictEqual(attempts, 1); // no retry for 401
     });
   });
 
