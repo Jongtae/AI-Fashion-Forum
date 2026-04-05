@@ -207,11 +207,11 @@ router.post("/run", async (req, res) => {
       },
     });
 
-    // ── Step 3: Generate posts via LLM (budget-gated) ─────────────────────
+    // ── Step 3: Generate posts (LLM when available, rich template otherwise) ─
     const roundPosts = [];
     for (const entry of tickResult.entries) {
       if (entry.action !== "post" && entry.action !== "comment") continue;
-      if (!budget.canAfford(1)) break; // stop generating if budget low
+      if (SIMULATION_LLM_API_KEY && !budget.canAfford(1)) break;
 
       const agent = tickResult.finalState.agents.find((a) => a.agent_id === entry.actor_id);
       if (!agent) continue;
@@ -219,75 +219,63 @@ router.post("/run", async (req, res) => {
       const interestTopics = Object.keys(agent.interest_vector || {}).slice(0, 3);
       const primaryTopic = interestTopics[0] || "스타일";
 
-      if (SIMULATION_LLM_API_KEY) {
-        try {
-          const draft = await createLivePostDraft({
-            agent,
-            targetContent: {
-              title: `${primaryTopic} 관련 메모`,
-              body: entry.reason || "최근 흐름을 읽어봤다.",
-              topics: interestTopics,
-            },
-            sourceSignal: entry.reason || "",
-            styleProfile: agent?.seed_profile?.comment_style || null,
-            emotionProfile: {
-              ...(agent?.seed_profile?.emotional_bias || {}),
-              ...(agent?.mutable_state?.affect_state?.emotional_bias || {}),
-            },
-            comparisonTexts: roundPosts.slice(-5).map((p) => p.body).filter(Boolean),
-            variationSeed: seed + round + entry.tick,
-            provider: LLM_PROVIDER,
-            apiKey: SIMULATION_LLM_API_KEY,
-          });
+      try {
+        const draft = await createLivePostDraft({
+          agent,
+          targetContent: {
+            title: `${primaryTopic} 관련 메모`,
+            body: entry.reason || "최근 흐름을 읽어봤다.",
+            topics: interestTopics,
+          },
+          sourceSignal: entry.reason || "",
+          styleProfile: agent?.seed_profile?.comment_style || null,
+          emotionProfile: {
+            ...(agent?.seed_profile?.emotional_bias || {}),
+            ...(agent?.mutable_state?.affect_state?.emotional_bias || {}),
+          },
+          comparisonTexts: roundPosts.slice(-5).map((p) => p.body).filter(Boolean),
+          variationSeed: seed + round * 100 + entry.tick,
+          provider: LLM_PROVIDER,
+          apiKey: SIMULATION_LLM_API_KEY, // empty string → uses rich fallback templates
+        });
 
-          budget.record();
-          roundPosts.push({
-            post_id: `sim-r${round}-${entry.action_id}`,
-            agent_id: agent.agent_id,
-            authorId: agent.agent_id,
-            handle: agent.handle,
-            display_name: agent.display_name,
-            body: draft.content || entry.reason || "글을 남겼다.",
-            title: draft.title || null,
-            tags: interestTopics,
-            meaning_frame: interestTopics[0] || null,
-            stance_signal: null,
-            round,
-            tick: entry.tick,
-            source: "llm",
-          });
-        } catch {
-          // Fallback to template
-          roundPosts.push({
-            post_id: `sim-r${round}-${entry.action_id}`,
-            agent_id: agent.agent_id,
-            authorId: agent.agent_id,
-            handle: agent.handle,
-            display_name: agent.display_name,
-            body: entry.reason || "글을 남겼다.",
-            tags: interestTopics,
-            meaning_frame: interestTopics[0] || null,
-            stance_signal: null,
-            round,
-            tick: entry.tick,
-            source: "fallback",
-          });
-        }
-      } else {
-        // No API key — template only, no budget impact
+        const usedLLM = SIMULATION_LLM_API_KEY && draft.generationContext?.source !== "fallback";
+        if (usedLLM) budget.record();
+
         roundPosts.push({
           post_id: `sim-r${round}-${entry.action_id}`,
           agent_id: agent.agent_id,
           authorId: agent.agent_id,
           handle: agent.handle,
           display_name: agent.display_name,
+          avatar_url: agent.avatar_url || "",
+          avatar_locale: agent.avatar_locale || "",
+          body: draft.content || entry.reason || "글을 남겼다.",
+          title: draft.title || null,
+          tags: interestTopics,
+          meaning_frame: interestTopics[0] || null,
+          stance_signal: null,
+          round,
+          tick: entry.tick,
+          source: usedLLM ? "llm" : "template",
+          generationContext: draft.generationContext || null,
+        });
+      } catch {
+        roundPosts.push({
+          post_id: `sim-r${round}-${entry.action_id}`,
+          agent_id: agent.agent_id,
+          authorId: agent.agent_id,
+          handle: agent.handle,
+          display_name: agent.display_name,
+          avatar_url: agent.avatar_url || "",
+          avatar_locale: agent.avatar_locale || "",
           body: entry.reason || "글을 남겼다.",
           tags: interestTopics,
           meaning_frame: interestTopics[0] || null,
           stance_signal: null,
           round,
           tick: entry.tick,
-          source: "template",
+          source: "error_fallback",
         });
       }
     }
@@ -303,7 +291,12 @@ router.post("/run", async (req, res) => {
             authorType: "agent",
             authorDisplayName: post.display_name || post.handle,
             authorHandle: post.handle,
+            authorAvatarUrl: post.avatar_url || "",
+            authorLocale: post.avatar_locale || "",
             tags: post.tags || [],
+            agentRound: post.round,
+            agentTick: post.tick,
+            generationContext: post.generationContext || null,
           });
         } catch (err) {
           if (err.status === 429) break; // rate limited, stop for this round
