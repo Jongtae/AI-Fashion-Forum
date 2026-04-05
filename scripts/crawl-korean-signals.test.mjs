@@ -5,6 +5,9 @@ import {
   extractHtmlAnchors,
   extractMusinsaRankingApiUrl,
   extractMusinsaRankingItems,
+  filterFreshRecords,
+  isFreshEnough,
+  parseRssItems,
   selectBalancedRecords,
 } from "./crawl-korean-signals.mjs";
 
@@ -94,4 +97,60 @@ test("selectBalancedRecords keeps later source platforms in the limited output",
   assert.ok(platforms.includes("naver_news"));
   assert.ok(platforms.includes("hankyung"));
   assert.ok(platforms.includes("musinsa"));
+});
+
+test("parseRssItems extracts pubDate when present", () => {
+  const xml = `
+    <rss><channel>
+      <item>
+        <title>테스트 제목</title>
+        <description>설명</description>
+        <link>https://example.com/item</link>
+        <pubDate>Sun, 05 Apr 2026 12:00:00 GMT</pubDate>
+      </item>
+    </channel></rss>
+  `;
+
+  const items = parseRssItems(xml);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].pubDate, "Sun, 05 Apr 2026 12:00:00 GMT");
+});
+
+test("isFreshEnough rejects stale dated records but keeps timeless platforms", () => {
+  const now = new Date("2026-04-06T00:00:00Z");
+
+  assert.equal(
+    isFreshEnough(
+      {
+        source: { platform: "mastodon", publishedAt: "2026-03-20T00:00:00Z" },
+      },
+      { now, maxAgeDays: 7 },
+    ),
+    false,
+  );
+
+  assert.equal(
+    isFreshEnough(
+      {
+        source: { platform: "musinsa", crawledAt: "2026-03-20T00:00:00Z" },
+      },
+      { now, maxAgeDays: 7 },
+    ),
+    true,
+  );
+});
+
+test("filterFreshRecords removes old social/news items and keeps current ones", () => {
+  const now = new Date("2026-04-06T00:00:00Z");
+  const records = [
+    { source: { platform: "mastodon", publishedAt: "2026-04-05T00:00:00Z" }, rawTitle: "fresh" },
+    { source: { platform: "mastodon", publishedAt: "2026-03-20T00:00:00Z" }, rawTitle: "stale" },
+    { source: { platform: "exchange_rate", crawledAt: "2026-03-01T00:00:00Z" }, rawTitle: "always-current" },
+  ];
+
+  const filtered = filterFreshRecords(records, { now, maxAgeDays: 7 });
+  assert.deepEqual(
+    filtered.map((record) => record.rawTitle),
+    ["fresh", "always-current"],
+  );
 });

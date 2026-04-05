@@ -124,19 +124,19 @@ export const CURATED_SEEDS = [
   { subjectKo: "매거진 화보", contextKo: "패션 잡지 커버 촬영", reactionType: "celebrity_reaction", categoryTags: ["celebrity"] },
   { subjectKo: "K-pop 아이돌 코디", contextKo: "무대 의상과 사복 스타일", reactionType: "celebrity_reaction", categoryTags: ["celebrity"] },
   // Seasonal
-  { subjectKo: "봄 자켓 시즌", contextKo: "봄 환절기 아우터 필요 시점", reactionType: "season_reaction", categoryTags: ["outerwear"] },
-  { subjectKo: "벚꽃 나들이", contextKo: "벚꽃 시즌 나들이 코디", reactionType: "season_reaction", categoryTags: ["fashion"] },
-  { subjectKo: "장마철 코디", contextKo: "비 오는 날 스타일링", reactionType: "season_reaction", categoryTags: ["fashion"] },
-  { subjectKo: "여름 반팔", contextKo: "여름 데일리 기본템", reactionType: "season_reaction", categoryTags: ["fashion"] },
-  { subjectKo: "겨울 패딩", contextKo: "겨울 아우터 선택", reactionType: "season_reaction", categoryTags: ["outerwear"] },
+  { subjectKo: "봄 자켓 시즌", contextKo: "봄 환절기 아우터 필요 시점", reactionType: "season_reaction", categoryTags: ["outerwear"], includeByDefault: false },
+  { subjectKo: "벚꽃 나들이", contextKo: "벚꽃 시즌 나들이 코디", reactionType: "season_reaction", categoryTags: ["fashion"], includeByDefault: false },
+  { subjectKo: "장마철 코디", contextKo: "비 오는 날 스타일링", reactionType: "season_reaction", categoryTags: ["fashion"], includeByDefault: false },
+  { subjectKo: "여름 반팔", contextKo: "여름 데일리 기본템", reactionType: "season_reaction", categoryTags: ["fashion"], includeByDefault: false },
+  { subjectKo: "겨울 패딩", contextKo: "겨울 아우터 선택", reactionType: "season_reaction", categoryTags: ["outerwear"], includeByDefault: false },
   // Comparison
   { subjectKo: "유니클로 vs 자라", contextKo: "SPA 브랜드 기본템 비교", reactionType: "comparison_reaction", categoryTags: ["fashion"] },
   { subjectKo: "나이키 vs 아디다스", contextKo: "스니커즈 브랜드 비교", reactionType: "comparison_reaction", categoryTags: ["sneakers"] },
   { subjectKo: "온라인 vs 오프라인", contextKo: "의류 구매 채널 비교", reactionType: "comparison_reaction", categoryTags: ["fashion"] },
   // Event
-  { subjectKo: "서울패션위크", contextKo: "시즌 패션위크 행사", reactionType: "event_reaction", categoryTags: ["fashion"] },
-  { subjectKo: "팝업스토어", contextKo: "브랜드 팝업 매장 오픈", reactionType: "event_reaction", categoryTags: ["fashion"] },
-  { subjectKo: "플리마켓", contextKo: "주말 빈티지/핸드메이드 마켓", reactionType: "event_reaction", categoryTags: ["fashion", "vintage"] },
+  { subjectKo: "서울패션위크", contextKo: "시즌 패션위크 행사", reactionType: "event_reaction", categoryTags: ["fashion"], includeByDefault: false },
+  { subjectKo: "팝업스토어", contextKo: "브랜드 팝업 매장 오픈", reactionType: "event_reaction", categoryTags: ["fashion"], includeByDefault: false },
+  { subjectKo: "플리마켓", contextKo: "주말 빈티지/핸드메이드 마켓", reactionType: "event_reaction", categoryTags: ["fashion", "vintage"], includeByDefault: false },
   // Trend
   { subjectKo: "와이드팬츠", contextKo: "실루엣 트렌드 변화", reactionType: "trend_reaction", categoryTags: ["fashion"] },
   { subjectKo: "레트로 패션", contextKo: "복고 스타일 재유행", reactionType: "trend_reaction", categoryTags: ["fashion"] },

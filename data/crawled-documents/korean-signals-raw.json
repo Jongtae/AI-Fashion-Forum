@@ -1,10 +1,12 @@
 {
-  "crawledAt": "2026-04-05T13:00:21.370Z",
+  "crawledAt": "2026-04-05T15:14:42.406Z",
   "source": "crawl-korean-signals.mjs",
   "sourceSummary": {
     "totalCandidates": 118,
+    "totalFresh": 85,
     "totalSelected": 50,
     "limit": 50,
+    "maxAgeDays": 7,
     "errors": []
   },
   "records": [
@@ -13,27 +15,27 @@
       "source": {
         "platform": "curated",
         "url": "",
-        "crawledAt": "2026-04-05T13:00:21.369Z"
+        "crawledAt": "2026-04-05T15:14:42.406Z"
       },
-      "subjectKo": "여름 반팔",
-      "contextKo": "여름 데일리 기본템",
-      "reactionType": "season_reaction",
+      "subjectKo": "뉴발란스 530",
+      "contextKo": "꾸준히 인기 있는 스니커즈",
+      "reactionType": "trend_reaction",
       "categoryTags": [
-        "fashion"
+        "sneakers"
       ],
       "freshnessScore": 0.8,
-      "rawTitle": "여름 반팔",
-      "rawExcerpt": "여름 데일리 기본템"
+      "rawTitle": "뉴발란스 530",
+      "rawExcerpt": "꾸준히 인기 있는 스니커즈"
     },
     {
       "signalId": "kr-signal-0002",
       "source": {
         "platform": "exchange_rate",
         "url": "https://open.er-api.com/v6/latest/USD",
-        "crawledAt": "2026-04-05T13:00:21.231Z"
+        "crawledAt": "2026-04-05T15:14:42.270Z"
       },
       "subjectKo": "환율 1달러 1,510원",
-      "contextKo": "현재 USD/KRW 환율 1,510원 (2026. 4. 5. 기준). 환율이 높아서 직구/해외여행 부담 증가",
+      "contextKo": "현재 USD/KRW 환율 1,510원 (2026. 4. 6. 기준). 환율이 높아서 직구/해외여행 부담 증가",
       "reactionType": "price_reaction",
       "categoryTags": [
         "fashion",
@@ -41,23 +43,24 @@
       ],
       "freshnessScore": 1,
       "rawTitle": "환율 1달러 1,510원",
-      "rawExcerpt": "현재 USD/KRW 환율 1,510원 (2026. 4. 5. 기준)"
+      "rawExcerpt": "현재 USD/KRW 환율 1,510원 (2026. 4. 6. 기준)"
     },
     {
       "signalId": "kr-signal-0003",
       "source": {
         "platform": "google_trends",
         "url": "https://trends.google.com/trending/rss?geo=KR",
-        "crawledAt": "2026-04-05T13:00:17.845Z"
+        "crawledAt": "2026-04-05T15:14:36.112Z",
+        "publishedAt": "Sun, 5 Apr 2026 07:10:00 -0700"
       },
-      "subjectKo": "sk하이닉스",
+      "subjectKo": "이수현",
       "contextKo": "실시간 검색 급상승",
       "reactionType": "trend_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 1,
-      "rawTitle": "sk하이닉스",
+      "rawTitle": "이수현",
       "rawExcerpt": ""
     },
     {
@@ -65,7 +68,8 @@
       "source": {
         "platform": "hankyung",
         "url": "https://www.hankyung.com/article/2026040599001",
-        "crawledAt": "2026-04-05T13:00:18.669Z"
+        "crawledAt": "2026-04-05T15:14:36.979Z",
+        "publishedAt": "Sun, 05 Apr 2026 18:26:39 +0900"
       },
       "subjectKo": "[이 아침의 작곡가] 닉슨 방중부터 9·11까지…시대를 작곡한 존 애덤스",
       "contextKo": "한경 라이프 기사: [이 아침의 작곡가] 닉슨 방중부터 9·11까지…시대를 작곡한 존 애덤스",
@@ -81,77 +85,79 @@
       "signalId": "kr-signal-0005",
       "source": {
         "platform": "mastodon",
-        "url": "https://mastodon.social/@hyeo_2n_/116063105411776072",
-        "crawledAt": "2026-04-05T13:00:18.953Z"
+        "url": "https://jpmstdn.com/@golfjapan/116332647259631900",
+        "crawledAt": "2026-04-05T15:14:37.333Z",
+        "publishedAt": "2026-04-02T02:02:05.000Z"
       },
-      "subjectKo": "추워여…🦦",
-      "contextKo": "추워여…🦦",
-      "reactionType": "price_reaction",
+      "subjectKo": "미녀 골퍼 유현주의 패션 라이벌은?",
+      "contextKo": "미녀 골퍼 유현주의 패션 라이벌은?",
+      "reactionType": "celebrity_reaction",
       "categoryTags": [
-        "daily"
+        "general"
       ],
-      "freshnessScore": 0,
-      "rawTitle": "추워여…🦦",
-      "rawExcerpt": "추워여…🦦"
+      "freshnessScore": 0.64,
+      "rawTitle": "미녀 골퍼 유현주의 패션 라이벌은?",
+      "rawExcerpt": "미녀 골퍼 유현주의 패션 라이벌은?"
     },
     {
       "signalId": "kr-signal-0006",
       "source": {
         "platform": "musinsa",
-        "url": "https://www.musinsa.com/brand/crocs",
-        "crawledAt": "2026-04-05T13:00:18.718Z"
+        "url": "https://www.musinsa.com/brand/converse",
+        "crawledAt": "2026-04-05T15:14:37.025Z"
       },
-      "subjectKo": "크록스 에코 시티 어드벤쳐 클로그 - 카키 / 213115-260",
-      "contextKo": "무신사 랭킹 1위 · 119,000원 (급상승)",
+      "subjectKo": "컨버스 [스탠다드] 척 70 클래식 블랙 162058C",
+      "contextKo": "무신사 랭킹 1위 · 85,500원 (급상승)",
       "reactionType": "price_reaction",
       "categoryTags": [
         "brand",
         "retail"
       ],
       "freshnessScore": 0.92,
-      "rawTitle": "크록스 에코 시티 어드벤쳐 클로그 - 카키 / 213115-260",
-      "rawExcerpt": "무신사 랭킹 1위 · 119,000원 (급상승)"
+      "rawTitle": "컨버스 [스탠다드] 척 70 클래식 블랙 162058C",
+      "rawExcerpt": "무신사 랭킹 1위 · 85,500원 (급상승)"
     },
     {
       "signalId": "kr-signal-0007",
       "source": {
         "platform": "naver_news",
-        "url": "https://n.news.naver.com/mnews/ranking/article/437/0000486023?ntype=RANKING",
-        "crawledAt": "2026-04-05T13:00:18.576Z"
+        "url": "https://n.news.naver.com/mnews/ranking/article/005/0001841303?ntype=RANKING",
+        "crawledAt": "2026-04-05T15:14:36.867Z",
+        "publishedAt": "2026-04-05T15:14:36.867Z"
       },
-      "subjectKo": "\"우리가 그를 구했다\"…'실종 조종사' 미국이 먼저 찾았다",
-      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: \"우리가 그를 구했다\"…'실종 조종사' 미국이 먼저 찾았다",
-      "reactionType": "trend_reaction",
+      "subjectKo": "집 불지른 조현병 딸, 병원들 “못받아”… 고위험군 3일 응급입원제 ‘유명무실’",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 집 불지른 조현병 딸, 병원들 “못받아”… 고위험군 3일 응급입원제 ‘유명무실’",
+      "reactionType": "price_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 0.95,
-      "rawTitle": "\"우리가 그를 구했다\"…'실종 조종사' 미국이 먼저 찾았다",
-      "rawExcerpt": "\"우리가 그를 구했다\"…'실종 조종사' 미국이 먼저 찾았다"
+      "rawTitle": "집 불지른 조현병 딸, 병원들 “못받아”… 고위험군 3일 응급입원제 ‘유명무실’",
+      "rawExcerpt": "집 불지른 조현병 딸, 병원들 “못받아”… 고위험군 3일 응급입원제 ‘유명무실’"
     },
     {
       "signalId": "kr-signal-0008",
       "source": {
         "platform": "weather",
         "url": "https://wttr.in/Seoul?format=j1",
-        "crawledAt": "2026-04-05T13:00:20.320Z"
+        "crawledAt": "2026-04-05T15:14:41.176Z"
       },
-      "subjectKo": "서울 날씨: 11°C, 비",
-      "contextKo": "현재 서울 기온 11°C (체감 10°C), 비, 습도 66%, 강수 1.1mm",
+      "subjectKo": "서울 날씨: 8°C, 비",
+      "contextKo": "현재 서울 기온 8°C (체감 6°C), 비, 습도 93%, 강수 0.5mm",
       "reactionType": "season_reaction",
       "categoryTags": [
         "weather"
       ],
       "freshnessScore": 1,
-      "rawTitle": "서울 날씨: 11°C, 비",
-      "rawExcerpt": "현재 서울 기온 11°C (체감 10°C), 비, 습도 66%, 강수 1.1mm"
+      "rawTitle": "서울 날씨: 8°C, 비",
+      "rawExcerpt": "현재 서울 기온 8°C (체감 6°C), 비, 습도 93%, 강수 0.5mm"
     },
     {
       "signalId": "kr-signal-0009",
       "source": {
         "platform": "curated",
         "url": "",
-        "crawledAt": "2026-04-05T13:00:21.369Z"
+        "crawledAt": "2026-04-05T15:14:42.406Z"
       },
       "subjectKo": "와이드팬츠",
       "contextKo": "실루엣 트렌드 변화",
@@ -168,16 +174,17 @@
       "source": {
         "platform": "google_trends",
         "url": "https://trends.google.com/trending/rss?geo=KR",
-        "crawledAt": "2026-04-05T13:00:17.845Z"
+        "crawledAt": "2026-04-05T15:14:36.112Z",
+        "publishedAt": "Sun, 5 Apr 2026 07:00:00 -0700"
       },
-      "subjectKo": "이휘재",
+      "subjectKo": "재혼",
       "contextKo": "실시간 검색 급상승",
       "reactionType": "trend_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 1,
-      "rawTitle": "이휘재",
+      "rawTitle": "재혼",
       "rawExcerpt": ""
     },
     {
@@ -185,7 +192,8 @@
       "source": {
         "platform": "hankyung",
         "url": "https://www.hankyung.com/article/2026040598031",
-        "crawledAt": "2026-04-05T13:00:18.669Z"
+        "crawledAt": "2026-04-05T15:14:36.979Z",
+        "publishedAt": "Sun, 05 Apr 2026 18:06:57 +0900"
       },
       "subjectKo": "\"기업 디자인과 엔지니어 부서, 제품 초기 단계부터 협업해야\"",
       "contextKo": "한경 라이프 기사: \"기업 디자인과 엔지니어 부서, 제품 초기 단계부터 협업해야\"",
@@ -200,61 +208,46 @@
     {
       "signalId": "kr-signal-0012",
       "source": {
-        "platform": "mastodon",
-        "url": "https://mastodon.social/@hyeo_2n_/116057373451537242",
-        "crawledAt": "2026-04-05T13:00:18.953Z"
-      },
-      "subjectKo": "🤎🐻🐿️",
-      "contextKo": "🤎🐻🐿️",
-      "reactionType": "trend_reaction",
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0,
-      "rawTitle": "🤎🐻🐿️",
-      "rawExcerpt": "🤎🐻🐿️"
-    },
-    {
-      "signalId": "kr-signal-0013",
-      "source": {
         "platform": "musinsa",
-        "url": "https://www.musinsa.com/brand/poloralphlauren",
-        "crawledAt": "2026-04-05T13:00:18.718Z"
+        "url": "https://www.musinsa.com/brand/nike",
+        "crawledAt": "2026-04-05T15:14:37.025Z"
       },
-      "subjectKo": "폴로 랄프 로렌 트윌 재킷-미디움 베이지",
-      "contextKo": "무신사 랭킹 2위 · 439,000원 (급상승)",
+      "subjectKo": "나이키 에어 포스 1 07 M - 화이트 / CW2288-111",
+      "contextKo": "무신사 랭킹 2위 · 149,000원 (판매 6.8만개)",
       "reactionType": "price_reaction",
       "categoryTags": [
+        "sneakers",
         "brand",
         "retail"
       ],
       "freshnessScore": 0.92,
-      "rawTitle": "폴로 랄프 로렌 트윌 재킷-미디움 베이지",
-      "rawExcerpt": "무신사 랭킹 2위 · 439,000원 (급상승)"
+      "rawTitle": "나이키 에어 포스 1 07 M - 화이트 / CW2288-111",
+      "rawExcerpt": "무신사 랭킹 2위 · 149,000원 (판매 6.8만개)"
     },
     {
-      "signalId": "kr-signal-0014",
+      "signalId": "kr-signal-0013",
       "source": {
         "platform": "naver_news",
-        "url": "https://n.news.naver.com/mnews/ranking/article/021/0002782368?ntype=RANKING",
-        "crawledAt": "2026-04-05T13:00:18.576Z"
+        "url": "https://n.news.naver.com/mnews/ranking/article/032/0003437945?ntype=RANKING",
+        "crawledAt": "2026-04-05T15:14:36.867Z",
+        "publishedAt": "2026-04-05T15:14:36.867Z"
       },
-      "subjectKo": "美 특수부대, 이란군과 ‘36시간 격렬 교전’…긴박했던 조종사 구출",
-      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 美 특수부대, 이란군과 ‘36시간 격렬 교전’…긴박했던 조종사 구출",
+      "subjectKo": "트럼프 “이란과 협상중···6일까지 합의 가능성”",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 트럼프 “이란과 협상중···6일까지 합의 가능성”",
       "reactionType": "trend_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 0.95,
-      "rawTitle": "美 특수부대, 이란군과 ‘36시간 격렬 교전’…긴박했던 조종사 구출",
-      "rawExcerpt": "美 특수부대, 이란군과 ‘36시간 격렬 교전’…긴박했던 조종사 구출"
+      "rawTitle": "트럼프 “이란과 협상중···6일까지 합의 가능성”",
+      "rawExcerpt": "트럼프 “이란과 협상중···6일까지 합의 가능성”"
     },
     {
-      "signalId": "kr-signal-0015",
+      "signalId": "kr-signal-0014",
       "source": {
         "platform": "curated",
         "url": "",
-        "crawledAt": "2026-04-05T13:00:21.369Z"
+        "crawledAt": "2026-04-05T15:14:42.406Z"
       },
       "subjectKo": "반려동물 산책룩",
       "contextKo": "강아지 산책할 때 편한 옷",
@@ -267,28 +260,30 @@
       "rawExcerpt": "강아지 산책할 때 편한 옷"
     },
     {
-      "signalId": "kr-signal-0016",
+      "signalId": "kr-signal-0015",
       "source": {
         "platform": "google_trends",
         "url": "https://trends.google.com/trending/rss?geo=KR",
-        "crawledAt": "2026-04-05T13:00:17.845Z"
+        "crawledAt": "2026-04-05T15:14:36.112Z",
+        "publishedAt": "Sun, 5 Apr 2026 07:00:00 -0700"
       },
-      "subjectKo": "티파니",
+      "subjectKo": "두 검사",
       "contextKo": "실시간 검색 급상승",
       "reactionType": "trend_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 1,
-      "rawTitle": "티파니",
+      "rawTitle": "두 검사",
       "rawExcerpt": ""
     },
     {
-      "signalId": "kr-signal-0017",
+      "signalId": "kr-signal-0016",
       "source": {
         "platform": "hankyung",
         "url": "https://www.hankyung.com/article/2026040599121",
-        "crawledAt": "2026-04-05T13:00:18.669Z"
+        "crawledAt": "2026-04-05T15:14:36.979Z",
+        "publishedAt": "Sun, 05 Apr 2026 17:59:01 +0900"
       },
       "subjectKo": "\"겸재는 볼 것 없다\"던 추사의 그림 전시회",
       "contextKo": "한경 라이프 기사: \"겸재는 볼 것 없다\"던 추사의 그림 전시회",
@@ -301,169 +296,47 @@
       "rawExcerpt": "\"겸재는 볼 것 없다\"던 추사의 그림 전시회"
     },
     {
+      "signalId": "kr-signal-0017",
+      "source": {
+        "platform": "musinsa",
+        "url": "https://www.musinsa.com/brand/crocs",
+        "crawledAt": "2026-04-05T15:14:37.025Z"
+      },
+      "subjectKo": "크록스 에코 시티 어드벤쳐 클로그 - 카키 / 213115-260",
+      "contextKo": "무신사 랭킹 3위 · 119,000원 (급상승)",
+      "reactionType": "price_reaction",
+      "categoryTags": [
+        "brand",
+        "retail"
+      ],
+      "freshnessScore": 0.92,
+      "rawTitle": "크록스 에코 시티 어드벤쳐 클로그 - 카키 / 213115-260",
+      "rawExcerpt": "무신사 랭킹 3위 · 119,000원 (급상승)"
+    },
+    {
       "signalId": "kr-signal-0018",
       "source": {
-        "platform": "mastodon",
-        "url": "https://mastodon.social/@hyeo_2n_/116028493906693238",
-        "crawledAt": "2026-04-05T13:00:18.953Z"
+        "platform": "naver_news",
+        "url": "https://n.news.naver.com/mnews/ranking/article/011/0004607180?ntype=RANKING",
+        "crawledAt": "2026-04-05T15:14:36.867Z",
+        "publishedAt": "2026-04-05T15:14:36.867Z"
       },
-      "subjectKo": "하트 다 머겅",
-      "contextKo": "하트 다 머겅 ❤️",
+      "subjectKo": "“전자레인지에 절대 넣지 마라”…의사들이 경고한 ‘이것’의 정체",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: “전자레인지에 절대 넣지 마라”…의사들이 경고한 ‘이것’의 정체",
       "reactionType": "trend_reaction",
       "categoryTags": [
-        "daily"
+        "general"
       ],
-      "freshnessScore": 0,
-      "rawTitle": "하트 다 머겅 ❤️",
-      "rawExcerpt": "하트 다 머겅 ❤️"
+      "freshnessScore": 0.95,
+      "rawTitle": "“전자레인지에 절대 넣지 마라”…의사들이 경고한 ‘이것’의 정체",
+      "rawExcerpt": "“전자레인지에 절대 넣지 마라”…의사들이 경고한 ‘이것’의 정체"
     },
     {
       "signalId": "kr-signal-0019",
       "source": {
-        "platform": "musinsa",
-        "url": "https://www.musinsa.com/brand/leire",
-        "crawledAt": "2026-04-05T13:00:18.718Z"
-      },
-      "subjectKo": "르아르 [SET] 소프트 헨리넥 레이어드 티셔츠 세트",
-      "contextKo": "무신사 랭킹 3위 · 46,550원 (판매 1.3천개)",
-      "reactionType": "price_reaction",
-      "categoryTags": [
-        "brand",
-        "retail"
-      ],
-      "freshnessScore": 0.92,
-      "rawTitle": "르아르 [SET] 소프트 헨리넥 레이어드 티셔츠 세트",
-      "rawExcerpt": "무신사 랭킹 3위 · 46,550원 (판매 1.3천개)"
-    },
-    {
-      "signalId": "kr-signal-0020",
-      "source": {
-        "platform": "naver_news",
-        "url": "https://n.news.naver.com/mnews/ranking/article/001/0016003612?ntype=RANKING",
-        "crawledAt": "2026-04-05T13:00:18.576Z"
-      },
-      "subjectKo": "전쟁 중 잘린 美육참총장 \"미군, 인격적 지도자 가질 자격 있어\"",
-      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 전쟁 중 잘린 美육참총장 \"미군, 인격적 지도자 가질 자격 있어\"",
-      "reactionType": "trend_reaction",
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.95,
-      "rawTitle": "전쟁 중 잘린 美육참총장 \"미군, 인격적 지도자 가질 자격 있어\"",
-      "rawExcerpt": "전쟁 중 잘린 美육참총장 \"미군, 인격적 지도자 가질 자격 있어\""
-    },
-    {
-      "signalId": "kr-signal-0021",
-      "source": {
         "platform": "curated",
         "url": "",
-        "crawledAt": "2026-04-05T13:00:21.369Z"
-      },
-      "subjectKo": "서울패션위크",
-      "contextKo": "시즌 패션위크 행사",
-      "reactionType": "event_reaction",
-      "categoryTags": [
-        "fashion"
-      ],
-      "freshnessScore": 0.8,
-      "rawTitle": "서울패션위크",
-      "rawExcerpt": "시즌 패션위크 행사"
-    },
-    {
-      "signalId": "kr-signal-0022",
-      "source": {
-        "platform": "google_trends",
-        "url": "https://trends.google.com/trending/rss?geo=KR",
-        "crawledAt": "2026-04-05T13:00:17.845Z"
-      },
-      "subjectKo": "금",
-      "contextKo": "실시간 검색 급상승",
-      "reactionType": "trend_reaction",
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 1,
-      "rawTitle": "금",
-      "rawExcerpt": ""
-    },
-    {
-      "signalId": "kr-signal-0023",
-      "source": {
-        "platform": "hankyung",
-        "url": "https://www.hankyung.com/article/2026040599131",
-        "crawledAt": "2026-04-05T13:00:18.669Z"
-      },
-      "subjectKo": "\"사진 한장 못 남겨요…오로지 관계만 맺고 가는 전시예요\"",
-      "contextKo": "한경 라이프 기사: \"사진 한장 못 남겨요…오로지 관계만 맺고 가는 전시예요\"",
-      "reactionType": "event_reaction",
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.9,
-      "rawTitle": "\"사진 한장 못 남겨요…오로지 관계만 맺고 가는 전시예요\"",
-      "rawExcerpt": "\"사진 한장 못 남겨요…오로지 관계만 맺고 가는 전시예요\""
-    },
-    {
-      "signalId": "kr-signal-0024",
-      "source": {
-        "platform": "mastodon",
-        "url": "https://mastodon.social/@arodishe/115548913973481023",
-        "crawledAt": "2026-04-05T13:00:18.953Z"
-      },
-      "subjectKo": "스타일링",
-      "contextKo": "📸 스타일링 TIP 남성: 데님 팬츠 + 스니커즈로 캐주얼하게, 블레이저와 매치해 세미정장으로! 여성: 미니스커트 + 앵클부츠로 페미닌하게, 와이드 팬츠와 운동화로 스트릿 느낌!...",
-      "reactionType": "season_reaction",
-      "categoryTags": [
-        "sneakers",
-        "streetwear",
-        "daily"
-      ],
-      "freshnessScore": 0,
-      "rawTitle": "📸 스타일링 TIP 남성: 데님 팬츠 + 스니커즈로 캐주얼하게, 블레이저와 매치해 세미정장으로! 여성: 미니스커트 + 앵클부츠로 페미닌하게, 와이드 팬츠와 운동화로 스트릿 느낌! 👉 지금 바로 아로디쉐 스마트스토",
-      "rawExcerpt": "📸 스타일링 TIP 남성: 데님 팬츠 + 스니커즈로 캐주얼하게, 블레이저와 매치해 세미정장으로! 여성: 미니스커트 + 앵클부츠로 페미닌하게, 와이드 팬츠와 운동화로 스트릿 느낌! 👉 지금 바로 아로디쉐 스마트스토어에서 확인하세요! 아로디쉐는 실용성과 트렌디함의 조화를 추구합니다. 이번 시즌, 남녀 모두가 사랑하는 체크 셔츠로 데일리룩을 업그레이드해 보세요!"
-    },
-    {
-      "signalId": "kr-signal-0025",
-      "source": {
-        "platform": "musinsa",
-        "url": "https://www.musinsa.com/brand/adidas",
-        "crawledAt": "2026-04-05T13:00:18.718Z"
-      },
-      "subjectKo": "아디다스 와플 클래식 트랙탑 - 원더화이트 / KQ6864",
-      "contextKo": "무신사 랭킹 4위 · 129,000원 (판매 1천개)",
-      "reactionType": "price_reaction",
-      "categoryTags": [
-        "sneakers",
-        "brand",
-        "retail"
-      ],
-      "freshnessScore": 0.92,
-      "rawTitle": "아디다스 와플 클래식 트랙탑 - 원더화이트 / KQ6864",
-      "rawExcerpt": "무신사 랭킹 4위 · 129,000원 (판매 1천개)"
-    },
-    {
-      "signalId": "kr-signal-0026",
-      "source": {
-        "platform": "naver_news",
-        "url": "https://n.news.naver.com/mnews/ranking/article/056/0012155970?ntype=RANKING",
-        "crawledAt": "2026-04-05T13:00:18.576Z"
-      },
-      "subjectKo": "전쟁 중 경질된 미국 육참총장 “미군, 인격적 지도자 가질 자격 있어”",
-      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 전쟁 중 경질된 미국 육참총장 “미군, 인격적 지도자 가질 자격 있어”",
-      "reactionType": "trend_reaction",
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.95,
-      "rawTitle": "전쟁 중 경질된 미국 육참총장 “미군, 인격적 지도자 가질 자격 있어”",
-      "rawExcerpt": "전쟁 중 경질된 미국 육참총장 “미군, 인격적 지도자 가질 자격 있어”"
-    },
-    {
-      "signalId": "kr-signal-0027",
-      "source": {
-        "platform": "curated",
-        "url": "",
-        "crawledAt": "2026-04-05T13:00:21.369Z"
+        "crawledAt": "2026-04-05T15:14:42.406Z"
       },
       "subjectKo": "직구 관세",
       "contextKo": "해외직구 관세 기준",
@@ -476,98 +349,84 @@
       "rawExcerpt": "해외직구 관세 기준"
     },
     {
-      "signalId": "kr-signal-0028",
+      "signalId": "kr-signal-0020",
       "source": {
         "platform": "google_trends",
         "url": "https://trends.google.com/trending/rss?geo=KR",
-        "crawledAt": "2026-04-05T13:00:17.845Z"
+        "crawledAt": "2026-04-05T15:14:36.112Z",
+        "publishedAt": "Sun, 5 Apr 2026 06:50:00 -0700"
       },
-      "subjectKo": "김구라",
+      "subjectKo": "rcb vs csk",
       "contextKo": "실시간 검색 급상승",
-      "reactionType": "trend_reaction",
+      "reactionType": "comparison_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 1,
-      "rawTitle": "김구라",
+      "rawTitle": "rcb vs csk",
       "rawExcerpt": ""
     },
     {
-      "signalId": "kr-signal-0029",
+      "signalId": "kr-signal-0021",
       "source": {
         "platform": "hankyung",
-        "url": "https://www.hankyung.com/article/2026040599141",
-        "crawledAt": "2026-04-05T13:00:18.669Z"
+        "url": "https://www.hankyung.com/article/2026040599131",
+        "crawledAt": "2026-04-05T15:14:36.979Z",
+        "publishedAt": "Sun, 05 Apr 2026 17:58:08 +0900"
       },
-      "subjectKo": "100년 전 '소춘대유회' 광대들…정동극장 후배와 흥겨운 협연",
-      "contextKo": "한경 라이프 기사: 100년 전 '소춘대유회' 광대들…정동극장 후배와 흥겨운 협연",
-      "reactionType": "trend_reaction",
+      "subjectKo": "\"사진 한장 못 남겨요…오로지 관계만 맺고 가는 전시예요\"",
+      "contextKo": "한경 라이프 기사: \"사진 한장 못 남겨요…오로지 관계만 맺고 가는 전시예요\"",
+      "reactionType": "event_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 0.9,
-      "rawTitle": "100년 전 '소춘대유회' 광대들…정동극장 후배와 흥겨운 협연",
-      "rawExcerpt": "100년 전 '소춘대유회' 광대들…정동극장 후배와 흥겨운 협연"
+      "rawTitle": "\"사진 한장 못 남겨요…오로지 관계만 맺고 가는 전시예요\"",
+      "rawExcerpt": "\"사진 한장 못 남겨요…오로지 관계만 맺고 가는 전시예요\""
     },
     {
-      "signalId": "kr-signal-0030",
-      "source": {
-        "platform": "mastodon",
-        "url": "https://jforo.com/@pubx/115509142870693082",
-        "crawledAt": "2026-04-05T13:00:18.953Z"
-      },
-      "subjectKo": "추구미 가득 출근룩부터 꾸꾸꾸 연말룩까지",
-      "contextKo": "추구미 가득 출근룩부터 꾸꾸꾸 연말룩까지🌀따라하기 좋은 슬기의 겨울룩•코디 추천",
-      "reactionType": "price_reaction",
-      "categoryTags": [
-        "retail",
-        "daily"
-      ],
-      "freshnessScore": 0,
-      "rawTitle": "추구미 가득 출근룩부터 꾸꾸꾸 연말룩까지🌀따라하기 좋은 슬기의 겨울룩•코디 추천",
-      "rawExcerpt": "추구미 가득 출근룩부터 꾸꾸꾸 연말룩까지🌀따라하기 좋은 슬기의 겨울룩•코디 추천"
-    },
-    {
-      "signalId": "kr-signal-0031",
+      "signalId": "kr-signal-0022",
       "source": {
         "platform": "musinsa",
-        "url": "https://www.musinsa.com/brand/arcteryx",
-        "crawledAt": "2026-04-05T13:00:18.718Z"
+        "url": "https://www.musinsa.com/brand/adidas",
+        "crawledAt": "2026-04-05T15:14:37.025Z"
       },
-      "subjectKo": "아크테릭스 맨티스 26 백팩 - BLACK / ABQSU10643",
-      "contextKo": "무신사 랭킹 5위 · 275,500원",
+      "subjectKo": "아디다스 스탠 스미스 LO 발레 JQ6939",
+      "contextKo": "무신사 랭킹 4위 · 139,000원",
       "reactionType": "price_reaction",
       "categoryTags": [
+        "sneakers",
         "brand",
         "retail"
       ],
       "freshnessScore": 0.92,
-      "rawTitle": "아크테릭스 맨티스 26 백팩 - BLACK / ABQSU10643",
-      "rawExcerpt": "무신사 랭킹 5위 · 275,500원"
+      "rawTitle": "아디다스 스탠 스미스 LO 발레 JQ6939",
+      "rawExcerpt": "무신사 랭킹 4위 · 139,000원"
     },
     {
-      "signalId": "kr-signal-0032",
+      "signalId": "kr-signal-0023",
       "source": {
         "platform": "naver_news",
-        "url": "https://n.news.naver.com/mnews/ranking/article/020/0003709811?ntype=RANKING",
-        "crawledAt": "2026-04-05T13:00:18.576Z"
+        "url": "https://n.news.naver.com/mnews/ranking/article/028/0002799308?ntype=RANKING",
+        "crawledAt": "2026-04-05T15:14:36.867Z",
+        "publishedAt": "2026-04-05T15:14:36.867Z"
       },
-      "subjectKo": "“입사 첫날 점심 먹고 사표냈다”…日 ‘퇴사 대행’ 이용 증가",
-      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: “입사 첫날 점심 먹고 사표냈다”…日 ‘퇴사 대행’ 이용 증가",
-      "reactionType": "trend_reaction",
+      "subjectKo": "회삿돈 ‘560억’ 맘대로 쓴 최신원 전 SK네트웍스 회장의 ‘화려한 컴백’",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 회삿돈 ‘560억’ 맘대로 쓴 최신원 전 SK네트웍스 회장의 ‘화려한 컴백’",
+      "reactionType": "price_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 0.95,
-      "rawTitle": "“입사 첫날 점심 먹고 사표냈다”…日 ‘퇴사 대행’ 이용 증가",
-      "rawExcerpt": "“입사 첫날 점심 먹고 사표냈다”…日 ‘퇴사 대행’ 이용 증가"
+      "rawTitle": "회삿돈 ‘560억’ 맘대로 쓴 최신원 전 SK네트웍스 회장의 ‘화려한 컴백’",
+      "rawExcerpt": "회삿돈 ‘560억’ 맘대로 쓴 최신원 전 SK네트웍스 회장의 ‘화려한 컴백’"
     },
     {
-      "signalId": "kr-signal-0033",
+      "signalId": "kr-signal-0024",
       "source": {
         "platform": "curated",
         "url": "",
-        "crawledAt": "2026-04-05T13:00:21.369Z"
+        "crawledAt": "2026-04-05T15:14:42.406Z"
       },
       "subjectKo": "미니멀 코디",
       "contextKo": "심플한 스타일링 트렌드",
@@ -580,97 +439,84 @@
       "rawExcerpt": "심플한 스타일링 트렌드"
     },
     {
-      "signalId": "kr-signal-0034",
+      "signalId": "kr-signal-0025",
       "source": {
         "platform": "google_trends",
         "url": "https://trends.google.com/trending/rss?geo=KR",
-        "crawledAt": "2026-04-05T13:00:17.845Z"
+        "crawledAt": "2026-04-05T15:14:36.112Z",
+        "publishedAt": "Sun, 5 Apr 2026 06:50:00 -0700"
       },
-      "subjectKo": "김연정",
+      "subjectKo": "김지영",
       "contextKo": "실시간 검색 급상승",
       "reactionType": "trend_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 1,
-      "rawTitle": "김연정",
+      "rawTitle": "김지영",
       "rawExcerpt": ""
     },
     {
-      "signalId": "kr-signal-0035",
+      "signalId": "kr-signal-0026",
       "source": {
         "platform": "hankyung",
-        "url": "https://www.hankyung.com/article/2026040599151",
-        "crawledAt": "2026-04-05T13:00:18.669Z"
+        "url": "https://www.hankyung.com/article/2026040599141",
+        "crawledAt": "2026-04-05T15:14:36.979Z",
+        "publishedAt": "Sun, 05 Apr 2026 17:57:46 +0900"
       },
-      "subjectKo": "\"산전수전 다겪은 지금이 전성기\"",
-      "contextKo": "한경 라이프 기사: \"산전수전 다겪은 지금이 전성기\"",
+      "subjectKo": "100년 전 '소춘대유회' 광대들…정동극장 후배와 흥겨운 협연",
+      "contextKo": "한경 라이프 기사: 100년 전 '소춘대유회' 광대들…정동극장 후배와 흥겨운 협연",
       "reactionType": "trend_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 0.9,
-      "rawTitle": "\"산전수전 다겪은 지금이 전성기\"",
-      "rawExcerpt": "\"산전수전 다겪은 지금이 전성기\""
+      "rawTitle": "100년 전 '소춘대유회' 광대들…정동극장 후배와 흥겨운 협연",
+      "rawExcerpt": "100년 전 '소춘대유회' 광대들…정동극장 후배와 흥겨운 협연"
     },
     {
-      "signalId": "kr-signal-0036",
-      "source": {
-        "platform": "mastodon",
-        "url": "https://jforo.com/@pubx/115390525334112857",
-        "crawledAt": "2026-04-05T13:00:18.953Z"
-      },
-      "subjectKo": "가을 패션 고민 시원하게 해결해 드립니다",
-      "contextKo": "가을 패션 고민 시원하게 해결해 드립니다🍂경량패딩,스웨이드 트렌드,부츠,기본티까지👚슬기의 패션 상담소 ㅣ 슬타일링",
-      "reactionType": "price_reaction",
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0,
-      "rawTitle": "가을 패션 고민 시원하게 해결해 드립니다🍂경량패딩,스웨이드 트렌드,부츠,기본티까지👚슬기의 패션 상담소 ㅣ 슬타일링",
-      "rawExcerpt": "가을 패션 고민 시원하게 해결해 드립니다🍂경량패딩,스웨이드 트렌드,부츠,기본티까지👚슬기의 패션 상담소 ㅣ 슬타일링"
-    },
-    {
-      "signalId": "kr-signal-0037",
+      "signalId": "kr-signal-0027",
       "source": {
         "platform": "musinsa",
-        "url": "https://www.musinsa.com/brand/converse",
-        "crawledAt": "2026-04-05T13:00:18.718Z"
+        "url": "https://www.musinsa.com/brand/nike",
+        "crawledAt": "2026-04-05T15:14:37.025Z"
       },
-      "subjectKo": "컨버스 [스탠다드] 척 70 클래식 블랙 162058C",
-      "contextKo": "무신사 랭킹 6위 · 85,500원",
+      "subjectKo": "나이키 에어 포스 1 07 M - 블랙 / CW2288-001",
+      "contextKo": "무신사 랭킹 5위 · 149,000원 (판매 5.1만개)",
       "reactionType": "price_reaction",
       "categoryTags": [
+        "sneakers",
         "brand",
         "retail"
       ],
       "freshnessScore": 0.92,
-      "rawTitle": "컨버스 [스탠다드] 척 70 클래식 블랙 162058C",
-      "rawExcerpt": "무신사 랭킹 6위 · 85,500원"
+      "rawTitle": "나이키 에어 포스 1 07 M - 블랙 / CW2288-001",
+      "rawExcerpt": "무신사 랭킹 5위 · 149,000원 (판매 5.1만개)"
     },
     {
-      "signalId": "kr-signal-0038",
+      "signalId": "kr-signal-0028",
       "source": {
         "platform": "naver_news",
-        "url": "https://n.news.naver.com/mnews/ranking/article/081/0003632533?ntype=RANKING",
-        "crawledAt": "2026-04-05T13:00:18.576Z"
+        "url": "https://n.news.naver.com/mnews/ranking/article/052/0002336608?ntype=RANKING",
+        "crawledAt": "2026-04-05T15:14:36.867Z",
+        "publishedAt": "2026-04-05T15:14:36.867Z"
       },
-      "subjectKo": "머리는 백인, 몸은 흑인?…160만 인플루언서女 ‘충격 진실’ 드러났다",
-      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 머리는 백인, 몸은 흑인?…160만 인플루언서女 ‘충격 진실’ 드러났다",
+      "subjectKo": "조종사는 구조됐지만...체면 구긴 '하늘의 제왕'",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 조종사는 구조됐지만...체면 구긴 '하늘의 제왕'",
       "reactionType": "trend_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 0.95,
-      "rawTitle": "머리는 백인, 몸은 흑인?…160만 인플루언서女 ‘충격 진실’ 드러났다",
-      "rawExcerpt": "머리는 백인, 몸은 흑인?…160만 인플루언서女 ‘충격 진실’ 드러났다"
+      "rawTitle": "조종사는 구조됐지만...체면 구긴 '하늘의 제왕'",
+      "rawExcerpt": "조종사는 구조됐지만...체면 구긴 '하늘의 제왕'"
     },
     {
-      "signalId": "kr-signal-0039",
+      "signalId": "kr-signal-0029",
       "source": {
         "platform": "curated",
         "url": "",
-        "crawledAt": "2026-04-05T13:00:21.369Z"
+        "crawledAt": "2026-04-05T15:14:42.406Z"
       },
       "subjectKo": "K-pop 아이돌 코디",
       "contextKo": "무대 의상과 사복 스타일",
@@ -683,98 +529,83 @@
       "rawExcerpt": "무대 의상과 사복 스타일"
     },
     {
-      "signalId": "kr-signal-0040",
+      "signalId": "kr-signal-0030",
       "source": {
         "platform": "google_trends",
         "url": "https://trends.google.com/trending/rss?geo=KR",
-        "crawledAt": "2026-04-05T13:00:17.845Z"
+        "crawledAt": "2026-04-05T15:14:36.112Z",
+        "publishedAt": "Sun, 5 Apr 2026 06:50:00 -0700"
       },
-      "subjectKo": "장항준",
+      "subjectKo": "이지혜",
       "contextKo": "실시간 검색 급상승",
       "reactionType": "trend_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 1,
-      "rawTitle": "장항준",
+      "rawTitle": "이지혜",
       "rawExcerpt": ""
     },
     {
-      "signalId": "kr-signal-0041",
+      "signalId": "kr-signal-0031",
       "source": {
         "platform": "hankyung",
-        "url": "https://www.hankyung.com/article/2026040598357",
-        "crawledAt": "2026-04-05T13:00:18.669Z"
+        "url": "https://www.hankyung.com/article/2026040599151",
+        "crawledAt": "2026-04-05T15:14:36.979Z",
+        "publishedAt": "Sun, 05 Apr 2026 17:57:27 +0900"
       },
-      "subjectKo": "\"벚꽃 만개했는데\"…오늘(5일) 밤부터 전국에 '봄비'",
-      "contextKo": "한경 라이프 기사: \"벚꽃 만개했는데\"…오늘(5일) 밤부터 전국에 '봄비'",
-      "reactionType": "season_reaction",
+      "subjectKo": "\"산전수전 다겪은 지금이 전성기\"",
+      "contextKo": "한경 라이프 기사: \"산전수전 다겪은 지금이 전성기\"",
+      "reactionType": "trend_reaction",
       "categoryTags": [
-        "weather"
+        "general"
       ],
       "freshnessScore": 0.9,
-      "rawTitle": "\"벚꽃 만개했는데\"…오늘(5일) 밤부터 전국에 '봄비'",
-      "rawExcerpt": "\"벚꽃 만개했는데\"…오늘(5일) 밤부터 전국에 '봄비'"
+      "rawTitle": "\"산전수전 다겪은 지금이 전성기\"",
+      "rawExcerpt": "\"산전수전 다겪은 지금이 전성기\""
     },
     {
-      "signalId": "kr-signal-0042",
-      "source": {
-        "platform": "mastodon",
-        "url": "https://jforo.com/@pubx/115073561769658195",
-        "crawledAt": "2026-04-05T13:00:18.953Z"
-      },
-      "subjectKo": "진짜 솔직하게 말해요?팩폭 가득 슬기의 패션 상담소",
-      "contextKo": "진짜 솔직하게 말해요?팩폭 가득 슬기의 패션 상담소ㅣ슬타일링",
-      "reactionType": "season_reaction",
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0,
-      "rawTitle": "진짜 솔직하게 말해요?팩폭 가득 슬기의 패션 상담소ㅣ슬타일링",
-      "rawExcerpt": "진짜 솔직하게 말해요?팩폭 가득 슬기의 패션 상담소ㅣ슬타일링"
-    },
-    {
-      "signalId": "kr-signal-0043",
+      "signalId": "kr-signal-0032",
       "source": {
         "platform": "musinsa",
-        "url": "https://www.musinsa.com/brand/roaringrad",
-        "crawledAt": "2026-04-05T13:00:18.718Z"
+        "url": "https://www.musinsa.com/brand/drmartens",
+        "crawledAt": "2026-04-05T15:14:37.025Z"
       },
-      "subjectKo": "로어링라드 더블 오비 집 데님 팬츠 인디고",
-      "contextKo": "무신사 랭킹 7위 · 224,000원 (급상승)",
+      "subjectKo": "닥터마틴 1461 3홀 블랙 스무스 / 11838002",
+      "contextKo": "무신사 랭킹 6위 · 229,000원 (판매 2.8만개)",
       "reactionType": "price_reaction",
       "categoryTags": [
         "brand",
-        "weather",
         "retail"
       ],
       "freshnessScore": 0.92,
-      "rawTitle": "로어링라드 더블 오비 집 데님 팬츠 인디고",
-      "rawExcerpt": "무신사 랭킹 7위 · 224,000원 (급상승)"
+      "rawTitle": "닥터마틴 1461 3홀 블랙 스무스 / 11838002",
+      "rawExcerpt": "무신사 랭킹 6위 · 229,000원 (판매 2.8만개)"
     },
     {
-      "signalId": "kr-signal-0044",
+      "signalId": "kr-signal-0033",
       "source": {
         "platform": "naver_news",
-        "url": "https://n.news.naver.com/mnews/ranking/article/057/0001943208?ntype=RANKING",
-        "crawledAt": "2026-04-05T13:00:18.576Z"
+        "url": "https://n.news.naver.com/mnews/ranking/article/009/0005661138?ntype=RANKING",
+        "crawledAt": "2026-04-05T15:14:36.867Z",
+        "publishedAt": "2026-04-05T15:14:36.867Z"
       },
-      "subjectKo": "구조했다는 트럼프 vs 저지했다는 이란, 누구 말이 맞나",
-      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 구조했다는 트럼프 vs 저지했다는 이란, 누구 말이 맞나",
-      "reactionType": "comparison_reaction",
+      "subjectKo": "아이 얼굴 푸른 반점 제거 레이저 치료 40차례…횟수 늘자 보험사가 갑자기",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 아이 얼굴 푸른 반점 제거 레이저 치료 40차례…횟수 늘자 보험사가 갑자기",
+      "reactionType": "trend_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 0.95,
-      "rawTitle": "구조했다는 트럼프 vs 저지했다는 이란, 누구 말이 맞나",
-      "rawExcerpt": "구조했다는 트럼프 vs 저지했다는 이란, 누구 말이 맞나"
+      "rawTitle": "아이 얼굴 푸른 반점 제거 레이저 치료 40차례…횟수 늘자 보험사가 갑자기",
+      "rawExcerpt": "아이 얼굴 푸른 반점 제거 레이저 치료 40차례…횟수 늘자 보험사가 갑자기"
     },
     {
-      "signalId": "kr-signal-0045",
+      "signalId": "kr-signal-0034",
       "source": {
         "platform": "curated",
         "url": "",
-        "crawledAt": "2026-04-05T13:00:21.369Z"
+        "crawledAt": "2026-04-05T15:14:42.406Z"
       },
       "subjectKo": "자라 봄 신상",
       "contextKo": "봄 컬렉션 입고 시작",
@@ -787,28 +618,119 @@
       "rawExcerpt": "봄 컬렉션 입고 시작"
     },
     {
-      "signalId": "kr-signal-0046",
+      "signalId": "kr-signal-0035",
       "source": {
         "platform": "google_trends",
         "url": "https://trends.google.com/trending/rss?geo=KR",
-        "crawledAt": "2026-04-05T13:00:17.845Z"
+        "crawledAt": "2026-04-05T15:14:36.112Z",
+        "publishedAt": "Sun, 5 Apr 2026 06:50:00 -0700"
       },
-      "subjectKo": "베트남",
+      "subjectKo": "공휴일",
       "contextKo": "실시간 검색 급상승",
       "reactionType": "trend_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 1,
-      "rawTitle": "베트남",
+      "rawTitle": "공휴일",
       "rawExcerpt": ""
     },
     {
-      "signalId": "kr-signal-0047",
+      "signalId": "kr-signal-0036",
+      "source": {
+        "platform": "hankyung",
+        "url": "https://www.hankyung.com/article/2026040598357",
+        "crawledAt": "2026-04-05T15:14:36.979Z",
+        "publishedAt": "Sun, 05 Apr 2026 17:51:55 +0900"
+      },
+      "subjectKo": "\"벚꽃 만개했는데\"…오늘(5일) 밤부터 전국에 '봄비'",
+      "contextKo": "한경 라이프 기사: \"벚꽃 만개했는데\"…오늘(5일) 밤부터 전국에 '봄비'",
+      "reactionType": "season_reaction",
+      "categoryTags": [
+        "weather"
+      ],
+      "freshnessScore": 0.9,
+      "rawTitle": "\"벚꽃 만개했는데\"…오늘(5일) 밤부터 전국에 '봄비'",
+      "rawExcerpt": "\"벚꽃 만개했는데\"…오늘(5일) 밤부터 전국에 '봄비'"
+    },
+    {
+      "signalId": "kr-signal-0037",
+      "source": {
+        "platform": "musinsa",
+        "url": "https://www.musinsa.com/brand/asics",
+        "crawledAt": "2026-04-05T15:14:37.025Z"
+      },
+      "subjectKo": "아식스 젤-1130 - 화이트:클라우드 그레이 / 1201A256-118",
+      "contextKo": "무신사 랭킹 7위 · 119,000원 (판매 6.4천개)",
+      "reactionType": "price_reaction",
+      "categoryTags": [
+        "brand",
+        "retail"
+      ],
+      "freshnessScore": 0.92,
+      "rawTitle": "아식스 젤-1130 - 화이트:클라우드 그레이 / 1201A256-118",
+      "rawExcerpt": "무신사 랭킹 7위 · 119,000원 (판매 6.4천개)"
+    },
+    {
+      "signalId": "kr-signal-0038",
+      "source": {
+        "platform": "naver_news",
+        "url": "https://n.news.naver.com/mnews/ranking/article/055/0001346034?ntype=RANKING",
+        "crawledAt": "2026-04-05T15:14:36.867Z",
+        "publishedAt": "2026-04-05T15:14:36.867Z"
+      },
+      "subjectKo": "고글 쓰자 빨간 점 '휙휙'…100만 괴롭힌 증상 고친다",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 고글 쓰자 빨간 점 '휙휙'…100만 괴롭힌 증상 고친다",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.95,
+      "rawTitle": "고글 쓰자 빨간 점 '휙휙'…100만 괴롭힌 증상 고친다",
+      "rawExcerpt": "고글 쓰자 빨간 점 '휙휙'…100만 괴롭힌 증상 고친다"
+    },
+    {
+      "signalId": "kr-signal-0039",
+      "source": {
+        "platform": "curated",
+        "url": "",
+        "crawledAt": "2026-04-05T15:14:42.406Z"
+      },
+      "subjectKo": "매거진 화보",
+      "contextKo": "패션 잡지 커버 촬영",
+      "reactionType": "celebrity_reaction",
+      "categoryTags": [
+        "celebrity"
+      ],
+      "freshnessScore": 0.8,
+      "rawTitle": "매거진 화보",
+      "rawExcerpt": "패션 잡지 커버 촬영"
+    },
+    {
+      "signalId": "kr-signal-0040",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T15:14:36.112Z",
+        "publishedAt": "Sun, 5 Apr 2026 06:40:00 -0700"
+      },
+      "subjectKo": "근로기준법",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "근로기준법",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0041",
       "source": {
         "platform": "hankyung",
         "url": "https://www.hankyung.com/article/2026040597657",
-        "crawledAt": "2026-04-05T13:00:18.669Z"
+        "crawledAt": "2026-04-05T15:14:36.979Z",
+        "publishedAt": "Sun, 05 Apr 2026 17:36:10 +0900"
       },
       "subjectKo": "'밥처럼 먹었더니 살 쭉쭉'…강소라 다이어트 비결 뭐길래 [건강!톡]",
       "contextKo": "한경 라이프 기사: '밥처럼 먹었더니 살 쭉쭉'…강소라 다이어트 비결 뭐길래 [건강!톡]",
@@ -821,58 +743,166 @@
       "rawExcerpt": "'밥처럼 먹었더니 살 쭉쭉'…강소라 다이어트 비결 뭐길래 [건강!톡]"
     },
     {
-      "signalId": "kr-signal-0048",
-      "source": {
-        "platform": "mastodon",
-        "url": "https://ol2ol.com/@gotorola/114328393838983356",
-        "crawledAt": "2026-04-05T13:00:18.953Z"
-      },
-      "subjectKo": "타라바이모션 카모 미키티 빈스 미니스커트 봄 데일리룩",
-      "contextKo": "타라바이모션 카모 미키티 빈스 미니스커트 봄 데일리룩 코디 여성의류",
-      "reactionType": "product_reaction",
-      "categoryTags": [
-        "luxury",
-        "weather",
-        "daily"
-      ],
-      "freshnessScore": 0,
-      "rawTitle": "타라바이모션 카모 미키티 빈스 미니스커트 봄 데일리룩 코디 여성의류",
-      "rawExcerpt": "타라바이모션 카모 미키티 빈스 미니스커트 봄 데일리룩 코디 여성의류"
-    },
-    {
-      "signalId": "kr-signal-0049",
+      "signalId": "kr-signal-0042",
       "source": {
         "platform": "musinsa",
-        "url": "https://www.musinsa.com/brand/trillion",
-        "crawledAt": "2026-04-05T13:00:18.718Z"
+        "url": "https://www.musinsa.com/brand/newbalance",
+        "crawledAt": "2026-04-05T15:14:37.025Z"
       },
-      "subjectKo": "트릴리온 에센셜 옥스포드 크롭 스트라이프 셔츠_3color",
-      "contextKo": "무신사 랭킹 8위 · 29,990원 (판매 4.7천개)",
+      "subjectKo": "뉴발란스 NBPDGS102B / U740BM2 (BLACK)",
+      "contextKo": "무신사 랭킹 8위 · 149,000원 (판매 1.2만개)",
       "reactionType": "price_reaction",
       "categoryTags": [
+        "sneakers",
         "brand",
         "retail"
       ],
       "freshnessScore": 0.92,
-      "rawTitle": "트릴리온 에센셜 옥스포드 크롭 스트라이프 셔츠_3color",
-      "rawExcerpt": "무신사 랭킹 8위 · 29,990원 (판매 4.7천개)"
+      "rawTitle": "뉴발란스 NBPDGS102B / U740BM2 (BLACK)",
+      "rawExcerpt": "무신사 랭킹 8위 · 149,000원 (판매 1.2만개)"
     },
     {
-      "signalId": "kr-signal-0050",
+      "signalId": "kr-signal-0043",
       "source": {
         "platform": "naver_news",
-        "url": "https://n.news.naver.com/mnews/ranking/article/214/0001490762?ntype=RANKING",
-        "crawledAt": "2026-04-05T13:00:18.576Z"
+        "url": "https://n.news.naver.com/mnews/ranking/article/025/0003514059?ntype=RANKING",
+        "crawledAt": "2026-04-05T15:14:36.867Z",
+        "publishedAt": "2026-04-05T15:14:36.867Z"
       },
-      "subjectKo": "육군 헬기, 산불 진화 중 실수로 DMZ 진입‥북한은 반응 없어",
-      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 육군 헬기, 산불 진화 중 실수로 DMZ 진입‥북한은 반응 없어",
+      "subjectKo": "트럼프 “오늘 이란과 협상 가능성 커…빨리 안 하면 날려버릴 것”",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 트럼프 “오늘 이란과 협상 가능성 커…빨리 안 하면 날려버릴 것”",
       "reactionType": "trend_reaction",
       "categoryTags": [
         "general"
       ],
       "freshnessScore": 0.95,
-      "rawTitle": "육군 헬기, 산불 진화 중 실수로 DMZ 진입‥북한은 반응 없어",
-      "rawExcerpt": "육군 헬기, 산불 진화 중 실수로 DMZ 진입‥북한은 반응 없어"
+      "rawTitle": "트럼프 “오늘 이란과 협상 가능성 커…빨리 안 하면 날려버릴 것”",
+      "rawExcerpt": "트럼프 “오늘 이란과 협상 가능성 커…빨리 안 하면 날려버릴 것”"
+    },
+    {
+      "signalId": "kr-signal-0044",
+      "source": {
+        "platform": "curated",
+        "url": "",
+        "crawledAt": "2026-04-05T15:14:42.406Z"
+      },
+      "subjectKo": "연예인 공항패션",
+      "contextKo": "출국 공항에서 포착된 스타일",
+      "reactionType": "celebrity_reaction",
+      "categoryTags": [
+        "celebrity"
+      ],
+      "freshnessScore": 0.8,
+      "rawTitle": "연예인 공항패션",
+      "rawExcerpt": "출국 공항에서 포착된 스타일"
+    },
+    {
+      "signalId": "kr-signal-0045",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T15:14:36.112Z",
+        "publishedAt": "Sun, 5 Apr 2026 06:40:00 -0700"
+      },
+      "subjectKo": "맨체스터 유나이티드 fc",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "맨체스터 유나이티드 fc",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0046",
+      "source": {
+        "platform": "hankyung",
+        "url": "https://www.hankyung.com/article/2026040598347",
+        "crawledAt": "2026-04-05T15:14:36.979Z",
+        "publishedAt": "Sun, 05 Apr 2026 17:30:35 +0900"
+      },
+      "subjectKo": "'왕과 사는 남자' 1600만 돌파…역대 흥행 2위도 보인다",
+      "contextKo": "한경 라이프 기사: '왕과 사는 남자' 1600만 돌파…역대 흥행 2위도 보인다",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9,
+      "rawTitle": "'왕과 사는 남자' 1600만 돌파…역대 흥행 2위도 보인다",
+      "rawExcerpt": "'왕과 사는 남자' 1600만 돌파…역대 흥행 2위도 보인다"
+    },
+    {
+      "signalId": "kr-signal-0047",
+      "source": {
+        "platform": "musinsa",
+        "url": "https://www.musinsa.com/brand/adidas",
+        "crawledAt": "2026-04-05T15:14:37.025Z"
+      },
+      "subjectKo": "아디다스 도쿄 - 블랙 / JI0183",
+      "contextKo": "무신사 랭킹 9위 · 110,990원 (판매 2만개)",
+      "reactionType": "price_reaction",
+      "categoryTags": [
+        "sneakers",
+        "brand",
+        "retail"
+      ],
+      "freshnessScore": 0.92,
+      "rawTitle": "아디다스 도쿄 - 블랙 / JI0183",
+      "rawExcerpt": "무신사 랭킹 9위 · 110,990원 (판매 2만개)"
+    },
+    {
+      "signalId": "kr-signal-0048",
+      "source": {
+        "platform": "naver_news",
+        "url": "https://n.news.naver.com/mnews/ranking/article/015/0005271179?ntype=RANKING",
+        "crawledAt": "2026-04-05T15:14:36.867Z",
+        "publishedAt": "2026-04-05T15:14:36.867Z"
+      },
+      "subjectKo": "트럼프 \"빌어먹을 호르무즈 열어라\" 대규모 공격 위협",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 트럼프 \"빌어먹을 호르무즈 열어라\" 대규모 공격 위협",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.95,
+      "rawTitle": "트럼프 \"빌어먹을 호르무즈 열어라\" 대규모 공격 위협",
+      "rawExcerpt": "트럼프 \"빌어먹을 호르무즈 열어라\" 대규모 공격 위협"
+    },
+    {
+      "signalId": "kr-signal-0049",
+      "source": {
+        "platform": "curated",
+        "url": "",
+        "crawledAt": "2026-04-05T15:14:42.406Z"
+      },
+      "subjectKo": "옷장 정리",
+      "contextKo": "계절 교체기 옷장 정리법",
+      "reactionType": "general_reaction",
+      "categoryTags": [
+        "fashion"
+      ],
+      "freshnessScore": 0.8,
+      "rawTitle": "옷장 정리",
+      "rawExcerpt": "계절 교체기 옷장 정리법"
+    },
+    {
+      "signalId": "kr-signal-0050",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T15:14:36.112Z",
+        "publishedAt": "Sun, 5 Apr 2026 06:40:00 -0700"
+      },
+      "subjectKo": "이국주",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "이국주",
+      "rawExcerpt": ""
     }
   ]
 }
