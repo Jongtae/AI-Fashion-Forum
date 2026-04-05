@@ -1,4 +1,5 @@
 import { classifySourceIntent, deriveDiscussionAnchors, scoreCommunityDraft } from "./content-quality.js";
+import { generateCommunityPost, generateCommunityComment } from "./community-post-templates.js";
 import { requestLLMContexts, extractLLMResponseText, resolveLLMConfig, DEFAULT_CLAUDE_MODEL, DEFAULT_OPENAI_MODEL } from "./llm-gateway.js";
 
 const LOCAL_SOURCE_TITLE_PATTERNS = [
@@ -627,6 +628,14 @@ function buildMemoryReferenceLine(memoryContext = {}, { contextLabel = "", mode 
   return "";
 }
 
+function splitCommunitySentences(value = "") {
+  return String(value)
+    .split(/\n+/)
+    .flatMap((line) => line.split(/(?<=[.!?。！？])\s+/))
+    .map((sentence) => normalizeText(sentence))
+    .filter(Boolean);
+}
+
 function composeReadableBody(...parts) {
   const text = parts
     .flat()
@@ -656,6 +665,95 @@ function dedupeAdjacentSentences(value = "") {
   }
 
   return deduped.join(" ").trim();
+}
+
+function extractWorldEventSignalHints(contentRecord = null) {
+  const sourceMetadata = contentRecord?.source_metadata;
+  if (!sourceMetadata || sourceMetadata.origin !== "world_event_signal") {
+    return null;
+  }
+
+  const anchorPayload = sourceMetadata.anchor_payload || {};
+
+  return {
+    eventType: normalizeText(sourceMetadata.event_type || ""),
+    primaryCategory: normalizeText(sourceMetadata.primary_category || ""),
+    suggestedPostModes: Array.isArray(sourceMetadata.agent_hooks?.suggestedPostModes)
+      ? sourceMetadata.agent_hooks.suggestedPostModes.filter(Boolean)
+      : [],
+    anchors: uniqueNormalizedList([
+      ...(anchorPayload.questionAnchors || []),
+      ...(anchorPayload.comparisonAnchors || []),
+      ...(anchorPayload.factAnchors || []),
+      ...(anchorPayload.claimAnchors || []),
+      ...(anchorPayload.entities || []).map((entity) => entity?.value || ""),
+      ...(anchorPayload.discussionHooks || []),
+    ]),
+    discussionHooks: uniqueNormalizedList(anchorPayload.discussionHooks || []),
+  };
+}
+
+function deriveConcreteTermsFromSignalHints(signalHints = null) {
+  if (!signalHints) {
+    return [];
+  }
+
+  const haystack = [
+    signalHints.primaryCategory,
+    signalHints.eventType,
+    ...(signalHints.suggestedPostModes || []),
+    ...(signalHints.anchors || []),
+    ...(signalHints.discussionHooks || []),
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const derived = [];
+
+  if (/(retail|value_check_post|price|sale|discount|coupon)/iu.test(haystack)) {
+    derived.push("가격", "세일", "가성비");
+  }
+  if (/(beauty|scent|perfume|cosmetic|lip|skincare|향)/iu.test(haystack)) {
+    derived.push("뷰티", "향수", "신상");
+  }
+  if (/(celebrity|cover|airport|dress ?code|red carpet|elle|vogue)/iu.test(haystack)) {
+    derived.push("커버", "공항패션", "드레스코드");
+  }
+  if (/(culture|drama|movie|netflix|retro|magazine|exhibition)/iu.test(haystack)) {
+    derived.push("드라마", "화보", "레트로");
+  }
+  if (/(travel|trip|vacation|hotel|airport|beach)/iu.test(haystack)) {
+    derived.push("여행", "공항", "호텔");
+  }
+  if (/(pet|dog|cat|댕댕|냥이|반려)/iu.test(haystack)) {
+    derived.push("반려동물", "산책", "댕댕이");
+  }
+
+  return uniqueNormalizedList(derived);
+}
+
+function deriveSourceIntentFromSignalHints(signalHints = null, fallbackIntent = "") {
+  if (!signalHints) {
+    return fallbackIntent;
+  }
+
+  const eventType = signalHints.eventType;
+  const modes = signalHints.suggestedPostModes || [];
+
+  if (eventType === "comparison_question" || modes.includes("ask_the_feed_to_choose")) {
+    return "comparison";
+  }
+  if (eventType === "question_prompt" || modes.includes("answer_with_personal_preference")) {
+    return "question";
+  }
+  if (modes.includes("value_check_post")) {
+    return "question";
+  }
+  if (eventType === "culture_signal" || eventType === "celebrity_signal") {
+    return "fact";
+  }
+
+  return fallbackIntent;
 }
 
 const EMOTION_KEY_ALIASES = {
@@ -921,6 +1019,18 @@ const KO_TOPIC_LABELS = {
   forum_drama: "포럼 이슈",
   status_signal: "상태 신호",
   designer_labels: "디자이너 라벨",
+  travel: "여행",
+  daily_look: "일상룩",
+  daily: "일상",
+  pet: "반려동물",
+  pet_lifestyle: "반려동물",
+  celebrity: "연예인",
+  culture: "문화",
+  event: "이벤트",
+  retro: "레트로",
+  gossip: "화제",
+  hobby: "취미",
+  car: "자동차",
 };
 
 function localizeTopicLabel(value) {
@@ -1705,6 +1815,552 @@ function buildEmotionAnchorLine({
   );
 
   return isComment ? choice : choice;
+}
+
+function inferCommunityPostFamily({
+  mode = "run",
+  sourceIntent = "",
+  sourceTitle = "",
+  sourceTopics = [],
+  sourceSignal = "",
+  sourceAnchorTerms = [],
+  sourceSignalHints = null,
+} = {}) {
+  if (mode === "comment") {
+    if (/반대|다르게|갈린|불편|답답/u.test(sourceSignal)) {
+      return "counter";
+    }
+    if (sourceIntent === "question" || /질문|궁금/u.test(sourceSignal)) {
+      return "question";
+    }
+    return "support";
+  }
+
+  const signalCategory = normalizeText(sourceSignalHints?.primaryCategory || "");
+  const signalEventType = normalizeText(sourceSignalHints?.eventType || "");
+  const suggestedModes = Array.isArray(sourceSignalHints?.suggestedPostModes)
+    ? sourceSignalHints.suggestedPostModes
+    : [];
+
+  if (signalEventType === "comparison_question" || suggestedModes.includes("ask_the_feed_to_choose")) {
+    return "comparison";
+  }
+  if (signalCategory === "retail" || suggestedModes.includes("value_check_post")) {
+    return "pricing";
+  }
+  if (signalCategory === "beauty") {
+    return "review";
+  }
+  if (
+    signalCategory === "celebrity" ||
+    signalCategory === "culture" ||
+    signalEventType === "celebrity_signal" ||
+    signalEventType === "culture_signal"
+  ) {
+    return "event";
+  }
+
+  const haystack = [
+    sourceTitle,
+    sourceSignal,
+    signalCategory,
+    signalEventType,
+    ...suggestedModes,
+    ...(Array.isArray(sourceAnchorTerms) ? sourceAnchorTerms : []),
+    ...(Array.isArray(sourceTopics) ? sourceTopics.map(localizeTopicLabel) : []),
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (/(강아지|고양이|반려|댕댕|냥이|pet|dog|cat)/iu.test(haystack)) {
+    return "pet";
+  }
+  if (/(괌|나트랑|여행|휴가|호텔|공항|trip|travel|vacation|beach)/iu.test(haystack)) {
+    return "travel";
+  }
+  if (/(연예인|셀럽|드라마|넷플릭스|커버|공항패션|개막전|드레스코드|celebrity|cover|event)/iu.test(haystack)) {
+    return "event";
+  }
+  if (/(가격|세일|할인|가성비|장바구니|무신사|올리브영|price|sale|discount)/iu.test(haystack)) {
+    return "pricing";
+  }
+  if (sourceIntent === "comparison") {
+    return "comparison";
+  }
+  if (/(후기|리뷰|써봤|입어봤|한 달|내돈내산|review|wore|tried)/iu.test(haystack)) {
+    return "review";
+  }
+  if (sourceIntent === "question" || /(추천|조언|도와|괜찮나요|어떤|뭐가|need advice|what do you think|pair with)/iu.test(haystack)) {
+    return "recommendation";
+  }
+  if (/(출근|오피스|코디|착장|아우터|셔츠|블레이저|슬랙스|오피스 스타일|office|outfit)/iu.test(haystack)) {
+    return "outfit";
+  }
+  return "daily";
+}
+
+function buildConcreteAnchorBag({ sourceTitle = "", sourceTopics = [], sourceAnchorTerms = [], sourceIntent = "" } = {}) {
+  const localizedTitle = localizeSourceTitle(sourceTitle, sourceTopics, sourceIntent);
+  const concreteHeadlineMatch = sanitizeForumLanguage(sourceTitle).match(
+    /(출근룩|신상|여행룩|여행|산책룩|댕댕이|강아지|고양이|자켓|블레이저|셔츠|슬랙스|가디건|니트|드레스|가방|신발|스니커즈|세일|가격|면접룩|오피스룩)/u,
+  );
+  return uniqueNormalizedList([
+    concreteHeadlineMatch?.[1] || "",
+    ...((Array.isArray(sourceAnchorTerms) ? sourceAnchorTerms : []).filter(Boolean)),
+    localizedTitle,
+    ...(Array.isArray(sourceTopics) ? sourceTopics.map(localizeTopicLabel) : []),
+  ]).filter((term) => (
+    term &&
+    isKoreanDominant(term) &&
+    term.length <= 28 &&
+    !/[A-Za-z]{2,}/.test(term) &&
+    !/(패션|스타일|일상|기준|포인트|이유|신호|내용|댓글|부분)$/u.test(term) &&
+    !/(어떻게 보세요|후기 있으세요|얘기 좀 해요|어디서 갈려요|어디가 걸렸어요|보고 남긴|관련 글|관련 얘기|관련 신호|먼저 보인)/u.test(term)
+  ));
+}
+
+function buildCommunityTitle({
+  family = "daily",
+  anchors = [],
+  sourceTopics = [],
+  sourceTitle = "",
+  sourceIntent = "",
+  variationSeed = 0,
+} = {}) {
+  const localizedSource = localizeSourceTitle(sourceTitle, sourceTopics, sourceIntent);
+  if (
+    sourceIntent === "reason" &&
+    localizedSource &&
+    isKoreanDominant(localizedSource) &&
+    !/(관련 글|관련 얘기|관련 신호)/u.test(localizedSource)
+  ) {
+    return shortenHookTitle(localizedSource, 28);
+  }
+  const localizedTopics = (Array.isArray(sourceTopics) ? sourceTopics : []).map(localizeTopicLabel);
+  const primary = anchors[0] || localizeTopicLabel(localizedTopics[0] || "일상");
+  const secondary = anchors[1] || localizeTopicLabel(localizedTopics[1] || localizedTopics[0] || "일상");
+  const pair = joinKoreanTopicList([primary, secondary]);
+  const familyTitles = {
+    recommendation: [
+      `${primary} 추천 좀 해주세요ㅠ`,
+      `${primary} 써보신 분 계세요?`,
+      `${primary} 이거 괜찮나요?`,
+      `${primary} 뭐가 제일 나아요?`,
+    ],
+    review: [
+      `${primary} 후기 궁금해요`,
+      `${primary} 직접 본 분 계세요?`,
+      `${primary} 써본 분들 어땠어요?`,
+      `${primary} 내돈내산 후기 있으세요?`,
+    ],
+    outfit: [
+      `${primary} 이 조합 괜찮나요?`,
+      `${primary} 오늘 입어본 분 계세요?`,
+      `${primary} 코디 이렇게 가도 될까요?`,
+      `${primary} 출근룩으로 어때요?`,
+    ],
+    pricing: [
+      `${primary} 이 가격이면 괜찮나요?`,
+      `${primary} 세일 때 사본 분 있나요?`,
+      `${primary} 가성비 어때요?`,
+      `${primary} 지금 사도 될까요?`,
+    ],
+    comparison: [
+      `${pair} 중 뭐가 더 나을까요?`,
+      `${pair} 다들 어느 쪽 고르세요?`,
+      `${pair} 비교해본 분 있나요?`,
+      `${pair} 둘 중 뭐가 더 손이 가요?`,
+    ],
+    travel: [
+      `${primary} 다녀오신 분 계세요?`,
+      `${primary} 갈 때 뭐 챙기셨어요?`,
+      `${primary} 여행 준비 이걸로 괜찮나요?`,
+      `${primary} 사진 보니까 저도 가고 싶네요`,
+    ],
+    pet: [
+      `${primary} 사진만 봐도 웃겨요`,
+      `${primary} 키우는 분들 팁 좀요`,
+      `${primary} 산책할 때 뭐 챙기세요?`,
+      `${primary} 이거 저만 귀엽나요`,
+    ],
+    event: [
+      `${primary} 이거 보셨어요?`,
+      `${primary} 얘기 여기서도 많이 하네요`,
+      `${primary} 반응 왜 이렇게 갈릴까요`,
+      `${primary} 보고 바로 저장했어요`,
+    ],
+    daily: [
+      `${primary} 보고 바로 저장했어요`,
+      `${primary} 이건 일단 눌러보게 되네요`,
+      `${primary} 얘기 여기서도 자주 보여요`,
+      `${primary} 보고 생각난 게 있어요`,
+    ],
+  };
+
+  return pickBySeed(familyTitles[family] || familyTitles.daily, variationSeed) || `${primary} 이거 어떠세요?`;
+}
+
+function buildCommunityBody({
+  family = "daily",
+  mode = "run",
+  anchors = [],
+  sourceTopics = [],
+  templateContent = "",
+  memoryContext = {},
+  emotionTone = null,
+  styleProfile = null,
+  variationSeed = 0,
+  anchorOnly = false,
+} = {}) {
+  const localizedTopics = (Array.isArray(sourceTopics) ? sourceTopics : []).map(localizeTopicLabel);
+  const primary = anchors[0] || localizeTopicLabel(localizedTopics[0] || "일상");
+  const secondary = anchors[1] || localizeTopicLabel(localizedTopics[1] || localizedTopics[0] || "일상");
+  const pair = joinKoreanTopicList([primary, secondary]);
+  const primaryObject = attachKoreanParticle(primary, "object");
+  const memoryLine = buildMemoryReferenceLine(memoryContext, {
+    contextLabel: mode === "comment" ? "대화 이어가기" : "",
+    mode,
+  });
+  const emotionLine = buildEmotionAnchorLine({
+    emotionTone,
+    sourceAnchorStem: primary,
+    sourceAnchorTitle: primary,
+    sourceTopics,
+    baseSignal: primary,
+    variationSeed,
+    contextLabel: mode === "comment" ? "공감" : "",
+    mode,
+  });
+  const templateSentences = anchorOnly ? [] : splitCommunitySentences(templateContent);
+  const styleEndings = uniqueNormalizedList(styleProfile?.endingMarkers || []);
+  const familyLines = {
+    recommendation: {
+      intros: [
+        `${primaryObject} 보다가 이번엔 진짜 하나 정해야 할 것 같아요`,
+        `${primaryObject} 한 번 찾아보니 다들 추천이 너무 갈리더라고요`,
+        `${primaryObject} 요즘 많이 보여서 저도 슬슬 정해야 할 것 같아요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${pair} 기준이 다들 어떻게 갈리는지 궁금해요`,
+        `${pair} 같이 두고 보면 뭐부터 봐야 할지 바로 고민돼요`,
+        `${primary}는 예쁜 것보다 실제로 잘 쓰이는지가 더 궁금해요`,
+      ],
+      closings: [
+        `${primary} 써보신 분 있으면 먼저 손이 가는 이유 좀 알려주세요`,
+        `${primary} 추천해주실 만한 거 있으면 편하게 적어주세요`,
+        `${primary}로 정착하신 분 있으면 이유가 궁금해요`,
+      ],
+    },
+    review: {
+      intros: [
+        `${primaryObject} 직접 본 사람들 말이 왜 갈리는지 조금 알 것 같아요`,
+        `${primaryObject} 써본 후기 찾아보니 생각보다 포인트가 분명하네요`,
+        `${primaryObject} 직접 본 얘기들이 왜 다르게 나오는지 보이더라고요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${attachKoreanParticle(primary, "topic")} 보기보다 체감이 중요해 보여요`,
+        `${primary}는 사진보다 실제로 썼을 때 장단점이 더 크게 갈리는 것 같아요`,
+        `${pair} 같이 보면 후기마다 꽂히는 포인트가 다르네요`,
+      ],
+      closings: [
+        `${primary} 써보신 분들은 장단점 뭐부터 느끼셨는지 궁금해요`,
+        `${primary} 직접 써본 분들 체감은 어땠는지 알려주세요`,
+        `${primary} 후기 더 있으면 참고하고 싶어요`,
+      ],
+    },
+    outfit: {
+      intros: [
+        `${primaryObject} 두고 보니까 오늘 바로 입을 수 있을지가 먼저 걸렸어요`,
+        `${primaryObject} 보자마자 오늘 코디에 넣어도 될지부터 보게 되네요`,
+        `${primaryObject} 오늘 입는다고 생각하니 핏부터 먼저 보이더라고요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${pair} 같이 보면 핏이나 분위기가 꽤 달라져요`,
+        `${pair} 같이 놓고 보면 출근용인지 평소용인지 결이 좀 갈려요`,
+        `${attachKoreanParticle(primary, "topic")} 보기보다 전체 착장에 붙였을 때 느낌이 확 바뀌네요`,
+      ],
+      closings: [
+        `이 조합이면 다들 어디부터 체크하시는지 궁금해요`,
+        `${primary} 코디할 때 뭐가 제일 먼저 걸리는지 궁금해요`,
+        `이렇게 입어보신 분 있으면 어디서 갈렸는지 알려주세요`,
+      ],
+    },
+    pricing: {
+      intros: [
+        `${primaryObject} 예뻐도 결국 가격표 붙는 순간 다시 보게 되네요`,
+        `${primaryObject} 보다가도 가격 보니까 생각이 한 번 더 꺾이더라고요`,
+        `${primaryObject} 예쁜 건 알겠는데 가격표 보자마자 다시 계산하게 돼요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${pair} 같이 두고 보면 가성비 얘기가 바로 붙을 만해요`,
+        `${primary}는 예쁨보다 가격 대비 만족도가 더 크게 갈릴 것 같아요`,
+        `${pair} 같이 보면 결국 얼마까지 괜찮은지가 포인트네요`,
+      ],
+      closings: [
+        `${primary} 이 가격에 사본 분 있으면 만족도 어떤지 알려주세요`,
+        `${primary} 세일 기다렸다 사신 분들 후기 궁금해요`,
+        `${primary} 이 가격이면 다들 바로 사시는 편인지 궁금해요`,
+      ],
+    },
+    comparison: {
+      intros: [
+        `${pair} 같이 놓고 보니까 취향보다도 쓰는 상황에서 더 갈리네요`,
+        `${pair} 비교하다 보니 보기보다 기준이 확 갈리는 것 같아요`,
+        `${pair} 같이 보니까 예쁨보다 손이 가는 쪽이 다르더라고요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${pair} 중 어느 쪽이 손이 더 자주 가는지 바로 궁금해져요`,
+        `${attachKoreanParticle(pair, "topic")} 비슷해 보여도 실제로 고를 때 보는 포인트가 좀 다르네요`,
+        `${pair} 같이 보면 각자 먼저 걸리는 쪽이 분명히 있는 것 같아요`,
+      ],
+      closings: [
+        `둘 다 보신 분들은 결국 어느 쪽 고르셨는지 궁금해요`,
+        `${pair} 중 실사용으로는 뭐가 더 괜찮았는지 알려주세요`,
+        `${pair} 고민해보신 분들 결론이 어땠는지 궁금해요`,
+      ],
+    },
+    travel: {
+      intros: [
+        `${primaryObject} 보니까 여행 준비할 때 뭘 챙겨야 할지 바로 떠올랐어요`,
+        `${primaryObject} 사진 몇 장만 봐도 짐 싸는 기준이 바로 잡히네요`,
+        `${primaryObject} 얘기 보니까 여행 가기 전에 체크할 게 확 보여요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${primary} 얘기는 사진 몇 장만 봐도 분위기가 확 오네요`,
+        `${primary}는 예쁜 것도 예쁜 건데 실제로 챙겨갈 옷 생각이 바로 나요`,
+        `${pair} 같이 보면 여행지에서 뭘 제일 많이 입게 될지도 보이네요`,
+      ],
+      closings: [
+        `${primary} 다녀오신 분들은 진짜 챙겨갈 거 뭐였는지 알려주세요`,
+        `${primary} 준비할 때 꼭 챙긴 거 있으면 추천 부탁드려요`,
+        `${primary} 가본 분들은 옷이나 신발 뭐가 제일 실용적이었는지 궁금해요`,
+      ],
+    },
+    pet: {
+      intros: [
+        `${primaryObject} 보자마자 그냥 웃음부터 나더라고요`,
+        `${primaryObject} 사진은 그냥 지나치기가 어렵네요`,
+        `${primaryObject} 얘기는 일단 한 번 더 보게 되더라고요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${primary} 얘기는 작은 사진 하나에도 댓글이 잘 붙을 것 같아요`,
+        `${primary} 쪽은 별말 없어도 바로 반응 달릴 만한 순간이 있네요`,
+        `${primary} 얘기는 귀여운 것도 귀여운 건데 일상 얘기가 자연스럽게 붙어요`,
+      ],
+      closings: [
+        `${primary} 키우시는 분들은 비슷한 순간 많으셨는지 궁금해요`,
+        `${primary} 사진 보면 다들 제일 먼저 뭐에 반응하시는지 궁금해요`,
+        `${primary} 얘기 더 있으시면 사진도 같이 보고 싶어요`,
+      ],
+    },
+    event: {
+      intros: [
+        `${primaryObject} 얘기는 오늘 안에도 여러 번 다시 보게 되네요`,
+        `${primaryObject} 반응은 한 번씩 눌러보게 되는 힘이 있네요`,
+        `${primaryObject} 얘기 나오니까 다들 바로 말 얹을 만하더라고요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${primary} 쪽은 좋아하는 사람도 싫어하는 사람도 바로 말 붙일 만해요`,
+        `${primary}는 작은 디테일 하나로도 반응이 갈릴 만해 보여요`,
+        `${primary} 얘기는 뉴스처럼 지나가도 결국 댓글이 붙을 것 같아요`,
+      ],
+      closings: [
+        `${primary} 보고 먼저 걸린 포인트가 뭐였는지 궁금해요`,
+        `${primary} 얘기에서 다들 어디서 갈렸는지 궁금해요`,
+        `${primary} 보신 분들은 제일 먼저 뭐가 남았는지 알려주세요`,
+      ],
+    },
+    daily: {
+      intros: [
+        `${primaryObject} 보니까 그냥 지나가던 글이 아니라 한 번 눌러보게 되더라고요`,
+        `${primaryObject} 얘기는 별거 아닌데도 묘하게 손이 가네요`,
+        `${primaryObject} 보니까 그냥 스쳐 넘기기엔 아까운 느낌이에요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${pair} 쪽 얘기는 일상 글처럼 보여도 은근 댓글이 붙을 만해요`,
+        `${primary} 얘기는 가볍게 보여도 사람마다 바로 떠오르는 게 다를 것 같아요`,
+        `${pair} 같이 놓고 보면 소소한 글인데도 묘하게 오래 남네요`,
+      ],
+      closings: [
+        `${primary} 보고 다들 뭐부터 떠올렸는지 궁금해요`,
+        `${primary} 같은 글은 보통 어디서 제일 공감하시는지 궁금해요`,
+        `${primary} 얘기 더 보신 분들은 어떤 순간이 제일 기억났는지 궁금해요`,
+      ],
+    },
+    support: {
+      intros: [
+        `${primaryObject} 보니 저도 비슷하게 느꼈어요`,
+        `${primaryObject} 얘기는 저도 먼저 공감이 갔어요`,
+        `${primaryObject} 보니까 왜 그런 말이 나왔는지 알겠더라고요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${primary} 얘기는 공감부터 가는 지점이 있네요`,
+        `${primary} 쪽은 말 길게 안 해도 마음이 먼저 붙는 부분이 있네요`,
+        `${primary} 보니 그냥 지나치기엔 마음이 좀 남아요`,
+      ],
+      closings: [
+        `이 부분은 저도 먼저 눈에 들어왔어요`,
+        `저도 여기서는 고개가 끄덕여졌어요`,
+        `이건 저도 공감부터 갔어요`,
+      ],
+    },
+    question: {
+      intros: [
+        `${primaryObject} 기준이면 저도 하나 더 묻게 돼요`,
+        `${primaryObject} 보니까 질문이 하나 더 생기네요`,
+        `${primaryObject} 쪽은 그냥 넘기기보다 한 번 더 묻게 돼요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${primary} 쪽은 사람마다 보는 순서가 다를 것 같아요`,
+        `${primary}는 비슷해 보여도 어디부터 보느냐가 꽤 다를 것 같아요`,
+        `${primary} 기준은 다들 말이 조금씩 다를 것 같아요`,
+      ],
+      closings: [
+        `이럴 때는 보통 어디부터 체크하세요?`,
+        `${primary} 볼 때 제일 먼저 보는 기준이 뭔지 궁금해요`,
+        `이 부분이면 다들 어떤 순서로 보시는지 궁금해요`,
+      ],
+    },
+    counter: {
+      intros: [
+        `${primaryObject} 보고 저는 조금 다른 쪽이 먼저 보였어요`,
+        `${primaryObject} 얘기는 저한텐 결이 조금 다르게 오네요`,
+        `${primaryObject} 보면서 저는 다른 포인트가 먼저 걸렸어요`,
+      ],
+      bridges: [
+        memoryLine || emotionLine || `${primary} 얘기는 반대로 읽히는 포인트도 꽤 있네요`,
+        `${primary}는 같은 글이어도 보는 사람 따라 완전히 다르게 읽힐 것 같아요`,
+        `${primary} 쪽은 이 부분만 보면 판단이 좀 달라질 수도 있겠네요`,
+      ],
+      closings: [
+        `저는 이 부분만 보면 판단이 좀 달라져요`,
+        `저는 여기서는 다른 쪽이 먼저 보였어요`,
+        `이건 반대로 볼 여지도 꽤 있는 것 같아요`,
+      ],
+    },
+  };
+
+  const selected = familyLines[family] || familyLines.daily;
+  const intro = pickBySeed(selected.intros, variationSeed + 11);
+  const bridge = memoryLine || pickBySeed(selected.bridges, variationSeed + 17);
+  const closing = pickBySeed(selected.closings, variationSeed + 23);
+  const styleEnding = styleEndings.length ? pickBySeed(styleEndings, variationSeed + 31) : "";
+  const finalClosing = styleEnding && closing ? `${closing} ${styleEnding}` : closing;
+  const parts = [
+    intro,
+    templateSentences[0] && !intro.includes(templateSentences[0]) ? templateSentences[0] : "",
+    bridge,
+    templateSentences[1] && !bridge?.includes(templateSentences[1]) ? templateSentences[1] : "",
+    finalClosing,
+  ];
+
+  if (mode === "comment") {
+    return composeReadableBody(parts[0], parts[2], parts[4]);
+  }
+
+  return composeReadableBody(...parts);
+}
+
+function buildCommunityFallbackDraft({
+  mode = "run",
+  variationSeed = 0,
+  agentProfile = null,
+  comparisonTexts = [],
+  sourceIntent = "",
+  sourceTitle = "",
+  sourceTopics = [],
+  sourceSignal = "",
+  sourceAnchorTerms = [],
+  sourceSignalHints = null,
+  memoryContext = null,
+  emotionProfile = null,
+  styleProfile = null,
+} = {}) {
+  const family = inferCommunityPostFamily({
+    mode,
+    sourceIntent,
+    sourceTitle,
+    sourceTopics,
+    sourceSignal,
+    sourceAnchorTerms,
+    sourceSignalHints,
+  });
+  const anchors = buildConcreteAnchorBag({
+    sourceTitle,
+    sourceTopics,
+    sourceAnchorTerms: [
+      ...(Array.isArray(sourceAnchorTerms) ? sourceAnchorTerms : []),
+      ...deriveConcreteTermsFromSignalHints(sourceSignalHints),
+    ],
+    sourceIntent,
+  });
+  const familyTopicMap = {
+    recommendation: "style",
+    review: "quality",
+    outfit: "office",
+    pricing: "pricing",
+    comparison: "style",
+    travel: "daily_look",
+    pet: "pet_lifestyle",
+    event: "style",
+    daily: "daily_look",
+    support: "daily_look",
+    question: "style",
+    counter: "style",
+  };
+  const agentLike = {
+    interest_vector: {
+      [familyTopicMap[family] || "style"]: 1,
+      ...(agentProfile?.interest_vector || {}),
+    },
+    archetype: agentProfile?.archetype || "social_participant",
+  };
+  const template =
+    mode === "comment"
+      ? generateCommunityComment({ agent: agentLike, seed: variationSeed })
+      : generateCommunityPost({ agent: agentLike, seed: variationSeed, recentBodies: comparisonTexts });
+
+  const title =
+    mode === "comment"
+      ? buildReadablePostTitle({
+          mode,
+          sourceTitle,
+          sourceTopics,
+          sourceSignal,
+          sourceSnippet: template?.content || "",
+          sourceBody: template?.content || "",
+          variationSeed,
+          sourceIntent,
+          sourceAnchorTerms: anchors,
+        })
+      : buildCommunityTitle({
+          family,
+          anchors,
+          sourceTopics,
+          sourceTitle,
+          sourceIntent,
+          variationSeed,
+        });
+
+  const content = buildCommunityBody({
+    family,
+    mode,
+    anchors,
+    sourceTopics,
+    templateContent: template?.content || "",
+    memoryContext: memoryContext || {},
+    emotionTone: buildEmotionTonePack(emotionProfile, mode),
+    styleProfile,
+    variationSeed,
+    anchorOnly: Boolean(sourceSignalHints),
+  });
+
+  return {
+    title: sanitizeDraftContent(title),
+    content: sanitizeDraftContent(content),
+    family,
+    template,
+  };
 }
 
 function buildLLMPrompt({
@@ -2646,6 +3302,7 @@ function selectDiverseContext(contexts, variationSeed = 0, comparisonTexts = [])
 async function resolvePostDraftOnce({
   mode,
   variationSeed = 0,
+  agentProfile = null,
   provider,
   apiKey,
   model,
@@ -2663,6 +3320,7 @@ async function resolvePostDraftOnce({
   replyTargetType,
   reactionRecord = null,
   contentRecord = null,
+  sourceSignalHints = null,
   styleProfile = null,
   emotionProfile = null,
   memoryContext = null,
@@ -2675,11 +3333,13 @@ async function resolvePostDraftOnce({
       ? (provider === "claude" ? DEFAULT_CLAUDE_MODEL : DEFAULT_OPENAI_MODEL)
       : llmConfig.model
   );
-  const sourceIntent = classifySourceIntent({
+  const fallbackSourceIntent = classifySourceIntent({
     title: sourceTitle,
     body: sourceBody || sourceSnippet || "",
     topics: sourceTopics || [],
   });
+  const derivedSignalHints = sourceSignalHints || extractWorldEventSignalHints(contentRecord);
+  const sourceIntent = deriveSourceIntentFromSignalHints(derivedSignalHints, fallbackSourceIntent);
   const resolvedMemoryContext = buildMemoryContext(memoryContext || {});
   const memorySignal = [
     resolvedMemoryContext.recentMemorySummary,
@@ -2698,6 +3358,8 @@ async function resolvePostDraftOnce({
     topics: sourceTopics || [],
   });
   const sourceAnchorTerms = filterCommunityAnchorTerms([
+    ...deriveConcreteTermsFromSignalHints(derivedSignalHints),
+    ...(Array.isArray(derivedSignalHints?.anchors) ? derivedSignalHints.anchors : []),
     discussionAnchors.questionAnchor,
     discussionAnchors.factualAnchor,
     discussionAnchors.comparisonAnchor,
@@ -2723,6 +3385,7 @@ async function resolvePostDraftOnce({
     emotionProfile: resolvedEmotionProfile,
       sourceIntent,
       sourceAnchorTerms,
+      sourceSignalHints: derivedSignalHints,
     memoryContext: resolvedMemoryContext,
   });
 
@@ -2744,17 +3407,35 @@ async function resolvePostDraftOnce({
   });
 
   if (!resolvedApiKey) {
+    const communityDraft = buildCommunityFallbackDraft({
+      mode,
+      variationSeed,
+      agentProfile,
+      comparisonTexts,
+      sourceIntent,
+      sourceTitle,
+      sourceTopics,
+      sourceSignal,
+      sourceAnchorTerms,
+      sourceSignalHints: derivedSignalHints,
+      memoryContext: resolvedMemoryContext,
+      emotionProfile: resolvedEmotionProfile,
+      styleProfile,
+    });
     const selectedFallback =
       selectDiverseContext(fallbackPool, variationSeed, comparisonTexts) ||
       selectContext(fallbackPool, variationSeed) ||
       fallbackPool[0];
-    const sanitizedContent = sanitizeDraftContent(selectedFallback?.content || "");
     return {
-      title: generatedTitle,
-      content: sanitizedContent || selectedFallback?.content || "",
+      title: communityDraft.title || generatedTitle,
+      content: communityDraft.content || sanitizeDraftContent(selectedFallback?.content || "") || selectedFallback?.content || "",
       generationContext: buildGenerationContext({
-        source: "fallback",
-        selectedContext: selectedFallback,
+        source: "community-fallback",
+        selectedContext: {
+          ...(selectedFallback || {}),
+          contextLabel: `커뮤니티형 ${communityDraft.family || "일상"}`,
+          content: communityDraft.content || selectedFallback?.content || "",
+        },
         sourceTitle,
         sourceTopics,
         sourceSnippet,
@@ -2847,13 +3528,27 @@ async function resolvePostDraftOnce({
     // Fall through to deterministic fallback.
   }
 
+  const communityDraft = buildCommunityFallbackDraft({
+    mode,
+    variationSeed,
+    agentProfile,
+    comparisonTexts,
+    sourceIntent,
+    sourceTitle,
+    sourceTopics,
+    sourceSignal: [sourceSignal, memorySignal].filter(Boolean).join(" / "),
+    sourceAnchorTerms,
+    sourceSignalHints: derivedSignalHints,
+    memoryContext: resolvedMemoryContext,
+    emotionProfile: resolvedEmotionProfile,
+    styleProfile,
+  });
   const selectedFallback =
     selectDiverseContext(fallbackPool, variationSeed, comparisonTexts) ||
     selectContext(fallbackPool, variationSeed) ||
     fallbackPool[0];
-  const sanitizedContent = sanitizeDraftContent(selectedFallback?.content || "");
   return {
-    title: buildReadablePostTitle({
+    title: communityDraft.title || buildReadablePostTitle({
       mode,
       sourceTitle,
       sourceTopics,
@@ -2868,10 +3563,14 @@ async function resolvePostDraftOnce({
       comparisonTitles,
       populationSignals,
     }),
-    content: sanitizedContent || selectedFallback?.content || "",
+    content: communityDraft.content || sanitizeDraftContent(selectedFallback?.content || "") || selectedFallback?.content || "",
     generationContext: buildGenerationContext({
-      source: "fallback",
-      selectedContext: selectedFallback,
+      source: "community-fallback",
+      selectedContext: {
+        ...(selectedFallback || {}),
+        contextLabel: `커뮤니티형 ${communityDraft.family || "일상"}`,
+        content: communityDraft.content || selectedFallback?.content || "",
+      },
       sourceTitle,
       sourceTopics,
       sourceSnippet,
@@ -2919,6 +3618,7 @@ async function resolvePostDraft({
     const variationSeed = Number(rest.variationSeed || 0) + attempt * 997;
     const candidate = await resolvePostDraftOnce({
       ...rest,
+      agentProfile: rest.agentProfile || null,
       variationSeed,
     });
     const quality = scoreCommunityDraft({
@@ -3035,6 +3735,7 @@ export async function createRunPostDraft({
     });
 
   return resolvePostDraft({
+    agentProfile: updatedAgent || null,
     mode: "run",
     variationSeed,
     provider,
@@ -3052,6 +3753,7 @@ export async function createRunPostDraft({
     sourceBody: sourceSnippet,
     reactionRecord,
     contentRecord,
+    sourceSignalHints: extractWorldEventSignalHints(contentRecord),
     styleProfile,
     qualityGate,
     emotionProfile: resolveEmotionProfile({
@@ -3091,6 +3793,7 @@ export async function createLivePostDraft({
     });
 
   return resolvePostDraft({
+    agentProfile: agent || null,
     mode: "live",
     variationSeed,
     provider,
@@ -3104,6 +3807,8 @@ export async function createLivePostDraft({
     sourceSignal: sanitizeForumLanguage(sourceSignal),
     sourceSnippet,
     sourceBody: sourceSnippet,
+    contentRecord: targetContent,
+    sourceSignalHints: extractWorldEventSignalHints(targetContent),
     styleProfile,
     qualityGate,
     emotionProfile: resolveEmotionProfile({
@@ -3144,6 +3849,7 @@ export async function createLiveCommentDraft({
     });
 
   return resolvePostDraft({
+    agentProfile: agent || null,
     mode: "comment",
     variationSeed,
     provider,
@@ -3157,6 +3863,8 @@ export async function createLiveCommentDraft({
     sourceSignal: sanitizeForumLanguage(sourceSignal),
     sourceSnippet,
     sourceBody: sourceSnippet,
+    contentRecord: targetContent,
+    sourceSignalHints: extractWorldEventSignalHints(targetContent),
     targetComment,
     sourceCommentPreview,
     replyTargetType: targetComment ? "comment" : "post",
