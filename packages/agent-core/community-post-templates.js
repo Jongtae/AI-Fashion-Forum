@@ -748,7 +748,9 @@ export function generateSignalReactivePost({ seed = 0, agent = {}, discussionSee
   const rng = seededRandom(seed);
 
   const reactionType = discussionSeed.reactionType || "general_reaction";
-  const subject = discussionSeed.subjectKo || "이것";
+  // Cap subject at 20 chars to keep titles natural length
+  const rawSubject = discussionSeed.subjectKo || "이것";
+  const subject = rawSubject.length > 20 ? rawSubject.slice(0, 20).replace(/\s+\S*$/, "") : rawSubject;
   const context = discussionSeed.contextKo || "";
   const tension = discussionSeed.tensionPoint || "좀 고민이 되네요";
   const angles = discussionSeed.possibleAngles || [];
