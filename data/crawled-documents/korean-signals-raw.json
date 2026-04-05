@@ -1,0 +1,872 @@
+{
+  "crawledAt": "2026-04-05T12:49:55.120Z",
+  "source": "crawl-korean-signals.mjs",
+  "sourceSummary": {
+    "totalCandidates": 58,
+    "totalSelected": 50,
+    "limit": 50,
+    "errors": []
+  },
+  "records": [
+    {
+      "signalId": "kr-signal-0001",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T12:49:49.872Z"
+      },
+      "subjectKo": "국가공무원",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "price_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "국가공무원",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0002",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T12:49:49.872Z"
+      },
+      "subjectKo": "포항시",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "포항시",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0003",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T12:49:49.872Z"
+      },
+      "subjectKo": "성제 준",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "성제 준",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0004",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T12:49:49.872Z"
+      },
+      "subjectKo": "창경궁",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "창경궁",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0005",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T12:49:49.872Z"
+      },
+      "subjectKo": "빅뱅",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "빅뱅",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0006",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T12:49:49.872Z"
+      },
+      "subjectKo": "조혜련",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "조혜련",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0007",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T12:49:49.872Z"
+      },
+      "subjectKo": "잠수함",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "잠수함",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0008",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T12:49:49.872Z"
+      },
+      "subjectKo": "thời tiết ngày mai",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "thời tiết ngày mai",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0009",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T12:49:49.872Z"
+      },
+      "subjectKo": "사령관",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "사령관",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0010",
+      "source": {
+        "platform": "google_trends",
+        "url": "https://trends.google.com/trending/rss?geo=KR",
+        "crawledAt": "2026-04-05T12:49:49.872Z"
+      },
+      "subjectKo": "탁구 월드컵",
+      "contextKo": "실시간 검색 급상승",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "탁구 월드컵",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0011",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@hyeo_2n_/116063105411776072",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "추워여…🦦",
+      "contextKo": "추워여…🦦",
+      "reactionType": "price_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "추워여…🦦",
+      "rawExcerpt": "추워여…🦦"
+    },
+    {
+      "signalId": "kr-signal-0012",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@hyeo_2n_/116057373451537242",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "🤎🐻🐿️",
+      "contextKo": "🤎🐻🐿️",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "🤎🐻🐿️",
+      "rawExcerpt": "🤎🐻🐿️"
+    },
+    {
+      "signalId": "kr-signal-0013",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@hyeo_2n_/116028493906693238",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "하트 다 머겅",
+      "contextKo": "하트 다 머겅 ❤️",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "하트 다 머겅 ❤️",
+      "rawExcerpt": "하트 다 머겅 ❤️"
+    },
+    {
+      "signalId": "kr-signal-0014",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@arodishe/115548913973481023",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "스타일링",
+      "contextKo": "📸 스타일링 TIP 남성: 데님 팬츠 + 스니커즈로 캐주얼하게, 블레이저와 매치해 세미정장으로! 여성: 미니스커트 + 앵클부츠로 페미닌하게, 와이드 팬츠와 운동화로 스트릿 느낌!...",
+      "reactionType": "season_reaction",
+      "categoryTags": [
+        "sneakers",
+        "streetwear",
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "📸 스타일링 TIP 남성: 데님 팬츠 + 스니커즈로 캐주얼하게, 블레이저와 매치해 세미정장으로! 여성: 미니스커트 + 앵클부츠로 페미닌하게, 와이드 팬츠와 운동화로 스트릿 느낌! 👉 지금 바로 아로디쉐 스마트스토",
+      "rawExcerpt": "📸 스타일링 TIP 남성: 데님 팬츠 + 스니커즈로 캐주얼하게, 블레이저와 매치해 세미정장으로! 여성: 미니스커트 + 앵클부츠로 페미닌하게, 와이드 팬츠와 운동화로 스트릿 느낌! 👉 지금 바로 아로디쉐 스마트스토어에서 확인하세요! 아로디쉐는 실용성과 트렌디함의 조화를 추구합니다. 이번 시즌, 남녀 모두가 사랑하는 체크 셔츠로 데일리룩을 업그레이드해 보세요!"
+    },
+    {
+      "signalId": "kr-signal-0015",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://jforo.com/@pubx/115509142870693082",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "추구미 가득 출근룩부터 꾸꾸꾸 연말룩까지",
+      "contextKo": "추구미 가득 출근룩부터 꾸꾸꾸 연말룩까지🌀따라하기 좋은 슬기의 겨울룩•코디 추천",
+      "reactionType": "price_reaction",
+      "categoryTags": [
+        "retail",
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "추구미 가득 출근룩부터 꾸꾸꾸 연말룩까지🌀따라하기 좋은 슬기의 겨울룩•코디 추천",
+      "rawExcerpt": "추구미 가득 출근룩부터 꾸꾸꾸 연말룩까지🌀따라하기 좋은 슬기의 겨울룩•코디 추천"
+    },
+    {
+      "signalId": "kr-signal-0016",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://jforo.com/@pubx/115390525334112857",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "가을 패션 고민 시원하게 해결해 드립니다",
+      "contextKo": "가을 패션 고민 시원하게 해결해 드립니다🍂경량패딩,스웨이드 트렌드,부츠,기본티까지👚슬기의 패션 상담소 ㅣ 슬타일링",
+      "reactionType": "price_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "가을 패션 고민 시원하게 해결해 드립니다🍂경량패딩,스웨이드 트렌드,부츠,기본티까지👚슬기의 패션 상담소 ㅣ 슬타일링",
+      "rawExcerpt": "가을 패션 고민 시원하게 해결해 드립니다🍂경량패딩,스웨이드 트렌드,부츠,기본티까지👚슬기의 패션 상담소 ㅣ 슬타일링"
+    },
+    {
+      "signalId": "kr-signal-0017",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://jforo.com/@pubx/115073561769658195",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "진짜 솔직하게 말해요?팩폭 가득 슬기의 패션 상담소",
+      "contextKo": "진짜 솔직하게 말해요?팩폭 가득 슬기의 패션 상담소ㅣ슬타일링",
+      "reactionType": "season_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "진짜 솔직하게 말해요?팩폭 가득 슬기의 패션 상담소ㅣ슬타일링",
+      "rawExcerpt": "진짜 솔직하게 말해요?팩폭 가득 슬기의 패션 상담소ㅣ슬타일링"
+    },
+    {
+      "signalId": "kr-signal-0018",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://ol2ol.com/@gotorola/114328393838983356",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "타라바이모션 카모 미키티 빈스 미니스커트 봄 데일리룩",
+      "contextKo": "타라바이모션 카모 미키티 빈스 미니스커트 봄 데일리룩 코디 여성의류",
+      "reactionType": "product_reaction",
+      "categoryTags": [
+        "luxury",
+        "weather",
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "타라바이모션 카모 미키티 빈스 미니스커트 봄 데일리룩 코디 여성의류",
+      "rawExcerpt": "타라바이모션 카모 미키티 빈스 미니스커트 봄 데일리룩 코디 여성의류"
+    },
+    {
+      "signalId": "kr-signal-0019",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@lesdupont/114134145699455484",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "Narcissus is on BLACK METAL (C",
+      "contextKo": "Narcissus is on BLACK METAL (CD ALBUM) 2005 LYS 004",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "luxury",
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "Narcissus is on BLACK METAL (CD ALBUM) 2005 LYS 004",
+      "rawExcerpt": "Narcissus is on BLACK METAL (CD ALBUM) 2005 LYS 004"
+    },
+    {
+      "signalId": "kr-signal-0020",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@skullasteroid/111148756263460379",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "“Let your mind alone, and see ",
+      "contextKo": "“Let your mind alone, and see what happens.” - Virgil Thomson",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "“Let your mind alone, and see what happens.” - Virgil Thomson",
+      "rawExcerpt": "“Let your mind alone, and see what happens.” - Virgil Thomson"
+    },
+    {
+      "signalId": "kr-signal-0021",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@skullasteroid/111134008524956846",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "“I tasted freedom and I really",
+      "contextKo": "“I tasted freedom and I really liked it.” - Phil Lynott",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "“I tasted freedom and I really liked it.” - Phil Lynott",
+      "rawExcerpt": "“I tasted freedom and I really liked it.” - Phil Lynott"
+    },
+    {
+      "signalId": "kr-signal-0022",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@skullasteroid/110956148548409422",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "“The only way to make sense ou",
+      "contextKo": "“The only way to make sense out of change is to plunge into it, move with it, and join the dance.” -...",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "“The only way to make sense out of change is to plunge into it, move with it, and join the dance.” - Alan Watts",
+      "rawExcerpt": "“The only way to make sense out of change is to plunge into it, move with it, and join the dance.” - Alan Watts"
+    },
+    {
+      "signalId": "kr-signal-0023",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@skullasteroid/110844856990367868",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "“Dreams and anguish bring us t",
+      "contextKo": "“Dreams and anguish bring us together.” - Eugene Ionesco",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "“Dreams and anguish bring us together.” - Eugene Ionesco",
+      "rawExcerpt": "“Dreams and anguish bring us together.” - Eugene Ionesco"
+    },
+    {
+      "signalId": "kr-signal-0024",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@skullasteroid/110765715057104030",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "“We all have ability. The diff",
+      "contextKo": "“We all have ability. The difference is how we use it.” - Charlotte Whitton",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "“We all have ability. The difference is how we use it.” - Charlotte Whitton",
+      "rawExcerpt": "“We all have ability. The difference is how we use it.” - Charlotte Whitton"
+    },
+    {
+      "signalId": "kr-signal-0025",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@skullasteroid/110720502990277699",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "“I have made good judgments in",
+      "contextKo": "“I have made good judgments in the past. I have made good judgments in the future.” - Dan Quayle",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "“I have made good judgments in the past. I have made good judgments in the future.” - Dan Quayle",
+      "rawExcerpt": "“I have made good judgments in the past. I have made good judgments in the future.” - Dan Quayle"
+    },
+    {
+      "signalId": "kr-signal-0026",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@skullasteroid/110715062162308375",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "“If you put yourself in a posi",
+      "contextKo": "“If you put yourself in a position where you have to stretch outside your comfort zone, then you are...",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "“If you put yourself in a position where you have to stretch outside your comfort zone, then you are forced to expand yo",
+      "rawExcerpt": "“If you put yourself in a position where you have to stretch outside your comfort zone, then you are forced to expand your consciousness.” - Les Brown"
+    },
+    {
+      "signalId": "kr-signal-0027",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@skullasteroid/110692442914666103",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "“Love comes unseen; we only se",
+      "contextKo": "“Love comes unseen; we only see it go.” - Henry Austin Dobson",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "“Love comes unseen; we only see it go.” - Henry Austin Dobson",
+      "rawExcerpt": "“Love comes unseen; we only see it go.” - Henry Austin Dobson"
+    },
+    {
+      "signalId": "kr-signal-0028",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@skullasteroid/110686127701717018",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "“A panther is quick and smart ",
+      "contextKo": "“A panther is quick and smart and always alert to everything. He's sitting on top of a mountain, wit...",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "“A panther is quick and smart and always alert to everything. He's sitting on top of a mountain, with the sun and the cl",
+      "rawExcerpt": "“A panther is quick and smart and always alert to everything. He's sitting on top of a mountain, with the sun and the clouds. That's where I want to see myself.” - Stephon Marbury ."
+    },
+    {
+      "signalId": "kr-signal-0029",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@skullasteroid/110678134327939250",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "“What we call the beginning is",
+      "contextKo": "“What we call the beginning is often the end. And to make an end is to make a beginning. The end is ...",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "“What we call the beginning is often the end. And to make an end is to make a beginning. The end is where we start from.",
+      "rawExcerpt": "“What we call the beginning is often the end. And to make an end is to make a beginning. The end is where we start from.” - T. S. Eliot"
+    },
+    {
+      "signalId": "kr-signal-0030",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@skullasteroid/110670065203152453",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "“The best thing to hold onto i",
+      "contextKo": "“The best thing to hold onto in life is each other.” - Audrey Hepburn",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "“The best thing to hold onto in life is each other.” - Audrey Hepburn",
+      "rawExcerpt": "“The best thing to hold onto in life is each other.” - Audrey Hepburn"
+    },
+    {
+      "signalId": "kr-signal-0031",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://jpmstdn.com/@golfjapan/116332647259631900",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "미녀 골퍼 유현주의 패션 라이벌은?",
+      "contextKo": "미녀 골퍼 유현주의 패션 라이벌은?",
+      "reactionType": "celebrity_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.66,
+      "rawTitle": "미녀 골퍼 유현주의 패션 라이벌은?",
+      "rawExcerpt": "미녀 골퍼 유현주의 패션 라이벌은?"
+    },
+    {
+      "signalId": "kr-signal-0032",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@hyeo_2n_/116073926663506191",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "조현진이",
+      "contextKo": "조현진이 6명",
+      "reactionType": "price_reaction",
+      "categoryTags": [
+        "beauty",
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "조현진이 6명",
+      "rawExcerpt": "조현진이 6명"
+    },
+    {
+      "signalId": "kr-signal-0033",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@hyeo_2n_/116050231789929439",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "넌 무슨 헤어지자는 말을 라면 고를 때 하니",
+      "contextKo": "넌 무슨 헤어지자는 말을 라면 고를 때 하니",
+      "reactionType": "price_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "넌 무슨 헤어지자는 말을 라면 고를 때 하니",
+      "rawExcerpt": "넌 무슨 헤어지자는 말을 라면 고를 때 하니"
+    },
+    {
+      "signalId": "kr-signal-0034",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@hyeo_2n_/116040214509364699",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "수영장 떙긴다",
+      "contextKo": "수영장 떙긴다",
+      "reactionType": "season_reaction",
+      "categoryTags": [
+        "weather",
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "수영장 떙긴다",
+      "rawExcerpt": "수영장 떙긴다"
+    },
+    {
+      "signalId": "kr-signal-0035",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@crystalysjo/115932695540980884",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "#패션 포스트",
+      "contextKo": "마스토돈 #패션",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "",
+      "rawExcerpt": ""
+    },
+    {
+      "signalId": "kr-signal-0036",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@crystalysjo/115926548134677176",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "<3🤍",
+      "contextKo": "<3🤍",
+      "reactionType": "season_reaction",
+      "categoryTags": [
+        "daily"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "<3🤍",
+      "rawExcerpt": "<3🤍"
+    },
+    {
+      "signalId": "kr-signal-0037",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://byeolvit.space/notes/aft2tb4eoy",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "Urban Adventure \"Heavy Duty\" \ud83d",
+      "contextKo": "Urban Adventure \"Heavy Duty\" 📸 : SONY RX1R III, ZEISS Sonnar T* 35mm F 2 Model : @atLuminon",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "Urban Adventure \"Heavy Duty\" 📸 : SONY RX1R III, ZEISS Sonnar T* 35mm F 2 Model : @atLuminon",
+      "rawExcerpt": "Urban Adventure \"Heavy Duty\" 📸 : SONY RX1R III, ZEISS Sonnar T* 35mm F 2 Model : @atLuminon"
+    },
+    {
+      "signalId": "kr-signal-0038",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://mastodon.social/@topictree/114312382599503247",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "돈 없다는 것은 거짓말?",
+      "contextKo": "\"돈 없다는 것은 거짓말?\"소비자들 여기선 아낌없이 지출, 이유 들여다보니 '깜짝'",
+      "reactionType": "season_reaction",
+      "categoryTags": [
+        "weather"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "\"돈 없다는 것은 거짓말?\"소비자들 여기선 아낌없이 지출, 이유 들여다보니 '깜짝'",
+      "rawExcerpt": "\"돈 없다는 것은 거짓말?\"소비자들 여기선 아낌없이 지출, 이유 들여다보니 '깜짝'"
+    },
+    {
+      "signalId": "kr-signal-0039",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://muri.network/@Yae/113808414298949499",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "이상한데 시대를 앞서가는 악녀 생활올봄에는",
+      "contextKo": "이상한데 시대를 앞서가는 악녀 생활올봄에는 ‘이 바지’가 청바지를 대신합니다.",
+      "reactionType": "season_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "이상한데 시대를 앞서가는 악녀 생활올봄에는 ‘이 바지’가 청바지를 대신합니다.",
+      "rawExcerpt": "이상한데 시대를 앞서가는 악녀 생활올봄에는 ‘이 바지’가 청바지를 대신합니다."
+    },
+    {
+      "signalId": "kr-signal-0040",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://toot.community/@Marta/113144402968885181",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "Descubre las últimas tendencia",
+      "contextKo": "Descubre las últimas tendencias en calzado y moda en zapaterías. Desde estilos innovadores hasta los...",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "Descubre las últimas tendencias en calzado y moda en zapaterías. Desde estilos innovadores hasta los clásicos reinventad",
+      "rawExcerpt": "Descubre las últimas tendencias en calzado y moda en zapaterías. Desde estilos innovadores hasta los clásicos reinventados, mantente al día con lo que está en auge en el mundo del calzado. mujer"
+    },
+    {
+      "signalId": "kr-signal-0041",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://buttersc.one/notes/9tcduztn9d",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "안녕하세요",
+      "contextKo": "안녕하세요~! 날파리가 된 여성패싱 바이도마뱀 매일아침 몰닝을 외칩니다! 이야기를 합니다 남의 게임 이야기 구경을 좋아합니다 그림을 가끔 그립니다 (랜덤으로 짤을 생성해 줍니다) ...",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "안녕하세요~! 날파리가 된 여성패싱 바이도마뱀 매일아침 몰닝을 외칩니다! 이야기를 합니다 남의 게임 이야기 구경을 좋아합니다 그림을 가끔 그립니다 (랜덤으로 짤을 생성해 줍니다) 흔적남기시면 무멘팔로 들어갑니다~!",
+      "rawExcerpt": "안녕하세요~! 날파리가 된 여성패싱 바이도마뱀 매일아침 몰닝을 외칩니다! 이야기를 합니다 남의 게임 이야기 구경을 좋아합니다 그림을 가끔 그립니다 (랜덤으로 짤을 생성해 줍니다) 흔적남기시면 무멘팔로 들어갑니다~!"
+    },
+    {
+      "signalId": "kr-signal-0042",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://buttersc.one/notes/9tcco5ydm4",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "안녕하세요",
+      "contextKo": "안녕하세요~! 날파리가 된 여성패싱 바이도마뱀 매일아침 몰닝을 외칩니다! 이야기를 합니다 남의 게임 이야기 구경을 좋아합니다 그림을 가끔 그립니다 (랜덤으로 짤을 생성해 줍니다)",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "안녕하세요~! 날파리가 된 여성패싱 바이도마뱀 매일아침 몰닝을 외칩니다! 이야기를 합니다 남의 게임 이야기 구경을 좋아합니다 그림을 가끔 그립니다 (랜덤으로 짤을 생성해 줍니다)",
+      "rawExcerpt": "안녕하세요~! 날파리가 된 여성패싱 바이도마뱀 매일아침 몰닝을 외칩니다! 이야기를 합니다 남의 게임 이야기 구경을 좋아합니다 그림을 가끔 그립니다 (랜덤으로 짤을 생성해 줍니다)"
+    },
+    {
+      "signalId": "kr-signal-0043",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://dimension.host/@eugene/111941362301277102",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "순면 레깅스 하나를 찾기 위한 여정",
+      "contextKo": "순면 레깅스 하나를 찾기 위한 여정 (최종):kr_congrat1: 자 드디어 제가 며칠동안 열심히 서치한 진짜 순면 100% 레깅스를 소개할게요 :0510: :kr_congrat...",
+      "reactionType": "price_reaction",
+      "categoryTags": [
+        "weather",
+        "retail"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "순면 레깅스 하나를 찾기 위한 여정 (최종):kr_congrat1: 자 드디어 제가 며칠동안 열심히 서치한 진짜 순면 100% 레깅스를 소개할게요 :0510: :kr_congrat2:리빙 크래프트 (26,99 € 한",
+      "rawExcerpt": "순면 레깅스 하나를 찾기 위한 여정 (최종):kr_congrat1: 자 드디어 제가 며칠동안 열심히 서치한 진짜 순면 100% 레깅스를 소개할게요 :0510: :kr_congrat2:리빙 크래프트 (26,99 € 한화 약 38000) 발목에 시보리가 있어서 조금 내복 느낌이지만 유기농면 100%로 구할수 있는 가장 저렴한 블랙 레깅스에요 아이보리, 블랙, 자주색 3가지가 있습니다 같은 브랜드에서 울과 실크 또는 면과 울로 만들어진 레깅스도 있어서 이쪽도 좀 궁금해요(아무래도 실크는 러닝할때 쓸 수는 없겠지만요)FAIR INDIGO "
+    },
+    {
+      "signalId": "kr-signal-0044",
+      "source": {
+        "platform": "mastodon",
+        "url": "https://troet.cafe/@Bolzef/111716274947598679",
+        "crawledAt": "2026-04-05T12:49:50.717Z"
+      },
+      "subjectKo": "Eine talentierte Modedesigneri",
+      "contextKo": "Eine talentierte Modedesignerin, das ist Cutie Citrinella.🧵 A talented fashion designer, that is Cu...",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "beauty"
+      ],
+      "freshnessScore": 0,
+      "rawTitle": "Eine talentierte Modedesignerin, das ist Cutie Citrinella.🧵 A talented fashion designer, that is Cutie Citrinella.",
+      "rawExcerpt": "Eine talentierte Modedesignerin, das ist Cutie Citrinella.🧵 A talented fashion designer, that is Cutie Citrinella."
+    },
+    {
+      "signalId": "kr-signal-0045",
+      "source": {
+        "platform": "weather",
+        "url": "https://wttr.in/Seoul?format=j1",
+        "crawledAt": "2026-04-05T12:49:54.031Z"
+      },
+      "subjectKo": "서울 날씨: 11°C, 비",
+      "contextKo": "현재 서울 기온 11°C (체감 10°C), 비, 습도 66%, 강수 1.2mm",
+      "reactionType": "season_reaction",
+      "categoryTags": [
+        "weather"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "서울 날씨: 11°C, 비",
+      "rawExcerpt": "현재 서울 기온 11°C (체감 10°C), 비, 습도 66%, 강수 1.2mm"
+    },
+    {
+      "signalId": "kr-signal-0046",
+      "source": {
+        "platform": "exchange_rate",
+        "url": "https://open.er-api.com/v6/latest/USD",
+        "crawledAt": "2026-04-05T12:49:54.953Z"
+      },
+      "subjectKo": "환율 1달러 1,510원",
+      "contextKo": "현재 USD/KRW 환율 1,510원 (2026. 4. 5. 기준). 환율이 높아서 직구/해외여행 부담 증가",
+      "reactionType": "price_reaction",
+      "categoryTags": [
+        "fashion",
+        "travel"
+      ],
+      "freshnessScore": 1,
+      "rawTitle": "환율 1달러 1,510원",
+      "rawExcerpt": "현재 USD/KRW 환율 1,510원 (2026. 4. 5. 기준)"
+    },
+    {
+      "signalId": "kr-signal-0047",
+      "source": {
+        "platform": "curated",
+        "url": "",
+        "crawledAt": "2026-04-05T12:49:55.119Z"
+      },
+      "subjectKo": "여름 반팔",
+      "contextKo": "여름 데일리 기본템",
+      "reactionType": "season_reaction",
+      "categoryTags": [
+        "fashion"
+      ],
+      "freshnessScore": 0.8,
+      "rawTitle": "여름 반팔",
+      "rawExcerpt": "여름 데일리 기본템"
+    },
+    {
+      "signalId": "kr-signal-0048",
+      "source": {
+        "platform": "curated",
+        "url": "",
+        "crawledAt": "2026-04-05T12:49:55.119Z"
+      },
+      "subjectKo": "와이드팬츠",
+      "contextKo": "실루엣 트렌드 변화",
+      "reactionType": "trend_reaction",
+      "categoryTags": [
+        "fashion"
+      ],
+      "freshnessScore": 0.8,
+      "rawTitle": "와이드팬츠",
+      "rawExcerpt": "실루엣 트렌드 변화"
+    },
+    {
+      "signalId": "kr-signal-0049",
+      "source": {
+        "platform": "curated",
+        "url": "",
+        "crawledAt": "2026-04-05T12:49:55.119Z"
+      },
+      "subjectKo": "반려동물 산책룩",
+      "contextKo": "강아지 산책할 때 편한 옷",
+      "reactionType": "general_reaction",
+      "categoryTags": [
+        "pet"
+      ],
+      "freshnessScore": 0.8,
+      "rawTitle": "반려동물 산책룩",
+      "rawExcerpt": "강아지 산책할 때 편한 옷"
+    },
+    {
+      "signalId": "kr-signal-0050",
+      "source": {
+        "platform": "curated",
+        "url": "",
+        "crawledAt": "2026-04-05T12:49:55.119Z"
+      },
+      "subjectKo": "서울패션위크",
+      "contextKo": "시즌 패션위크 행사",
+      "reactionType": "event_reaction",
+      "categoryTags": [
+        "fashion"
+      ],
+      "freshnessScore": 0.8,
+      "rawTitle": "서울패션위크",
+      "rawExcerpt": "시즌 패션위크 행사"
+    }
+  ]
+}

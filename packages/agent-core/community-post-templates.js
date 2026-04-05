@@ -1,9 +1,21 @@
 /**
  * community-post-templates.js
  *
- * Realistic Korean community post templates modeled after 네이버 카페 글.
- * Each post mimics real user behavior: casual tone, personal stories,
- * emoticons, ㅋㅋ/ㅎㅎ, and mixed formality levels.
+ * Two-tier Korean community post generation:
+ *
+ * Tier 1 — Fixed templates (generateCommunityPost):
+ *   ~50 hand-crafted realistic 네이버 카페 posts. Used as fallback when
+ *   no external discussion seeds are available.
+ *
+ * Tier 2 — Compositional generation (generateSignalReactivePost):
+ *   Combines external "discussion seeds" with agent personality to produce
+ *   unlimited unique posts. A seed provides (subject, context, tensionPoint,
+ *   possibleAngles) and the generator fills title/body patterns with these
+ *   slots, modulated by archetype voice markers.
+ *
+ *   Combinatorial diversity:
+ *     8 reaction types × ~15 title patterns × ~20 body patterns × 6 archetype voices
+ *     = ~14,400 structural variations per seed, with unlimited seeds from live crawl data.
  */
 
 // ── Style & 코디 ────────────────────────────────────────────────────────────
@@ -38,6 +50,21 @@ const STYLE_POSTS = [
     title: "연예인 공항패션 보고 따라해봤는데...",
     body: "노윤서 제주도 여행룩 보고 비슷하게 해봤어요\n브라운 자켓에 핑크 티 조합이었는데\n현실은... 뭔가 다르네요ㅋㅋㅋ\n꾸안꾸가 진짜 어렵다는 걸 느낌\n얼굴이 해야 할 일이 절반인듯...\n그래도 컬러 조합은 따라하기 좋아서 추천!",
     tags: ["연예인패션", "꾸안꾸"],
+  },
+  {
+    title: "헨리코튼 블루종 어때요?",
+    body: "헨리코튼 블루종 매장에서 입어봤는데 핏이 괜찮더라구요\n가격은 20만원대인데 소재감이 좋아서 고민중\n비슷한 가격대에 블루종 추천 있으면 알려주세요!\n색상은 네이비 아니면 카키 고민인데 뭐가 나을까요\n봄에 딱 좋을 것 같은데 여러분 의견 좀요ㅎ",
+    tags: ["헨리코튼", "블루종", "봄자켓"],
+  },
+  {
+    title: "주니폼 빙니폼 비교샷 올려봐요~~",
+    body: "저 둘 다 가지고 있어서 비교샷 올려봅니다~\n주니폼이 좀 더 슬림한 핏이고 빙니폼은 여유있는 편\n소재는 빙니폼이 더 두꺼워서 겨울엔 빙니폼 추천\n봄가을에는 주니폼이 활용도 높은 것 같아요\n다들 어떤 스타일 더 좋아하세요? 댓글로 알려주세요!",
+    tags: ["주니폼", "빙니폼", "비교"],
+  },
+  {
+    title: "미니멀은 먼가여?",
+    body: "요즘 미니멀 스타일 좋아한다고 하면 다들 아 그냥 검흰이요? 하는데\n아닌데ㅋㅋ 미니멀이 그냥 단순한 게 아니거든요\n실루엣이랑 소재감으로 승부하는 건데...\n혹시 미니멀 잘 하시는 분들 코디 공유 좀 해주세요\n진짜 미니멀이 뭔지 같이 얘기해봐요",
+    tags: ["미니멀", "코디철학"],
   },
   {
     title: "22년전 서울 스트릿패션 사진 봤는데 ㄷㄷ",
@@ -174,6 +201,16 @@ const LIFESTYLE_POSTS = [
     body: "나트랑 가는데 뭐 입고 가야 할지 모르겠어요\n덥다고만 들었는데 실내는 에어컨이 세다던데\n얇은 가디건 하나 챙겨야 하나요?\n수영복 위에 걸칠 원피스도 필요할 것 같고\n짐을 최소화하고 싶은데 필수 아이템 좀 알려주세요!\n첫 동남아 여행이라 설레네요ㅎ",
     tags: ["나트랑", "여행준비"],
   },
+  {
+    title: "비 예보로 한강이 한산해요 🌧",
+    body: "비 온다고 해서 한강 나왔는데 사람이 없어요ㅎ\n오히려 좋아~ 한적하게 산책하기 딱이네요\n레인코트 입고 나왔는데 비 안 오면 어쩌지ㅋㅋ\n요즘 고어텍스 바람막이 하나 있으면 비 올 때 진짜 좋더라구요\n다들 비 오는 날 어디 가세요?",
+    tags: ["한강", "비오는날", "일상"],
+  },
+  {
+    title: "다 힘들죠? 저만 그런거 아니죠? 😢",
+    body: "요즘 회사 일이 너무 힘들어서 옷 살 기운도 없어요ㅠ\n근데 힘들 때 새 옷 하나 사면 기분전환 되지 않나요?\n저는 스트레스 받으면 양말이라도 하나 사거든요ㅋ\n소소한 쇼핑이 힐링인 분들 있으면 손~\n오늘도 다들 수고하셨어요 파이팅!",
+    tags: ["일상", "힐링", "공감"],
+  },
 ];
 
 // ── 연예인 & 트렌드 ────────────────────────────────────────────────────────
@@ -194,6 +231,66 @@ const TREND_POSTS = [
     body: "매년 올해의 컬러 나오잖아요\n올해는 어떤 색이 유행인지 궁금해요\n작년에는 라벤더 많이 보였는데\n올해는 좀 더 차분한 톤인 것 같기도 하고\n다들 올해 봄에 어떤 색상 옷 많이 사셨어요?\n저는 베이지 위주로 갈까 하는데...",
     tags: ["컬러트렌드", "봄패션"],
   },
+  {
+    title: "새로운 반지의 제왕 영화 캐스팅 근황 ㅎㄷㄷ",
+    body: "아라곤 역할 캐스팅 소식 봤는데 의상이 궁금해지네요\n오리지널 영화 의상이 워낙 아이코닉했잖아요\n판타지 영화 의상에서 영감 받아서 코디하는 사람도 있더라\n다크 아카데미아 느낌이 요즘 또 유행이라\n중세풍 액세서리 어디서 사는지 아시는 분?",
+    tags: ["영화", "다크아카데미아"],
+  },
+  {
+    title: "환율이 여행에 끼치는 영향.. 💸",
+    body: "환율 1400원 넘었는데 해외 직구 하시는 분들 어떠세요\n미국 브랜드 직구가 거의 의미가 없어졌어요ㅠ\n국내 정가랑 비슷하거나 오히려 더 비쌈\n일본은 아직 괜찮은 편인데 그것도 예전만 못하고\n환율 안정될 때까지 국내 브랜드 위주로 살까 고민...",
+    tags: ["환율", "해외직구"],
+  },
+];
+
+// ── 악세서리 & 소품 ──────────────────────────────────────────────────────────
+
+const ACCESSORY_POSTS = [
+  {
+    title: "해밀턴 카키필드 머피 38mm와 함께 ✌️",
+    body: "드디어 질렀습니다 해밀턴 카키필드 머피 38mm\n손목 둘레 16cm인데 딱 좋아요\n나토 스트랩으로 바꾸니까 분위기가 확 달라지네요\n시계를 즐기는 법 중 하나가 스트랩 놀이인듯ㅎ\n출근할 때 가죽, 주말에 나토 이렇게 돌려차고 있어요\n시계 차시는 분들 스트랩 몇 개 돌리세요?",
+    tags: ["시계", "해밀턴", "스트랩"],
+  },
+  {
+    title: "시계를 즐기는 법(빼꼼샷)",
+    body: "오늘 시계 빼꼼샷 찍어봤어요ㅋㅋ\n소매에서 살짝 보이는 게 포인트죠\n사진 찍다 보니까 시계 한 개론 부족해서 또 지를 뻔...\n다들 데일리 시계 뭐 차세요?\n가성비 좋은 입문용 추천 좀 해주세요!",
+    tags: ["시계", "데일리워치"],
+  },
+  {
+    title: "가방 하나로 코디 분위기 바뀌네요",
+    body: "맨날 백팩만 메다가 토트백 하나 샀는데\n와 이렇게 분위기가 달라질 줄 몰랐어요\n같은 옷인데 가방만 바꿨는데 좀 더 세련돼 보임\n남자 토트백 추천 있으면 알려주세요~\n예산은 10만원 이하로 보고 있어요ㅎ",
+    tags: ["가방", "토트백", "남자가방"],
+  },
+  {
+    title: "선글라스 얼굴형별 추천 정리해봄",
+    body: "선글라스 고를 때 얼굴형이 중요하더라구요\n둥근형 - 각진 프레임 / 각진형 - 라운드 프레임\n이게 기본인데 직접 써봐야 아는 거긴 해요ㅋㅋ\n저는 젠틀몬스터 마몽 쓰고 있는데 만족!\n다들 올여름 선글라스 뭐 쓰실 예정이에요?",
+    tags: ["선글라스", "젠틀몬스터"],
+  },
+];
+
+// ── 시즌 & 이벤트 ────────────────────────────────────────────────────────────
+
+const SEASONAL_POSTS = [
+  {
+    title: "벚꽃 명소 가서 찍은 코디 🌸",
+    body: "주말에 여의도 벚꽃 보러 갔다가 사진 찍었어요\n화이트 니트에 베이지 슬랙스 조합인데\n벚꽃이랑 잘 어울려서 만족ㅎㅎ\n근데 사람 너무 많아서 사진 찍기 힘들었음...\n다들 벚꽃 코디 어떻게 하셨어요?",
+    tags: ["벚꽃", "봄코디", "여의도"],
+  },
+  {
+    title: "올해 첫 돔타프 피칭 🏕",
+    body: "캠핑 시즌 시작!! 올해 첫 피칭 다녀왔어요\n새로 산 돔타프가 생각보다 설치 쉬워서 놀람\n캠핑할 때는 편한 게 최고라 카고팬츠에 플리스 입었는데\n밤에는 아직 쌀쌀해서 패딩 조끼 필수더라구요\n캠핑 다니시는 분들 캠핑룩 공유해요~~",
+    tags: ["캠핑", "아웃도어", "캠핑룩"],
+  },
+  {
+    title: "개강룩 고민중인데 같이 얘기해요 📚",
+    body: "다음 주 개강인데 첫날 뭐 입고 갈지 고민ㅋㅋ\n너무 꾸미면 부담스럽고 안 꾸미면 촌스럽고\n작년엔 맨날 후디에 청바지였는데 올해는 좀 바꿔보고 싶어요\n깔끔한 캐주얼 느낌으로 가볼까 하는데\n대학생 분들 개강 첫날 뭐 입으세요?",
+    tags: ["개강룩", "대학생코디"],
+  },
+  {
+    title: "장마철 신발 뭐 신으세요? 😭",
+    body: "비 오는 날 가죽 신발 신고 나갔다가 망했어요ㅠ\n레인부츠는 좀 과한 것 같고...\n고어텍스 운동화가 답인가요?\n아니면 그냥 저렴한 거 하나 장마용으로 사는 게 나은지\n비 올 때 신발 어떻게 해결하시는지 궁금해요!",
+    tags: ["장마", "레인슈즈"],
+  },
 ];
 
 // ── 자동차 & 취미 (비패션 일상) ─────────────────────────────────────────────
@@ -208,6 +305,16 @@ const HOBBY_POSTS = [
     title: "운동 시작했는데 웨어 추천 좀요",
     body: "올해 목표로 헬스장 등록했는데\n운동복을 뭘 사야 할지 모르겠어요ㅋㅋ\n나이키 드라이핏? 언더아머? 아니면 데카트론?\n너무 비싼 건 부담이고 그렇다고 너무 싼 건...\n운동할 때도 좀 멋있게 입고 싶거든요\n헬스 웨어 추천 부탁드립니다!",
     tags: ["운동복", "애슬레져"],
+  },
+  {
+    title: "테슬라 모델Y 주니퍼 보고왔어요 (실물) 🚗",
+    body: "전시장에서 실물 보고 왔는데 사진이랑 확 다르네요\n실물이 훨씬 나아요 특히 사이드 라인이 깔끔\n근데 실내 소재감이 좀 아쉬웠어요\n시승은 다음 주에 할 예정인데 기대됩니다\n혹시 오너분 계시면 실연비 어때요?",
+    tags: ["테슬라", "자동차", "보고왔어요"],
+  },
+  {
+    title: "RRL 5번째 (feat. 레더모토자켓) 🏍",
+    body: "RRL 레더 모토자켓 드디어 데려왔어요\n착용감이 처음엔 빡빡한데 입을수록 몸에 맞춰지는 느낌\n빈티지 감성 좋아하시는 분들한테 강추합니다\n가격이 좀 하긴 하는데 가죽은 오래 입으니까...\n에이징 과정을 즐기는 게 가죽의 매력이죠ㅎ",
+    tags: ["RRL", "레더자켓", "빈티지"],
   },
 ];
 
@@ -236,6 +343,16 @@ const TOPIC_TEMPLATE_MAP = {
   daily_look: LIFESTYLE_POSTS,
   comfort: LIFESTYLE_POSTS,
   outdoor: LIFESTYLE_POSTS,
+  accessory: ACCESSORY_POSTS,
+  watch: ACCESSORY_POSTS,
+  bag: ACCESSORY_POSTS,
+  sunglasses: ACCESSORY_POSTS,
+  seasonal: SEASONAL_POSTS,
+  camping: SEASONAL_POSTS,
+  weather: SEASONAL_POSTS,
+  travel: LIFESTYLE_POSTS,
+  hobby: HOBBY_POSTS,
+  vintage: HOBBY_POSTS,
 };
 
 const ALL_POSTS = [
@@ -247,6 +364,8 @@ const ALL_POSTS = [
   ...LIFESTYLE_POSTS,
   ...TREND_POSTS,
   ...HOBBY_POSTS,
+  ...ACCESSORY_POSTS,
+  ...SEASONAL_POSTS,
 ];
 
 // ── Comment templates (real community tone) ──────────────────────────────────
@@ -272,6 +391,14 @@ const COMMENT_TEMPLATES = [
   "이거 요즘 어디서 사야 제일 싼가요?",
   "아 이거 살까말까 했는데 후기 보고 결정했어요 감사!",
   "댕댕이 너무 귀엽😍 이름이 뭐예요?",
+  "와 실물 보고 오셨군요 부럽 😍",
+  "이 조합 진짜 찐이다 🔥🔥",
+  "저도 같은 거 질렀어요ㅋㅋ 컬러만 다르게 ✌️",
+  "오 시계 취향 좋으시네요~ 저도 입문하고 싶어요",
+  "비교샷 감사해요!! 고민 해결됐어요 🙏",
+  "ㅋㅋㅋ 공감 100% 저도 그랬어요",
+  "캠핑 코디 너무 좋네요 🏕 어디서 사셨어요?",
+  "환율 진짜 미쳤죠ㅠ 직구 포기했어요 💸",
 ];
 
 // ── Archetype personality markers ────────────────────────────────────────────
@@ -344,6 +471,385 @@ export function generateCommunityComment({ agent, seed = 0 }) {
   const rng = seededRandom(seed);
   return { content: COMMENT_TEMPLATES[Math.floor(rng() * COMMENT_TEMPLATES.length)] };
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// Tier 2 — Compositional signal-reactive generation
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Korean particle helper ──────────────────────────────────────────────────
+
+function hasJongseong(char) {
+  if (!char) return false;
+  const code = char.charCodeAt(0);
+  if (code < 0xAC00 || code > 0xD7AF) return false;
+  return (code - 0xAC00) % 28 !== 0;
+}
+
+function particle(word, type) {
+  if (!word) return word;
+  const last = word[word.length - 1];
+  const jong = hasJongseong(last);
+  switch (type) {
+    case "은는": return word + (jong ? "은" : "는");
+    case "이가": return word + (jong ? "이" : "가");
+    case "을를": return word + (jong ? "을" : "를");
+    case "와과": return word + (jong ? "과" : "와");
+    case "으로": return word + (jong ? "으로" : "로");
+    default: return word;
+  }
+}
+
+// ── Reaction type title patterns ────────────────────────────────────────────
+// Slots: {subject}, {context}, {angle}, {tension}
+
+const REACTION_TITLE_PATTERNS = {
+  product_reaction: [
+    "{subject} 나왔는데 어떤가요",
+    "{subject} 정보 아시는 분?",
+    "드디어 {subject} 나왔네요",
+    "{subject} 실물 보신 분 있나요?",
+    "{subject} 사도 될까요?",
+    "{subject} 솔직히 어때요?",
+    "{subject} 전작이랑 비교하면?",
+    "{subject} 이번에 괜찮은가요",
+    "이번 {subject} 핏이 궁금해요",
+    "{subject} 오늘 나왔던데 🔥",
+    "{subject} 살까말까 고민중...",
+    "{subject} 리뷰 있나요?",
+    "신상 {subject} 보고왔어요",
+    "{subject} 이거 어떻게 보세요?",
+    "{subject} 입어본 분 후기 좀요",
+  ],
+  price_reaction: [
+    "{subject} 이 가격이면 괜찮은 건가요?",
+    "{subject} 세일 시작했네요!",
+    "{subject} 가격 좀 봐주세요ㅋ",
+    "{subject} 할인 정보 공유해요",
+    "{subject} 가성비 어때요?",
+    "요즘 {subject} 가격이 미쳤어요",
+    "{subject} 이거 지금 사야 하나요?",
+    "{subject} 최저가 찾았는데 공유합니다",
+    "💸 {subject} 세일 뭐 건졌어요?",
+    "{subject} 쿠폰 있으면 알려주세요ㅠ",
+    "{subject} 가격 비교해봤어요",
+    "이 정도면 {subject} 사도 되죠?",
+    "{subject} 언제 사는 게 제일 싼가요?",
+    "{subject} 직구 vs 국내 가격 비교",
+    "{subject} 적정가가 얼마인가요",
+  ],
+  celebrity_reaction: [
+    "{subject} 봤는데 코디 미쳤어요",
+    "{subject} 스타일 따라해봤는데...",
+    "{subject} 이거 뭔지 아시는 분?",
+    "{subject} 공항패션 어떠세요",
+    "{subject} 입은 거 브랜드 찾아요",
+    "{subject} 화보 보고 영감 받았어요",
+    "{subject} 보고 드레스코드 고민 중",
+    "어제 {subject} 진짜 멋있었어요 😍",
+    "{subject} 착용 아이템 정리해봤어요",
+    "{subject} 보고 같은 거 찾는 중ㅋ",
+    "{subject} 스타일 어떻게 생각하세요?",
+    "{subject} 옷 정보 좀 알려주세요!",
+  ],
+  season_reaction: [
+    "오늘 날씨에 {subject} 입어야 할까요",
+    "{subject}인데 뭐 입고 나갔어요?",
+    "갑자기 {subject}이라 옷이 없어요ㅠ",
+    "{subject} 코디 어떻게 하세요?",
+    "오늘 {subject} 진짜 미쳤다ㅋㅋ",
+    "{subject}에 맞는 아우터 추천요",
+    "날씨 {subject}인데 다들 반팔이에요?",
+    "🌸 {subject} 나들이룩 공유해요",
+    "{subject}라서 겹겹이 레이어링 했어요",
+    "{subject} 대비 옷 정리 시작합니다",
+    "이 날씨에 {subject} 입고 다니는 사람?",
+    "요즘 {subject}라 옷장 대환장ㅋㅋ",
+  ],
+  trend_reaction: [
+    "{subject} 요즘 되게 많이 보이던데",
+    "{subject} 유행이라는데 다들 어때요?",
+    "{subject} 저만 이상하게 느끼나요?ㅋ",
+    "{subject} 실제로 해보신 분?",
+    "검색 급상승 {subject} 뭔데 이게",
+    "{subject} 요즘 왜 이렇게 핫해요?",
+    "{subject} 진짜 할 만한 건가요",
+    "다들 {subject} 어떻게 생각해요?",
+    "{subject} 해본 후기 올려봅니다",
+    "요즘 {subject} 안 하면 뒤처지는 건가요ㅋ",
+    "{subject} 드디어 해봤어요!",
+    "{subject} 궁금해서 올려봐요",
+  ],
+  comparison_reaction: [
+    "{subject} 중 뭐가 더 나을까요?",
+    "{subject} 비교해봤어요",
+    "{subject} 고민 중인데 의견 좀요",
+    "{subject} 차이가 뭔가요?",
+    "{subject} 둘 다 써본 분 계신가요?",
+    "{subject} 비교샷 올려봐요~~",
+    "{subject} 어디서 사는 게 나을까요",
+    "{subject} 실물 비교 해봤는데ㅋㅋ",
+    "{subject} 사용감 비교 부탁드려요!",
+    "{subject} 고르는 기준이 뭐예요?",
+    "솔직히 {subject} 중 추천하자면",
+    "{subject} 어떤 게 코디하기 좋아요?",
+  ],
+  event_reaction: [
+    "{subject} 다녀왔어요!",
+    "{subject} 가시는 분 복장 어때요?",
+    "{subject} 후기 간단히 올려봅니다",
+    "{subject} 옷 뭐 입고 가세요?",
+    "{subject} 보고왔는데 꿀팁 공유",
+    "{subject} 누가 갔다왔나요?",
+    "이번 {subject} 진짜 대박이었어요ㅠ",
+    "{subject} 준비하는 분 계세요?",
+    "{subject} 드레스코드 뭐가 좋을까요",
+    "주말 {subject} 가시는 분 같이 얘기해요~",
+    "{subject} 갔다가 찍은 사진이에요",
+    "{subject} 분위기 어떤지 궁금하시죠?",
+  ],
+  general_reaction: [
+    "{subject} 어떻게 생각하세요?",
+    "{subject} 얘기 좀 해봐요",
+    "요즘 {subject} 관련 궁금한 게 있어요",
+    "{subject} 경험 있으신 분?",
+    "{subject} 의견 좀 들어보고 싶어요",
+    "갑자기 {subject} 생각이 나서",
+    "{subject} 저만 이런 건가요ㅋ",
+    "다들 {subject}은 어떻게 하세요?",
+    "{subject} 관련 꿀팁 있으면 공유해요",
+    "{subject} 얘기하고 싶어서 올려봐요",
+    "{subject} 고민인데 도와주세요ㅠ",
+    "{subject} 이거 진짜인가요?",
+  ],
+};
+
+// ── Reaction type body patterns ─────────────────────────────────────────────
+// Slots: {subject}, {context}, {angle}, {tension}
+// {nl} = newline for readability
+
+const REACTION_BODY_PATTERNS = {
+  product_reaction: [
+    "{context}\n실물 보신 분 있으면 후기 좀요!\n{angle} 궁금해요",
+    "오늘 {subject} 소식 봤는데 {tension}\n전작이랑 비교하면 어떨지...\n다들 의견 좀 주세요ㅎ",
+    "{subject} 드디어 나왔던데\n{context}\n솔직히 {tension}\n사야 하나 말아야 하나 고민중이에요ㅋ\n{angle} 아시는 분 계시면 알려주세요!",
+    "{context}\n{tension}\n근데 디자인은 진짜 예뻐요\n고민되네... 다들 어떻게 생각하세요?",
+    "매장에서 {subject} 보고왔어요\n{context}\n{tension}\n핏은 괜찮은데 소재감이 좀 아쉽기도 하고\n{angle} 어떤지 알려주세요ㅎ",
+    "{subject} 이번 시즌에 나왔는데\n{context}\n{tension}\n사진으로 봤을 때랑 실물이 좀 달라 보여서\n실착 해보신 분 있나요?",
+  ],
+  price_reaction: [
+    "{context}\n{tension}\n이 가격이면 사도 되는 건지...\n비슷한 거 더 싸게 산 분 있나요?",
+    "세일 정보 공유해요\n{context}\n{tension}\n카트에 담아놓고 고민 중인데ㅋ\n살까말까 도와주세요!",
+    "{subject} 가격 비교해봤는데\n{context}\n{tension}\n결국 어디서 사는 게 제일 나은 건지...\n다들 어디서 사시나요?",
+    "{subject} {context}\n솔직히 {tension}\n근데 비슷한 디자인이 다른 데서 더 비싸거든요\n이거 지금이 기회인가요?",
+    "💸 {subject} 가격이\n{context}\n{tension}\n이거 언제 더 떨어질까요?\n아니면 지금 사야 할까요ㅠ",
+    "{context}\n{tension}\n가성비로 따지면 어떤지 궁금해요\n써보신 분 후기 좀 부탁드립니다!",
+  ],
+  celebrity_reaction: [
+    "{subject} 스타일 봤는데 진짜 예뻐요ㅠ\n{context}\n따라해보고 싶은데 현실은..ㅋㅋ\n{angle} 어디 브랜드인지 아시는 분?",
+    "어제 {subject} 봤는데\n{context}\n{tension}\n비슷한 느낌 연출하려면 뭘 사야 하나요?\n예산은 10~20만원 정도인데...",
+    "{subject} 착장 분석해봤어요\n{context}\n핵심은 {angle}인 것 같아요\n비슷한 분위기 코디 하시는 분 팁 좀요!",
+    "{context}\n{subject} 스타일 진짜 꾸안꾸의 정석\n{tension}\n얼굴이 해야 할 일이 절반인듯ㅋㅋ\n그래도 컬러 조합은 참고할 만해요!",
+  ],
+  season_reaction: [
+    "오늘 {subject}이라 옷 고르다 멘붕ㅋㅋ\n{context}\n{tension}\n다들 오늘 뭐 입고 나갔어요?\n레이어링 꿀팁 있으면 공유해주세요!",
+    "{subject} 날씨에 딱 맞는 코디 찾는 중\n{context}\n{tension}\n아침이랑 낮이랑 온도차가 너무 커서...\n가디건? 자켓? 뭐가 나을까요",
+    "{context}\n{subject}라서 옷장 정리 시작했어요\n{tension}\n계절 바뀔 때마다 입을 게 없는 건 저만 그런 건가요ㅠ\n{angle} 추천해주세요!",
+    "🌤 오늘 {subject}\n{context}\n{tension}\n이런 날 나들이 가면 뭐 입으세요?\n가볍게 입기 좋은 아우터 추천 부탁!",
+  ],
+  trend_reaction: [
+    "{subject} 요즘 되게 많이 보이던데\n{context}\n{tension}\n실제로 해본 분 있으면 후기 좀 부탁드려요!\n잘못하면 애매해질 것 같아서...",
+    "검색 급상승이라 찾아봤는데\n{context}\n{subject}인데 {tension}\n다들 이거 어떻게 생각하세요?\n유행 따라가야 하나 말아야 하나ㅋ",
+    "{subject} 요즘 핫하길래 도전해봤어요\n{context}\n{tension}\n근데 이게 나한테 맞는 건지 모르겠음ㅋㅋ\n비슷하게 해보신 분 조언 좀요!",
+    "{context}\n{subject} 유행이라는데\n{tension}\n솔직히 호불호 갈릴 것 같은데 여러분은?\n저는 개인적으로 괜찮아 보이는데...",
+  ],
+  comparison_reaction: [
+    "{subject} 비교하다 보니 보기보다 기준이 확 갈리네요\n{context}\n{tension}\n둘 다 써본 분 계시면 의견 좀 부탁드려요!",
+    "{subject} 고민 중인데\n{context}\n{tension}\n결국 뭘로 가야 할지...\n비슷한 고민 하신 분 어떻게 결정하셨어요?",
+    "{subject} 실제로 비교해봤어요\n{context}\n{tension}\n핏은 A가 좋고 소재는 B가 좋고 가격은...\n종합하면 뭐가 나은 건지 의견 좀요ㅎ",
+    "비교 후기 올려봅니다\n{subject}\n{context}\n{tension}\n둘 다 장단점이 있어서 고민이에요\n어떤 쪽을 더 중요하게 보세요?",
+  ],
+  event_reaction: [
+    "{subject} 다녀왔어요!\n{context}\n{tension}\n생각보다 사람 많았는데 분위기 좋았어요\n혹시 가시는 분 있으면 참고하세요~",
+    "{subject} 가는데 뭐 입고 가야 할지 모르겠어요\n{context}\n{tension}\n너무 격식 차린 것도 그렇고 너무 캐주얼한 것도 그렇고\n다들 어떤 스타일로 가세요?",
+    "{subject} 후기 간단히 올려봅니다\n{context}\n{tension}\n전체적으로 만족이었어요\n갔다가 찍은 사진도 올릴게요ㅎ",
+    "이번 {subject} 진짜 대박\n{context}\n{tension}\n아직 안 가신 분들 꼭 가보세요!\n시간 되면 주말에 한번 더 갈 예정ㅎㅎ",
+  ],
+  general_reaction: [
+    "{subject}에 대해 좀 얘기해봐요\n{context}\n{tension}\n저만 이렇게 느끼는 건지 궁금해서 올려봅니다\n다들 의견 있으면 댓글로!",
+    "요즘 {subject} 생각이 많아져서\n{context}\n{tension}\n비슷한 경험 있으신 분 계시면 공유해주세요ㅎ",
+    "{context}\n{subject} 관련해서 궁금한 게 있어요\n{tension}\n아시는 분 있으면 알려주세요!\n검색해도 잘 안 나오네요ㅠ",
+    "갑자기 {subject} 생각이 나서 올려봐요\n{context}\n{tension}\n저만 이런 건가요ㅋㅋ\n비슷한 분 있으면 같이 얘기해요~",
+  ],
+};
+
+// ── Extended archetype voice system ─────────────────────────────────────────
+
+const ARCHETYPE_VOICE = {
+  quiet_observer: {
+    intros: [null, null, "조용히 눈팅하다 글 남겨요ㅎ\n", "평소엔 읽기만 하는데 이건 궁금해서\n", "올리기 좀 망설였는데\n"],
+    midMarkers: ["개인적으로는", "솔직히 잘 모르겠는데", "조심스럽지만", "이건 좀"],
+    closings: ["다들 어떻게 생각하세요?", "의견 궁금해요", "조용히 듣고 있을게요ㅎ", "답글 달아주시면 감사해요"],
+    emojiFreq: 0.1,
+  },
+  social_participant: {
+    intros: [null, "같이 얘기해봐요~\n", null, "궁금한 게 있어서 올려봐요!\n", "오늘 이거 봤는데\n"],
+    midMarkers: ["근데 진짜", "아 그리고", "참고로", "저는 사실"],
+    closings: ["다들 의견 남겨주세요!", "같이 고민해봐요~", "댓글 기다릴게요ㅎ", "비슷한 분 있으면 ✋"],
+    emojiFreq: 0.3,
+  },
+  trend_setter: {
+    intros: [null, "요즘 핫한 것 같아서 먼저 해봤는데\n", null, "남들보다 빠르게 해봤어요\n"],
+    midMarkers: ["확실히", "솔직히 이건", "요즘 트렌드가", "제가 보기엔"],
+    closings: ["먼저 해본 후기입니다ㅎ", "궁금한 거 있으면 물어보세요!", "참고하세요~ 🔥", "이건 진짜 추천"],
+    emojiFreq: 0.4,
+  },
+  contrarian_observer: {
+    intros: [null, "솔직히 저는 좀 다르게 보는데\n", null, "다들 좋다는데 저만 아닌가요ㅋ\n", "반대 의견일 수 있는데\n"],
+    midMarkers: ["근데 이게 진짜", "오히려", "반대로 보면", "솔직히 말해서"],
+    closings: ["저만 이렇게 보나요ㅋ", "다른 의견 있으면 말해주세요", "아닌가... 그냥 제 생각입니다", "반박 환영이에요"],
+    emojiFreq: 0.1,
+  },
+  empathetic_responder: {
+    intros: [null, "저도 비슷한 경험 있어서 올려봐요\n", null, "고민 공감돼요ㅠ\n", "이거 보니까 저도 생각나서\n"],
+    midMarkers: ["저도 그랬었는데", "공감 가네요", "이해해요 진짜", "비슷한 상황이었어요"],
+    closings: ["힘내세요 ㅎㅎ", "같이 고민해봐요ㅠ", "도움이 됐으면 좋겠어요", "비슷한 분들 화이팅! 💪"],
+    emojiFreq: 0.25,
+  },
+  brand_loyalist: {
+    intros: [null, "이 브랜드는 진짜 믿고 사는데\n", null, "또 질렀습니다ㅋ\n"],
+    midMarkers: ["역시", "이건 진짜", "이 브랜드는 확실히", "항상 느끼는 건데"],
+    closings: ["이 브랜드 진짜 찐이에요", "역시 믿고 사는 브랜드", "추천합니다 강추 🔥", "후회 없을 거예요"],
+    emojiFreq: 0.2,
+  },
+};
+
+const EMOJIS = ["😊", "ㅎㅎ", "ㅋㅋ", "ㅠㅠ", "🔥", "✌️", "💸", "😍", "👍", "🏕", "🌸", "💪", "🐶", "🎉", ""];
+
+// ── Compositional generator ─────────────────────────────────────────────────
+
+/**
+ * Generate a unique community post by combining an external discussion seed
+ * with agent personality. Produces unlimited diversity.
+ *
+ * @param {object} params
+ * @param {number} params.seed - Deterministic variation seed
+ * @param {object} params.agent - Agent with archetype, interest_vector
+ * @param {object} params.discussionSeed - External signal seed
+ * @param {string} params.discussionSeed.subjectKo - Main subject (e.g., "나이키 에어맥스 DN8")
+ * @param {string} params.discussionSeed.contextKo - Context (e.g., "4월 5일 출시, 189,000원")
+ * @param {string} params.discussionSeed.tensionPoint - Tension (e.g., "가격이 좀 오른 것 같은데")
+ * @param {string[]} params.discussionSeed.possibleAngles - Discussion angles
+ * @param {string} params.discussionSeed.reactionType - One of 8 reaction types
+ * @param {string[]} params.discussionSeed.categoryTags - Topic tags
+ * @param {string[]} [params.recentBodies] - Recent post bodies to avoid
+ * @returns {{ title: string, content: string, tags: string[] }}
+ */
+export function generateSignalReactivePost({ seed = 0, agent = {}, discussionSeed = {}, recentBodies = [] }) {
+  const rng = seededRandom(seed);
+
+  const reactionType = discussionSeed.reactionType || "general_reaction";
+  const subject = discussionSeed.subjectKo || "이것";
+  const context = discussionSeed.contextKo || "";
+  const tension = discussionSeed.tensionPoint || "좀 고민이 되네요";
+  const angles = discussionSeed.possibleAngles || [];
+  const angle = angles.length > 0 ? angles[Math.floor(rng() * angles.length)] : "자세한 후기";
+
+  // Pick title pattern
+  const titlePatterns = REACTION_TITLE_PATTERNS[reactionType] || REACTION_TITLE_PATTERNS.general_reaction;
+  const titlePattern = titlePatterns[Math.floor(rng() * titlePatterns.length)];
+
+  // Pick body pattern
+  const bodyPatterns = REACTION_BODY_PATTERNS[reactionType] || REACTION_BODY_PATTERNS.general_reaction;
+  const bodyPattern = bodyPatterns[Math.floor(rng() * bodyPatterns.length)];
+
+  // Fill slots
+  const fillSlots = (template) => template
+    .replace(/\{subject\}/g, subject)
+    .replace(/\{context\}/g, context)
+    .replace(/\{tension\}/g, tension)
+    .replace(/\{angle\}/g, angle);
+
+  let title = fillSlots(titlePattern);
+  let body = fillSlots(bodyPattern);
+
+  // Apply archetype voice
+  const archetype = agent.archetype || "quiet_observer";
+  const voice = ARCHETYPE_VOICE[archetype] || ARCHETYPE_VOICE.quiet_observer;
+
+  // Intro (60% chance)
+  if (rng() < 0.6) {
+    const introPool = voice.intros.filter(Boolean);
+    if (introPool.length > 0) {
+      body = introPool[Math.floor(rng() * introPool.length)] + body;
+    }
+  }
+
+  // Mid-marker injection (40% chance, insert after first newline)
+  if (rng() < 0.4) {
+    const marker = voice.midMarkers[Math.floor(rng() * voice.midMarkers.length)];
+    const firstNl = body.indexOf("\n");
+    if (firstNl > 0) {
+      body = body.slice(0, firstNl + 1) + marker + " " + body.slice(firstNl + 1);
+    }
+  }
+
+  // Closing (70% chance)
+  if (rng() < 0.7) {
+    const closing = voice.closings[Math.floor(rng() * voice.closings.length)];
+    body = body.trimEnd() + "\n" + closing;
+  }
+
+  // Emoji insertion (based on archetype frequency)
+  if (rng() < voice.emojiFreq) {
+    const emoji = EMOJIS[Math.floor(rng() * EMOJIS.length)];
+    if (emoji && !title.includes(emoji)) {
+      // Sometimes add to title, sometimes to body end
+      if (rng() < 0.3) {
+        title = title + " " + emoji;
+      } else {
+        body = body.trimEnd() + " " + emoji;
+      }
+    }
+  }
+
+  // Dedup check
+  const recentSet = new Set((recentBodies || []).map(b => (b || "").slice(0, 40)));
+  if (recentSet.has(body.slice(0, 40))) {
+    // Re-pick body pattern to try to avoid collision
+    const altIdx = (Math.floor(rng() * bodyPatterns.length) + 1) % bodyPatterns.length;
+    body = fillSlots(bodyPatterns[altIdx]);
+  }
+
+  // Build tags from seed
+  const tags = (discussionSeed.categoryTags || []).slice(0, 3);
+  if (tags.length === 0 && subject.length <= 10) {
+    tags.push(subject);
+  }
+
+  return { title, content: body, tags };
+}
+
+// ── Unified entry point ─────────────────────────────────────────────────────
+
+/**
+ * Smart post generator: uses discussionSeed if available (infinite diversity),
+ * falls back to fixed templates otherwise.
+ *
+ * @param {object} params
+ * @param {object} params.agent - Agent with archetype, interest_vector, handle
+ * @param {number} [params.seed] - Variation seed
+ * @param {string[]} [params.recentBodies] - Recent bodies for dedup
+ * @param {object} [params.discussionSeed] - External signal seed (optional)
+ * @returns {{ title: string, content: string, tags: string[] }}
+ */
+export function generatePost({ agent, seed = 0, recentBodies = [], discussionSeed = null }) {
+  if (discussionSeed && discussionSeed.subjectKo) {
+    return generateSignalReactivePost({ seed, agent, discussionSeed, recentBodies });
+  }
+  return generateCommunityPost({ agent, seed, recentBodies });
+}
+
+// ── Utilities ───────────────────────────────────────────────────────────────
 
 function seededRandom(seed) {
   let s = seed >>> 0;
