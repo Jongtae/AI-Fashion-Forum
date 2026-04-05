@@ -21,7 +21,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   STRUCTURED_SOURCES,
@@ -78,6 +78,7 @@ function parseArgs(argv) {
 
 function stripHtml(html = "") {
   return html
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, "$1")
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<[^>]*>/g, "")
     .replace(/&amp;/g, "&")
@@ -121,6 +122,87 @@ function parseRssItems(xml) {
   return items;
 }
 
+export function extractHtmlAnchors(html = "", {
+  minLength = 12,
+  hrefPattern = null,
+  requireKorean = true,
+} = {}) {
+  const anchors = [];
+  const anchorRegex = /<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  let match;
+  while ((match = anchorRegex.exec(html)) !== null) {
+    const href = (match[1] || "")
+      .replace(/&amp;/g, "&")
+      .replace(/&#x3D;/gi, "=")
+      .replace(/&#61;/g, "=");
+    const text = stripHtml(match[2] || "");
+    if (text.length < minLength) continue;
+    if (requireKorean && !hasKorean(text, 3)) continue;
+    if (hrefPattern && !hrefPattern.test(href)) continue;
+    anchors.push({ href, text });
+  }
+
+  const deduped = [];
+  const seen = new Set();
+  for (const item of anchors) {
+    const key = `${item.href}|${item.text}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(item);
+  }
+  return deduped;
+}
+
+export function extractMusinsaRankingApiUrl(html = "") {
+  const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/i);
+  if (!nextDataMatch) {
+    return null;
+  }
+
+  try {
+    const nextData = JSON.parse(nextDataMatch[1]);
+    const panels = nextData?.props?.pageProps?.data?.store?.[0]?.pan || [];
+    const rankingPanel = panels.find((panel) => panel?.type === "ranking");
+    return rankingPanel?.webApi || rankingPanel?.api || null;
+  } catch {
+    return null;
+  }
+}
+
+export function extractMusinsaRankingItems(payload = {}) {
+  const modules = Array.isArray(payload?.data?.modules) ? payload.data.modules : [];
+  const productItems = [];
+
+  for (const module of modules) {
+    if (module?.type !== "MULTICOLUMN" || !Array.isArray(module.items)) continue;
+    for (const item of module.items) {
+      if (item?.type !== "PRODUCT_COLUMN") continue;
+      const info = item.info || {};
+      if (!info.productName || !info.brandName) continue;
+      productItems.push({
+        id: item.id || "",
+        rank: item.image?.rank || null,
+        brandName: info.brandName,
+        productName: info.productName,
+        finalPrice: info.finalPrice || null,
+        discountRatio: info.discountRatio || 0,
+        labels: Array.isArray(item.image?.labels) ? item.image.labels.map((label) => label?.text).filter(Boolean) : [],
+        url: info.onClickBrandName?.url || item.onClick?.url || "",
+      });
+    }
+  }
+
+  const deduped = [];
+  const seen = new Set();
+  for (const item of productItems) {
+    const key = `${item.brandName}|${item.productName}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(item);
+  }
+  return deduped;
+}
+
 let _counter = 0;
 function nextSignalId() {
   _counter += 1;
@@ -132,6 +214,57 @@ function freshnessScore(dateStr) {
   const diff = (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24);
   if (diff < 0) return 1.0;
   return Math.max(0, +(1.0 - diff * 0.1).toFixed(2));
+}
+
+export function selectBalancedRecords(records = [], limit = DEFAULT_LIMIT) {
+  if (!Array.isArray(records) || records.length <= limit) {
+    return Array.isArray(records) ? records : [];
+  }
+
+  const grouped = new Map();
+  for (const record of records) {
+    const key = record?.source?.platform || "unknown";
+    if (!grouped.has(key)) {
+      grouped.set(key, []);
+    }
+    grouped.get(key).push(record);
+  }
+
+  const platforms = [...grouped.keys()].sort();
+  const selected = [];
+
+  for (const platform of platforms) {
+    if (selected.length >= limit) break;
+    const bucket = grouped.get(platform) || [];
+    const next = bucket.shift();
+    if (next) {
+      selected.push(next);
+    }
+    if (bucket.length === 0) {
+      grouped.delete(platform);
+    }
+  }
+
+  const remainingPlatforms = [...grouped.keys()].sort();
+  let cursor = 0;
+
+  while (selected.length < limit && remainingPlatforms.length > 0) {
+    const platform = remainingPlatforms[cursor % remainingPlatforms.length];
+    const bucket = grouped.get(platform) || [];
+    const next = bucket.shift();
+    if (next) {
+      selected.push(next);
+    }
+    if (bucket.length === 0) {
+      grouped.delete(platform);
+      remainingPlatforms.splice(remainingPlatforms.indexOf(platform), 1);
+      cursor = 0;
+      continue;
+    }
+    cursor += 1;
+  }
+
+  return selected;
 }
 
 function guessCategoryTags(text = "") {
@@ -264,6 +397,123 @@ async function fetchMastodonKR() {
     }
   }
   return allRecords;
+}
+
+async function fetchNaverNewsFashion() {
+  const now = new Date().toISOString();
+  console.log("[crawl-kr] Fetching Naver News lifestyle section...");
+  const res = await fetch(SOURCES.naver_news_fashion.url, {
+    headers: { "User-Agent": USER_AGENT },
+  });
+  if (!res.ok) throw new Error(`Naver News: HTTP ${res.status}`);
+  const body = await res.text();
+
+  const anchors = extractHtmlAnchors(body, {
+    minLength: 18,
+    hrefPattern: /\/mnews\/|article\/|ranking\/article/i,
+    requireKorean: true,
+  });
+  console.log(`[crawl-kr]   Naver News: ${anchors.length} headlines`);
+
+  return anchors.slice(0, 20).map((item) => {
+    const title = item.text
+      .replace(/\[[^\]]+\]\s*/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    const text = `${title} 네이버 뉴스 생활문화`;
+    return {
+      signalId: nextSignalId(),
+      source: {
+        platform: "naver_news",
+        url: item.href,
+        crawledAt: now,
+      },
+      subjectKo: title,
+      contextKo: `네이버 생활/문화 섹션에서 화제가 된 기사: ${title}`,
+      reactionType: classifyReaction(text),
+      categoryTags: guessCategoryTags(`${text} lifestyle culture celebrity travel`),
+      freshnessScore: 0.95,
+      rawTitle: title,
+      rawExcerpt: title,
+    };
+  });
+}
+
+async function fetchHankyungTrend() {
+  const now = new Date().toISOString();
+  console.log("[crawl-kr] Fetching Hankyung life RSS...");
+  const res = await fetch(SOURCES.hankyung_trend.url, {
+    headers: { "User-Agent": USER_AGENT },
+  });
+  if (!res.ok) throw new Error(`Hankyung RSS: HTTP ${res.status}`);
+  const xml = await res.text();
+  const items = parseRssItems(xml);
+  console.log(`[crawl-kr]   Hankyung: ${items.length} items`);
+
+  return items.slice(0, 20).map((item) => {
+    const title = stripHtml(item.title);
+    const description = stripHtml(item.description || "");
+    const text = `${title} ${description}`;
+    return {
+      signalId: nextSignalId(),
+      source: {
+        platform: "hankyung",
+        url: item.link || SOURCES.hankyung_trend.url,
+        crawledAt: now,
+      },
+      subjectKo: title,
+      contextKo: description || `한경 라이프 기사: ${title}`,
+      reactionType: classifyReaction(text),
+      categoryTags: guessCategoryTags(`${text} culture celebrity lifestyle retail`),
+      freshnessScore: 0.9,
+      rawTitle: title,
+      rawExcerpt: (description || title).slice(0, 300),
+    };
+  });
+}
+
+async function fetchMusinsaRanking() {
+  const now = new Date().toISOString();
+  console.log("[crawl-kr] Fetching Musinsa ranking...");
+  const pageRes = await fetch(STRUCTURED_SOURCES.musinsa_ranking.url, {
+    headers: { "User-Agent": USER_AGENT },
+  });
+  if (!pageRes.ok) throw new Error(`Musinsa ranking page: HTTP ${pageRes.status}`);
+  const pageHtml = await pageRes.text();
+  const discoveredApiUrl = extractMusinsaRankingApiUrl(pageHtml) || STRUCTURED_SOURCES.musinsa_ranking.fallbackUrl;
+  if (!discoveredApiUrl) {
+    throw new Error("Musinsa ranking API URL not found");
+  }
+
+  const apiRes = await fetch(discoveredApiUrl, {
+    headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+  });
+  if (!apiRes.ok) throw new Error(`Musinsa ranking API: HTTP ${apiRes.status}`);
+  const payload = await apiRes.json();
+  const items = extractMusinsaRankingItems(payload);
+  console.log(`[crawl-kr]   Musinsa: ${items.length} ranked products`);
+
+  return items.slice(0, 20).map((item) => {
+    const priceText = item.finalPrice ? `${Number(item.finalPrice).toLocaleString("ko-KR")}원` : "가격 확인";
+    const badgeText = item.labels.length ? ` (${item.labels.join(", ")})` : "";
+    const title = `${item.brandName} ${item.productName}`.replace(/\s+/g, " ").trim();
+    const text = `${title} ${priceText} ${badgeText}`;
+    return {
+      signalId: nextSignalId(),
+      source: {
+        platform: "musinsa",
+        url: item.url || discoveredApiUrl,
+        crawledAt: now,
+      },
+      subjectKo: title,
+      contextKo: `무신사 랭킹 ${item.rank || ""}위 · ${priceText}${badgeText}`.trim(),
+      reactionType: classifyReaction(`${text} 가격 랭킹 후기`),
+      categoryTags: guessCategoryTags(`${text} 무신사 랭킹 세일 가격 fashion retail`),
+      freshnessScore: 0.92,
+      rawTitle: title,
+      rawExcerpt: `무신사 랭킹 ${item.rank || ""}위 · ${priceText}${badgeText}`.trim(),
+    };
+  });
 }
 
 async function fetchFashionbiz() {
@@ -458,6 +708,9 @@ async function main() {
   // Each source is independent; if one fails others still run.
   const fetchers = [
     { name: "google_trends", fn: fetchGoogleTrendsKR },
+    { name: "naver_news_fashion", fn: fetchNaverNewsFashion },
+    { name: "hankyung_trend", fn: fetchHankyungTrend },
+    { name: "musinsa_ranking", fn: fetchMusinsaRanking },
     { name: "mastodon_kr", fn: fetchMastodonKR },
     { name: "fashionbiz", fn: fetchFashionbiz },
     { name: "weather_seoul", fn: fetchSeoulWeather },
@@ -485,8 +738,8 @@ async function main() {
     deduped.push(r);
   }
 
-  // Apply limit
-  const selected = deduped.slice(0, limit);
+  // Apply limit with light source balancing so later sources do not get starved.
+  const selected = selectBalancedRecords(deduped, limit);
 
   // Re-number signalIds sequentially
   selected.forEach((r, i) => {
@@ -514,7 +767,13 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error("[crawl-kr] Fatal:", err);
-  process.exit(1);
-});
+const isDirectRun =
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error("[crawl-kr] Fatal:", err);
+    process.exit(1);
+  });
+}

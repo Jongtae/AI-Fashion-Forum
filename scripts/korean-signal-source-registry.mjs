@@ -39,14 +39,12 @@ export const STRUCTURED_SOURCES = {
   musinsa_ranking: {
     key: "musinsa_ranking",
     name: "Musinsa Popular Items",
-    // Musinsa public ranking page loads JSON for items
-    url: "https://api.musinsa.com/api2/dp/v1/plp/goods?gf=A&sortCode=POPULAR&pageSize=10",
+    // Musinsa ranking page exposes the current API URL via __NEXT_DATA__
+    url: "https://www.musinsa.com/main/musinsa/ranking",
     platform: "musinsa",
-    format: "json",
+    format: "html",
     description: "무신사 인기 상품 → 제품 리뷰/비교 posts",
-    // → "무신사 1위 반팔티 19,900원" → "이거 사봤는데 실착 후기요"
-    // Note: May require different endpoint — fallback to scrape-free alternative
-    fallbackUrl: null,
+    fallbackUrl: "https://api.musinsa.com/api2/hm/web/v5/pans/ranking?storeCode=musinsa&subPan=product",
   },
 };
 
@@ -76,7 +74,7 @@ export const RSS_SOURCES = {
   hankyung_trend: {
     key: "hankyung_trend",
     name: "Hankyung Trend/Lifestyle",
-    url: "https://www.hankyung.com/feed/life-style",
+    url: "https://www.hankyung.com/feed/life",
     platform: "hankyung",
     format: "rss",
     description: "한경 라이프스타일 뉴스",

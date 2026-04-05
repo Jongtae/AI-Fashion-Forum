@@ -1,142 +1,214 @@
 {
-  "extractedAt": "2026-04-05T12:49:55.207Z",
+  "extractedAt": "2026-04-05T13:00:21.463Z",
   "source": "extract-discussion-seeds.mjs",
   "seedCount": 104,
   "reactionTypeDistribution": {
-    "season_reaction": 8,
-    "trend_reaction": 36,
-    "general_reaction": 39,
-    "event_reaction": 1,
-    "price_reaction": 8,
-    "product_reaction": 1,
+    "season_reaction": 6,
+    "trend_reaction": 29,
+    "general_reaction": 40,
+    "event_reaction": 3,
     "celebrity_reaction": 8,
-    "comparison_reaction": 3
+    "product_reaction": 2,
+    "price_reaction": 12,
+    "comparison_reaction": 4
   },
   "seeds": [
     {
-      "seedId": "kr-signal-0047",
+      "seedId": "kr-signal-0001",
       "reactionType": "season_reaction",
       "subjectKo": "여름 반팔",
       "contextKo": "여름 데일리 기본템",
-      "tensionPoint": "옷장에 계절에 맞는 게 하나도 없는 것 같아서",
+      "tensionPoint": "작년에 뭘 입었는지 기억도 안 나고",
       "possibleAngles": [
-        "환절기 필수템",
-        "소재 추천",
-        "가벼운 코디"
+        "날씨별 아우터",
+        "레이어링 팁",
+        "환절기 필수템"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.9999999050925926,
+      "freshnessScore": 0.9999998969907408,
       "sourceUrl": "",
       "rawTitle": "여름 반팔"
     },
     {
-      "seedId": "kr-signal-0048",
+      "seedId": "kr-signal-0009",
       "reactionType": "trend_reaction",
       "subjectKo": "와이드팬츠",
       "contextKo": "실루엣 트렌드 변화",
-      "tensionPoint": "호불호 갈릴 것 같은데 다들 어때요",
+      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
       "possibleAngles": [
         "체형별 핏",
-        "호불호 포인트",
-        "코디 방법"
+        "코디 방법",
+        "호불호 포인트"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.9999999050925926,
+      "freshnessScore": 0.9999998958333334,
       "sourceUrl": "",
       "rawTitle": "와이드팬츠"
     },
     {
-      "seedId": "kr-signal-0049",
+      "seedId": "kr-signal-0015",
       "reactionType": "general_reaction",
       "subjectKo": "반려동물 산책룩",
       "contextKo": "강아지 산책할 때 편한 옷",
-      "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
+      "tensionPoint": "좀 고민이 되네요",
       "possibleAngles": [
-        "꿀팁",
+        "주의점",
         "개인 경험",
         "추천"
       ],
       "categoryTags": [
         "pet"
       ],
-      "freshnessScore": 0.9999999050925926,
+      "freshnessScore": 0.9999998958333334,
       "sourceUrl": "",
       "rawTitle": "반려동물 산책룩"
     },
     {
-      "seedId": "kr-signal-0050",
+      "seedId": "kr-signal-0021",
       "reactionType": "event_reaction",
       "subjectKo": "서울패션위크",
       "contextKo": "시즌 패션위크 행사",
-      "tensionPoint": "같이 갈 사람 있으면 좋겠는데",
+      "tensionPoint": "사람 많다는데 괜찮을까요",
       "possibleAngles": [
-        "추천 동선",
-        "드레스코드",
+        "교통 팁",
+        "코디 참고",
         "사진 스팟"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.9999999050925926,
+      "freshnessScore": 0.9999998958333334,
       "sourceUrl": "",
       "rawTitle": "서울패션위크"
     },
     {
-      "seedId": "kr-signal-0046",
+      "seedId": "kr-signal-0027",
+      "reactionType": "general_reaction",
+      "subjectKo": "직구 관세",
+      "contextKo": "해외직구 관세 기준",
+      "tensionPoint": "의견 좀 들어보고 싶어서요",
+      "possibleAngles": [
+        "비슷한 사례",
+        "개인 경험",
+        "꿀팁"
+      ],
+      "categoryTags": [
+        "fashion"
+      ],
+      "freshnessScore": 0.9999998958333334,
+      "sourceUrl": "",
+      "rawTitle": "직구 관세"
+    },
+    {
+      "seedId": "kr-signal-0033",
+      "reactionType": "trend_reaction",
+      "subjectKo": "미니멀 코디",
+      "contextKo": "심플한 스타일링 트렌드",
+      "tensionPoint": "호불호 갈릴 것 같은데 다들 어때요",
+      "possibleAngles": [
+        "호불호 포인트",
+        "코디 방법",
+        "브랜드 추천"
+      ],
+      "categoryTags": [
+        "fashion"
+      ],
+      "freshnessScore": 0.9999998958333334,
+      "sourceUrl": "",
+      "rawTitle": "미니멀 코디"
+    },
+    {
+      "seedId": "kr-signal-0039",
+      "reactionType": "celebrity_reaction",
+      "subjectKo": "K-pop 아이돌 코디",
+      "contextKo": "무대 의상과 사복 스타일",
+      "tensionPoint": "대체템이 있을까요",
+      "possibleAngles": [
+        "가격대별 대안",
+        "비슷한 코디법",
+        "컬러 조합 참고"
+      ],
+      "categoryTags": [
+        "celebrity"
+      ],
+      "freshnessScore": 0.9999998958333334,
+      "sourceUrl": "",
+      "rawTitle": "K-pop 아이돌 코디"
+    },
+    {
+      "seedId": "kr-signal-0045",
+      "reactionType": "product_reaction",
+      "subjectKo": "자라 봄 신상",
+      "contextKo": "봄 컬렉션 입고 시작",
+      "tensionPoint": "가격 대비 퀄리티가 궁금해요",
+      "possibleAngles": [
+        "소재감",
+        "내구성",
+        "사이즈 정보"
+      ],
+      "categoryTags": [
+        "fashion"
+      ],
+      "freshnessScore": 0.9999998958333334,
+      "sourceUrl": "",
+      "rawTitle": "자라 봄 신상"
+    },
+    {
+      "seedId": "kr-signal-0002",
       "reactionType": "price_reaction",
       "subjectKo": "환율 1달러 1,510원",
       "contextKo": "현재 USD/KRW 환율 1,510원 (2026. 4. 5. 기준). 환율이 높아서 직구/해외여행 부담 증가",
-      "tensionPoint": "가격이 좀 오른 것 같은데",
+      "tensionPoint": "세일이라지만 원래 가격이 비싼 거 아닌가",
       "possibleAngles": [
-        "최저가 찾기",
         "대체 상품",
-        "구매 시기"
+        "실사용 후기",
+        "가성비 분석"
       ],
       "categoryTags": [
         "fashion",
         "travel"
       ],
-      "freshnessScore": 0.999999712962963,
+      "freshnessScore": 0.9999997361111111,
       "sourceUrl": "https://open.er-api.com/v6/latest/USD",
       "rawTitle": "환율 1달러 1,510원"
     },
     {
-      "seedId": "kr-signal-0045",
+      "seedId": "kr-signal-0008",
       "reactionType": "season_reaction",
       "subjectKo": "서울 날씨: 11°C, 비",
-      "contextKo": "현재 서울 기온 11°C (체감 10°C), 비, 습도 66%, 강수 1.2mm",
-      "tensionPoint": "작년에 뭘 입었는지 기억도 안 나고",
+      "contextKo": "현재 서울 기온 11°C (체감 10°C), 비, 습도 66%, 강수 1.1mm",
+      "tensionPoint": "갑자기 바뀐 날씨에 입을 게 없어요",
       "possibleAngles": [
-        "환절기 필수템",
+        "날씨별 아우터",
         "레이어링 팁",
-        "날씨별 아우터"
+        "환절기 필수템"
       ],
       "categoryTags": [
         "weather"
       ],
-      "freshnessScore": 0.9999986458333333,
+      "freshnessScore": 0.9999986817129629,
       "sourceUrl": "https://wttr.in/Seoul?format=j1",
       "rawTitle": "서울 날씨: 11°C, 비"
     },
     {
-      "seedId": "kr-signal-0011",
+      "seedId": "kr-signal-0005",
       "reactionType": "price_reaction",
       "subjectKo": "추워여…🦦",
       "contextKo": "추워여…🦦",
-      "tensionPoint": "다른 데서 더 싸게 살 수 있는 건 아닌지",
+      "tensionPoint": "가성비가 진짜 좋은 건지 모르겠어요",
       "possibleAngles": [
+        "대체 상품",
         "구매 시기",
-        "가성비 분석",
-        "대체 상품"
+        "최저가 찾기"
       ],
       "categoryTags": [
         "daily"
       ],
-      "freshnessScore": 0.9999948101851852,
+      "freshnessScore": 0.9999970995370371,
       "sourceUrl": "https://mastodon.social/@hyeo_2n_/116063105411776072",
       "rawTitle": "추워여…🦦"
     },
@@ -147,37 +219,37 @@
       "contextKo": "🤎🐻🐿️",
       "tensionPoint": "호불호 갈릴 것 같은데 다들 어때요",
       "possibleAngles": [
-        "코디 방법",
-        "체형별 핏",
-        "호불호 포인트"
+        "브랜드 추천",
+        "호불호 포인트",
+        "코디 방법"
       ],
       "categoryTags": [
         "daily"
       ],
-      "freshnessScore": 0.9999948101851852,
+      "freshnessScore": 0.9999970995370371,
       "sourceUrl": "https://mastodon.social/@hyeo_2n_/116057373451537242",
       "rawTitle": "🤎🐻🐿️"
     },
     {
-      "seedId": "kr-signal-0013",
+      "seedId": "kr-signal-0018",
       "reactionType": "trend_reaction",
       "subjectKo": "하트 다 머겅",
       "contextKo": "하트 다 머겅 ❤️",
       "tensionPoint": "유행이라는데 진짜 해야 하는 건지",
       "possibleAngles": [
-        "브랜드 추천",
         "호불호 포인트",
-        "유행 기간 예측"
+        "코디 방법",
+        "체형별 핏"
       ],
       "categoryTags": [
         "daily"
       ],
-      "freshnessScore": 0.9999948101851852,
+      "freshnessScore": 0.9999970995370371,
       "sourceUrl": "https://mastodon.social/@hyeo_2n_/116028493906693238",
       "rawTitle": "하트 다 머겅 ❤️"
     },
     {
-      "seedId": "kr-signal-0014",
+      "seedId": "kr-signal-0024",
       "reactionType": "season_reaction",
       "subjectKo": "스타일링",
       "contextKo": "📸 스타일링 TIP 남성: 데님 팬츠 + 스니커즈로 캐주얼하게, 블레이저와 매치해 세미정장으로! 여성: 미니스커트 + 앵클부츠로 페미닌하게, 와이드 팬츠와 운동화로 스트릿 느낌!...",
@@ -185,25 +257,25 @@
       "possibleAngles": [
         "소재 추천",
         "날씨별 아우터",
-        "가벼운 코디"
+        "레이어링 팁"
       ],
       "categoryTags": [
         "sneakers",
         "streetwear",
         "daily"
       ],
-      "freshnessScore": 0.9999948101851852,
+      "freshnessScore": 0.9999970995370371,
       "sourceUrl": "https://mastodon.social/@arodishe/115548913973481023",
       "rawTitle": "📸 스타일링 TIP 남성: 데님 팬츠 + 스니커즈로 캐주얼하게, 블레이저와 매치해 세미정장으로! 여성: 미니스커트 + 앵클부츠로 페미닌하게, 와이드 팬츠와 운동화로 스트릿 느낌! 👉 지금 바로 아로디쉐 스마트스토"
     },
     {
-      "seedId": "kr-signal-0015",
+      "seedId": "kr-signal-0030",
       "reactionType": "price_reaction",
       "subjectKo": "추구미 가득 출근룩부터 꾸꾸꾸 연말룩까지",
       "contextKo": "추구미 가득 출근룩부터 꾸꾸꾸 연말룩까지🌀따라하기 좋은 슬기의 겨울룩•코디 추천",
-      "tensionPoint": "가성비가 진짜 좋은 건지 모르겠어요",
+      "tensionPoint": "가격이 좀 오른 것 같은데",
       "possibleAngles": [
-        "구매 시기",
+        "실사용 후기",
         "최저가 찾기",
         "쿠폰/할인코드"
       ],
@@ -211,306 +283,148 @@
         "retail",
         "daily"
       ],
-      "freshnessScore": 0.9999948101851852,
+      "freshnessScore": 0.9999970995370371,
       "sourceUrl": "https://jforo.com/@pubx/115509142870693082",
       "rawTitle": "추구미 가득 출근룩부터 꾸꾸꾸 연말룩까지🌀따라하기 좋은 슬기의 겨울룩•코디 추천"
     },
     {
-      "seedId": "kr-signal-0016",
+      "seedId": "kr-signal-0036",
       "reactionType": "price_reaction",
       "subjectKo": "가을 패션 고민 시원하게 해결해 드립니다",
       "contextKo": "가을 패션 고민 시원하게 해결해 드립니다🍂경량패딩,스웨이드 트렌드,부츠,기본티까지👚슬기의 패션 상담소 ㅣ 슬타일링",
       "tensionPoint": "세일이라지만 원래 가격이 비싼 거 아닌가",
       "possibleAngles": [
-        "실사용 후기",
+        "구매 시기",
         "가성비 분석",
-        "구매 시기"
+        "최저가 찾기"
       ],
       "categoryTags": [
         "daily"
       ],
-      "freshnessScore": 0.9999948101851852,
+      "freshnessScore": 0.9999970995370371,
       "sourceUrl": "https://jforo.com/@pubx/115390525334112857",
       "rawTitle": "가을 패션 고민 시원하게 해결해 드립니다🍂경량패딩,스웨이드 트렌드,부츠,기본티까지👚슬기의 패션 상담소 ㅣ 슬타일링"
     },
     {
-      "seedId": "kr-signal-0017",
+      "seedId": "kr-signal-0042",
       "reactionType": "season_reaction",
       "subjectKo": "진짜 솔직하게 말해요?팩폭 가득 슬기의 패션 상담소",
       "contextKo": "진짜 솔직하게 말해요?팩폭 가득 슬기의 패션 상담소ㅣ슬타일링",
-      "tensionPoint": "갑자기 바뀐 날씨에 입을 게 없어요",
+      "tensionPoint": "아침이랑 낮 온도차가 너무 커서",
       "possibleAngles": [
         "소재 추천",
-        "환절기 필수템",
-        "날씨별 아우터"
+        "날씨별 아우터",
+        "레이어링 팁"
       ],
       "categoryTags": [
         "daily"
       ],
-      "freshnessScore": 0.9999948101851852,
+      "freshnessScore": 0.9999970995370371,
       "sourceUrl": "https://jforo.com/@pubx/115073561769658195",
       "rawTitle": "진짜 솔직하게 말해요?팩폭 가득 슬기의 패션 상담소ㅣ슬타일링"
     },
     {
-      "seedId": "kr-signal-0018",
+      "seedId": "kr-signal-0048",
       "reactionType": "product_reaction",
       "subjectKo": "타라바이모션 카모 미키티 빈스 미니스커트 봄 데일리룩",
       "contextKo": "타라바이모션 카모 미키티 빈스 미니스커트 봄 데일리룩 코디 여성의류",
-      "tensionPoint": "전작이랑 뭐가 달라진 건지 잘 모르겠어요",
+      "tensionPoint": "가격 대비 퀄리티가 궁금해요",
       "possibleAngles": [
-        "컬러 추천",
-        "소재감",
-        "내구성"
+        "실착 후기",
+        "내구성",
+        "컬러 추천"
       ],
       "categoryTags": [
         "luxury",
         "weather",
         "daily"
       ],
-      "freshnessScore": 0.9999948101851852,
+      "freshnessScore": 0.9999970995370371,
       "sourceUrl": "https://ol2ol.com/@gotorola/114328393838983356",
       "rawTitle": "타라바이모션 카모 미키티 빈스 미니스커트 봄 데일리룩 코디 여성의류"
     },
     {
+      "seedId": "kr-signal-0006",
+      "reactionType": "price_reaction",
+      "subjectKo": "크록스 에코 시티 어드벤쳐 클로그 - 카키 / 213115-260",
+      "contextKo": "무신사 랭킹 1위 · 119,000원 (급상승)",
+      "tensionPoint": "세일이라지만 원래 가격이 비싼 거 아닌가",
+      "possibleAngles": [
+        "구매 시기",
+        "실사용 후기",
+        "가성비 분석"
+      ],
+      "categoryTags": [
+        "brand",
+        "retail"
+      ],
+      "freshnessScore": 0.9999968275462963,
+      "sourceUrl": "https://www.musinsa.com/brand/crocs",
+      "rawTitle": "크록스 에코 시티 어드벤쳐 클로그 - 카키 / 213115-260"
+    },
+    {
+      "seedId": "kr-signal-0013",
+      "reactionType": "price_reaction",
+      "subjectKo": "폴로 랄프 로렌 트윌 재킷-미디움 베이지",
+      "contextKo": "무신사 랭킹 2위 · 439,000원 (급상승)",
+      "tensionPoint": "가격이 좀 오른 것 같은데",
+      "possibleAngles": [
+        "가성비 분석",
+        "쿠폰/할인코드",
+        "구매 시기"
+      ],
+      "categoryTags": [
+        "brand",
+        "retail"
+      ],
+      "freshnessScore": 0.9999968275462963,
+      "sourceUrl": "https://www.musinsa.com/brand/poloralphlauren",
+      "rawTitle": "폴로 랄프 로렌 트윌 재킷-미디움 베이지"
+    },
+    {
       "seedId": "kr-signal-0019",
-      "reactionType": "trend_reaction",
-      "subjectKo": "Narcissus is on BLACK METAL (C",
-      "contextKo": "Narcissus is on BLACK METAL (CD ALBUM) 2005 LYS 004",
-      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
+      "reactionType": "price_reaction",
+      "subjectKo": "르아르 [SET] 소프트 헨리넥 레이어드 티셔츠 세트",
+      "contextKo": "무신사 랭킹 3위 · 46,550원 (판매 1.3천개)",
+      "tensionPoint": "다른 데서 더 싸게 살 수 있는 건 아닌지",
       "possibleAngles": [
-        "유행 기간 예측",
-        "브랜드 추천",
-        "체형별 핏"
+        "쿠폰/할인코드",
+        "대체 상품",
+        "가성비 분석"
       ],
       "categoryTags": [
-        "luxury",
-        "daily"
+        "brand",
+        "retail"
       ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@lesdupont/114134145699455484",
-      "rawTitle": "Narcissus is on BLACK METAL (CD ALBUM) 2005 LYS 004"
-    },
-    {
-      "seedId": "kr-signal-0020",
-      "reactionType": "trend_reaction",
-      "subjectKo": "“Let your mind alone, and see ",
-      "contextKo": "“Let your mind alone, and see what happens.” - Virgil Thomson",
-      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
-      "possibleAngles": [
-        "유행 기간 예측",
-        "코디 방법",
-        "체형별 핏"
-      ],
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@skullasteroid/111148756263460379",
-      "rawTitle": "“Let your mind alone, and see what happens.” - Virgil Thomson"
-    },
-    {
-      "seedId": "kr-signal-0021",
-      "reactionType": "trend_reaction",
-      "subjectKo": "“I tasted freedom and I really",
-      "contextKo": "“I tasted freedom and I really liked it.” - Phil Lynott",
-      "tensionPoint": "호불호 갈릴 것 같은데 다들 어때요",
-      "possibleAngles": [
-        "코디 방법",
-        "브랜드 추천",
-        "체형별 핏"
-      ],
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@skullasteroid/111134008524956846",
-      "rawTitle": "“I tasted freedom and I really liked it.” - Phil Lynott"
-    },
-    {
-      "seedId": "kr-signal-0022",
-      "reactionType": "trend_reaction",
-      "subjectKo": "“The only way to make sense ou",
-      "contextKo": "“The only way to make sense out of change is to plunge into it, move with it, and join the dance.” -...",
-      "tensionPoint": "유행이라는데 진짜 해야 하는 건지",
-      "possibleAngles": [
-        "체형별 핏",
-        "유행 기간 예측",
-        "브랜드 추천"
-      ],
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@skullasteroid/110956148548409422",
-      "rawTitle": "“The only way to make sense out of change is to plunge into it, move with it, and join the dance.” - Alan Watts"
-    },
-    {
-      "seedId": "kr-signal-0023",
-      "reactionType": "trend_reaction",
-      "subjectKo": "“Dreams and anguish bring us t",
-      "contextKo": "“Dreams and anguish bring us together.” - Eugene Ionesco",
-      "tensionPoint": "이미 유행 지난 거 아닌가 싶기도 하고",
-      "possibleAngles": [
-        "브랜드 추천",
-        "코디 방법",
-        "호불호 포인트"
-      ],
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@skullasteroid/110844856990367868",
-      "rawTitle": "“Dreams and anguish bring us together.” - Eugene Ionesco"
-    },
-    {
-      "seedId": "kr-signal-0024",
-      "reactionType": "trend_reaction",
-      "subjectKo": "“We all have ability. The diff",
-      "contextKo": "“We all have ability. The difference is how we use it.” - Charlotte Whitton",
-      "tensionPoint": "저한테도 어울릴지 모르겠어요",
-      "possibleAngles": [
-        "코디 방법",
-        "브랜드 추천",
-        "체형별 핏"
-      ],
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@skullasteroid/110765715057104030",
-      "rawTitle": "“We all have ability. The difference is how we use it.” - Charlotte Whitton"
+      "freshnessScore": 0.9999968275462963,
+      "sourceUrl": "https://www.musinsa.com/brand/leire",
+      "rawTitle": "르아르 [SET] 소프트 헨리넥 레이어드 티셔츠 세트"
     },
     {
       "seedId": "kr-signal-0025",
-      "reactionType": "trend_reaction",
-      "subjectKo": "“I have made good judgments in",
-      "contextKo": "“I have made good judgments in the past. I have made good judgments in the future.” - Dan Quayle",
-      "tensionPoint": "이미 유행 지난 거 아닌가 싶기도 하고",
+      "reactionType": "price_reaction",
+      "subjectKo": "아디다스 와플 클래식 트랙탑 - 원더화이트 / KQ6864",
+      "contextKo": "무신사 랭킹 4위 · 129,000원 (판매 1천개)",
+      "tensionPoint": "가성비가 진짜 좋은 건지 모르겠어요",
       "possibleAngles": [
-        "체형별 핏",
-        "유행 기간 예측",
-        "브랜드 추천"
+        "가성비 분석",
+        "실사용 후기",
+        "최저가 찾기"
       ],
       "categoryTags": [
-        "daily"
+        "sneakers",
+        "brand",
+        "retail"
       ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@skullasteroid/110720502990277699",
-      "rawTitle": "“I have made good judgments in the past. I have made good judgments in the future.” - Dan Quayle"
-    },
-    {
-      "seedId": "kr-signal-0026",
-      "reactionType": "trend_reaction",
-      "subjectKo": "“If you put yourself in a posi",
-      "contextKo": "“If you put yourself in a position where you have to stretch outside your comfort zone, then you are...",
-      "tensionPoint": "저한테도 어울릴지 모르겠어요",
-      "possibleAngles": [
-        "브랜드 추천",
-        "체형별 핏",
-        "호불호 포인트"
-      ],
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@skullasteroid/110715062162308375",
-      "rawTitle": "“If you put yourself in a position where you have to stretch outside your comfort zone, then you are forced to expand yo"
-    },
-    {
-      "seedId": "kr-signal-0027",
-      "reactionType": "trend_reaction",
-      "subjectKo": "“Love comes unseen; we only se",
-      "contextKo": "“Love comes unseen; we only see it go.” - Henry Austin Dobson",
-      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
-      "possibleAngles": [
-        "브랜드 추천",
-        "코디 방법",
-        "체형별 핏"
-      ],
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@skullasteroid/110692442914666103",
-      "rawTitle": "“Love comes unseen; we only see it go.” - Henry Austin Dobson"
-    },
-    {
-      "seedId": "kr-signal-0028",
-      "reactionType": "trend_reaction",
-      "subjectKo": "“A panther is quick and smart ",
-      "contextKo": "“A panther is quick and smart and always alert to everything. He's sitting on top of a mountain, wit...",
-      "tensionPoint": "저한테도 어울릴지 모르겠어요",
-      "possibleAngles": [
-        "호불호 포인트",
-        "코디 방법",
-        "유행 기간 예측"
-      ],
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@skullasteroid/110686127701717018",
-      "rawTitle": "“A panther is quick and smart and always alert to everything. He's sitting on top of a mountain, with the sun and the cl"
-    },
-    {
-      "seedId": "kr-signal-0029",
-      "reactionType": "trend_reaction",
-      "subjectKo": "“What we call the beginning is",
-      "contextKo": "“What we call the beginning is often the end. And to make an end is to make a beginning. The end is ...",
-      "tensionPoint": "저한테도 어울릴지 모르겠어요",
-      "possibleAngles": [
-        "체형별 핏",
-        "호불호 포인트",
-        "브랜드 추천"
-      ],
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@skullasteroid/110678134327939250",
-      "rawTitle": "“What we call the beginning is often the end. And to make an end is to make a beginning. The end is where we start from."
-    },
-    {
-      "seedId": "kr-signal-0030",
-      "reactionType": "trend_reaction",
-      "subjectKo": "“The best thing to hold onto i",
-      "contextKo": "“The best thing to hold onto in life is each other.” - Audrey Hepburn",
-      "tensionPoint": "호불호 갈릴 것 같은데 다들 어때요",
-      "possibleAngles": [
-        "호불호 포인트",
-        "코디 방법",
-        "브랜드 추천"
-      ],
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@skullasteroid/110670065203152453",
-      "rawTitle": "“The best thing to hold onto in life is each other.” - Audrey Hepburn"
+      "freshnessScore": 0.9999968275462963,
+      "sourceUrl": "https://www.musinsa.com/brand/adidas",
+      "rawTitle": "아디다스 와플 클래식 트랙탑 - 원더화이트 / KQ6864"
     },
     {
       "seedId": "kr-signal-0031",
-      "reactionType": "celebrity_reaction",
-      "subjectKo": "미녀 골퍼 유현주의 패션 라이벌은?",
-      "contextKo": "미녀 골퍼 유현주의 패션 라이벌은?",
-      "tensionPoint": "꾸안꾸라지만 결국 비싼 옷인 것 같고",
-      "possibleAngles": [
-        "가격대별 대안",
-        "꾸안꾸 연출법",
-        "대체템 찾기"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://jpmstdn.com/@golfjapan/116332647259631900",
-      "rawTitle": "미녀 골퍼 유현주의 패션 라이벌은?"
-    },
-    {
-      "seedId": "kr-signal-0032",
       "reactionType": "price_reaction",
-      "subjectKo": "조현진이",
-      "contextKo": "조현진이 6명",
+      "subjectKo": "아크테릭스 맨티스 26 백팩 - BLACK / ABQSU10643",
+      "contextKo": "무신사 랭킹 5위 · 275,500원",
       "tensionPoint": "이 가격이면 괜찮은 건지 좀 고민이 되네요",
       "possibleAngles": [
         "실사용 후기",
@@ -518,91 +432,94 @@
         "구매 시기"
       ],
       "categoryTags": [
-        "beauty",
-        "daily"
+        "brand",
+        "retail"
       ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@hyeo_2n_/116073926663506191",
-      "rawTitle": "조현진이 6명"
+      "freshnessScore": 0.9999968275462963,
+      "sourceUrl": "https://www.musinsa.com/brand/arcteryx",
+      "rawTitle": "아크테릭스 맨티스 26 백팩 - BLACK / ABQSU10643"
     },
     {
-      "seedId": "kr-signal-0033",
+      "seedId": "kr-signal-0037",
       "reactionType": "price_reaction",
-      "subjectKo": "넌 무슨 헤어지자는 말을 라면 고를 때 하니",
-      "contextKo": "넌 무슨 헤어지자는 말을 라면 고를 때 하니",
-      "tensionPoint": "이 가격이면 괜찮은 건지 좀 고민이 되네요",
+      "subjectKo": "컨버스 [스탠다드] 척 70 클래식 블랙 162058C",
+      "contextKo": "무신사 랭킹 6위 · 85,500원",
+      "tensionPoint": "가격이 좀 오른 것 같은데",
       "possibleAngles": [
         "가성비 분석",
         "최저가 찾기",
-        "대체 상품"
+        "구매 시기"
       ],
       "categoryTags": [
-        "daily"
+        "brand",
+        "retail"
       ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@hyeo_2n_/116050231789929439",
-      "rawTitle": "넌 무슨 헤어지자는 말을 라면 고를 때 하니"
+      "freshnessScore": 0.9999968275462963,
+      "sourceUrl": "https://www.musinsa.com/brand/converse",
+      "rawTitle": "컨버스 [스탠다드] 척 70 클래식 블랙 162058C"
     },
     {
-      "seedId": "kr-signal-0034",
-      "reactionType": "season_reaction",
-      "subjectKo": "수영장 떙긴다",
-      "contextKo": "수영장 떙긴다",
-      "tensionPoint": "아침이랑 낮 온도차가 너무 커서",
+      "seedId": "kr-signal-0043",
+      "reactionType": "price_reaction",
+      "subjectKo": "로어링라드 더블 오비 집 데님 팬츠 인디고",
+      "contextKo": "무신사 랭킹 7위 · 224,000원 (급상승)",
+      "tensionPoint": "이 가격이면 괜찮은 건지 좀 고민이 되네요",
       "possibleAngles": [
-        "날씨별 아우터",
-        "소재 추천",
-        "레이어링 팁"
+        "최저가 찾기",
+        "구매 시기",
+        "가성비 분석"
       ],
       "categoryTags": [
+        "brand",
         "weather",
-        "daily"
+        "retail"
       ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@hyeo_2n_/116040214509364699",
-      "rawTitle": "수영장 떙긴다"
+      "freshnessScore": 0.9999968275462963,
+      "sourceUrl": "https://www.musinsa.com/brand/roaringrad",
+      "rawTitle": "로어링라드 더블 오비 집 데님 팬츠 인디고"
     },
     {
-      "seedId": "kr-signal-0035",
-      "reactionType": "trend_reaction",
-      "subjectKo": "#패션 포스트",
-      "contextKo": "마스토돈 #패션",
-      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
+      "seedId": "kr-signal-0049",
+      "reactionType": "price_reaction",
+      "subjectKo": "트릴리온 에센셜 옥스포드 크롭 스트라이프 셔츠_3color",
+      "contextKo": "무신사 랭킹 8위 · 29,990원 (판매 4.7천개)",
+      "tensionPoint": "다른 데서 더 싸게 살 수 있는 건 아닌지",
       "possibleAngles": [
-        "브랜드 추천",
-        "코디 방법",
-        "호불호 포인트"
+        "최저가 찾기",
+        "가성비 분석",
+        "실사용 후기"
+      ],
+      "categoryTags": [
+        "brand",
+        "retail"
+      ],
+      "freshnessScore": 0.9999968275462963,
+      "sourceUrl": "https://www.musinsa.com/brand/trillion",
+      "rawTitle": "트릴리온 에센셜 옥스포드 크롭 스트라이프 셔츠_3color"
+    },
+    {
+      "seedId": "kr-signal-0004",
+      "reactionType": "trend_reaction",
+      "subjectKo": "[이 아침의 작곡가] 닉슨 방중부터 9·11까지…시대를 작곡한 존 애덤스",
+      "contextKo": "한경 라이프 기사: [이 아침의 작곡가] 닉슨 방중부터 9·11까지…시대를 작곡한 존 애덤스",
+      "tensionPoint": "유행이라는데 진짜 해야 하는 건지",
+      "possibleAngles": [
+        "호불호 포인트",
+        "체형별 핏",
+        "브랜드 추천"
       ],
       "categoryTags": [
         "general"
       ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@crystalysjo/115932695540980884",
-      "rawTitle": "#패션 포스트"
+      "freshnessScore": 0.9999967708333334,
+      "sourceUrl": "https://www.hankyung.com/article/2026040599001",
+      "rawTitle": "[이 아침의 작곡가] 닉슨 방중부터 9·11까지…시대를 작곡한 존 애덤스"
     },
     {
-      "seedId": "kr-signal-0036",
-      "reactionType": "season_reaction",
-      "subjectKo": "<3🤍",
-      "contextKo": "<3🤍",
-      "tensionPoint": "갑자기 바뀐 날씨에 입을 게 없어요",
-      "possibleAngles": [
-        "레이어링 팁",
-        "날씨별 아우터",
-        "소재 추천"
-      ],
-      "categoryTags": [
-        "daily"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@crystalysjo/115926548134677176",
-      "rawTitle": "<3🤍"
-    },
-    {
-      "seedId": "kr-signal-0037",
+      "seedId": "kr-signal-0011",
       "reactionType": "trend_reaction",
-      "subjectKo": "Urban Adventure \"Heavy Duty\" \ud83d",
-      "contextKo": "Urban Adventure \"Heavy Duty\" 📸 : SONY RX1R III, ZEISS Sonnar T* 35mm F 2 Model : @atLuminon",
+      "subjectKo": "\"기업 디자인과 엔지니어 부서, 제품 초기 단계부터 협업해야\"",
+      "contextKo": "한경 라이프 기사: \"기업 디자인과 엔지니어 부서, 제품 초기 단계부터 협업해야\"",
       "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
       "possibleAngles": [
         "브랜드 추천",
@@ -612,251 +529,340 @@
       "categoryTags": [
         "general"
       ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://byeolvit.space/notes/aft2tb4eoy",
-      "rawTitle": "Urban Adventure \"Heavy Duty\" 📸 : SONY RX1R III, ZEISS Sonnar T* 35mm F 2 Model : @atLuminon"
+      "freshnessScore": 0.9999967708333334,
+      "sourceUrl": "https://www.hankyung.com/article/2026040598031",
+      "rawTitle": "\"기업 디자인과 엔지니어 부서, 제품 초기 단계부터 협업해야\""
     },
     {
-      "seedId": "kr-signal-0038",
+      "seedId": "kr-signal-0017",
+      "reactionType": "event_reaction",
+      "subjectKo": "\"겸재는 볼 것 없다\"던 추사의 그림 전시회",
+      "contextKo": "한경 라이프 기사: \"겸재는 볼 것 없다\"던 추사의 그림 전시회",
+      "tensionPoint": "사람 많다는데 괜찮을까요",
+      "possibleAngles": [
+        "사진 스팟",
+        "교통 팁",
+        "드레스코드"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999967708333334,
+      "sourceUrl": "https://www.hankyung.com/article/2026040599121",
+      "rawTitle": "\"겸재는 볼 것 없다\"던 추사의 그림 전시회"
+    },
+    {
+      "seedId": "kr-signal-0023",
+      "reactionType": "event_reaction",
+      "subjectKo": "\"사진 한장 못 남겨요…오로지 관계만 맺고 가는 전시예요\"",
+      "contextKo": "한경 라이프 기사: \"사진 한장 못 남겨요…오로지 관계만 맺고 가는 전시예요\"",
+      "tensionPoint": "사람 많다는데 괜찮을까요",
+      "possibleAngles": [
+        "교통 팁",
+        "드레스코드",
+        "추천 동선"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999967708333334,
+      "sourceUrl": "https://www.hankyung.com/article/2026040599131",
+      "rawTitle": "\"사진 한장 못 남겨요…오로지 관계만 맺고 가는 전시예요\""
+    },
+    {
+      "seedId": "kr-signal-0029",
+      "reactionType": "trend_reaction",
+      "subjectKo": "100년 전 '소춘대유회' 광대들…정동극장 후배와 흥겨운 협연",
+      "contextKo": "한경 라이프 기사: 100년 전 '소춘대유회' 광대들…정동극장 후배와 흥겨운 협연",
+      "tensionPoint": "저한테도 어울릴지 모르겠어요",
+      "possibleAngles": [
+        "유행 기간 예측",
+        "호불호 포인트",
+        "코디 방법"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999967708333334,
+      "sourceUrl": "https://www.hankyung.com/article/2026040599141",
+      "rawTitle": "100년 전 '소춘대유회' 광대들…정동극장 후배와 흥겨운 협연"
+    },
+    {
+      "seedId": "kr-signal-0035",
+      "reactionType": "trend_reaction",
+      "subjectKo": "\"산전수전 다겪은 지금이 전성기\"",
+      "contextKo": "한경 라이프 기사: \"산전수전 다겪은 지금이 전성기\"",
+      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
+      "possibleAngles": [
+        "체형별 핏",
+        "호불호 포인트",
+        "브랜드 추천"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999967708333334,
+      "sourceUrl": "https://www.hankyung.com/article/2026040599151",
+      "rawTitle": "\"산전수전 다겪은 지금이 전성기\""
+    },
+    {
+      "seedId": "kr-signal-0041",
       "reactionType": "season_reaction",
-      "subjectKo": "돈 없다는 것은 거짓말?",
-      "contextKo": "\"돈 없다는 것은 거짓말?\"소비자들 여기선 아낌없이 지출, 이유 들여다보니 '깜짝'",
+      "subjectKo": "\"벚꽃 만개했는데\"…오늘(5일) 밤부터 전국에 '봄비'",
+      "contextKo": "한경 라이프 기사: \"벚꽃 만개했는데\"…오늘(5일) 밤부터 전국에 '봄비'",
       "tensionPoint": "옷장에 계절에 맞는 게 하나도 없는 것 같아서",
       "possibleAngles": [
+        "소재 추천",
         "레이어링 팁",
-        "환절기 필수템",
         "날씨별 아우터"
       ],
       "categoryTags": [
         "weather"
       ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://mastodon.social/@topictree/114312382599503247",
-      "rawTitle": "\"돈 없다는 것은 거짓말?\"소비자들 여기선 아낌없이 지출, 이유 들여다보니 '깜짝'"
+      "freshnessScore": 0.9999967708333334,
+      "sourceUrl": "https://www.hankyung.com/article/2026040598357",
+      "rawTitle": "\"벚꽃 만개했는데\"…오늘(5일) 밤부터 전국에 '봄비'"
     },
     {
-      "seedId": "kr-signal-0039",
+      "seedId": "kr-signal-0047",
       "reactionType": "season_reaction",
-      "subjectKo": "이상한데 시대를 앞서가는 악녀 생활올봄에는",
-      "contextKo": "이상한데 시대를 앞서가는 악녀 생활올봄에는 ‘이 바지’가 청바지를 대신합니다.",
-      "tensionPoint": "갑자기 바뀐 날씨에 입을 게 없어요",
+      "subjectKo": "'밥처럼 먹었더니 살 쭉쭉'…강소라 다이어트 비결 뭐길래 [건강!톡]",
+      "contextKo": "한경 라이프 기사: '밥처럼 먹었더니 살 쭉쭉'…강소라 다이어트 비결 뭐길래 [건강!톡]",
+      "tensionPoint": "작년에 뭘 입었는지 기억도 안 나고",
       "possibleAngles": [
-        "환절기 필수템",
-        "레이어링 팁",
-        "소재 추천"
+        "날씨별 아우터",
+        "소재 추천",
+        "가벼운 코디"
       ],
       "categoryTags": [
-        "general"
+        "weather"
       ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://muri.network/@Yae/113808414298949499",
-      "rawTitle": "이상한데 시대를 앞서가는 악녀 생활올봄에는 ‘이 바지’가 청바지를 대신합니다."
-    },
-    {
-      "seedId": "kr-signal-0040",
-      "reactionType": "trend_reaction",
-      "subjectKo": "Descubre las últimas tendencia",
-      "contextKo": "Descubre las últimas tendencias en calzado y moda en zapaterías. Desde estilos innovadores hasta los...",
-      "tensionPoint": "저한테도 어울릴지 모르겠어요",
-      "possibleAngles": [
-        "호불호 포인트",
-        "체형별 핏",
-        "브랜드 추천"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://toot.community/@Marta/113144402968885181",
-      "rawTitle": "Descubre las últimas tendencias en calzado y moda en zapaterías. Desde estilos innovadores hasta los clásicos reinventad"
-    },
-    {
-      "seedId": "kr-signal-0041",
-      "reactionType": "trend_reaction",
-      "subjectKo": "안녕하세요",
-      "contextKo": "안녕하세요~! 날파리가 된 여성패싱 바이도마뱀 매일아침 몰닝을 외칩니다! 이야기를 합니다 남의 게임 이야기 구경을 좋아합니다 그림을 가끔 그립니다 (랜덤으로 짤을 생성해 줍니다) ...",
-      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
-      "possibleAngles": [
-        "체형별 핏",
-        "브랜드 추천",
-        "유행 기간 예측"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://buttersc.one/notes/9tcduztn9d",
-      "rawTitle": "안녕하세요~! 날파리가 된 여성패싱 바이도마뱀 매일아침 몰닝을 외칩니다! 이야기를 합니다 남의 게임 이야기 구경을 좋아합니다 그림을 가끔 그립니다 (랜덤으로 짤을 생성해 줍니다) 흔적남기시면 무멘팔로 들어갑니다~!"
-    },
-    {
-      "seedId": "kr-signal-0042",
-      "reactionType": "trend_reaction",
-      "subjectKo": "안녕하세요",
-      "contextKo": "안녕하세요~! 날파리가 된 여성패싱 바이도마뱀 매일아침 몰닝을 외칩니다! 이야기를 합니다 남의 게임 이야기 구경을 좋아합니다 그림을 가끔 그립니다 (랜덤으로 짤을 생성해 줍니다)",
-      "tensionPoint": "이미 유행 지난 거 아닌가 싶기도 하고",
-      "possibleAngles": [
-        "코디 방법",
-        "호불호 포인트",
-        "체형별 핏"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://buttersc.one/notes/9tcco5ydm4",
-      "rawTitle": "안녕하세요~! 날파리가 된 여성패싱 바이도마뱀 매일아침 몰닝을 외칩니다! 이야기를 합니다 남의 게임 이야기 구경을 좋아합니다 그림을 가끔 그립니다 (랜덤으로 짤을 생성해 줍니다)"
-    },
-    {
-      "seedId": "kr-signal-0043",
-      "reactionType": "price_reaction",
-      "subjectKo": "순면 레깅스 하나를 찾기 위한 여정",
-      "contextKo": "순면 레깅스 하나를 찾기 위한 여정 (최종):kr_congrat1: 자 드디어 제가 며칠동안 열심히 서치한 진짜 순면 100% 레깅스를 소개할게요 :0510: :kr_congrat...",
-      "tensionPoint": "가격이 좀 오른 것 같은데",
-      "possibleAngles": [
-        "실사용 후기",
-        "가성비 분석",
-        "쿠폰/할인코드"
-      ],
-      "categoryTags": [
-        "weather",
-        "retail"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://dimension.host/@eugene/111941362301277102",
-      "rawTitle": "순면 레깅스 하나를 찾기 위한 여정 (최종):kr_congrat1: 자 드디어 제가 며칠동안 열심히 서치한 진짜 순면 100% 레깅스를 소개할게요 :0510: :kr_congrat2:리빙 크래프트 (26,99 € 한"
-    },
-    {
-      "seedId": "kr-signal-0044",
-      "reactionType": "trend_reaction",
-      "subjectKo": "Eine talentierte Modedesigneri",
-      "contextKo": "Eine talentierte Modedesignerin, das ist Cutie Citrinella.🧵 A talented fashion designer, that is Cu...",
-      "tensionPoint": "이미 유행 지난 거 아닌가 싶기도 하고",
-      "possibleAngles": [
-        "코디 방법",
-        "호불호 포인트",
-        "유행 기간 예측"
-      ],
-      "categoryTags": [
-        "beauty"
-      ],
-      "freshnessScore": 0.9999948101851852,
-      "sourceUrl": "https://troet.cafe/@Bolzef/111716274947598679",
-      "rawTitle": "Eine talentierte Modedesignerin, das ist Cutie Citrinella.🧵 A talented fashion designer, that is Cutie Citrinella."
-    },
-    {
-      "seedId": "kr-signal-0001",
-      "reactionType": "price_reaction",
-      "subjectKo": "국가공무원",
-      "contextKo": "실시간 검색 급상승",
-      "tensionPoint": "세일이라지만 원래 가격이 비싼 거 아닌가",
-      "possibleAngles": [
-        "최저가 찾기",
-        "가성비 분석",
-        "구매 시기"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.9999938333333334,
-      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
-      "rawTitle": "국가공무원"
-    },
-    {
-      "seedId": "kr-signal-0002",
-      "reactionType": "trend_reaction",
-      "subjectKo": "포항시",
-      "contextKo": "실시간 검색 급상승",
-      "tensionPoint": "호불호 갈릴 것 같은데 다들 어때요",
-      "possibleAngles": [
-        "브랜드 추천",
-        "체형별 핏",
-        "유행 기간 예측"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.999993832175926,
-      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
-      "rawTitle": "포항시"
-    },
-    {
-      "seedId": "kr-signal-0003",
-      "reactionType": "trend_reaction",
-      "subjectKo": "성제 준",
-      "contextKo": "실시간 검색 급상승",
-      "tensionPoint": "저한테도 어울릴지 모르겠어요",
-      "possibleAngles": [
-        "코디 방법",
-        "체형별 핏",
-        "호불호 포인트"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.999993832175926,
-      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
-      "rawTitle": "성제 준"
-    },
-    {
-      "seedId": "kr-signal-0004",
-      "reactionType": "trend_reaction",
-      "subjectKo": "창경궁",
-      "contextKo": "실시간 검색 급상승",
-      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
-      "possibleAngles": [
-        "브랜드 추천",
-        "코디 방법",
-        "유행 기간 예측"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.999993832175926,
-      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
-      "rawTitle": "창경궁"
-    },
-    {
-      "seedId": "kr-signal-0005",
-      "reactionType": "trend_reaction",
-      "subjectKo": "빅뱅",
-      "contextKo": "실시간 검색 급상승",
-      "tensionPoint": "호불호 갈릴 것 같은데 다들 어때요",
-      "possibleAngles": [
-        "호불호 포인트",
-        "코디 방법",
-        "체형별 핏"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.999993832175926,
-      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
-      "rawTitle": "빅뱅"
-    },
-    {
-      "seedId": "kr-signal-0006",
-      "reactionType": "trend_reaction",
-      "subjectKo": "조혜련",
-      "contextKo": "실시간 검색 급상승",
-      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
-      "possibleAngles": [
-        "코디 방법",
-        "체형별 핏",
-        "브랜드 추천"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.999993832175926,
-      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
-      "rawTitle": "조혜련"
+      "freshnessScore": 0.9999967708333334,
+      "sourceUrl": "https://www.hankyung.com/article/2026040597657",
+      "rawTitle": "'밥처럼 먹었더니 살 쭉쭉'…강소라 다이어트 비결 뭐길래 [건강!톡]"
     },
     {
       "seedId": "kr-signal-0007",
       "reactionType": "trend_reaction",
-      "subjectKo": "잠수함",
+      "subjectKo": "\"우리가 그를 구했다\"…'실종 조종사' 미국이 먼저 찾았다",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: \"우리가 그를 구했다\"…'실종 조종사' 미국이 먼저 찾았다",
+      "tensionPoint": "이미 유행 지난 거 아닌가 싶기도 하고",
+      "possibleAngles": [
+        "유행 기간 예측",
+        "브랜드 추천",
+        "호불호 포인트"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999966631944445,
+      "sourceUrl": "https://n.news.naver.com/mnews/ranking/article/437/0000486023?ntype=RANKING",
+      "rawTitle": "\"우리가 그를 구했다\"…'실종 조종사' 미국이 먼저 찾았다"
+    },
+    {
+      "seedId": "kr-signal-0014",
+      "reactionType": "trend_reaction",
+      "subjectKo": "美 특수부대, 이란군과 ‘36시간 격렬 교전’…긴박했던 조종사 구출",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 美 특수부대, 이란군과 ‘36시간 격렬 교전’…긴박했던 조종사 구출",
+      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
+      "possibleAngles": [
+        "브랜드 추천",
+        "체형별 핏",
+        "호불호 포인트"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999966631944445,
+      "sourceUrl": "https://n.news.naver.com/mnews/ranking/article/021/0002782368?ntype=RANKING",
+      "rawTitle": "美 특수부대, 이란군과 ‘36시간 격렬 교전’…긴박했던 조종사 구출"
+    },
+    {
+      "seedId": "kr-signal-0020",
+      "reactionType": "trend_reaction",
+      "subjectKo": "전쟁 중 잘린 美육참총장 \"미군, 인격적 지도자 가질 자격 있어\"",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 전쟁 중 잘린 美육참총장 \"미군, 인격적 지도자 가질 자격 있어\"",
+      "tensionPoint": "저한테도 어울릴지 모르겠어요",
+      "possibleAngles": [
+        "호불호 포인트",
+        "유행 기간 예측",
+        "브랜드 추천"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999966631944445,
+      "sourceUrl": "https://n.news.naver.com/mnews/ranking/article/001/0016003612?ntype=RANKING",
+      "rawTitle": "전쟁 중 잘린 美육참총장 \"미군, 인격적 지도자 가질 자격 있어\""
+    },
+    {
+      "seedId": "kr-signal-0026",
+      "reactionType": "trend_reaction",
+      "subjectKo": "전쟁 중 경질된 미국 육참총장 “미군, 인격적 지도자 가질 자격 있어”",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 전쟁 중 경질된 미국 육참총장 “미군, 인격적 지도자 가질 자격 있어”",
+      "tensionPoint": "저한테도 어울릴지 모르겠어요",
+      "possibleAngles": [
+        "호불호 포인트",
+        "유행 기간 예측",
+        "브랜드 추천"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999966631944445,
+      "sourceUrl": "https://n.news.naver.com/mnews/ranking/article/056/0012155970?ntype=RANKING",
+      "rawTitle": "전쟁 중 경질된 미국 육참총장 “미군, 인격적 지도자 가질 자격 있어”"
+    },
+    {
+      "seedId": "kr-signal-0032",
+      "reactionType": "trend_reaction",
+      "subjectKo": "“입사 첫날 점심 먹고 사표냈다”…日 ‘퇴사 대행’ 이용 증가",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: “입사 첫날 점심 먹고 사표냈다”…日 ‘퇴사 대행’ 이용 증가",
+      "tensionPoint": "유행이라는데 진짜 해야 하는 건지",
+      "possibleAngles": [
+        "체형별 핏",
+        "브랜드 추천",
+        "코디 방법"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999966631944445,
+      "sourceUrl": "https://n.news.naver.com/mnews/ranking/article/020/0003709811?ntype=RANKING",
+      "rawTitle": "“입사 첫날 점심 먹고 사표냈다”…日 ‘퇴사 대행’ 이용 증가"
+    },
+    {
+      "seedId": "kr-signal-0038",
+      "reactionType": "trend_reaction",
+      "subjectKo": "머리는 백인, 몸은 흑인?…160만 인플루언서女 ‘충격 진실’ 드러났다",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 머리는 백인, 몸은 흑인?…160만 인플루언서女 ‘충격 진실’ 드러났다",
+      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
+      "possibleAngles": [
+        "코디 방법",
+        "체형별 핏",
+        "브랜드 추천"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999966631944445,
+      "sourceUrl": "https://n.news.naver.com/mnews/ranking/article/081/0003632533?ntype=RANKING",
+      "rawTitle": "머리는 백인, 몸은 흑인?…160만 인플루언서女 ‘충격 진실’ 드러났다"
+    },
+    {
+      "seedId": "kr-signal-0044",
+      "reactionType": "comparison_reaction",
+      "subjectKo": "구조했다는 트럼프 vs 저지했다는 이란, 누구 말이 맞나",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 구조했다는 트럼프 vs 저지했다는 이란, 누구 말이 맞나",
+      "tensionPoint": "결국 뭘로 가야 할지 모르겠어요",
+      "possibleAngles": [
+        "가격 대비 가치",
+        "내구성 비교",
+        "소재 비교"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999966631944445,
+      "sourceUrl": "https://n.news.naver.com/mnews/ranking/article/057/0001943208?ntype=RANKING",
+      "rawTitle": "구조했다는 트럼프 vs 저지했다는 이란, 누구 말이 맞나"
+    },
+    {
+      "seedId": "kr-signal-0050",
+      "reactionType": "trend_reaction",
+      "subjectKo": "육군 헬기, 산불 진화 중 실수로 DMZ 진입‥북한은 반응 없어",
+      "contextKo": "네이버 생활/문화 섹션에서 화제가 된 기사: 육군 헬기, 산불 진화 중 실수로 DMZ 진입‥북한은 반응 없어",
+      "tensionPoint": "유행이라는데 진짜 해야 하는 건지",
+      "possibleAngles": [
+        "호불호 포인트",
+        "체형별 핏",
+        "유행 기간 예측"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999966631944445,
+      "sourceUrl": "https://n.news.naver.com/mnews/ranking/article/214/0001490762?ntype=RANKING",
+      "rawTitle": "육군 헬기, 산불 진화 중 실수로 DMZ 진입‥북한은 반응 없어"
+    },
+    {
+      "seedId": "kr-signal-0003",
+      "reactionType": "trend_reaction",
+      "subjectKo": "sk하이닉스",
+      "contextKo": "실시간 검색 급상승",
+      "tensionPoint": "유행이라는데 진짜 해야 하는 건지",
+      "possibleAngles": [
+        "유행 기간 예측",
+        "브랜드 추천",
+        "호불호 포인트"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999958171296296,
+      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
+      "rawTitle": "sk하이닉스"
+    },
+    {
+      "seedId": "kr-signal-0010",
+      "reactionType": "trend_reaction",
+      "subjectKo": "이휘재",
+      "contextKo": "실시간 검색 급상승",
+      "tensionPoint": "이미 유행 지난 거 아닌가 싶기도 하고",
+      "possibleAngles": [
+        "브랜드 추천",
+        "호불호 포인트",
+        "유행 기간 예측"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999958171296296,
+      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
+      "rawTitle": "이휘재"
+    },
+    {
+      "seedId": "kr-signal-0016",
+      "reactionType": "trend_reaction",
+      "subjectKo": "티파니",
       "contextKo": "실시간 검색 급상승",
       "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
+      "possibleAngles": [
+        "코디 방법",
+        "호불호 포인트",
+        "체형별 핏"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999958171296296,
+      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
+      "rawTitle": "티파니"
+    },
+    {
+      "seedId": "kr-signal-0022",
+      "reactionType": "trend_reaction",
+      "subjectKo": "금",
+      "contextKo": "실시간 검색 급상승",
+      "tensionPoint": "호불호 갈릴 것 같은데 다들 어때요",
+      "possibleAngles": [
+        "호불호 포인트",
+        "체형별 핏",
+        "브랜드 추천"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999958171296296,
+      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
+      "rawTitle": "금"
+    },
+    {
+      "seedId": "kr-signal-0028",
+      "reactionType": "trend_reaction",
+      "subjectKo": "김구라",
+      "contextKo": "실시간 검색 급상승",
+      "tensionPoint": "유행이라는데 진짜 해야 하는 건지",
       "possibleAngles": [
         "브랜드 추천",
         "코디 방법",
@@ -865,79 +871,79 @@
       "categoryTags": [
         "general"
       ],
-      "freshnessScore": 0.999993832175926,
+      "freshnessScore": 0.9999958171296296,
       "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
-      "rawTitle": "잠수함"
+      "rawTitle": "김구라"
     },
     {
-      "seedId": "kr-signal-0008",
+      "seedId": "kr-signal-0034",
       "reactionType": "trend_reaction",
-      "subjectKo": "thời tiết ngày mai",
-      "contextKo": "실시간 검색 급상승",
-      "tensionPoint": "이미 유행 지난 거 아닌가 싶기도 하고",
-      "possibleAngles": [
-        "유행 기간 예측",
-        "호불호 포인트",
-        "브랜드 추천"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.999993832175926,
-      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
-      "rawTitle": "thời tiết ngày mai"
-    },
-    {
-      "seedId": "kr-signal-0009",
-      "reactionType": "trend_reaction",
-      "subjectKo": "사령관",
-      "contextKo": "실시간 검색 급상승",
-      "tensionPoint": "저한테도 어울릴지 모르겠어요",
-      "possibleAngles": [
-        "체형별 핏",
-        "코디 방법",
-        "호불호 포인트"
-      ],
-      "categoryTags": [
-        "general"
-      ],
-      "freshnessScore": 0.999993832175926,
-      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
-      "rawTitle": "사령관"
-    },
-    {
-      "seedId": "kr-signal-0010",
-      "reactionType": "trend_reaction",
-      "subjectKo": "탁구 월드컵",
+      "subjectKo": "김연정",
       "contextKo": "실시간 검색 급상승",
       "tensionPoint": "호불호 갈릴 것 같은데 다들 어때요",
       "possibleAngles": [
-        "체형별 핏",
+        "호불호 포인트",
         "코디 방법",
+        "체형별 핏"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999958171296296,
+      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
+      "rawTitle": "김연정"
+    },
+    {
+      "seedId": "kr-signal-0040",
+      "reactionType": "trend_reaction",
+      "subjectKo": "장항준",
+      "contextKo": "실시간 검색 급상승",
+      "tensionPoint": "저한테도 어울릴지 모르겠어요",
+      "possibleAngles": [
+        "유행 기간 예측",
+        "체형별 핏",
+        "코디 방법"
+      ],
+      "categoryTags": [
+        "general"
+      ],
+      "freshnessScore": 0.9999958171296296,
+      "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
+      "rawTitle": "장항준"
+    },
+    {
+      "seedId": "kr-signal-0046",
+      "reactionType": "trend_reaction",
+      "subjectKo": "베트남",
+      "contextKo": "실시간 검색 급상승",
+      "tensionPoint": "이미 유행 지난 거 아닌가 싶기도 하고",
+      "possibleAngles": [
+        "체형별 핏",
+        "호불호 포인트",
         "유행 기간 예측"
       ],
       "categoryTags": [
         "general"
       ],
-      "freshnessScore": 0.999993832175926,
+      "freshnessScore": 0.9999958171296296,
       "sourceUrl": "https://trends.google.com/trending/rss?geo=KR",
-      "rawTitle": "탁구 월드컵"
+      "rawTitle": "베트남"
     },
     {
       "seedId": "world-signal-0001",
       "reactionType": "general_reaction",
       "subjectKo": "wacoca.com/life/375440/ SHIRO、",
       "contextKo": "wacoca.com/life/375440/ SHIRO、春を彩る新しい香り「SUEDE MEMORIES」限定登場 # beauty # fashion # Peachy # PeachyBeau",
-      "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
+      "tensionPoint": "의견 좀 들어보고 싶어서요",
       "possibleAngles": [
-        "주의점",
-        "개인 경험",
-        "추천"
+        "꿀팁",
+        "추천",
+        "개인 경험"
       ],
       "categoryTags": [
         "beauty"
       ],
-      "freshnessScore": 0.7091895787037037,
+      "freshnessScore": 0.708464744212963,
       "sourceUrl": "https://wakoka.com/@life/116335714992482013",
       "rawTitle": "wacoca.com/life/375440/ SHIRO、春を彩る新しい香り「SUEDE MEMORIES」限定登場 # beauty # fashion #"
     },
@@ -946,16 +952,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "# NVO987 # ArtHistory # Cultur",
       "contextKo": "# NVO987 # ArtHistory # Culture # Fashion 📰 Sofia Coppola’s ELLE Cover Looks Define Effortless Styl",
-      "tensionPoint": "경험 있는 분 있으면 알려주세요",
+      "tensionPoint": "좀 고민이 되네요",
       "possibleAngles": [
+        "주의점",
         "개인 경험",
-        "꿀팁",
-        "추천"
+        "비슷한 사례"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.708769457175926,
+      "freshnessScore": 0.7080446226851851,
       "sourceUrl": "https://mastodon.social/@nvo987/116335691170532861",
       "rawTitle": "# NVO987 # ArtHistory # Culture # Fashion 📰 Sofia Coppola’s ELLE Cover Looks De"
     },
@@ -964,16 +970,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "Need advice",
       "contextKo": "Need advice Trying to go for a style like these but i just don't know where to shop.",
-      "tensionPoint": "좀 고민이 되네요",
+      "tensionPoint": "의견 좀 들어보고 싶어서요",
       "possibleAngles": [
         "추천",
-        "개인 경험",
-        "꿀팁"
+        "꿀팁",
+        "개인 경험"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.7087671238425926,
+      "freshnessScore": 0.7080422893518519,
       "sourceUrl": "https://www.reddit.com/r/malefashionadvice/comments/1sajo11/need_advice/",
       "rawTitle": "Need advice"
     },
@@ -982,16 +988,16 @@
       "reactionType": "trend_reaction",
       "subjectKo": "Anyone recommend a good canned",
       "contextKo": "Anyone recommend a good canned html/css site style and layout?",
-      "tensionPoint": "유행이라는데 진짜 해야 하는 건지",
+      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
       "possibleAngles": [
-        "체형별 핏",
         "유행 기간 예측",
-        "호불호 포인트"
+        "호불호 포인트",
+        "체형별 핏"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.7086560127314814,
+      "freshnessScore": 0.7079311782407407,
       "sourceUrl": "https://snac.d34d.net/pkw/p/1775141674.809289",
       "rawTitle": "Anyone recommend a good canned html/css site style and layout?"
     },
@@ -1000,16 +1006,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "tkhunt.com/2272736/ 【 ソレどこの",
       "contextKo": "tkhunt.com/2272736/ 【 ソレどこの",
-      "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
+      "tensionPoint": "경험 있는 분 있으면 알려주세요",
       "possibleAngles": [
+        "주의점",
         "추천",
-        "개인 경험",
         "꿀팁"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.7076525405092593,
+      "freshnessScore": 0.7069277060185185,
       "sourceUrl": "https://jpmstdn.com/@tkhunt/116335627949036280",
       "rawTitle": "tkhunt.com/2272736/ 【 ソレどこの"
     },
@@ -1020,14 +1026,14 @@
       "contextKo": "Bao Wenzheng (Bao Zheng), a Song Dynasty politician, in *The Three Heroes and Five Gallants*, or, *T",
       "tensionPoint": "얼굴이 해야 할 일이 큰 것 같은데ㅋㅋ",
       "possibleAngles": [
-        "꾸안꾸 연출법",
-        "컬러 조합 참고",
-        "대체템 찾기"
+        "대체템 찾기",
+        "비슷한 코디법",
+        "가격대별 대안"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.707039412037037,
+      "freshnessScore": 0.7063145775462962,
       "sourceUrl": "https://mastodon.social/@pdimagearchive/116335593210084456",
       "rawTitle": "Bao Wenzheng (Bao Zheng), a Song Dynasty politician, in *The Three Heroes and Fi"
     },
@@ -1038,14 +1044,14 @@
       "contextKo": "Who has inclusive or # trans friendly/focused # fashion shopping tips?",
       "tensionPoint": "가격 차이만큼 퀄리티 차이가 있는 건지",
       "possibleAngles": [
-        "내구성 비교",
-        "소재 비교",
-        "코디 활용도"
+        "가격 대비 가치",
+        "핏 비교",
+        "내구성 비교"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.706299511574074,
+      "freshnessScore": 0.7055746770833333,
       "sourceUrl": "https://mastodon.social/@TheZeldaZone/116335551314531146",
       "rawTitle": "Who has inclusive or # trans friendly/focused # fashion shopping tips?"
     },
@@ -1054,16 +1060,16 @@
       "reactionType": "celebrity_reaction",
       "subjectKo": "# Arts # Fashion # NVO987 # Cu",
       "contextKo": "# Arts # Fashion # NVO987 # Culture 🎭 Ciara Miller and West Wilson Had Been “Casually Seeing Each O",
-      "tensionPoint": "이거 따라하면 현실은 다를 것 같은데ㅋ",
+      "tensionPoint": "대체템이 있을까요",
       "possibleAngles": [
-        "대체템 찾기",
+        "비슷한 코디법",
         "컬러 조합 참고",
-        "비슷한 코디법"
+        "가격대별 대안"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.7056434375,
+      "freshnessScore": 0.7049186030092592,
       "sourceUrl": "https://mastodon.social/@nvo987/116335514165654468",
       "rawTitle": "# Arts # Fashion # NVO987 # Culture 🎭 Ciara Miller and West Wilson Had Been “Ca"
     },
@@ -1075,13 +1081,13 @@
       "tensionPoint": "저만 이런 건가요ㅋ",
       "possibleAngles": [
         "꿀팁",
-        "개인 경험",
-        "주의점"
+        "추천",
+        "비슷한 사례"
       ],
       "categoryTags": [
         "beauty"
       ],
-      "freshnessScore": 0.7054962893518518,
+      "freshnessScore": 0.7047714560185185,
       "sourceUrl": "https://wakoka.com/@life/116335505897362132",
       "rawTitle": "wacoca.com/life/375419/ 【明日なに着る"
     },
@@ -1090,17 +1096,17 @@
       "reactionType": "general_reaction",
       "subjectKo": "Jordan",
       "contextKo": "Still thinking about the moon today Went even more casual than yesterday for work today.",
-      "tensionPoint": "의견 좀 들어보고 싶어서요",
+      "tensionPoint": "좀 고민이 되네요",
       "possibleAngles": [
-        "꿀팁",
-        "추천",
-        "개인 경험"
+        "개인 경험",
+        "비슷한 사례",
+        "추천"
       ],
       "categoryTags": [
         "accessory",
         "office"
       ],
-      "freshnessScore": 0.7050124930555555,
+      "freshnessScore": 0.7042876597222222,
       "sourceUrl": "https://www.reddit.com/r/mensfashion/comments/1sai90u/still_thinking_about_the_moon_today/",
       "rawTitle": "Still thinking about the moon today"
     },
@@ -1109,16 +1115,16 @@
       "reactionType": "celebrity_reaction",
       "subjectKo": "# Arts # Fashion # NVO987 # Cu",
       "contextKo": "# Arts # Fashion # NVO987 # Culture 🎭 When ‘The Super Mario Galaxy Movie’ Will Be Available to Stre",
-      "tensionPoint": "비슷한 느낌 내려면 얼마나 들까요",
+      "tensionPoint": "이거 따라하면 현실은 다를 것 같은데ㅋ",
       "possibleAngles": [
-        "가격대별 대안",
         "대체템 찾기",
+        "컬러 조합 참고",
         "비슷한 코디법"
       ],
       "categoryTags": [
         "accessory"
       ],
-      "freshnessScore": 0.7048864039351852,
+      "freshnessScore": 0.7041615706018518,
       "sourceUrl": "https://mastodon.social/@nvo987/116335471299965940",
       "rawTitle": "# Arts # Fashion # NVO987 # Culture 🎭 When ‘The Super Mario Galaxy Movie’ Will "
     },
@@ -1127,16 +1133,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "tkhunt.com/2272707/ 奥様の前では態度が変",
       "contextKo": "tkhunt.com/2272707/ 奥様の前では態度が変わるお客様 # アパレル店員 # ファッション # あるある # アパレルショップ # fashion # ファッション",
-      "tensionPoint": "저만 이런 건가요ㅋ",
+      "tensionPoint": "경험 있는 분 있으면 알려주세요",
       "possibleAngles": [
+        "개인 경험",
         "추천",
-        "꿀팁",
-        "개인 경험"
+        "주의점"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.7045298541666667,
+      "freshnessScore": 0.7038050208333333,
       "sourceUrl": "https://jpmstdn.com/@tkhunt/116335451139440800",
       "rawTitle": "tkhunt.com/2272707/ 奥様の前では態度が変わるお客様 # アパレル店員 # ファッション # あるある # アパレルショップ # fashio"
     },
@@ -1145,16 +1151,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "moezine.com/2326988/ 1日限定の体験型イ",
       "contextKo": "moezine.com/2326988/ 1日限定の体験型イベント「WWDJAPAN REUSE MARKET 2026」を開催 ファッション業界人や俳優らが出店（WWDJAPAN.com） – Ya",
-      "tensionPoint": "경험 있는 분 있으면 알려주세요",
+      "tensionPoint": "좀 고민이 되네요",
       "possibleAngles": [
-        "추천",
-        "꿀팁",
-        "비슷한 사례"
+        "주의점",
+        "개인 경험",
+        "추천"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.7042486041666667,
+      "freshnessScore": 0.7035237708333333,
       "sourceUrl": "https://ol2ol.com/@moezine/116335435215321980",
       "rawTitle": "moezine.com/2326988/ 1日限定の体験型イベント「WWDJAPAN REUSE MARKET 2026」を開催 ファッション業界人や俳優らが出"
     },
@@ -1163,17 +1169,17 @@
       "reactionType": "comparison_reaction",
       "subjectKo": "Learning How to Dress",
       "contextKo": "Learning How to Dress Hi!",
-      "tensionPoint": "가격 차이만큼 퀄리티 차이가 있는 건지",
+      "tensionPoint": "인터넷 후기가 너무 갈려서",
       "possibleAngles": [
-        "핏 비교",
         "소재 비교",
-        "가격 대비 가치"
+        "코디 활용도",
+        "핏 비교"
       ],
       "categoryTags": [
         "accessory",
         "office"
       ],
-      "freshnessScore": 0.704150224537037,
+      "freshnessScore": 0.7034253912037036,
       "sourceUrl": "https://www.reddit.com/r/OUTFITS/comments/1sahxmn/learning_how_to_dress/",
       "rawTitle": "Learning How to Dress"
     },
@@ -1182,16 +1188,16 @@
       "reactionType": "trend_reaction",
       "subjectKo": "which outfit would you choose?",
       "contextKo": "which outfit would you choose?",
-      "tensionPoint": "이미 유행 지난 거 아닌가 싶기도 하고",
+      "tensionPoint": "유행이라는데 진짜 해야 하는 건지",
       "possibleAngles": [
+        "브랜드 추천",
         "호불호 포인트",
-        "체형별 핏",
-        "브랜드 추천"
+        "코디 방법"
       ],
       "categoryTags": [
         "outerwear"
       ],
-      "freshnessScore": 0.7029719837962962,
+      "freshnessScore": 0.7022471504629629,
       "sourceUrl": "https://www.reddit.com/r/fashion/comments/1sahiuw/which_outfit_would_you_choose/",
       "rawTitle": "which outfit would you choose?"
     },
@@ -1200,16 +1206,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "wacoca.com/life/375398/ 【1位〜6位",
       "contextKo": "wacoca.com/life/375398/ 【1位〜6位】4月3日(金)の運勢を発表",
-      "tensionPoint": "저만 이런 건가요ㅋ",
+      "tensionPoint": "의견 좀 들어보고 싶어서요",
       "possibleAngles": [
         "개인 경험",
-        "추천",
+        "주의점",
         "꿀팁"
       ],
       "categoryTags": [
         "beauty"
       ],
-      "freshnessScore": 0.7014742986111111,
+      "freshnessScore": 0.7007494652777777,
       "sourceUrl": "https://wakoka.com/@life/116335278123601334",
       "rawTitle": "wacoca.com/life/375398/ 【1位〜6位】4月3日(金)の運勢を発表"
     },
@@ -1218,16 +1224,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "tkhunt.com/2272673/ 【春の通勤コーデ】デ",
       "contextKo": "tkhunt.com/2272673/ 【春の通勤コーデ】ディレクターが突撃",
-      "tensionPoint": "경험 있는 분 있으면 알려주세요",
+      "tensionPoint": "저만 이런 건가요ㅋ",
       "possibleAngles": [
-        "비슷한 사례",
-        "주의점",
-        "꿀팁"
+        "추천",
+        "개인 경험",
+        "비슷한 사례"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.7014071689814815,
+      "freshnessScore": 0.7006823356481482,
       "sourceUrl": "https://jpmstdn.com/@tkhunt/116335274331136607",
       "rawTitle": "tkhunt.com/2272673/ 【春の通勤コーデ】ディレクターが突撃"
     },
@@ -1236,16 +1242,16 @@
       "reactionType": "celebrity_reaction",
       "subjectKo": "Click for more ⬇️ 👀 https:// ",
       "contextKo": "Click for more ⬇️ 👀 https:// ritaora.com 🇲🇨 https:// instagram.com/ritaora # RitaOra # Celebrity ",
-      "tensionPoint": "대체템이 있을까요",
+      "tensionPoint": "얼굴이 해야 할 일이 큰 것 같은데ㅋㅋ",
       "possibleAngles": [
         "비슷한 코디법",
-        "대체템 찾기",
-        "가격대별 대안"
+        "가격대별 대안",
+        "대체템 찾기"
       ],
       "categoryTags": [
         "beauty"
       ],
-      "freshnessScore": 0.7012062824074075,
+      "freshnessScore": 0.7004814490740741,
       "sourceUrl": "https://mastodon.social/@springgnoll/116335262919990667",
       "rawTitle": "Click for more ⬇️ 👀 https:// ritaora.com 🇲🇨 https:// instagram.com/ritaora # "
     },
@@ -1254,16 +1260,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "ジル サンダーとプーマの最新コラボスニーカー「K-ストリート",
       "contextKo": "ジル サンダーとプーマの最新コラボスニーカー「K-ストリート」が発売",
-      "tensionPoint": "좀 고민이 되네요",
+      "tensionPoint": "저만 이런 건가요ㅋ",
       "possibleAngles": [
         "개인 경험",
         "꿀팁",
-        "추천"
+        "비슷한 사례"
       ],
       "categoryTags": [
         "sneakers"
       ],
-      "freshnessScore": 0.7007196689814814,
+      "freshnessScore": 0.6999948356481481,
       "sourceUrl": "https://rss-mstdn.studiofreesia.com/@vogue/116335235298805581",
       "rawTitle": "ジル サンダーとプーマの最新コラボスニーカー「K-ストリート」が発売"
     },
@@ -1272,16 +1278,16 @@
       "reactionType": "trend_reaction",
       "subjectKo": "✨ images of clothing images of",
       "contextKo": "✨ images of clothing images of clothing “Discover luxury images of clothing with Coveti.” Treat your",
-      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
+      "tensionPoint": "저한테도 어울릴지 모르겠어요",
       "possibleAngles": [
-        "호불호 포인트",
         "체형별 핏",
-        "브랜드 추천"
+        "브랜드 추천",
+        "코디 방법"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.7007097106481481,
+      "freshnessScore": 0.6999848773148147,
       "sourceUrl": "https://mastodon.social/@Coveti/116335234802492006",
       "rawTitle": "✨ images of clothing images of clothing “Discover luxury images of clothing with"
     },
@@ -1292,14 +1298,14 @@
       "contextKo": "Pop of yellow?",
       "tensionPoint": "둘 다 장단이 있어서 고민이에요",
       "possibleAngles": [
-        "핏 비교",
-        "가격 대비 가치",
-        "내구성 비교"
+        "내구성 비교",
+        "소재 비교",
+        "핏 비교"
       ],
       "categoryTags": [
         "accessory"
       ],
-      "freshnessScore": 0.6993354097222222,
+      "freshnessScore": 0.6986105763888888,
       "sourceUrl": "https://www.reddit.com/r/OUTFITS/comments/1saga0h/pop_of_yellow/",
       "rawTitle": "Pop of yellow?"
     },
@@ -1308,16 +1314,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "I'm Building My Go-to Spring U",
       "contextKo": "I'm Building My Go-to Spring Uniform with These Polished but Comfy Amazon Styles — Tees, Jeans, and ",
-      "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
+      "tensionPoint": "의견 좀 들어보고 싶어서요",
       "possibleAngles": [
+        "주의점",
         "개인 경험",
-        "꿀팁",
-        "주의점"
+        "비슷한 사례"
       ],
       "categoryTags": [
         "denim"
       ],
-      "freshnessScore": 0.6986166597222222,
+      "freshnessScore": 0.6978918263888889,
       "sourceUrl": "https://fed.brid.gy/r/https://people.com/amazon-spring-capsule-wardrobe-april-2026-11940888",
       "rawTitle": "I'm Building My Go-to Spring Uniform with These Polished but Comfy Amazon Styles"
     },
@@ -1326,16 +1332,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "These trousers would be better",
       "contextKo": "These trousers would be better if they had pockets.",
-      "tensionPoint": "저만 이런 건가요ㅋ",
+      "tensionPoint": "의견 좀 들어보고 싶어서요",
       "possibleAngles": [
+        "추천",
         "개인 경험",
-        "비슷한 사례",
-        "추천"
+        "주의점"
       ],
       "categoryTags": [
         "office"
       ],
-      "freshnessScore": 0.698595826388889,
+      "freshnessScore": 0.6978709930555556,
       "sourceUrl": "https://fashionsocial.host/@sahakanouch/116335115115471797",
       "rawTitle": "These trousers would be better if they had pockets."
     },
@@ -1344,16 +1350,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "These trousers would be better",
       "contextKo": "These trousers would be better if they had pockets.",
-      "tensionPoint": "좀 고민이 되네요",
+      "tensionPoint": "저만 이런 건가요ㅋ",
       "possibleAngles": [
-        "추천",
         "꿀팁",
+        "추천",
         "개인 경험"
       ],
       "categoryTags": [
         "office"
       ],
-      "freshnessScore": 0.698595826388889,
+      "freshnessScore": 0.6978709930555556,
       "sourceUrl": "https://fashionsocial.host/@sahakanouch/116335115115471797",
       "rawTitle": "These trousers would be better if they had pockets."
     },
@@ -1362,16 +1368,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "outfit to walk around nyc🤍",
       "contextKo": "outfit to walk around nyc🤍",
-      "tensionPoint": "저만 이런 건가요ㅋ",
+      "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
       "possibleAngles": [
-        "주의점",
         "개인 경험",
+        "꿀팁",
         "비슷한 사례"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6985680486111111,
+      "freshnessScore": 0.6978432152777778,
       "sourceUrl": "https://www.reddit.com/r/OUTFITS/comments/1sag1a2/outfit_to_walk_around_nyc/",
       "rawTitle": "outfit to walk around nyc🤍"
     },
@@ -1380,16 +1386,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "tkhunt.com/2272647/ 私のファッションディ",
       "contextKo": "tkhunt.com/2272647/ 私のファッションディスられた😭 # fashion # ファッション",
-      "tensionPoint": "저만 이런 건가요ㅋ",
+      "tensionPoint": "경험 있는 분 있으면 알려주세요",
       "possibleAngles": [
         "개인 경험",
         "꿀팁",
-        "비슷한 사례"
+        "추천"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6982775393518519,
+      "freshnessScore": 0.6975527060185185,
       "sourceUrl": "https://jpmstdn.com/@tkhunt/116335097100950793",
       "rawTitle": "tkhunt.com/2272647/ 私のファッションディスられた😭 # fashion # ファッション"
     },
@@ -1398,16 +1404,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "wacoca.com/life/375370/ 中国語で【卡",
       "contextKo": "wacoca.com/life/375370/ 中国語で【卡地亚】と表すブランドは",
-      "tensionPoint": "좀 고민이 되네요",
+      "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
       "possibleAngles": [
         "추천",
-        "개인 경험",
-        "꿀팁"
+        "주의점",
+        "비슷한 사례"
       ],
       "categoryTags": [
         "beauty"
       ],
-      "freshnessScore": 0.6982057800925925,
+      "freshnessScore": 0.6974809467592593,
       "sourceUrl": "https://wakoka.com/@life/116335093035195967",
       "rawTitle": "wacoca.com/life/375370/ 中国語で【卡地亚】と表すブランドは"
     },
@@ -1416,16 +1422,16 @@
       "reactionType": "celebrity_reaction",
       "subjectKo": "# NVO987 # ArtHistory # Cultur",
       "contextKo": "# NVO987 # ArtHistory # Culture # Fashion 📰 What to Know About Your 4th House in Astrology It’s foc",
-      "tensionPoint": "꾸안꾸라지만 결국 비싼 옷인 것 같고",
+      "tensionPoint": "대체템이 있을까요",
       "possibleAngles": [
         "대체템 찾기",
-        "컬러 조합 참고",
-        "비슷한 코디법"
+        "가격대별 대안",
+        "꾸안꾸 연출법"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6968966932870371,
+      "freshnessScore": 0.6961718599537037,
       "sourceUrl": "https://mastodon.social/@nvo987/116335018897219209",
       "rawTitle": "# NVO987 # ArtHistory # Culture # Fashion 📰 What to Know About Your 4th House i"
     },
@@ -1434,16 +1440,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "Click for more ⬇️ 👀 https:// ",
       "contextKo": "Click for more ⬇️ 👀 https:// myslink.app/therachelstarr 🇲🇨 https:// instagram.com/rachelstarr # S",
-      "tensionPoint": "경험 있는 분 있으면 알려주세요",
+      "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
       "possibleAngles": [
-        "꿀팁",
-        "개인 경험",
-        "비슷한 사례"
+        "추천",
+        "주의점",
+        "꿀팁"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6962602476851851,
+      "freshnessScore": 0.6955354143518518,
       "sourceUrl": "https://mastodon.social/@springgnoll/116334982856345747",
       "rawTitle": "Click for more ⬇️ 👀 https:// myslink.app/therachelstarr 🇲🇨 https:// instagram"
     },
@@ -1454,14 +1460,14 @@
       "contextKo": "Is there something like a search engine, with filters, but for fashion products?",
       "tensionPoint": "호불호 갈릴 것 같은데 다들 어때요",
       "possibleAngles": [
+        "브랜드 추천",
         "체형별 핏",
-        "코디 방법",
-        "유행 기간 예측"
+        "코디 방법"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6948238356481482,
+      "freshnessScore": 0.6940990011574073,
       "sourceUrl": "https://www.reddit.com/r/malefashionadvice/comments/1saew8c/is_there_something_like_a_search_engine_with/",
       "rawTitle": "Is there something like a search engine, with filters, but for fashion products?"
     },
@@ -1470,16 +1476,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "William Zinsser’s “On Writing ",
       "contextKo": "William Zinsser’s “On Writing Well” # togetherwerise https:// josephcarrabis.com/2021/01/06/ william",
-      "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
+      "tensionPoint": "저만 이런 건가요ㅋ",
       "possibleAngles": [
-        "꿀팁",
         "개인 경험",
-        "비슷한 사례"
+        "꿀팁",
+        "주의점"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.689938363425926,
+      "freshnessScore": 0.6892135289351852,
       "sourceUrl": "https://mastodon.social/@EoisM/116334624895462935",
       "rawTitle": "William Zinsser’s “On Writing Well” # togetherwerise https:// josephcarrabis.com"
     },
@@ -1488,16 +1494,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "Sigrid is back in Valencia and",
       "contextKo": "Sigrid is back in Valencia and we wasted no time in creating some new images.",
-      "tensionPoint": "의견 좀 들어보고 싶어서요",
+      "tensionPoint": "저만 이런 건가요ㅋ",
       "possibleAngles": [
         "꿀팁",
-        "추천",
-        "비슷한 사례"
+        "비슷한 사례",
+        "추천"
       ],
       "categoryTags": [
         "beauty"
       ],
-      "freshnessScore": 0.6743006759259259,
+      "freshnessScore": 0.6735758414351851,
       "sourceUrl": "https://mastodon.social/@brandonjacksonphoto/116333739441259161",
       "rawTitle": "Sigrid is back in Valencia and we wasted no time in creating some new images."
     },
@@ -1506,16 +1512,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "The Curator: 7 spring outfit a",
       "contextKo": "The Curator: 7 spring outfit accessories you need now Whether you’re refreshing your everyday staple",
-      "tensionPoint": "경험 있는 분 있으면 알려주세요",
+      "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
       "possibleAngles": [
-        "개인 경험",
         "추천",
-        "주의점"
+        "비슷한 사례",
+        "꿀팁"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6560530023148148,
+      "freshnessScore": 0.6553281678240741,
       "sourceUrl": "https://mastodon.hongkongers.net/@glnational_mirror/116332706261524896",
       "rawTitle": "The Curator: 7 spring outfit accessories you need now Whether you’re refreshing "
     },
@@ -1524,16 +1530,16 @@
       "reactionType": "celebrity_reaction",
       "subjectKo": "The grand staircase at Château",
       "contextKo": "The grand staircase at Château de Chantilly boasts this exquisite wrought iron railing, forged by th",
-      "tensionPoint": "대체템이 있을까요",
+      "tensionPoint": "비슷한 느낌 내려면 얼마나 들까요",
       "possibleAngles": [
         "꾸안꾸 연출법",
         "비슷한 코디법",
-        "대체템 찾기"
+        "가격대별 대안"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6317937118055555,
+      "freshnessScore": 0.6310688773148148,
       "sourceUrl": "https://mastodon.social/@Adrenochrome/116331332565030849",
       "rawTitle": "The grand staircase at Château de Chantilly boasts this exquisite wrought iron r"
     },
@@ -1542,16 +1548,16 @@
       "reactionType": "celebrity_reaction",
       "subjectKo": "Planetarium table clock, circa",
       "contextKo": "Planetarium table clock, circa 1770.",
-      "tensionPoint": "대체템이 있을까요",
+      "tensionPoint": "얼굴이 해야 할 일이 큰 것 같은데ㅋㅋ",
       "possibleAngles": [
-        "꾸안꾸 연출법",
-        "컬러 조합 참고",
-        "가격대별 대안"
+        "가격대별 대안",
+        "대체템 찾기",
+        "비슷한 코디법"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6316397534722222,
+      "freshnessScore": 0.6309149189814814,
       "sourceUrl": "https://mastodon.social/@Adrenochrome/116331323847201949",
       "rawTitle": "Planetarium table clock, circa 1770."
     },
@@ -1562,14 +1568,14 @@
       "contextKo": "Dressed up with somewhere important to be 😼.",
       "tensionPoint": "의견 좀 들어보고 싶어서요",
       "possibleAngles": [
+        "주의점",
         "꿀팁",
-        "추천",
         "개인 경험"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6311495127314815,
+      "freshnessScore": 0.6304246782407408,
       "sourceUrl": "https://mastodon.social/@mendingcatsshelter1/116331296088021487",
       "rawTitle": "Dressed up with somewhere important to be 😼."
     },
@@ -1578,16 +1584,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "# male # nude # black # style ",
       "contextKo": "# male # nude # black # style # athlete",
-      "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
+      "tensionPoint": "좀 고민이 되네요",
       "possibleAngles": [
-        "꿀팁",
         "개인 경험",
-        "비슷한 사례"
+        "주의점",
+        "추천"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6301945312499999,
+      "freshnessScore": 0.6294696967592592,
       "sourceUrl": "https://mastodon.social/@pesrac021/116331242014317112",
       "rawTitle": "# male # nude # black # style # athlete"
     },
@@ -1596,16 +1602,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "High Profile vs Low Profile Ri",
       "contextKo": "High Profile vs Low Profile Ring Settings NYC https:// carbonpetals.com/blogs/diamond -foundation/hi",
-      "tensionPoint": "경험 있는 분 있으면 알려주세요",
+      "tensionPoint": "의견 좀 들어보고 싶어서요",
       "possibleAngles": [
-        "주의점",
         "개인 경험",
-        "추천"
+        "추천",
+        "비슷한 사례"
       ],
       "categoryTags": [
         "pet"
       ],
-      "freshnessScore": 0.6261511354166667,
+      "freshnessScore": 0.6254263009259259,
       "sourceUrl": "https://mastodon.social/@carbonpetals/116331013064574453",
       "rawTitle": "High Profile vs Low Profile Ring Settings NYC https:// carbonpetals.com/blogs/di"
     },
@@ -1614,16 +1620,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "Click for more ⬇️ 👀 https:// ",
       "contextKo": "Click for more ⬇️ 👀 https:// instagram.com/iam_priyanka_kd 🌖 https://www.",
-      "tensionPoint": "저만 이런 건가요ㅋ",
+      "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
       "possibleAngles": [
-        "추천",
-        "주의점",
-        "비슷한 사례"
+        "꿀팁",
+        "비슷한 사례",
+        "개인 경험"
       ],
       "categoryTags": [
         "beauty"
       ],
-      "freshnessScore": 0.619398613425926,
+      "freshnessScore": 0.6186737789351852,
       "sourceUrl": "https://mastodon.social/@springgnoll/116330630716061024",
       "rawTitle": "Click for more ⬇️ 👀 https:// instagram.com/iam_priyanka_kd 🌖 facebook.com/priy"
     },
@@ -1632,16 +1638,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "Click for more ⬇️ 👀 https:// ",
       "contextKo": "Click for more ⬇️ 👀 https:// instagram.com/iam_priyanka_kd 🌖 https://www.",
-      "tensionPoint": "좀 고민이 되네요",
+      "tensionPoint": "경험 있는 분 있으면 알려주세요",
       "possibleAngles": [
         "개인 경험",
-        "추천",
+        "꿀팁",
         "주의점"
       ],
       "categoryTags": [
         "beauty"
       ],
-      "freshnessScore": 0.619398613425926,
+      "freshnessScore": 0.6186737789351852,
       "sourceUrl": "https://mastodon.social/@springgnoll/116330630716061024",
       "rawTitle": "Click for more ⬇️ 👀 https:// instagram.com/iam_priyanka_kd 🌖 facebook.com/priy"
     },
@@ -1652,14 +1658,14 @@
       "contextKo": "Elevate your style with the timeless elegance of TAG Heuer.",
       "tensionPoint": "저만 이런 건가요ㅋ",
       "possibleAngles": [
+        "비슷한 사례",
         "꿀팁",
-        "개인 경험",
-        "추천"
+        "주의점"
       ],
       "categoryTags": [
         "accessory"
       ],
-      "freshnessScore": 0.613479994212963,
+      "freshnessScore": 0.6127551597222223,
       "sourceUrl": "https://mastodon.social/@watch_connection/116330295584073562",
       "rawTitle": "Elevate your style with the timeless elegance of TAG Heuer."
     },
@@ -1670,14 +1676,14 @@
       "contextKo": "Hailey Bieber’s Quick Everyday Morning Routine https://www.",
       "tensionPoint": "의견 좀 들어보고 싶어서요",
       "possibleAngles": [
-        "꿀팁",
         "주의점",
+        "비슷한 사례",
         "개인 경험"
       ],
       "categoryTags": [
         "beauty"
       ],
-      "freshnessScore": 0.6104501018518518,
+      "freshnessScore": 0.6097252673611111,
       "sourceUrl": "https://mastodon.social/@lifestylebeauty/116330124022638696",
       "rawTitle": "Hailey Bieber’s Quick Everyday Morning Routine mykindofzen.com/hailey-biebers -q"
     },
@@ -1686,16 +1692,16 @@
       "reactionType": "trend_reaction",
       "subjectKo": "Kuldeep Yadav and his bride Va",
       "contextKo": "Kuldeep Yadav and his bride Vanshika shared photos from their wedding festivities.",
-      "tensionPoint": "이미 유행 지난 거 아닌가 싶기도 하고",
+      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
       "possibleAngles": [
-        "브랜드 추천",
-        "호불호 포인트",
-        "체형별 핏"
+        "코디 방법",
+        "체형별 핏",
+        "유행 기간 예측"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6071070706018518,
+      "freshnessScore": 0.6063822361111111,
       "sourceUrl": "https://mastodon.social/@theblazetrends/116329934730686540",
       "rawTitle": "Kuldeep Yadav and his bride Vanshika shared photos from their wedding festivitie"
     },
@@ -1704,16 +1710,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "fina changed kevin in one of t",
       "contextKo": "fina changed kevin in one of the new shirts #dolls #boydolls #ken #fakies #fashiondolls #dolloutfit ",
-      "tensionPoint": "저만 이런 건가요ㅋ",
+      "tensionPoint": "좀 고민이 되네요",
       "possibleAngles": [
-        "비슷한 사례",
+        "개인 경험",
         "꿀팁",
-        "주의점"
+        "추천"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6038319363425926,
+      "freshnessScore": 0.6031071030092592,
       "sourceUrl": "https://pixelfed.social/p/flaps015/944952810023513852",
       "rawTitle": "fina changed kevin in one of the new shirts #dolls #boydolls #ken #fakies #fashi"
     },
@@ -1722,16 +1728,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "fina changed kevin in one of t",
       "contextKo": "fina changed kevin in one of the new shirts #dolls #boydolls #ken #fakies #fashiondolls #dolloutfit ",
-      "tensionPoint": "의견 좀 들어보고 싶어서요",
+      "tensionPoint": "경험 있는 분 있으면 알려주세요",
       "possibleAngles": [
-        "주의점",
         "비슷한 사례",
-        "개인 경험"
+        "꿀팁",
+        "추천"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.6038319363425926,
+      "freshnessScore": 0.6031071030092592,
       "sourceUrl": "https://pixelfed.social/p/flaps015/944952810023513852",
       "rawTitle": "fina changed kevin in one of the new shirts #dolls #boydolls #ken #fakies #fashi"
     },
@@ -1742,14 +1748,14 @@
       "contextKo": "Click for more ⬇️ 👀 https:// instagram.com/priricart 🌖 https://www.",
       "tensionPoint": "다들 어떻게 생각하시는지 궁금해요",
       "possibleAngles": [
+        "비슷한 사례",
         "주의점",
-        "개인 경험",
-        "비슷한 사례"
+        "추천"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.5962861956018519,
+      "freshnessScore": 0.5955613622685185,
       "sourceUrl": "https://mastodon.social/@springgnoll/116329322016270472",
       "rawTitle": "Click for more ⬇️ 👀 https:// instagram.com/priricart 🌖 tiktok.com/@priricart #"
     },
@@ -1758,16 +1764,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "This is quickly becoming my un",
       "contextKo": "This is quickly becoming my uniform.",
-      "tensionPoint": "좀 고민이 되네요",
+      "tensionPoint": "의견 좀 들어보고 싶어서요",
       "possibleAngles": [
         "개인 경험",
-        "꿀팁",
-        "추천"
+        "추천",
+        "비슷한 사례"
       ],
       "categoryTags": [
         "office"
       ],
-      "freshnessScore": 0.5950402696759259,
+      "freshnessScore": 0.5943154363425925,
       "sourceUrl": "https://fashionsocial.host/@sahakanouch/116329251528651622",
       "rawTitle": "This is quickly becoming my uniform."
     },
@@ -1776,16 +1782,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "Marks & Spencer drops Carolyn ",
       "contextKo": "Marks & Spencer drops Carolyn Bessette Kennedy-inspired edit featuring 90s basics from £10 https:// ",
-      "tensionPoint": "경험 있는 분 있으면 알려주세요",
+      "tensionPoint": "저만 이런 건가요ㅋ",
       "possibleAngles": [
-        "비슷한 사례",
-        "꿀팁",
+        "주의점",
+        "개인 경험",
         "추천"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.5901814733796296,
+      "freshnessScore": 0.5894566400462962,
       "sourceUrl": "https://fed.brid.gy/r/https://www.mirror.co.uk/3am/style/marks-spencer-carolyn-bessette-edit-36953314",
       "rawTitle": "Marks & Spencer drops Carolyn Bessette Kennedy-inspired edit featuring 90s basic"
     },
@@ -1794,16 +1800,16 @@
       "reactionType": "trend_reaction",
       "subjectKo": "TWICE's Jeongyeon Sparks Shock",
       "contextKo": "TWICE's Jeongyeon Sparks Shock With \"Body Tea\" In Sexy Outfit During Concert # Body # Concert # Jeon",
-      "tensionPoint": "잘못하면 애매해질 것 같아서 좀 무서움",
+      "tensionPoint": "유행이라는데 진짜 해야 하는 건지",
       "possibleAngles": [
-        "유행 기간 예측",
-        "코디 방법",
-        "브랜드 추천"
+        "브랜드 추천",
+        "체형별 핏",
+        "유행 기간 예측"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.5900263310185185,
+      "freshnessScore": 0.5893014976851851,
       "sourceUrl": "https://mastodon.social/@kpopnewshub/116328967566237752",
       "rawTitle": "TWICE's Jeongyeon Sparks Shock With \"Body Tea\" In Sexy Outfit During Concert # B"
     },
@@ -1814,14 +1820,14 @@
       "contextKo": "Meet your new favorite vacation essential!",
       "tensionPoint": "의견 좀 들어보고 싶어서요",
       "possibleAngles": [
+        "비슷한 사례",
         "개인 경험",
-        "추천",
-        "비슷한 사례"
+        "꿀팁"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.5890933761574074,
+      "freshnessScore": 0.588368542824074,
       "sourceUrl": "https://mastodon.social/@innerwearau/116328914739500575",
       "rawTitle": "Meet your new favorite vacation essential!"
     },
@@ -1830,16 +1836,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "I dropped out of school yester",
       "contextKo": "I dropped out of school yesterday.",
-      "tensionPoint": "저만 이런 건가요ㅋ",
+      "tensionPoint": "경험 있는 분 있으면 알려주세요",
       "possibleAngles": [
-        "주의점",
+        "꿀팁",
         "개인 경험",
         "추천"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.5783932789351851,
+      "freshnessScore": 0.5776684456018518,
       "sourceUrl": "https://pixelfed.social/p/HopeTheHopeless/944860624401511321",
       "rawTitle": "I dropped out of school yesterday."
     },
@@ -1848,16 +1854,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "Neue Monatsziele für April 202",
       "contextKo": "Neue Monatsziele für April 2026 und weitere Events in Pokémon Café ReMix Crimanzo kann über den neue",
-      "tensionPoint": "좀 고민이 되네요",
+      "tensionPoint": "경험 있는 분 있으면 알려주세요",
       "possibleAngles": [
+        "비슷한 사례",
         "추천",
-        "개인 경험",
-        "비슷한 사례"
+        "개인 경험"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.5715979652777777,
+      "freshnessScore": 0.5708731319444444,
       "sourceUrl": "https://mastodon.social/@bisafans/116327924094777922",
       "rawTitle": "Neue Monatsziele für April 2026 und weitere Events in Pokémon Café ReMix Crimanz"
     },
@@ -1866,16 +1872,16 @@
       "reactionType": "general_reaction",
       "subjectKo": "♬ Hymn of Human Light 2: https",
       "contextKo": "♬ Hymn of Human Light 2: https:// suno.com/song/e7f3aa31-4e61-46 f3-a5b9-2204a386a6d7 🆙 # game # ch",
-      "tensionPoint": "의견 좀 들어보고 싶어서요",
+      "tensionPoint": "좀 고민이 되네요",
       "possibleAngles": [
-        "비슷한 사례",
         "개인 경험",
-        "꿀팁"
+        "추천",
+        "주의점"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.5540436145833334,
+      "freshnessScore": 0.55331878125,
       "sourceUrl": "https://mastodon.social/@Gharrhome/116326930112344102",
       "rawTitle": "♬ Hymn of Human Light 2: https:// suno.com/song/e7f3aa31-4e61-46 f3-a5b9-2204a38"
     },
@@ -1886,14 +1892,14 @@
       "contextKo": "♬ Forest of Eternal Return: https:// suno.com/song/31848301-887d-48 d6-aa8a-cfe2d12217c5 🦊 # Fox 🆙",
       "tensionPoint": "경험 있는 분 있으면 알려주세요",
       "possibleAngles": [
-        "꿀팁",
+        "비슷한 사례",
         "개인 경험",
-        "추천"
+        "꿀팁"
       ],
       "categoryTags": [
         "fashion"
       ],
-      "freshnessScore": 0.5531112592592593,
+      "freshnessScore": 0.5523864259259259,
       "sourceUrl": "https://mastodon.social/@Gharrhome/116326877319163660",
       "rawTitle": "♬ Forest of Eternal Return: https:// suno.com/song/31848301-887d-48 d6-aa8a-cfe2"
     }
