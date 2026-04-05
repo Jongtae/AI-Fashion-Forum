@@ -7,6 +7,7 @@ import {
 import {
   createMockNormalizedContentBundle,
   createSprint1StarterPackBundle,
+  createWorldEventSignalBundle,
 } from "./content-pipeline.js";
 
 export const CHROMA_COLLECTION_DEFINITIONS = Object.freeze([
@@ -112,6 +113,18 @@ function scoreCandidateForAgent(agentState, contentRecord, socialProofByTopic, r
   )
     ? 0.18
     : 0;
+  const isWorldEventSignal = contentRecord.source_metadata?.origin === "world_event_signal";
+  const worldEventFreshness = Number(contentRecord.source_metadata?.relevance_signals?.freshnessScore || 0);
+  const worldEventTriggers = Array.isArray(contentRecord.source_metadata?.agent_hooks?.detectionTriggers)
+    ? contentRecord.source_metadata.agent_hooks.detectionTriggers
+    : [];
+  const worldEventBoost = isWorldEventSignal
+    ? 0.08 +
+      worldEventFreshness * 0.1 +
+      (worldEventTriggers.includes("format:question") ? 0.07 : 0) +
+      (worldEventTriggers.includes("format:comparison") ? 0.05 : 0) +
+      (worldEventTriggers.includes("social:high-signal") ? 0.04 : 0)
+    : 0;
 
   const archetypeAdjustments = {
     quiet_observer: affinity * 0.08 + calmSignal - controversyPenalty * 0.22,
@@ -138,6 +151,7 @@ function scoreCandidateForAgent(agentState, contentRecord, socialProofByTopic, r
     controversy * 0.16 +
     calmSignal * 0.08 -
     controversyPenalty * 0.14 +
+    worldEventBoost +
     (archetypeAdjustments[agentState.archetype] || 0);
 
   return {
@@ -146,6 +160,7 @@ function scoreCandidateForAgent(agentState, contentRecord, socialProofByTopic, r
     novelty: Number(novelty.toFixed(4)),
     social_proof: Number(socialProof.toFixed(4)),
     controversy: Number(controversy.toFixed(4)),
+    world_event_boost: Number(worldEventBoost.toFixed(4)),
   };
 }
 
@@ -153,7 +168,14 @@ export async function createIndexableContentCorpus({ targetCount = 120 } = {}) {
   const providerBundle = await createMockNormalizedContentBundle({
     startTick: SAMPLE_CONTENT_RECORDS.length,
   });
-  const baseCorpus = [...SAMPLE_CONTENT_RECORDS, ...providerBundle.normalizedRecords];
+  const worldEventBundle = await createWorldEventSignalBundle({
+    startTick: SAMPLE_CONTENT_RECORDS.length + providerBundle.normalizedRecords.length,
+  });
+  const baseCorpus = [
+    ...SAMPLE_CONTENT_RECORDS,
+    ...providerBundle.normalizedRecords,
+    ...(worldEventBundle?.normalizedRecords || []),
+  ];
 
   return Array.from({ length: targetCount }, (_, index) =>
     createDerivedRecord(baseCorpus[index % baseCorpus.length], index),
