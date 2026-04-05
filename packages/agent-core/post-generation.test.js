@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import * as assert from "node:assert";
 import {
+  buildReadablePostTitle,
   createLiveCommentDraft,
   createLivePostDraft,
   createRunPostDraft,
@@ -62,8 +63,8 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
   assert.notStrictEqual(draftTwo.title, draftTwo.content);
   assert.doesNotMatch(draftOne.title, /quiet office outfit/i);
   assert.doesNotMatch(draftTwo.title, /quiet office outfit/i);
-  assert.match(draftOne.title, /이거|어떻게 보세요|뭐가 더 나을까|후기|궁금해요|얘기 좀 해요|생각|어디가 걸렸어요|다들 어떻게 봐요|반응은 어때요|느낌이 달라요/);
-  assert.match(draftTwo.title, /이거|어떻게 보세요|뭐가 더 나을까|후기|궁금해요|얘기 좀 해요|생각|어디가 걸렸어요|다들 어떻게 봐요|반응은 어때요|느낌이 달라요/);
+  assert.match(draftOne.title, /이거|어떻게 보세요|뭐가 더 나을까|후기|궁금해요|얘기 좀 해요|얘기$|생각|어디가 걸렸어요|어디가 걸려요|다들 어떻게 봐요|반응은 어때요|느낌이 달라요|어디서 갈려요|중 어디가 더 세게 남아요/);
+  assert.match(draftTwo.title, /이거|어떻게 보세요|뭐가 더 나을까|후기|궁금해요|얘기 좀 해요|얘기$|생각|어디가 걸렸어요|어디가 걸려요|다들 어떻게 봐요|반응은 어때요|느낌이 달라요|어디서 갈려요|중 어디가 더 세게 남아요/);
   assert.doesNotMatch(draftOne.title, /붙든|체크한|멈춘|메모한|스크롤/);
   assert.doesNotMatch(draftTwo.title, /붙든|체크한|멈춘|메모한|스크롤/);
   assert.ok((draftOne.content.match(/[.!?]/g) || []).length >= 2);
@@ -462,8 +463,32 @@ test("createRunPostDraft produces varied titles across seeds", async () => {
   assert.ok(new Set(titles).size >= 4, titles.join(" | "));
   for (const title of titles) {
     assert.doesNotMatch(title, /[을를이가은는] 쪽/);
-    assert.doesNotMatch(title, /다들 이런 글 좋아하세요|보고 든 생각.*보고 든 생각|어떠세요를/);
+    assert.doesNotMatch(title, /다들 이런 글 좋아하세요|보고 든 생각.*보고 든 생각|어떠세요를|걸려요를/);
   }
+});
+
+test("buildReadablePostTitle avoids broad malformed topic-only hooks", () => {
+  const title = buildReadablePostTitle({
+    mode: "run",
+    sourceTitle: "♬ Forest of Eternal Return: https://example.com",
+    sourceTopics: ["fashion", "office_style"],
+    sourceIntent: "observation",
+    selectedContextLabel: "출근 전",
+    variationSeed: 7,
+    sourceAnchorTerms: [
+      "패션과 오피스 스타일 보고 어디가 걸렸어요",
+      "패션과 오피스 스타일 쪽을 어떻게 읽을지부터 남아요",
+      "패션과 오피스 스타일 관련 얘기예요",
+      "패션과 오피스 스타일",
+      "패션과 오피스 스타일 기준은 사람마다 다를 것 같아요",
+      "패션",
+      "오피스 스타일",
+    ],
+  });
+
+  assert.doesNotMatch(title, /관련 글|관련 신호|기준은 사람마다 다를 것 같아요|얘기는 보는 포인트가 갈릴 수 있어요/);
+  assert.doesNotMatch(title, /어때요를|보세요를|걸려요를|([가-힣]+)(은 어|와 [가-힣]+은 어)/);
+  assert.doesNotMatch(title, /^패션과 오피스 스타일(?:을 어떻게 보세요| 얘기 요즘 어디서 갈려요| 같이 보면 뭐가 먼저 보여요| 보고 어디가 걸렸어요)?$/);
 });
 
 test("createRunPostDraft avoids collapsing most titles into abstract framing", async () => {

@@ -22,6 +22,31 @@ const LOCAL_SOURCE_TITLE_PATTERNS = [
   { pattern: /\bstyle\b/gi, label: "스타일" },
 ];
 
+const GENERIC_COMMUNITY_TITLE_TERMS = new Set([
+  "패션",
+  "스타일",
+  "일상",
+  "오피스",
+  "오피스 스타일",
+  "가격",
+  "색감",
+  "레이어링",
+  "하의",
+  "팬츠",
+  "댓글",
+  "반응",
+  "경험",
+  "디테일",
+  "부분",
+  "글",
+  "얘기",
+  "기준",
+  "포인트",
+  "이유",
+  "신호",
+  "사진",
+]);
+
 function pickBySeed(items = [], seed = 0) {
   if (!items.length) {
     return null;
@@ -47,6 +72,73 @@ function extractLocalizedSourceTitleTerms(value = "") {
     normalized.match(pattern) ? [label] : []
   ));
   return [...new Set(matches)];
+}
+
+function isDiscardableCommunityTitle(value = "") {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return true;
+  }
+
+  return (
+    PURE_META_TITLE_PATTERN.test(normalized) ||
+    /([가-힣]+)(은 어|와 [가-힣]+은 어)/.test(normalized) ||
+    /기준은 사람마다 다를 것 같아요|얘기는 보는 포인트가 갈릴 수 있어요/.test(normalized) ||
+    /관련 글|관련 신호/.test(normalized) ||
+    /어때요를|보세요를|걸려요를/.test(normalized)
+  );
+}
+
+function isBroadTopicOnlyTitle(value = "", sourceTopics = []) {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return true;
+  }
+
+  const localizedTopics = uniqueNormalizedList(
+    (Array.isArray(sourceTopics) ? sourceTopics : []).map(localizeTopicLabel),
+  );
+  const topicPair = joinKoreanTopicList(localizedTopics.slice(0, 2));
+  const stripped = normalized
+    .replace(/[?？]/g, "")
+    .replace(
+      /(얘기 좀 해요|어떻게 보세요|는 어떻게 보세요|은 어떻게 보세요|중 뭐가 더 나을까|중 어디가 더 세게 남아요|같이 보면 뭐가 먼저 보여요|보고 어디가 걸렸어요|부터 보면 어디가 걸려요|까지 보면 느낌이 달라요|까지 보면 뭐가 먼저 남아요|보면 먼저 떠오르는 쪽|반응은 어때요|쪽 후기 있으세요|얘기 요즘 어디서 갈려요|요즘 어디서 갈려요|먼저 보인 이유)$/u,
+      "",
+    )
+    .replace(/[은는이가을를와과]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!stripped || localizedTopics.includes(normalized) || normalized === topicPair) {
+    return true;
+  }
+
+  const tokens = stripped
+    .split(/\s+/)
+    .map((token) => normalizeText(token))
+    .filter(Boolean);
+
+  if (!tokens.length) {
+    return true;
+  }
+
+  const meaningfulTokens = tokens.filter((token) => !GENERIC_COMMUNITY_TITLE_TERMS.has(token));
+  return meaningfulTokens.length === 0;
+}
+
+function filterCommunityAnchorTerms(values = [], sourceTopics = []) {
+  return uniqueNormalizedList(values).filter((value) => {
+    if (!value) {
+      return false;
+    }
+    if (isDiscardableCommunityTitle(value)) {
+      return false;
+    }
+    if (value.length > 40 && !/[?？]/.test(value)) {
+      return false;
+    }
+    return !isBroadTopicOnlyTitle(value, sourceTopics);
+  });
 }
 
 function localizeSourceTitle(value = "", sourceTopics = [], sourceIntent = "") {
@@ -105,7 +197,19 @@ function localizeSourceTitle(value = "", sourceTopics = [], sourceIntent = "") {
     return sourceTopics.length > 1 ? `${topicPair} 관련 글` : `${primaryTopic} 관련 글`;
   }
 
-  return sanitizeForumLanguage(normalized);
+  const sanitized = sanitizeForumLanguage(normalized);
+  if (isDiscardableCommunityTitle(sanitized)) {
+    const localizedTerms = extractLocalizedSourceTitleTerms(sanitized);
+    if (localizedTerms.length >= 2) {
+      return joinKoreanTopicList(localizedTerms.slice(0, 2));
+    }
+    if (localizedTerms.length === 1) {
+      return localizedTerms[0];
+    }
+    return sourceTopics.length > 1 ? topicPair : primaryTopic;
+  }
+
+  return sanitized;
 }
 
 function sanitizeForumLanguage(value = "") {
@@ -833,6 +937,9 @@ const RUN_TITLE_HOOKS = [
       "출근 전에 손이 갈지 본 글",
       "아침 일정에 넣어본 조합",
       "바로 입을지부터 따져본 글",
+      "출근 전에 뭐부터 볼지 갈린 글",
+      "아침 거울 앞에서 다시 보게 된 쪽",
+      "출근 전에 바로 고르긴 애매한 글",
     ],
   },
   {
@@ -844,6 +951,9 @@ const RUN_TITLE_HOOKS = [
       "처음 느낌을 바꾼 단서",
       "첫인상보다 뒤가 남는 글",
       "다시 보니 달라진 지점",
+      "첫 컷보다 설명이 더 남는 글",
+      "처음보다 두 번째가 센 글",
+      "첫 느낌이 바로 안 끝난 글",
     ],
   },
   {
@@ -855,6 +965,9 @@ const RUN_TITLE_HOOKS = [
       "값 붙자마자 보인 차이",
       "장바구니 전에 걸린 지점",
       "비싸도 남는지 체크한 글",
+      "가격 보자마자 마음이 갈린 글",
+      "결제 전에 다시 손이 멈춘 글",
+      "예뻐도 가격에서 다시 보게 된 글",
     ],
   },
   {
@@ -866,6 +979,9 @@ const RUN_TITLE_HOOKS = [
       "대화가 붙자마자 커진 글",
       "반응 때문에 다시 읽은 부분",
       "댓글 한 줄이 바꾼 해석",
+      "댓글 보고 결이 달라진 글",
+      "반응 붙고 분위기가 바뀐 글",
+      "댓글 한 줄 때문에 다시 본 글",
     ],
   },
   {
@@ -877,6 +993,9 @@ const RUN_TITLE_HOOKS = [
       "디테일 때문에 다시 본 부분",
       "작은 요소가 더 센 글",
       "마감 하나로 달라진 인상",
+      "자잘한 차이가 계속 걸리는 글",
+      "디테일 하나로 결이 갈린 글",
+      "작은 포인트가 더 크게 남는 글",
     ],
   },
   {
@@ -888,12 +1007,16 @@ const RUN_TITLE_HOOKS = [
       "내 경험이 바로 겹친 부분",
       "전에 샀던 옷이 떠오른 글",
       "내 기억 때문에 다시 본 글",
+      "예전에 입던 감각이 바로 붙은 글",
+      "내 실패담이 먼저 떠오른 글",
+      "내 옷장 기준으로 다시 보게 된 글",
     ],
   },
 ];
 
 const ABSTRACT_TITLE_PATTERN = /(일상|기준|이유|포인트)/g;
-const META_TITLE_PATTERN = /(두고 다시 읽은 말|관련 신호|먼저 보인 내용|다시 보게 된 이유|다시 읽은 기준|오래 남는 이유|다시 멈춰 본 부분|다시 열어본 부분)/;
+const META_TITLE_PATTERN = /(두고 다시 읽은 말|관련 신호|관련 글|먼저 보인 내용|다시 보게 된 이유|다시 읽은 기준|오래 남는 이유|다시 멈춰 본 부분|다시 열어본 부분|기준은 사람마다 다를 것 같아요|얘기는 보는 포인트가 갈릴 수 있어요)/;
+const PURE_META_TITLE_PATTERN = /^(두고 다시 읽은 말|관련 신호|관련 글|먼저 보인 내용|다시 보게 된 이유|다시 읽은 기준|오래 남는 이유|다시 멈춰 본 부분|다시 열어본 부분|기준은 사람마다 다를 것 같아요|얘기는 보는 포인트가 갈릴 수 있어요)$/;
 
 const COMMENT_TITLE_HOOKS = [
   {
@@ -976,20 +1099,29 @@ export function buildReadablePostTitle({
   variationSeed = 0,
   sourceIntent = "",
   sourceAnchorTerms = [],
+  comparisonTitles = [],
+  populationSignals = null,
 } = {}) {
-  const isHookLikeAnchor = (value = "") => /(?:어떻게 보세요|이거 어떠세요|보고 든 생각|얘기 좀 해요|반응은 어때요|다들 어떻게 봐요|어디가 걸렸어요|어디서 갈려요|먼저 보인 이유|후기 있으세요|느낌이 달라요)/.test(value);
+  const isHookLikeAnchor = (value = "") => /(?:어떻게 보세요|이거 어떠세요|보고 든 생각|얘기 좀 해요|반응은 어때요|다들 어떻게 봐요|다들 어디가 먼저 보여요|어디가 걸렸어요|어디가 걸려요|어디서 갈려요|먼저 보인 이유|먼저 걸린 부분|먼저 남은 쪽|어디부터 다시 보세요|후기 있으세요|느낌이 달라요)/.test(value);
   const normalizedTopics = uniqueNormalizedList((Array.isArray(sourceTopics) ? sourceTopics : []).map(localizeTopicLabel));
-  const compactAnchors = uniqueNormalizedList(sourceAnchorTerms).filter((term) => (
+  const sanitizedSourceAnchors = filterCommunityAnchorTerms(sourceAnchorTerms, normalizedTopics);
+  const compactAnchors = sanitizedSourceAnchors.filter((term) => (
     isKoreanDominant(term) &&
     term.length <= 28 &&
     !/[?？]/.test(term) &&
-    !/(어떻게|뭐가|궁금|나을까|보여요|보게 돼요|갈릴 것 같아요|이거 어떠세요|보고 든 생각|얘기 좀 해요|반응은 어때요|다들 어떻게 봐요|어디가 걸렸어요|어디서 갈려요|먼저 보인 이유|후기 있으세요|느낌이 달라요)/.test(term) &&
-    !/(관련 얘기예요|기준은 사람마다|얘기는 보는 포인트가 갈릴 수 있어요|기준을 다시 보게 돼요)$/.test(term) &&
-    !META_TITLE_PATTERN.test(term)
+    !/(어떻게|뭐가|궁금|나을까|보여요|보게 돼요|갈릴 것 같아요|이거 어떠세요|보고 든 생각|얘기 좀 해요|반응은 어때요|다들 어떻게 봐요|어디가 걸렸어요|어디가 걸려요|어디서 갈려요|먼저 보인 이유|후기 있으세요|느낌이 달라요)/.test(term) &&
+    !/(관련 얘기예요|관련 글|기준은 사람마다|기준은 사람마다 다를 것 같아요|얘기는 보는 포인트가 갈릴 수 있어요|기준을 다시 보게 돼요)/.test(term) &&
+    !PURE_META_TITLE_PATTERN.test(term)
   ));
   const normalizedAnchors = compactAnchors.length
     ? compactAnchors
-    : uniqueNormalizedList(sourceAnchorTerms).filter((term) => isKoreanDominant(term) && !META_TITLE_PATTERN.test(term));
+    : sanitizedSourceAnchors.filter((term) => (
+      isKoreanDominant(term) &&
+      !PURE_META_TITLE_PATTERN.test(term) &&
+      !/(관련 글|관련 얘기예요|기준은 사람마다 다를 것 같아요|얘기는 보는 포인트가 갈릴 수 있어요)/.test(term)
+    ));
+  const specificAnchors = normalizedAnchors.filter((term) => !isBroadTopicOnlyTitle(term, normalizedTopics));
+  const hasSpecificAnchor = specificAnchors.length > 0;
   const primaryAnchor = normalizedAnchors[0] || "";
   const secondaryAnchor = normalizedAnchors[1] || primaryAnchor;
   const cleanPrimaryAnchor = isHookLikeAnchor(primaryAnchor) ? "" : primaryAnchor;
@@ -1002,10 +1134,20 @@ export function buildReadablePostTitle({
   const secondaryTopicObject = attachKoreanParticle(secondaryTopic, "object");
   const primaryAnchorObject = attachKoreanParticle(cleanPrimaryAnchor, "object");
   const contextLabel = normalizeText(selectedContext?.contextLabel || selectedContextLabel);
+  const contextHookTitles = (
+    mode === "comment"
+      ? COMMENT_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel)?.titles
+      : RUN_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel)?.titles
+  ) || [];
   const signal = sanitizeForumLanguage(sourceSignal);
   const localizedSourceTitle = localizeSourceTitle(sourceTitle, sourceTopics, sourceIntent);
+  const canUseLocalizedSourceTitle = Boolean(
+    localizedSourceTitle &&
+    !isDiscardableCommunityTitle(localizedSourceTitle) &&
+    !isBroadTopicOnlyTitle(localizedSourceTitle, normalizedTopics),
+  );
   const referenceText = [
-    localizedSourceTitle,
+    canUseLocalizedSourceTitle ? localizedSourceTitle : null,
     sanitizeForumLanguage(sourceSnippet),
     sanitizeForumLanguage(sourceBody),
     sanitizeForumLanguage(selectedContext?.content),
@@ -1013,6 +1155,8 @@ export function buildReadablePostTitle({
   ]
     .filter(Boolean)
     .join(" ");
+  const normalizedComparisonTitles = uniqueNormalizedList(comparisonTitles);
+  const generatedTitleCounts = populationSignals?.titleCounts instanceof Map ? populationSignals.titleCounts : null;
 
   const pool = [];
   const priorityTitles = [];
@@ -1020,8 +1164,10 @@ export function buildReadablePostTitle({
     const normalized = shortenHookTitle(candidate, 28);
     if (!normalized) return "";
     if (/두고 다시 읽은 말.*두고 다시 읽은 말/.test(normalized)) return "";
-    if (/어때요를|보세요를|생각을 보고 든 생각/.test(normalized)) return "";
+    if (/어때요를|보세요를|생각을 보고 든 생각|걸려요를/.test(normalized)) return "";
+    if (/[을를이가은는] 쪽$/.test(normalized)) return "";
     if (normalized.length <= 4) return "";
+    if (/^(이거 어떻게 보세요|다들 어떻게 보세요)$/.test(normalized)) return "";
     if (/^다시 멈춰 본 부분(?:을 .+)?$/.test(normalized)) return "";
     if (/^다시 열어본 부분$/.test(normalized)) return "";
     if (/붙든 글|체크한 글|메모한 지점|멈춘 지점|다시 체크한 단서|시선이 간 글/.test(normalized)) return "";
@@ -1034,19 +1180,20 @@ export function buildReadablePostTitle({
 
   if (sourceIntent === "question") {
     priorityTitles.push(
-      localizedSourceTitle && localizedSourceTitle.length <= 36 ? localizedSourceTitle : null,
+      canUseLocalizedSourceTitle && localizedSourceTitle.length <= 36 ? localizedSourceTitle : null,
       cleanPrimaryAnchor ? `${cleanPrimaryAnchor}은 어떻게 보여요?` : null,
       cleanPrimaryAnchor && cleanSecondaryAnchor && cleanPrimaryAnchor !== cleanSecondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
-      `${topicPair} 중 뭐가 더 나을까?`,
-      `${primaryTopic}은 어떻게 보세요?`,
+      hasSpecificAnchor ? `${topicPair} 중 뭐가 더 나을까?` : null,
+      hasSpecificAnchor ? `${primaryTopic}은 어떻게 보세요?` : null,
     );
   } else if (sourceIntent === "comparison") {
     priorityTitles.push(
+      canUseLocalizedSourceTitle && localizedSourceTitle.length <= 40 ? localizedSourceTitle : null,
       cleanPrimaryAnchor && cleanSecondaryAnchor && cleanPrimaryAnchor !== cleanSecondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
-      `${topicPair} 중 뭐가 더 나을까?`,
+      hasSpecificAnchor ? `${topicPair} 중 뭐가 더 나을까?` : null,
       cleanPrimaryAnchor ? `${primaryAnchorObject} 비교해본 이유` : null,
-      `${topicPair}을 같이 비교한 이유`,
-      `${topicPair} 비교에서 갈리는 지점`,
+      hasSpecificAnchor ? `${topicPair}을 같이 비교한 이유` : null,
+      hasSpecificAnchor ? `${topicPair} 비교에서 갈리는 지점` : null,
     );
   } else if (sourceIntent === "controversy") {
     priorityTitles.push(
@@ -1057,24 +1204,24 @@ export function buildReadablePostTitle({
     );
   } else if (sourceIntent === "fact") {
     priorityTitles.push(
-      localizedSourceTitle && localizedSourceTitle.length <= 48 ? localizedSourceTitle : null,
+      canUseLocalizedSourceTitle && localizedSourceTitle.length <= 48 ? localizedSourceTitle : null,
       cleanPrimaryAnchor ? `${cleanPrimaryAnchor} 얘기에서 먼저 보인 것` : null,
       `${topicPair} 관련 신호`,
       `${primaryTopic}에서 먼저 보인 내용`,
     );
   } else if (sourceIntent === "reason") {
     priorityTitles.push(
-      localizedSourceTitle && isKoreanDominant(localizedSourceTitle) && localizedSourceTitle.length <= 34 ? localizedSourceTitle : null,
+      canUseLocalizedSourceTitle && isKoreanDominant(localizedSourceTitle) && localizedSourceTitle.length <= 34 ? localizedSourceTitle : null,
       cleanPrimaryAnchor && cleanPrimaryAnchor.length >= 6 && cleanPrimaryAnchor.length <= 34 ? cleanPrimaryAnchor : null,
       cleanPrimaryAnchor && !/이유$/.test(cleanPrimaryAnchor) ? `${primaryAnchorObject} 보고 든 생각` : null,
-      `${primaryTopic} 이거 어떠세요?`,
+      hasSpecificAnchor ? `${primaryTopic} 이거 어떠세요?` : null,
     );
   } else if (sourceIntent === "discussion" || sourceIntent === "observation") {
     priorityTitles.push(
-      localizedSourceTitle && isKoreanDominant(localizedSourceTitle) && localizedSourceTitle.length <= 34 ? localizedSourceTitle : null,
+      canUseLocalizedSourceTitle && isKoreanDominant(localizedSourceTitle) && localizedSourceTitle.length <= 34 ? localizedSourceTitle : null,
       cleanPrimaryAnchor && cleanPrimaryAnchor.length >= 6 && cleanPrimaryAnchor.length <= 34 ? cleanPrimaryAnchor : null,
       cleanPrimaryAnchor ? `${primaryAnchorObject} 어떻게 보세요?` : null,
-      `${primaryTopic} 얘기 좀 해요`,
+      hasSpecificAnchor ? `${primaryTopic} 얘기 좀 해요` : null,
     );
   }
 
@@ -1101,23 +1248,28 @@ export function buildReadablePostTitle({
     );
   } else {
     const hookSet = RUN_TITLE_HOOKS.find((entry) => entry.contextLabel === contextLabel) || null;
+    const allowTopicQuestionPool = hasSpecificAnchor || sourceIntent === "question" || sourceIntent === "comparison";
     pool.push(...priorityTitles);
     pool.push(...(hookSet?.titles || []));
     pool.push(
-      localizedSourceTitle && localizedSourceTitle.length <= 28 ? localizedSourceTitle : null,
-      `${primaryTopic} 쪽은 다들 어떻게 봐요?`,
-      `${secondaryTopic}까지 보면 느낌이 달라요?`,
-      `이거 어떻게 보세요?`,
-      `${primaryTopicObject} 먼저 보인 이유`,
-      `${secondaryTopic} 쪽 반응은 어때요?`,
-      `${contextLabel || "이번 글"}이면 어디부터 보세요?`,
-      `${contextLabel || "이번 글"}에서 먼저 걸린 부분`,
-      `${primaryTopic} 쪽 후기 있으세요?`,
-      `${primaryTopic} 얘기 어디서 갈려요?`,
-      `${topicPair} 같이 보면 뭐가 먼저 보여요?`,
-      `${contextLabel || "이번 글"}에서 다들 어디가 먼저 보여요?`,
-      `${topicPair} 보고 어디가 걸렸어요?`,
-      `${topicPair} 얘기 요즘 어디서 갈려요?`,
+      canUseLocalizedSourceTitle && localizedSourceTitle.length <= 28 ? localizedSourceTitle : null,
+      allowTopicQuestionPool ? `${primaryTopic} 쪽은 다들 어떻게 봐요?` : null,
+      allowTopicQuestionPool ? `${secondaryTopic}까지 보면 느낌이 달라요?` : null,
+      allowTopicQuestionPool ? `${primaryTopic}부터 보면 어디가 걸려요?` : null,
+      allowTopicQuestionPool ? `${secondaryTopic}까지 보면 뭐가 먼저 남아요?` : null,
+      allowTopicQuestionPool ? `${primaryTopicObject} 먼저 보인 이유` : null,
+      allowTopicQuestionPool ? `${secondaryTopic} 쪽 반응은 어때요?` : null,
+      contextLabel ? `${contextLabel}이면 어디부터 다시 보세요?` : null,
+      contextLabel ? `${contextLabel}에서 먼저 걸린 부분` : null,
+      contextLabel ? `${contextLabel}에서 먼저 남은 쪽` : null,
+      allowTopicQuestionPool ? `${primaryTopic} 쪽 후기 있으세요?` : null,
+      allowTopicQuestionPool ? `${primaryTopic} 얘기 어디서 갈려요?` : null,
+      allowTopicQuestionPool ? `${topicPair} 같이 보면 뭐가 먼저 보여요?` : null,
+      contextLabel ? `${contextLabel}에서 다들 어디가 먼저 보여요?` : null,
+      allowTopicQuestionPool ? `${topicPair} 보고 어디가 걸렸어요?` : null,
+      allowTopicQuestionPool ? `${topicPair} 얘기 요즘 어디서 갈려요?` : null,
+      allowTopicQuestionPool ? `${topicPair} 보면 먼저 떠오르는 쪽` : null,
+      allowTopicQuestionPool ? `${topicPair} 중 어디가 더 세게 남아요?` : null,
     );
   }
 
@@ -1127,18 +1279,18 @@ export function buildReadablePostTitle({
       "어떤 쪽이 더 나을까?",
       "다들 어떻게 보세요?",
       cleanPrimaryAnchor ? `${cleanPrimaryAnchor}은 어떻게 보여요?` : null,
-      `${primaryTopic}은 어떻게 보세요?`,
-      `${topicPair} 중 뭐가 더 나을까?`,
+      hasSpecificAnchor ? `${primaryTopic}은 어떻게 보세요?` : null,
+      hasSpecificAnchor ? `${topicPair} 중 뭐가 더 나을까?` : null,
     );
   } else if (sourceIntent === "comparison") {
     pool.push(
       cleanPrimaryAnchor && cleanSecondaryAnchor && cleanPrimaryAnchor !== cleanSecondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
-      `${joinKoreanTopicList([primaryTopic, secondaryTopic])} 중 뭐가 더 나을까?`,
+      hasSpecificAnchor ? `${joinKoreanTopicList([primaryTopic, secondaryTopic])} 중 뭐가 더 나을까?` : null,
       "둘 중 어느 쪽이 더 먼저 보이나요?",
       "비교해보면 결이 갈려요",
       "어느 쪽이 더 자연스러워 보이나요?",
-      `${topicPair} 비교에서 갈리는 지점`,
-      `${topicPair}을 같이 비교한 이유`,
+      hasSpecificAnchor ? `${topicPair} 비교에서 갈리는 지점` : null,
+      hasSpecificAnchor ? `${topicPair}을 같이 비교한 이유` : null,
     );
   } else if (sourceIntent === "controversy") {
     pool.push(
@@ -1156,18 +1308,18 @@ export function buildReadablePostTitle({
     );
   }
 
-  if (contextLabel) {
+  if (contextLabel && contextLabel !== "이번 글" && contextLabel !== "댓글") {
     if (mode === "comment") {
       pool.push(
-        `${contextLabel}에서 다시 읽은 말`,
-        `${contextLabel}로 이어진 한 줄`,
-        `${contextLabel}에서 남은 짧은 생각`,
+        `${contextLabel}에서 더 묻게 된 부분`,
+        `${contextLabel}에서 말 얹고 싶은 지점`,
+        `${contextLabel}에서 반응 갈린 한 줄`,
       );
     } else {
       pool.push(
-        `${contextLabel}에서 멈춘 지점`,
-        `${contextLabel}로 다시 체크한 부분`,
-        `${contextLabel}에서 다시 열린 장면`,
+        `${contextLabel}에 맞춰 다시 본 글`,
+        `${contextLabel}에선 뭐가 먼저 남아요`,
+        `${contextLabel}에선 어느 쪽이 더 세게 남아요`,
       );
     }
   }
@@ -1195,6 +1347,8 @@ export function buildReadablePostTitle({
     const containsFact = /기사|보도|발표|커버|사진|설명|내용|단서|반응|가격표|장바구니|소매|길이|댓글/.test(normalized);
     const containsMetaFrame = /다시 멈춰 본 부분|다시 열어본 부분|멈춘 장면|메모한 지점|체크한 단서|스크롤 멈춘 지점/.test(normalized);
     const referencePenalty = referenceText ? jaccardSimilarity(normalized, referenceText) * 0.2 : 0;
+    const recentTitleCount = normalizedComparisonTitles.filter((title) => title === normalized).length;
+    const populationTitleCount = generatedTitleCounts ? Number(generatedTitleCounts.get(normalized) || 0) : 0;
 
     let score = 1;
     if (containsPrimaryAnchor) score += 2.2;
@@ -1208,8 +1362,17 @@ export function buildReadablePostTitle({
     if (META_TITLE_PATTERN.test(normalized)) score -= 2.2;
     if (/붙든 글|체크한 글|메모한 지점|멈춘 지점|다시 체크한 단서|시선이 간 글/.test(normalized)) score -= 4;
     if (/보고 든 생각.*보고 든 생각|어떠세요.*어떻게 보세요/.test(normalized)) score -= 4;
+    if (/^(이거 어떻게 보세요|다들 어떻게 보세요)$/.test(normalized)) score -= 5;
+    if (/쪽은 다들 어떻게 봐요|쪽 반응은 어때요|쪽 후기 있으세요/.test(normalized)) score -= 1.8;
+    if (/느낌이 달라요\?$/.test(normalized)) score -= 1.2;
+    if (/관련 신호|관련 글|얘기$/.test(normalized)) score -= 1.8;
+    if (/기준은 사람마다 다를 것 같아요|얘기는 보는 포인트가 갈릴 수 있어요/.test(normalized)) score -= 5;
+    if (normalized === topicPair || normalized === primaryTopic || normalized === secondaryTopic) score -= 3;
     if (/^(이번 글|이 글)/.test(normalized)) score -= 1.4;
     if (/얘기$/.test(normalized)) score -= 0.9;
+    if (isBroadTopicOnlyTitle(normalized, normalizedTopics)) score -= 2.4;
+    score -= recentTitleCount * 1.6;
+    score -= Math.max(0, populationTitleCount) * 2.2;
 
     if (sourceIntent === "question" && containsQuestion) score += 1.1;
     if (sourceIntent === "comparison" && containsComparison) score += 1.1;
@@ -1247,12 +1410,28 @@ export function buildReadablePostTitle({
   }
 
   if (!candidates.length) {
-    return shortenHookTitle(
+    const fallbackTitles = uniqueNormalizedList(
       mode === "comment"
-        ? "댓글이 남긴 작은 포인트"
-        : "다시 멈춰 본 장면",
-      28,
-    );
+        ? [
+            cleanPrimaryAnchor ? `${cleanPrimaryAnchor}은 어떻게 보여요?` : null,
+            "이 부분은 어떻게 보세요?",
+            "댓글 반응은 어때요",
+            "한마디 얹고 싶은 글",
+          ]
+        : [
+            ...(contextHookTitles || []),
+            sourceIntent === "question" ? "이 조합 괜찮을까" : null,
+            sourceIntent === "comparison" ? "어떤 쪽이 더 나을까" : null,
+            cleanPrimaryAnchor ? `${cleanPrimaryAnchor}은 어떻게 보여요?` : null,
+            `${primaryTopic} 얘기 어디서 갈려요`,
+            `${primaryTopic} 쪽 후기 있으세요`,
+            `${primaryTopic}부터 보면 어디가 걸려요`,
+          ],
+    )
+      .map((candidate) => normalizeTitleCandidate(candidate))
+      .filter(Boolean);
+
+    return pickBySeed(fallbackTitles, selectionSeed) || (mode === "comment" ? "이 부분은 어떻게 보세요?" : "이 조합 괜찮을까");
   }
 
   const ranked = candidates
@@ -1268,7 +1447,7 @@ export function buildReadablePostTitle({
       return left.index - right.index;
     });
 
-  const shortlist = ranked.slice(0, Math.min(6, ranked.length));
+  const shortlist = ranked.slice(0, Math.min(10, ranked.length));
   const index = Math.abs(selectionSeed) % shortlist.length;
   return shortlist[index]?.candidate || ranked[0]?.candidate || candidates[0];
 }
@@ -1576,7 +1755,7 @@ function buildFallbackContexts({
     .replace(/\s*(은 어떻게 보세요\?|는 어떻게 보세요\?|중 뭐가 더 나을까\?|쪽에서 의견이 갈릴 수 있어요|관련 신호)$/u, "")
     .replace(/[?？]+$/u, "")
     .trim() || sourceAnchorTitle;
-  const sourceAnchorTerms = uniqueNormalizedList([
+  const sourceAnchorTerms = filterCommunityAnchorTerms([
     ...(Array.isArray(incomingSourceAnchorTerms) ? incomingSourceAnchorTerms : []),
     sourceAnchorTitle,
     displayTitle,
@@ -1587,7 +1766,7 @@ function buildFallbackContexts({
     discussionAnchors.controversyAnchor,
     ...(Array.isArray(discussionAnchors.anchorTerms) ? discussionAnchors.anchorTerms : []),
     ...(Array.isArray(sourceTopics) ? sourceTopics.map(localizeTopicLabel) : []),
-  ]);
+  ], sourceTopics);
   const buildClaimLead = (contextLabelForClaim = "") => buildSourceClaimLead({
     sourceIntent: inferredIntent,
     sourceAnchorStem,
@@ -2277,9 +2456,9 @@ function buildPopulationRepetitionSignals(populationSignals = {}, noveltyInputs 
   const titleCount = titleCounts ? Number(titleCounts.get(noveltyInputs.title) || 0) : 0;
   const leadCount = leadCounts ? Number(leadCounts.get(noveltyInputs.contentLead) || 0) : 0;
   const frameCount = frameCounts ? Number(frameCounts.get(noveltyInputs.frameKey) || 0) : 0;
-  const titleFrequencyPenalty = clamp(Math.max(0, titleCount - 1) * 0.22);
-  const leadFrequencyPenalty = clamp(Math.max(0, leadCount - 1) * 0.18);
-  const frameFrequencyPenalty = clamp(Math.max(0, frameCount - 2) * 0.16);
+  const titleFrequencyPenalty = clamp(Math.max(0, titleCount) * 0.3);
+  const leadFrequencyPenalty = clamp(Math.max(0, leadCount - 1) * 0.2);
+  const frameFrequencyPenalty = clamp(Math.max(0, frameCount - 1) * 0.18);
 
   return {
     titleCount,
@@ -2386,6 +2565,8 @@ async function resolvePostDraftOnce({
   model,
   fetchImpl = globalThis.fetch,
   comparisonTexts = [],
+  comparisonTitles = [],
+  populationSignals = null,
   agentHandle,
   sourceTitle,
   sourceTopics,
@@ -2430,28 +2611,14 @@ async function resolvePostDraftOnce({
     body: sourceBody || sourceSnippet || "",
     topics: sourceTopics || [],
   });
-  const sourceAnchorTerms = uniqueNormalizedList([
-    buildReadablePostTitle({
-      mode,
-      sourceTitle,
-      sourceTopics,
-      sourceSignal: [sourceSignal, memorySignal].filter(Boolean).join(" / "),
-      sourceSnippet,
-      sourceBody,
-      sourceCommentPreview,
-      selectedContext: null,
-      selectedContextLabel: null,
-      variationSeed,
-      sourceIntent,
-      sourceAnchorTerms: Array.isArray(discussionAnchors.anchorTerms) ? discussionAnchors.anchorTerms : [],
-    }),
+  const sourceAnchorTerms = filterCommunityAnchorTerms([
     discussionAnchors.questionAnchor,
     discussionAnchors.factualAnchor,
     discussionAnchors.comparisonAnchor,
     discussionAnchors.controversyAnchor,
     ...(Array.isArray(discussionAnchors.anchorTerms) ? discussionAnchors.anchorTerms : []),
     ...(Array.isArray(sourceTopics) ? sourceTopics.map(localizeTopicLabel) : []),
-  ]);
+  ], sourceTopics);
   const fallbackPool = buildFallbackContexts({
     mode,
     agentHandle,
@@ -2486,6 +2653,8 @@ async function resolvePostDraftOnce({
     variationSeed,
     sourceIntent,
     sourceAnchorTerms,
+    comparisonTitles,
+    populationSignals,
   });
 
   if (!resolvedApiKey) {
@@ -2563,6 +2732,8 @@ async function resolvePostDraftOnce({
           variationSeed,
           sourceIntent,
           sourceAnchorTerms,
+          comparisonTitles,
+          populationSignals,
         }),
         content: sanitizedContent || selected?.content || fallbackPool[0]?.content || "",
         generationContext: buildGenerationContext({
@@ -2608,6 +2779,8 @@ async function resolvePostDraftOnce({
       variationSeed,
       sourceIntent,
       sourceAnchorTerms,
+      comparisonTitles,
+      populationSignals,
     }),
     content: sanitizedContent || selectedFallback?.content || "",
     generationContext: buildGenerationContext({
@@ -2685,7 +2858,7 @@ async function resolvePostDraft({
       rest.comparisonTitles || [],
       rest.populationSignals || null,
     );
-    const effectiveScore = clamp(quality.overall_score * 0.78 + novelty.noveltyScore * 0.22);
+    const effectiveScore = clamp(quality.overall_score * 0.68 + novelty.noveltyScore * 0.32);
     const metThreshold = effectiveScore >= gate.minScore;
 
     const detailedResult = {
