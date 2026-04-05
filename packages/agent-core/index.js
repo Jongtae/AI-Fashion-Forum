@@ -20,3 +20,4 @@ export * from "./trace-snapshot-contract.js";
 export * from "./evaluator-agent.js";
 export * from "./budget-tracker.js";
 export * from "./cross-exposure.js";
+export * from "./community-post-templates.js";
