@@ -1277,3 +1277,70 @@ test("createRunPostDraft spreads closing lines across seeds", async () => {
 
   assert.ok(endings.size >= 3, Array.from(endings).join(" | "));
 });
+
+test("createRunPostDraft uses discussion seed for compositional generation when no API key", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "fashionista_kr",
+      archetype: "trend_chaser",
+      interest_vector: { sneakers: 0.9, streetwear: 0.7 },
+    },
+    reactionRecord: {
+      meaning_frame: "price_check",
+      stance_signal: "curious",
+      dominant_feeling: "interested",
+    },
+    contentRecord: {
+      title: "나이키 에어맥스",
+      body: "신상 출시",
+      topics: ["sneakers"],
+    },
+    discussionSeed: {
+      subjectKo: "나이키 에어맥스 DN8",
+      contextKo: "4/5 출시, 189,000원",
+      tensionPoint: "전작보다 비싸졌는데 디자인은 좋아짐",
+      possibleAngles: ["가성비 분석", "실착 후기"],
+      reactionType: "price_reaction",
+      categoryTags: ["sneakers"],
+    },
+    variationSeed: 42,
+    apiKey: "",
+  });
+
+  // Should use discussion-seed path, not community-fallback
+  assert.equal(draft.generationContext?.source, "discussion-seed");
+  // Title should contain the actual product name
+  assert.ok(
+    draft.title.includes("에어맥스") || draft.title.includes("DN8") || draft.title.includes("나이키"),
+    `Title should reference the product: ${draft.title}`,
+  );
+  // Content should be Korean and reference actual fashion topics
+  assert.ok(draft.content.length > 30, `Content too short: ${draft.content}`);
+  assert.ok(
+    /[가-힣]/.test(draft.content),
+    `Content should be Korean: ${draft.content}`,
+  );
+});
+
+test("createRunPostDraft produces diverse titles across different discussion seeds", async () => {
+  const seeds = [
+    { subjectKo: "무신사 시즌오프", contextKo: "최대 70% 할인", tensionPoint: "정말 괜찮은 상품 남아있나", reactionType: "price_reaction", categoryTags: ["fashion", "sale"] },
+    { subjectKo: "연예인 공항패션", contextKo: "출국 공항에서 포착된 스타일", tensionPoint: "따라하면 현실은?", reactionType: "celebrity_reaction", categoryTags: ["celebrity"] },
+    { subjectKo: "와이드팬츠", contextKo: "실루엣 트렌드 변화", tensionPoint: "슬림핏 돌아오나", reactionType: "trend_reaction", categoryTags: ["fashion"] },
+    { subjectKo: "서울패션위크", contextKo: "시즌 패션위크 행사", tensionPoint: "올해 볼만한가", reactionType: "event_reaction", categoryTags: ["fashion"] },
+  ];
+  const titles = new Set();
+  for (const [i, ds] of seeds.entries()) {
+    const draft = await createRunPostDraft({
+      updatedAgent: { handle: "user_kr", archetype: "quiet_observer", interest_vector: { fashion: 0.8 } },
+      reactionRecord: { meaning_frame: "casual", stance_signal: "curious" },
+      contentRecord: { title: ds.subjectKo, topics: ds.categoryTags },
+      discussionSeed: ds,
+      variationSeed: i * 100,
+      apiKey: "",
+    });
+    titles.add(draft.title);
+    assert.equal(draft.generationContext?.source, "discussion-seed");
+  }
+  assert.ok(titles.size >= 3, `Expected at least 3 unique titles but got ${titles.size}: ${[...titles].join(" | ")}`);
+});

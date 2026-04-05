@@ -1,5 +1,5 @@
 import { classifySourceIntent, deriveDiscussionAnchors, scoreCommunityDraft } from "./content-quality.js";
-import { generateCommunityPost, generateCommunityComment } from "./community-post-templates.js";
+import { generateCommunityPost, generateCommunityComment, generateSignalReactivePost } from "./community-post-templates.js";
 import { requestLLMContexts, extractLLMResponseText, resolveLLMConfig, DEFAULT_CLAUDE_MODEL, DEFAULT_OPENAI_MODEL } from "./llm-gateway.js";
 
 const LOCAL_SOURCE_TITLE_PATTERNS = [
@@ -3379,6 +3379,8 @@ async function resolvePostDraftOnce({
   styleProfile = null,
   emotionProfile = null,
   memoryContext = null,
+  discussionSeed = null,
+  ...extraParams
 } = {}) {
   const llmConfig = resolveLLMConfig();
   const resolvedProvider = provider || llmConfig.provider;
@@ -3462,6 +3464,57 @@ async function resolvePostDraftOnce({
   });
 
   if (!resolvedApiKey) {
+    // ── Prefer compositional generation with discussion seeds ──────────
+    // When a discussion seed is available, use generatePost() which combines
+    // real Korean fashion topics with agent personality for diverse output.
+    // Falls back to old community template system only when no seed exists.
+    const resolvedDiscussionSeed = discussionSeed || extraParams?.discussionSeed || null;
+
+    if (resolvedDiscussionSeed && resolvedDiscussionSeed.subjectKo) {
+      const agentLike = {
+        archetype: agentProfile?.archetype || agentProfile?.seed_profile?.archetype || "quiet_observer",
+        interest_vector: agentProfile?.interest_vector || {},
+        handle: agentProfile?.handle || agentHandle || "agent",
+      };
+      const signalPost = generateSignalReactivePost({
+        seed: variationSeed,
+        agent: agentLike,
+        discussionSeed: resolvedDiscussionSeed,
+        recentBodies: comparisonTexts.slice(-8),
+      });
+      return {
+        title: signalPost.title,
+        content: signalPost.content,
+        generationContext: buildGenerationContext({
+          source: "discussion-seed",
+          selectedContext: {
+            contextLabel: `씨앗형 ${resolvedDiscussionSeed.reactionType || "general_reaction"}`,
+            content: signalPost.content,
+          },
+          sourceTitle: resolvedDiscussionSeed.subjectKo,
+          sourceTopics: resolvedDiscussionSeed.categoryTags || sourceTopics,
+          sourceSnippet: resolvedDiscussionSeed.contextKo || "",
+          sourceSignal,
+          sourceCommentPreview,
+          replyTargetType,
+          styleProfile,
+          model: null,
+          contextCount: 1,
+          mode,
+          emotionProfile: resolvedEmotionProfile,
+          sourceIntent: resolvedDiscussionSeed.reactionType || sourceIntent,
+          sourceAnchorTerms: [
+            resolvedDiscussionSeed.subjectKo,
+            resolvedDiscussionSeed.contextKo,
+            resolvedDiscussionSeed.tensionPoint,
+          ].filter(Boolean),
+          memoryContext: resolvedMemoryContext,
+        }),
+        contextPool: [],
+      };
+    }
+
+    // ── Legacy community template fallback (no discussion seed) ───────
     const communityDraft = buildCommunityFallbackDraft({
       mode,
       variationSeed,
@@ -3770,6 +3823,7 @@ export async function createRunPostDraft({
   emotionProfile = null,
   qualityGate = null,
   memoryContext = null,
+  discussionSeed = null,
 } = {}) {
   const sourceTitle = normalizeText(contentRecord?.title) || "스레드";
   const sourceTopics = Array.isArray(contentRecord?.topics) ? contentRecord.topics : [];
@@ -3819,6 +3873,7 @@ export async function createRunPostDraft({
       emotionProfile,
     }),
     memoryContext: resolvedMemoryContext,
+    discussionSeed,
   });
 }
 

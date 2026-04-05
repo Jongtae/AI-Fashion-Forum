@@ -30,6 +30,11 @@ import {
   rankReplyTargets,
   rankTargetPosts,
 } from "../lib/social-threading.js";
+import {
+  createDiscussionSeedContentRecord,
+  loadDiscussionSeeds,
+  selectDiscussionSeedForContent,
+} from "../lib/discussion-seeds.js";
 import { SimEvent } from "../models/SimEvent.js";
 import {
   buildPopulationGrowthPlan,
@@ -107,6 +112,11 @@ router.post("/", async (req, res) => {
   const runId = `run-${seed}-${Date.now()}`;
   const startupStateSnapshot = loadAgentStartupStateSnapshot();
 
+  // Load discussion seeds for compositional post generation
+  const discussionSeedBundle = loadDiscussionSeeds();
+  const discussionSeeds = discussionSeedBundle.seeds || [];
+  console.log(`[run] Loaded ${discussionSeeds.length} discussion seeds`);
+
   const runtime = createMemoryRuntime({
     state: createStateSnapshot({
       agents: JSON.parse(JSON.stringify(startupStateSnapshot.agents || SAMPLE_AGENT_STATES)),
@@ -168,10 +178,21 @@ router.post("/", async (req, res) => {
         "",
     });
 
+    const discussionSeed = selectDiscussionSeedForContent({
+      contentRecord: selectedContent,
+      discussionSeeds,
+      variationSeed,
+    });
+    const seededContentRecord = createDiscussionSeedContentRecord({
+      contentRecord: selectedContent,
+      discussionSeed,
+    });
+
     const draft = await createRunPostDraft({
       updatedAgent,
       reactionRecord: selectedReaction,
-      contentRecord: selectedContent,
+      contentRecord: seededContentRecord,
+      discussionSeed,
       styleProfile: updatedAgent?.seed_profile?.comment_style || null,
       emotionProfile: {
         ...((updatedAgent?.seed_profile?.emotional_bias || updatedAgent?.seed_profile?.emotion_bias || {})),
@@ -191,15 +212,21 @@ router.post("/", async (req, res) => {
       comparisonTexts: [
         ...recentDraftComparisons.slice(-16),
         ...recentDraftTexts.slice(-8),
-        selectedContent?.title || "",
-        selectedContent?.content || "",
-        selectedContent?.body || "",
+        seededContentRecord?.title || "",
+        seededContentRecord?.content || "",
+        seededContentRecord?.body || "",
         selectedReaction?.meaning_frame || "",
         selectedReaction?.stance_signal || "",
+        discussionSeed?.subjectKo || "",
+        discussionSeed?.contextKo || "",
+        discussionSeed?.tensionPoint || "",
+        ...(discussionSeed?.possibleAngles || []),
       ].filter(Boolean),
       comparisonTitles: [
         ...recentDraftTitles.slice(-16),
-        selectedContent?.title || "",
+        seededContentRecord?.title || "",
+        discussionSeed?.subjectKo || "",
+        discussionSeed?.rawTitle || "",
       ].filter(Boolean),
       populationSignals: {
         titleCounts: generatedTitleCounts,
@@ -257,6 +284,8 @@ router.post("/", async (req, res) => {
         self_narrative_summary: updatedAgent.mutable_state?.self_narrative_summary || "",
         recent_arc: updatedAgent.mutable_state?.recent_arc || "stable",
         selected_content_id: selectedContent.content_id,
+        discussion_seed_id: discussionSeed?.seedId || null,
+        discussion_seed_subject: discussionSeed?.subjectKo || null,
         variation_seed: variationSeed,
       },
     });
