@@ -404,12 +404,12 @@ const COMMENT_TEMPLATES = [
 // ── Archetype personality markers ────────────────────────────────────────────
 
 const ARCHETYPE_INTROS = {
-  quiet_observer: [null, null, "조용히 눈팅하다 글 남겨요ㅎ\n", "평소엔 읽기만 하는데 이건 궁금해서\n"],
-  social_participant: [null, "같이 얘기해봐요~\n", null, "궁금한 게 있어서 올려봐요!\n"],
-  trend_setter: [null, "요즘 핫한 것 같아서 먼저 해봤는데\n", null],
-  contrarian_observer: [null, "솔직히 저는 좀 다르게 보는데\n", null, "다들 좋다는데 저만 아닌가요ㅋ\n"],
-  empathetic_responder: [null, "저도 비슷한 경험 있어서 올려봐요\n", null, "고민 공감돼요ㅠ\n"],
-  brand_loyalist: [null, "이 브랜드는 진짜 믿고 사는데\n", null],
+  quiet_observer: [null, null, "이거 보자마자 그냥 지나치긴 어렵더라고요\n", "오늘은 이 얘기가 먼저 걸리네요\n"],
+  social_participant: [null, "같이 보기 좋은 얘기라 바로 들고 왔어요\n", null, "이건 댓글 붙을 것 같아서 먼저 올려봐요\n"],
+  trend_setter: [null, "요즘 진짜 자주 보여서 바로 체크해봤어요\n", null],
+  contrarian_observer: [null, "저는 여기서 다른 포인트가 먼저 걸렸어요\n", null, "다들 좋다는데 저는 이 부분이 더 보이네요\n"],
+  empathetic_responder: [null, "이 얘기는 바로 공감부터 가더라고요\n", null, "저도 비슷한 쪽이라 말 얹어봐요\n"],
+  brand_loyalist: [null, "이쪽은 일단 신상부터 체크하게 되네요\n", null],
 };
 
 // ── Main export ──────────────────────────────────────────────────────────────
@@ -686,41 +686,84 @@ const REACTION_BODY_PATTERNS = {
 
 const ARCHETYPE_VOICE = {
   quiet_observer: {
-    intros: [null, null, "조용히 눈팅하다 글 남겨요ㅎ\n", "평소엔 읽기만 하는데 이건 궁금해서\n", "올리기 좀 망설였는데\n"],
+    intros: [null, null, "이거는 그냥 지나치기 어려워서 바로 적어봐요\n", "오늘은 이 얘기가 먼저 눈에 들어오네요\n"],
     midMarkers: ["개인적으로는", "솔직히 잘 모르겠는데", "조심스럽지만", "이건 좀"],
     closings: ["다들 어떻게 생각하세요?", "의견 궁금해요", "조용히 듣고 있을게요ㅎ", "답글 달아주시면 감사해요"],
     emojiFreq: 0.1,
   },
   social_participant: {
-    intros: [null, "같이 얘기해봐요~\n", null, "궁금한 게 있어서 올려봐요!\n", "오늘 이거 봤는데\n"],
+    intros: [null, "같이 보기 좋은 얘기라 먼저 올려봐요\n", null, "이건 바로 댓글 붙을 것 같더라고요\n", "오늘 이거 보고 바로 찾아봤어요\n"],
     midMarkers: ["근데 진짜", "아 그리고", "참고로", "저는 사실"],
     closings: ["다들 의견 남겨주세요!", "같이 고민해봐요~", "댓글 기다릴게요ㅎ", "비슷한 분 있으면 ✋"],
     emojiFreq: 0.3,
   },
   trend_setter: {
-    intros: [null, "요즘 핫한 것 같아서 먼저 해봤는데\n", null, "남들보다 빠르게 해봤어요\n"],
+    intros: [null, "요즘 자꾸 보여서 저도 바로 체크해봤어요\n", null, "이건 한번쯤 직접 봐야겠더라고요\n"],
     midMarkers: ["확실히", "솔직히 이건", "요즘 트렌드가", "제가 보기엔"],
     closings: ["먼저 해본 후기입니다ㅎ", "궁금한 거 있으면 물어보세요!", "참고하세요~ 🔥", "이건 진짜 추천"],
     emojiFreq: 0.4,
   },
   contrarian_observer: {
-    intros: [null, "솔직히 저는 좀 다르게 보는데\n", null, "다들 좋다는데 저만 아닌가요ㅋ\n", "반대 의견일 수 있는데\n"],
+    intros: [null, "저는 여기서 다른 포인트가 먼저 보였어요\n", null, "좋다는 반응 많던데 저는 이쪽이 더 걸리네요\n", "같은 글이어도 저는 다르게 읽히더라고요\n"],
     midMarkers: ["근데 이게 진짜", "오히려", "반대로 보면", "솔직히 말해서"],
     closings: ["저만 이렇게 보나요ㅋ", "다른 의견 있으면 말해주세요", "아닌가... 그냥 제 생각입니다", "반박 환영이에요"],
     emojiFreq: 0.1,
   },
   empathetic_responder: {
-    intros: [null, "저도 비슷한 경험 있어서 올려봐요\n", null, "고민 공감돼요ㅠ\n", "이거 보니까 저도 생각나서\n"],
+    intros: [null, "이 얘기는 저도 바로 공감되더라고요\n", null, "보자마자 저도 비슷한 경험이 떠올랐어요\n", "이 부분은 저도 그냥 지나치기 어렵네요\n"],
     midMarkers: ["저도 그랬었는데", "공감 가네요", "이해해요 진짜", "비슷한 상황이었어요"],
     closings: ["힘내세요 ㅎㅎ", "같이 고민해봐요ㅠ", "도움이 됐으면 좋겠어요", "비슷한 분들 화이팅! 💪"],
     emojiFreq: 0.25,
   },
   brand_loyalist: {
-    intros: [null, "이 브랜드는 진짜 믿고 사는데\n", null, "또 질렀습니다ㅋ\n"],
+    intros: [null, "이쪽은 신상 뜨면 일단 보게 되더라고요\n", null, "이번에도 먼저 체크하게 됐어요\n"],
     midMarkers: ["역시", "이건 진짜", "이 브랜드는 확실히", "항상 느끼는 건데"],
     closings: ["이 브랜드 진짜 찐이에요", "역시 믿고 사는 브랜드", "추천합니다 강추 🔥", "후회 없을 거예요"],
     emojiFreq: 0.2,
   },
+};
+
+const REACTION_OPENERS = {
+  product_reaction: [
+    "{subject} 뜬 거 보고 실물 얘기부터 찾게 되네요",
+    "{subject} 소식 보자마자 후기부터 궁금해졌어요",
+    "{subject}는 바로 입어본 사람 말이 듣고 싶더라고요",
+  ],
+  price_reaction: [
+    "{subject}는 가격 뜨자마자 계산기부터 켜게 되네요",
+    "{subject}는 세일 붙은 순간 얘기가 달라지더라고요",
+    "{subject}는 예쁜 것보다 가격부터 보게 됐어요",
+  ],
+  celebrity_reaction: [
+    "{subject}는 사진 뜨자마자 저장부터 하게 되네요",
+    "{subject}는 오늘 반응이 어디서 갈리는지 바로 보이더라고요",
+    "{subject}는 보고 나면 아이템부터 찾게 돼요",
+  ],
+  season_reaction: [
+    "{subject} 얘기는 오늘 옷 고를 때 바로 떠오르네요",
+    "{subject}라서 다들 뭘 입는지 궁금해졌어요",
+    "{subject}만 되면 코디 얘기가 바로 붙더라고요",
+  ],
+  trend_reaction: [
+    "{subject}는 요즘 자꾸 보여서 한번은 얘기하게 되네요",
+    "{subject}는 다들 어디서 꽂히는지 궁금했어요",
+    "{subject}는 실제로 해본 사람 말이 제일 궁금하더라고요",
+  ],
+  comparison_reaction: [
+    "{subject}는 같이 놓고 봐야 차이가 보이더라고요",
+    "{subject}는 비교해보면 기준이 바로 갈리네요",
+    "{subject}는 결국 뭐부터 보는지가 다를 것 같아요",
+  ],
+  event_reaction: [
+    "{subject}는 뜨자마자 일정부터 다시 보게 되네요",
+    "{subject}는 다녀온 사람 얘기가 바로 궁금해졌어요",
+    "{subject}는 분위기부터 먼저 체크하게 돼요",
+  ],
+  general_reaction: [
+    "{subject}는 그냥 넘기기보다 한 번 더 보게 되네요",
+    "{subject}는 딱 보고 바로 말 붙이고 싶었어요",
+    "{subject}는 다들 어디서 걸리는지 궁금하더라고요",
+  ],
 };
 
 const EMOJIS = ["😊", "ㅎㅎ", "ㅋㅋ", "ㅠㅠ", "🔥", "✌️", "💸", "😍", "👍", "🏕", "🌸", "💪", "🐶", "🎉", ""];
@@ -777,13 +820,12 @@ export function generateSignalReactivePost({ seed = 0, agent = {}, discussionSee
   // Apply archetype voice
   const archetype = agent.archetype || "quiet_observer";
   const voice = ARCHETYPE_VOICE[archetype] || ARCHETYPE_VOICE.quiet_observer;
+  const reactionOpeners = REACTION_OPENERS[reactionType] || REACTION_OPENERS.general_reaction;
+  const opener = fillSlots(reactionOpeners[Math.floor(rng() * reactionOpeners.length)]);
 
-  // Intro (60% chance)
-  if (rng() < 0.6) {
-    const introPool = voice.intros.filter(Boolean);
-    if (introPool.length > 0) {
-      body = introPool[Math.floor(rng() * introPool.length)] + body;
-    }
+  // Family-specific opener keeps the post grounded in the concrete signal.
+  if (opener) {
+    body = `${opener}\n${body}`;
   }
 
   // Mid-marker injection (40% chance, insert after first newline)
