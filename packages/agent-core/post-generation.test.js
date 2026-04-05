@@ -260,6 +260,68 @@ test("createRunPostDraft preserves comparison anchors instead of flattening them
   assert.doesNotMatch(draft.content, /패션과 일상|포인트만/);
 });
 
+test("createRunPostDraft avoids stacked question hooks in fallback titles", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "signalwatch",
+    },
+    reactionRecord: {
+      meaning_frame: "comparison_frame",
+      stance_signal: "observant",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "Which is better for office wear, pastel aqua or cream?",
+      body: "People are split between pastel aqua and cream for office looks.",
+      topics: ["color", "office_style"],
+    },
+    variationSeed: 14,
+    apiKey: "",
+  });
+
+  assert.doesNotMatch(draft.title, /\?.*(뭐가 제일 나아요|이거 괜찮나요|다들 어느 쪽 고르세요|후기 있으세요)/);
+  assert.doesNotMatch(draft.title, /(중 뭐가 더 나을까).*(중 뭐가 더 나을까|다들 어느 쪽 고르세요)/);
+});
+
+test("createRunPostDraft prefers concrete anchors over broad fashion hooks in community titles", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "salewatch",
+    },
+    reactionRecord: {
+      meaning_frame: "value_check",
+      stance_signal: "practical",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "Musinsa spring sale starts now",
+      body: "Sale coverage focuses on Crocs and Polo Ralph Lauren ranking movement.",
+      topics: ["fashion", "pricing"],
+      source_metadata: {
+        origin: "world_event_signal",
+        event_type: "question_prompt",
+        primary_category: "retail",
+        agent_hooks: {
+          suggestedPostModes: ["value_check_post"],
+        },
+        anchor_payload: {
+          factAnchors: ["무신사 봄 세일"],
+          questionAnchors: ["지금 사도 될까요?"],
+          comparisonAnchors: [],
+          claimAnchors: ["크록스랑 폴로 랭킹이 같이 움직이는 중"],
+          discussionHooks: ["세일 가격이 진짜 괜찮은지 물어보기"],
+        },
+      },
+    },
+    variationSeed: 22,
+    apiKey: "",
+  });
+
+  assert.match(draft.title, /무신사|세일|크록스|폴로|가격/);
+  assert.doesNotMatch(draft.title, /^패션( |$)/);
+  assert.doesNotMatch(draft.title, /패션 얘기|패션 쪽 후기/);
+});
+
 test("createRunPostDraft preserves concrete Korean reason anchors instead of flattening them", async () => {
   const draft = await createRunPostDraft({
     updatedAgent: {
