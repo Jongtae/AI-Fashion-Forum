@@ -63,8 +63,8 @@ test("createRunPostDraft falls back to Korean draft contexts when OpenAI is unav
   assert.notStrictEqual(draftTwo.title, draftTwo.content);
   assert.doesNotMatch(draftOne.title, /quiet office outfit/i);
   assert.doesNotMatch(draftTwo.title, /quiet office outfit/i);
-  assert.match(draftOne.title, /이거|어떻게 보세요|뭐가 더 나을까|후기|궁금해요|얘기 좀 해요|얘기$|생각|어디가 걸렸어요|어디가 걸려요|다들 어떻게 봐요|반응은 어때요|느낌이 달라요|어디서 갈려요|중 어디가 더 세게 남아요/);
-  assert.match(draftTwo.title, /이거|어떻게 보세요|뭐가 더 나을까|후기|궁금해요|얘기 좀 해요|얘기$|생각|어디가 걸렸어요|어디가 걸려요|다들 어떻게 봐요|반응은 어때요|느낌이 달라요|어디서 갈려요|중 어디가 더 세게 남아요/);
+  assert.match(draftOne.title, /이거|어떻게 보세요|뭐가 더 나을까|후기|궁금해요|얘기 좀 해요|얘기$|생각|어디가 걸렸어요|어디가 걸려요|다들 어떻게 봐요|반응은 어때요|느낌이 달라요|어디서 갈려요|중 어디가 더 세게 남아요|먼저 보인 이유/);
+  assert.match(draftTwo.title, /이거|어떻게 보세요|뭐가 더 나을까|후기|궁금해요|얘기 좀 해요|얘기$|생각|어디가 걸렸어요|어디가 걸려요|다들 어떻게 봐요|반응은 어때요|느낌이 달라요|어디서 갈려요|중 어디가 더 세게 남아요|먼저 보인 이유/);
   assert.doesNotMatch(draftOne.title, /붙든|체크한|멈춘|메모한|스크롤/);
   assert.doesNotMatch(draftTwo.title, /붙든|체크한|멈춘|메모한|스크롤/);
   assert.ok((draftOne.content.match(/[.!?]/g) || []).length >= 2);
@@ -434,6 +434,7 @@ test("createRunPostDraft avoids broken joint topic grammar in titles", async () 
 
     assert.doesNotMatch(draft.title, /[가-힣]를 같이 본/);
     assert.doesNotMatch(draft.title, /[가-힣]를과/);
+    assert.doesNotMatch(draft.title, /(은|는)부터|(은|는)까지/);
   }
 });
 
@@ -489,6 +490,27 @@ test("buildReadablePostTitle avoids broad malformed topic-only hooks", () => {
   assert.doesNotMatch(title, /관련 글|관련 신호|기준은 사람마다 다를 것 같아요|얘기는 보는 포인트가 갈릴 수 있어요/);
   assert.doesNotMatch(title, /어때요를|보세요를|걸려요를|([가-힣]+)(은 어|와 [가-힣]+은 어)/);
   assert.doesNotMatch(title, /^패션과 오피스 스타일(?:을 어떻게 보세요| 얘기 요즘 어디서 갈려요| 같이 보면 뭐가 먼저 보여요| 보고 어디가 걸렸어요)?$/);
+});
+
+test("buildReadablePostTitle prefers concrete source anchors over broad topic hooks", () => {
+  const titles = [];
+  for (let seed = 0; seed < 6; seed += 1) {
+    titles.push(buildReadablePostTitle({
+      mode: "run",
+      sourceTitle: "What pair with a pastel aqua green shirt?",
+      sourceTopics: ["color", "tops"],
+      sourceIntent: "question",
+      variationSeed: seed,
+      sourceAnchorTerms: ["파스텔 아쿠아 셔츠", "크림 팬츠", "색감 조합"],
+    }));
+  }
+
+  assert.ok(titles.some((title) => /파스텔 아쿠아 셔츠|크림 팬츠/.test(title)), titles.join(" | "));
+  for (const title of titles) {
+    assert.doesNotMatch(title, /^일상/);
+    assert.doesNotMatch(title, /(은|는)부터|(은|는)까지/);
+    assert.doesNotMatch(title, /셔츠은|팬츠은/);
+  }
 });
 
 test("createRunPostDraft avoids collapsing most titles into abstract framing", async () => {

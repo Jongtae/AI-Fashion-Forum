@@ -47,6 +47,15 @@ const GENERIC_COMMUNITY_TITLE_TERMS = new Set([
   "사진",
 ]);
 
+const BROAD_TITLE_TOPIC_TERMS = new Set([
+  "패션",
+  "스타일",
+  "일상",
+  "오피스",
+  "오피스 스타일",
+  "실용",
+]);
+
 function pickBySeed(items = [], seed = 0) {
   if (!items.length) {
     return null;
@@ -83,6 +92,7 @@ function isDiscardableCommunityTitle(value = "") {
   return (
     PURE_META_TITLE_PATTERN.test(normalized) ||
     /([가-힣]+)(은 어|와 [가-힣]+은 어)/.test(normalized) ||
+    /얘기예요/.test(normalized) ||
     /기준은 사람마다 다를 것 같아요|얘기는 보는 포인트가 갈릴 수 있어요/.test(normalized) ||
     /관련 글|관련 신호/.test(normalized) ||
     /어때요를|보세요를|걸려요를/.test(normalized)
@@ -131,7 +141,13 @@ function filterCommunityAnchorTerms(values = [], sourceTopics = []) {
     if (!value) {
       return false;
     }
+    if (!isKoreanDominant(value)) {
+      return false;
+    }
     if (isDiscardableCommunityTitle(value)) {
+      return false;
+    }
+    if (/얘기예요|관련 얘기/.test(value)) {
       return false;
     }
     if (value.length > 40 && !/[?？]/.test(value)) {
@@ -139,6 +155,46 @@ function filterCommunityAnchorTerms(values = [], sourceTopics = []) {
     }
     return !isBroadTopicOnlyTitle(value, sourceTopics);
   });
+}
+
+function isBroadTitleTopic(value = "") {
+  return BROAD_TITLE_TOPIC_TERMS.has(normalizeText(value));
+}
+
+function isPreferredTitleTopic(value = "") {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return false;
+  }
+
+  if (isDiscardableCommunityTitle(normalized)) {
+    return false;
+  }
+
+  if (GENERIC_COMMUNITY_TITLE_TERMS.has(normalized) || isBroadTitleTopic(normalized)) {
+    return false;
+  }
+
+  return normalized.length <= 24;
+}
+
+function pickPreferredTitleTopic(candidates = [], fallback = "일상", excluded = []) {
+  const normalizedExcluded = uniqueNormalizedList(excluded);
+  const normalizedCandidates = uniqueNormalizedList(candidates).filter((candidate) => (
+    candidate && !normalizedExcluded.includes(candidate)
+  ));
+  const preferred = normalizedCandidates.find((candidate) => isPreferredTitleTopic(candidate));
+
+  if (preferred) {
+    return preferred;
+  }
+
+  const nonBroad = normalizedCandidates.find((candidate) => !isBroadTitleTopic(candidate));
+  if (nonBroad) {
+    return nonBroad;
+  }
+
+  return normalizeText(fallback) || "일상";
 }
 
 function localizeSourceTitle(value = "", sourceTopics = [], sourceIntent = "") {
@@ -829,7 +885,12 @@ function isKoreanDominant(text) {
     return false;
   }
 
-  return countHangul(normalized) >= countLatin(normalized);
+  const hangulCount = countHangul(normalized);
+  if (hangulCount === 0) {
+    return false;
+  }
+
+  return hangulCount >= countLatin(normalized);
 }
 
 function localizeSourceLabel(value, fallback) {
@@ -1126,8 +1187,29 @@ export function buildReadablePostTitle({
   const secondaryAnchor = normalizedAnchors[1] || primaryAnchor;
   const cleanPrimaryAnchor = isHookLikeAnchor(primaryAnchor) ? "" : primaryAnchor;
   const cleanSecondaryAnchor = isHookLikeAnchor(secondaryAnchor) ? "" : secondaryAnchor;
-  const primaryTopic = normalizedTopics[0] || localizeTopicLabel(selectedContext?.contextLabel || selectedContextLabel || "");
-  const secondaryTopic = normalizedTopics[1] || primaryTopic;
+  const localizedTitleTerms = filterCommunityAnchorTerms(extractLocalizedSourceTitleTerms(sourceTitle), normalizedTopics);
+  const fallbackTopic = normalizedTopics[0] || localizeTopicLabel(selectedContext?.contextLabel || selectedContextLabel || "");
+  const primaryTopic = pickPreferredTitleTopic(
+    [
+      cleanPrimaryAnchor,
+      localizedTitleTerms[0],
+      normalizedTopics[0],
+      normalizedTopics[1],
+      fallbackTopic,
+    ],
+    fallbackTopic,
+  );
+  const secondaryTopic = pickPreferredTitleTopic(
+    [
+      cleanSecondaryAnchor,
+      localizedTitleTerms[1],
+      normalizedTopics[1],
+      normalizedTopics[0],
+      fallbackTopic,
+    ],
+    primaryTopic,
+    [primaryTopic],
+  );
   const topicPair = joinKoreanTopicList([primaryTopic, secondaryTopic]);
   const anchorPair = joinKoreanTopicList([cleanPrimaryAnchor, cleanSecondaryAnchor]);
   const primaryTopicObject = attachKoreanParticle(primaryTopic, "object");
@@ -1163,9 +1245,12 @@ export function buildReadablePostTitle({
   const normalizeTitleCandidate = (candidate = "") => {
     const normalized = shortenHookTitle(candidate, 28);
     if (!normalized) return "";
+    if (!isKoreanDominant(normalized)) return "";
     if (/두고 다시 읽은 말.*두고 다시 읽은 말/.test(normalized)) return "";
     if (/어때요를|보세요를|생각을 보고 든 생각|걸려요를/.test(normalized)) return "";
+    if (/얘기예요/.test(normalized)) return "";
     if (/[을를이가은는] 쪽$/.test(normalized)) return "";
+    if (/([가-힣]+)과 [^?？]*\1/.test(normalized)) return "";
     if (normalized.length <= 4) return "";
     if (/^(이거 어떻게 보세요|다들 어떻게 보세요)$/.test(normalized)) return "";
     if (/^다시 멈춰 본 부분(?:을 .+)?$/.test(normalized)) return "";
@@ -1181,10 +1266,10 @@ export function buildReadablePostTitle({
   if (sourceIntent === "question") {
     priorityTitles.push(
       canUseLocalizedSourceTitle && localizedSourceTitle.length <= 36 ? localizedSourceTitle : null,
-      cleanPrimaryAnchor ? `${cleanPrimaryAnchor}은 어떻게 보여요?` : null,
+      cleanPrimaryAnchor ? `${attachKoreanParticle(cleanPrimaryAnchor, "topic")} 어떻게 보여요?` : null,
       cleanPrimaryAnchor && cleanSecondaryAnchor && cleanPrimaryAnchor !== cleanSecondaryAnchor ? `${anchorPair} 중 뭐가 더 나을까?` : null,
       hasSpecificAnchor ? `${topicPair} 중 뭐가 더 나을까?` : null,
-      hasSpecificAnchor ? `${primaryTopic}은 어떻게 보세요?` : null,
+      hasSpecificAnchor ? `${attachKoreanParticle(primaryTopic, "topic")} 어떻게 보세요?` : null,
     );
   } else if (sourceIntent === "comparison") {
     priorityTitles.push(
@@ -1214,14 +1299,14 @@ export function buildReadablePostTitle({
       canUseLocalizedSourceTitle && isKoreanDominant(localizedSourceTitle) && localizedSourceTitle.length <= 34 ? localizedSourceTitle : null,
       cleanPrimaryAnchor && cleanPrimaryAnchor.length >= 6 && cleanPrimaryAnchor.length <= 34 ? cleanPrimaryAnchor : null,
       cleanPrimaryAnchor && !/이유$/.test(cleanPrimaryAnchor) ? `${primaryAnchorObject} 보고 든 생각` : null,
-      hasSpecificAnchor ? `${primaryTopic} 이거 어떠세요?` : null,
+      hasSpecificAnchor ? `${attachKoreanParticle(primaryTopic, "topic")} 이거 어떠세요?` : null,
     );
   } else if (sourceIntent === "discussion" || sourceIntent === "observation") {
     priorityTitles.push(
       canUseLocalizedSourceTitle && isKoreanDominant(localizedSourceTitle) && localizedSourceTitle.length <= 34 ? localizedSourceTitle : null,
       cleanPrimaryAnchor && cleanPrimaryAnchor.length >= 6 && cleanPrimaryAnchor.length <= 34 ? cleanPrimaryAnchor : null,
-      cleanPrimaryAnchor ? `${primaryAnchorObject} 어떻게 보세요?` : null,
-      hasSpecificAnchor ? `${primaryTopic} 얘기 좀 해요` : null,
+      cleanPrimaryAnchor ? `${attachKoreanParticle(cleanPrimaryAnchor, "topic")} 어떻게 보세요?` : null,
+      hasSpecificAnchor && !isBroadTitleTopic(primaryTopic) ? `${primaryTopic} 얘기 좀 해요` : null,
     );
   }
 
@@ -1253,17 +1338,17 @@ export function buildReadablePostTitle({
     pool.push(...(hookSet?.titles || []));
     pool.push(
       canUseLocalizedSourceTitle && localizedSourceTitle.length <= 28 ? localizedSourceTitle : null,
-      allowTopicQuestionPool ? `${primaryTopic} 쪽은 다들 어떻게 봐요?` : null,
-      allowTopicQuestionPool ? `${secondaryTopic}까지 보면 느낌이 달라요?` : null,
-      allowTopicQuestionPool ? `${primaryTopic}부터 보면 어디가 걸려요?` : null,
-      allowTopicQuestionPool ? `${secondaryTopic}까지 보면 뭐가 먼저 남아요?` : null,
+      allowTopicQuestionPool && !isBroadTitleTopic(primaryTopic) ? `${attachKoreanParticle(primaryTopic, "topic")} 다들 어떻게 봐요?` : null,
+      allowTopicQuestionPool && !isBroadTitleTopic(secondaryTopic) ? `${secondaryTopic}까지 보면 느낌이 달라요?` : null,
+      allowTopicQuestionPool && !isBroadTitleTopic(primaryTopic) ? `${primaryTopic}부터 보면 어디가 걸려요?` : null,
+      allowTopicQuestionPool && !isBroadTitleTopic(secondaryTopic) ? `${secondaryTopic}까지 보면 뭐가 먼저 남아요?` : null,
       allowTopicQuestionPool ? `${primaryTopicObject} 먼저 보인 이유` : null,
-      allowTopicQuestionPool ? `${secondaryTopic} 쪽 반응은 어때요?` : null,
+      allowTopicQuestionPool && !isBroadTitleTopic(secondaryTopic) ? `${attachKoreanParticle(secondaryTopic, "topic")} 반응은 어때요?` : null,
       contextLabel ? `${contextLabel}이면 어디부터 다시 보세요?` : null,
       contextLabel ? `${contextLabel}에서 먼저 걸린 부분` : null,
       contextLabel ? `${contextLabel}에서 먼저 남은 쪽` : null,
-      allowTopicQuestionPool ? `${primaryTopic} 쪽 후기 있으세요?` : null,
-      allowTopicQuestionPool ? `${primaryTopic} 얘기 어디서 갈려요?` : null,
+      allowTopicQuestionPool && !isBroadTitleTopic(primaryTopic) ? `${attachKoreanParticle(primaryTopic, "topic")} 후기 있으세요?` : null,
+      allowTopicQuestionPool && !isBroadTitleTopic(primaryTopic) ? `${primaryTopic} 얘기 어디서 갈려요?` : null,
       allowTopicQuestionPool ? `${topicPair} 같이 보면 뭐가 먼저 보여요?` : null,
       contextLabel ? `${contextLabel}에서 다들 어디가 먼저 보여요?` : null,
       allowTopicQuestionPool ? `${topicPair} 보고 어디가 걸렸어요?` : null,
@@ -1278,8 +1363,8 @@ export function buildReadablePostTitle({
       "이 조합 괜찮을까?",
       "어떤 쪽이 더 나을까?",
       "다들 어떻게 보세요?",
-      cleanPrimaryAnchor ? `${cleanPrimaryAnchor}은 어떻게 보여요?` : null,
-      hasSpecificAnchor ? `${primaryTopic}은 어떻게 보세요?` : null,
+      cleanPrimaryAnchor ? `${attachKoreanParticle(cleanPrimaryAnchor, "topic")} 어떻게 보여요?` : null,
+      hasSpecificAnchor ? `${attachKoreanParticle(primaryTopic, "topic")} 어떻게 보세요?` : null,
       hasSpecificAnchor ? `${topicPair} 중 뭐가 더 나을까?` : null,
     );
   } else if (sourceIntent === "comparison") {
@@ -1363,13 +1448,14 @@ export function buildReadablePostTitle({
     if (/붙든 글|체크한 글|메모한 지점|멈춘 지점|다시 체크한 단서|시선이 간 글/.test(normalized)) score -= 4;
     if (/보고 든 생각.*보고 든 생각|어떠세요.*어떻게 보세요/.test(normalized)) score -= 4;
     if (/^(이거 어떻게 보세요|다들 어떻게 보세요)$/.test(normalized)) score -= 5;
-    if (/쪽은 다들 어떻게 봐요|쪽 반응은 어때요|쪽 후기 있으세요/.test(normalized)) score -= 1.8;
+    if (/다들 어떻게 봐요|반응은 어때요|후기 있으세요/.test(normalized)) score -= 1.2;
     if (/느낌이 달라요\?$/.test(normalized)) score -= 1.2;
     if (/관련 신호|관련 글|얘기$/.test(normalized)) score -= 1.8;
     if (/기준은 사람마다 다를 것 같아요|얘기는 보는 포인트가 갈릴 수 있어요/.test(normalized)) score -= 5;
     if (normalized === topicPair || normalized === primaryTopic || normalized === secondaryTopic) score -= 3;
     if (/^(이번 글|이 글)/.test(normalized)) score -= 1.4;
     if (/얘기$/.test(normalized)) score -= 0.9;
+    if (/(패션|스타일|일상)/.test(normalized) && !containsPrimaryAnchor && !containsSecondaryAnchor) score -= 1.1;
     if (isBroadTopicOnlyTitle(normalized, normalizedTopics)) score -= 2.4;
     score -= recentTitleCount * 1.6;
     score -= Math.max(0, populationTitleCount) * 2.2;
