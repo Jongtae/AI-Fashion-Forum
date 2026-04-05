@@ -5,21 +5,34 @@ import { requestLLMContexts, extractLLMResponseText, resolveLLMConfig, DEFAULT_C
 const LOCAL_SOURCE_TITLE_PATTERNS = [
   { pattern: /\boffice\b/gi, label: "오피스" },
   { pattern: /\boutfit\b/gi, label: "착장" },
+  { pattern: /\blook(s)?\b/gi, label: "룩" },
   { pattern: /\blayering\b/gi, label: "레이어링" },
   { pattern: /\bcommute\b/gi, label: "출퇴근" },
   { pattern: /\bshirt(s)?\b/gi, label: "셔츠" },
   { pattern: /\btee(s)?\b/gi, label: "티셔츠" },
+  { pattern: /\btop(s)?\b/gi, label: "상의" },
+  { pattern: /\bthumb hole top(s)?\b/gi, label: "핑거홀 상의" },
   { pattern: /\bblazer(s)?\b/gi, label: "블레이저" },
   { pattern: /\bjacket(s)?\b/gi, label: "자켓" },
   { pattern: /\bcoat(s)?\b/gi, label: "코트" },
+  { pattern: /\bchore coat(s)?\b/gi, label: "초어 코트" },
+  { pattern: /\bcardigan(s)?\b/gi, label: "가디건" },
+  { pattern: /\bhoodie(s)?\b/gi, label: "후드" },
+  { pattern: /\bknit(s)?\b/gi, label: "니트" },
   { pattern: /\bdress(es)?\b/gi, label: "드레스" },
   { pattern: /\bbag(s)?\b/gi, label: "가방" },
   { pattern: /\bshoe(s)?\b/gi, label: "신발" },
   { pattern: /\bsneaker(s)?\b/gi, label: "스니커즈" },
+  { pattern: /\bpant(s)?\b|\btrouser(s)?\b|\bslacks?\b/gi, label: "팬츠" },
+  { pattern: /\bjean(s)?\b|\bdenim\b/gi, label: "데님" },
   { pattern: /\bprice|pricing\b/gi, label: "가격" },
+  { pattern: /\bsale|discount\b/gi, label: "세일" },
   { pattern: /\bfit\b/gi, label: "핏" },
   { pattern: /\bsize|sizing\b/gi, label: "사이즈" },
   { pattern: /\bcolor\b/gi, label: "색감" },
+  { pattern: /\bcream\b/gi, label: "크림" },
+  { pattern: /\bpastel aqua\b/gi, label: "파스텔 아쿠아" },
+  { pattern: /\bblack\b/gi, label: "블랙" },
   { pattern: /\bstyle\b/gi, label: "스타일" },
 ];
 
@@ -51,6 +64,8 @@ const GENERIC_COMMUNITY_TITLE_TERMS = new Set([
 const BROAD_TITLE_TOPIC_TERMS = new Set([
   "패션",
   "스타일",
+  "핏",
+  "색감",
   "일상",
   "오피스",
   "오피스 스타일",
@@ -135,6 +150,32 @@ function isBroadTopicOnlyTitle(value = "", sourceTopics = []) {
 
   const meaningfulTokens = tokens.filter((token) => !GENERIC_COMMUNITY_TITLE_TERMS.has(token));
   return meaningfulTokens.length === 0;
+}
+
+function hasStackedQuestionHooks(value = "") {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return false;
+  }
+
+  const questionClauseCount = [
+    /\?/g,
+    /(어떻게 보세요|이거 어떠세요|뭐가 제일 나아요|중 뭐가 더 나을까|둘 중 뭐가 더 손이 가요|둘 중 뭐가 더 나을까요|다들 어느 쪽 고르세요|후기 있으세요|어디서 갈려요|어디가 걸려요|반응은 어때요)/g,
+  ].reduce((count, pattern) => count + ((normalized.match(pattern) || []).length), 0);
+
+  return questionClauseCount >= 3;
+}
+
+function pickSpecificTitleAnchor(candidates = [], fallback = "일상") {
+  const normalizedCandidates = uniqueNormalizedList(candidates.map((value) => normalizeText(value)).filter(Boolean));
+  const specific = normalizedCandidates.find((candidate) => (
+    candidate &&
+    !GENERIC_COMMUNITY_TITLE_TERMS.has(candidate) &&
+    !isBroadTitleTopic(candidate) &&
+    !/[?？]/.test(candidate) &&
+    candidate.length <= 24
+  ));
+  return specific || normalizedCandidates[0] || fallback;
 }
 
 function filterCommunityAnchorTerms(values = [], sourceTopics = []) {
@@ -1906,6 +1947,7 @@ function buildConcreteAnchorBag({ sourceTitle = "", sourceTopics = [], sourceAnc
   );
   return uniqueNormalizedList([
     concreteHeadlineMatch?.[1] || "",
+    ...extractLocalizedSourceTitleTerms(sourceTitle),
     ...((Array.isArray(sourceAnchorTerms) ? sourceAnchorTerms : []).filter(Boolean)),
     localizedTitle,
     ...(Array.isArray(sourceTopics) ? sourceTopics.map(localizeTopicLabel) : []),
@@ -1914,8 +1956,9 @@ function buildConcreteAnchorBag({ sourceTitle = "", sourceTopics = [], sourceAnc
     isKoreanDominant(term) &&
     term.length <= 28 &&
     !/[A-Za-z]{2,}/.test(term) &&
+    !/[?？]/.test(term) &&
     !/(패션|스타일|일상|기준|포인트|이유|신호|내용|댓글|부분)$/u.test(term) &&
-    !/(어떻게 보세요|후기 있으세요|얘기 좀 해요|어디서 갈려요|어디가 걸렸어요|보고 남긴|관련 글|관련 얘기|관련 신호|먼저 보인)/u.test(term)
+    !/(어떻게 보세요|후기 있으세요|얘기 좀 해요|어디서 갈려요|어디가 걸렸어요|어디가 걸려요|반응은 어때요|뭐가 제일 나아요|중 뭐가 더 나을까|다들 어느 쪽 고르세요|보고 남긴|관련 글|관련 얘기|관련 신호|먼저 보인)/u.test(term)
   ));
 }
 
@@ -1937,8 +1980,14 @@ function buildCommunityTitle({
     return shortenHookTitle(localizedSource, 28);
   }
   const localizedTopics = (Array.isArray(sourceTopics) ? sourceTopics : []).map(localizeTopicLabel);
-  const primary = anchors[0] || localizeTopicLabel(localizedTopics[0] || "일상");
-  const secondary = anchors[1] || localizeTopicLabel(localizedTopics[1] || localizedTopics[0] || "일상");
+  const primary = pickSpecificTitleAnchor([
+    ...(Array.isArray(anchors) ? anchors : []),
+    ...localizedTopics,
+  ], localizeTopicLabel(localizedTopics[0] || "일상"));
+  const secondary = pickSpecificTitleAnchor([
+    ...((Array.isArray(anchors) ? anchors : []).filter((value) => value !== primary)),
+    ...localizedTopics.filter((value) => value !== primary),
+  ], localizeTopicLabel(localizedTopics[1] || localizedTopics[0] || primary || "일상"));
   const pair = joinKoreanTopicList([primary, secondary]);
   const familyTitles = {
     recommendation: [
@@ -1994,10 +2043,16 @@ function buildCommunityTitle({
       `${primary} 이건 일단 눌러보게 되네요`,
       `${primary} 얘기 여기서도 자주 보여요`,
       `${primary} 보고 생각난 게 있어요`,
+      `${primary} 이건 왜 계속 보게 될까요`,
+      `${primary} 쪽은 유독 눈에 남네요`,
     ],
   };
 
-  return pickBySeed(familyTitles[family] || familyTitles.daily, variationSeed) || `${primary} 이거 어떠세요?`;
+  const picked = pickBySeed(familyTitles[family] || familyTitles.daily, variationSeed) || `${primary} 이거 어떠세요?`;
+  if (hasStackedQuestionHooks(picked)) {
+    return `${primary} 이거 괜찮나요?`;
+  }
+  return picked;
 }
 
 function buildCommunityBody({
