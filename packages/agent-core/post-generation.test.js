@@ -1320,6 +1320,7 @@ test("createRunPostDraft uses discussion seed for compositional generation when 
     /[가-힣]/.test(draft.content),
     `Content should be Korean: ${draft.content}`,
   );
+  assert.doesNotMatch(draft.content, /올리기 좀 망설였는데|평소엔 읽기만 하는데 이건 궁금해서|조용히 눈팅하다 글 남겨요ㅎ/);
 });
 
 test("createRunPostDraft produces diverse titles across different discussion seeds", async () => {
@@ -1343,4 +1344,38 @@ test("createRunPostDraft produces diverse titles across different discussion see
     assert.equal(draft.generationContext?.source, "discussion-seed");
   }
   assert.ok(titles.size >= 3, `Expected at least 3 unique titles but got ${titles.size}: ${[...titles].join(" | ")}`);
+});
+
+test("createRunPostDraft discussion-seed posts open from concrete community families", async () => {
+  const draft = await createRunPostDraft({
+    updatedAgent: {
+      handle: "coverwatch",
+      archetype: "quiet_observer",
+    },
+    reactionRecord: {
+      meaning_frame: "signal_check",
+      stance_signal: "observant",
+      dominant_feeling: "curious",
+    },
+    contentRecord: {
+      title: "This cover is everywhere today",
+      body: "",
+      topics: ["fashion"],
+    },
+    discussionSeed: {
+      seedId: "seed-cover",
+      reactionType: "celebrity_reaction",
+      subjectKo: "소피아 코폴라 ELLE 커버",
+      contextKo: "커버 공개 직후 반응이 빠르게 퍼지는 중",
+      tensionPoint: "아이템 정보부터 궁금해짐",
+      possibleAngles: ["커버에서 뭐가 먼저 보였는지", "아이템 브랜드 찾기"],
+      categoryTags: ["fashion", "celebrity"],
+    },
+    variationSeed: 52,
+    apiKey: "",
+  });
+
+  const opener = String(draft.content || "").split("\n")[0];
+  assert.match(opener, /사진 뜨자마자|반응이 어디서 갈리는지|아이템부터 찾게/);
+  assert.doesNotMatch(opener, /올리기 좀 망설였는데|평소엔 읽기만 하는데 이건 궁금해서|조용히 눈팅하다 글 남겨요ㅎ/);
 });
