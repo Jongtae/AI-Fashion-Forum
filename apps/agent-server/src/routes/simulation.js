@@ -43,19 +43,42 @@ const SIMULATION_LLM_API_KEY = LLM_SIMULATION_ENABLED
       : process.env.OPENAI_API_KEY) || ""
   : "";
 
+const FORUM_FETCH_TIMEOUT_MS = 10_000;
+
 async function forumPost(urlPath, body) {
-  const res = await fetch(`${FORUM_SERVER_URL}${urlPath}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const error = new Error(`forum-server ${urlPath} failed: ${err.error || res.status}`);
-    error.status = res.status;
-    throw error;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FORUM_FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${FORUM_SERVER_URL}${urlPath}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const error = new Error(`forum-server ${urlPath} failed: ${err.error || res.status}`);
+      error.status = res.status;
+      throw error;
+    }
+    return res.json();
+  } finally {
+    clearTimeout(timer);
   }
-  return res.json();
+}
+
+async function checkForumHealth() {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3000);
+  try {
+    const res = await fetch(`${FORUM_SERVER_URL}/health`, { signal: controller.signal });
+    const data = await res.json();
+    return data?.ok === true;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function seededRandom(seed) {
@@ -85,14 +108,37 @@ router.post("/run", async (req, res) => {
   const ticksPerRound = Math.min(10, Math.max(1, parseInt(req.body?.ticksPerRound) || 3));
   const budgetCapUsd = Math.min(10, Math.max(0.1, parseFloat(req.body?.budgetCapUsd) || 2.0));
   const seed = parseInt(req.body?.seed) || 42;
+  const maxAgents = Math.min(200, Math.max(1, parseInt(req.body?.maxAgents) || 36));
+
+  // ── Preflight checks ──────────────────────────────────────────────────
+  const warnings = [];
+
+  if (LLM_SIMULATION_ENABLED && !SIMULATION_LLM_API_KEY) {
+    warnings.push(`LLM_SIMULATION_ENABLED=true but ${LLM_PROVIDER === "claude" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} is not set — will use template fallback`);
+    console.warn("[simulation] WARNING:", warnings[warnings.length - 1]);
+  }
+
+  const writeForumArtifacts = shouldWriteForumArtifacts();
+  let forumAvailable = false;
+  if (writeForumArtifacts) {
+    forumAvailable = await checkForumHealth();
+    if (!forumAvailable) {
+      warnings.push("forum-server is not reachable — posts will not be persisted");
+      console.warn("[simulation] WARNING:", warnings[warnings.length - 1]);
+    }
+  }
 
   const budget = createBudgetTracker({ budgetCapUsd });
   const rng = seededRandom(seed);
 
-  // Load initial agent state
+  // Load initial agent state, cap agent count
   const startupSnapshot = loadAgentStartupStateSnapshot();
-  let currentState = JSON.parse(JSON.stringify(startupSnapshot));
-  const writeForumArtifacts = shouldWriteForumArtifacts();
+  const clonedSnapshot = JSON.parse(JSON.stringify(startupSnapshot));
+  if (clonedSnapshot.agents.length > maxAgents) {
+    clonedSnapshot.agents = clonedSnapshot.agents.slice(0, maxAgents);
+    console.log(`[simulation] capped agents from ${startupSnapshot.agents.length} to ${maxAgents}`);
+  }
+  let currentState = clonedSnapshot;
 
   const roundResults = [];
   const driftTimeline = []; // per-round drift measurements
@@ -246,8 +292,8 @@ router.post("/run", async (req, res) => {
       }
     }
 
-    // ── Step 4: Write to forum-server (if enabled) ────────────────────────
-    if (writeForumArtifacts) {
+    // ── Step 4: Write to forum-server (if enabled and reachable) ────────
+    if (writeForumArtifacts && forumAvailable) {
       for (const post of roundPosts) {
         try {
           await forumPost("/api/posts", {
@@ -389,6 +435,8 @@ router.post("/run", async (req, res) => {
     completedRounds: roundResults.length,
     stopReason,
     totalPosts: allCreatedPosts.length,
+    agentCount: currentState.agents.length,
+    warnings: warnings.length > 0 ? warnings : undefined,
     budget: budget.snapshot(),
     driftSummary: {
       finalAvgDrift: driftTimeline[driftTimeline.length - 1]?.avgDrift || 0,

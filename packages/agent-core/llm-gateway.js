@@ -8,6 +8,59 @@
 export const DEFAULT_PROVIDER = "openai";
 export const DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-20250514";
 export const DEFAULT_OPENAI_MODEL = "gpt-4o";
+export const DEFAULT_TIMEOUT_MS = 30_000;
+export const DEFAULT_MAX_RETRIES = 3;
+const RETRY_BASE_MS = 1000;
+
+/**
+ * Wrap a fetch call with an AbortController timeout.
+ */
+function fetchWithTimeout(fetchImpl, url, opts, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetchImpl(url, { ...opts, signal: controller.signal }).finally(() =>
+    clearTimeout(timer),
+  );
+}
+
+/**
+ * Retry-aware fetch: retries on 429 (rate limit) and 5xx with exponential backoff.
+ */
+async function fetchWithRetry(fetchImpl, url, opts, { timeoutMs = DEFAULT_TIMEOUT_MS, maxRetries = DEFAULT_MAX_RETRIES } = {}) {
+  let lastError;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetchWithTimeout(fetchImpl, url, opts, timeoutMs);
+      if (response.ok || (response.status < 500 && response.status !== 429)) {
+        return response;
+      }
+      // Retryable status
+      lastError = new Error(`HTTP ${response.status}`);
+      lastError.status = response.status;
+      if (response.status === 429) {
+        const retryAfter = parseInt(response.headers?.get?.("retry-after") || "0", 10);
+        const delayMs = retryAfter > 0 ? retryAfter * 1000 : RETRY_BASE_MS * 2 ** attempt;
+        await sleep(Math.min(delayMs, 30_000));
+        continue;
+      }
+      // 5xx — backoff
+      await sleep(RETRY_BASE_MS * 2 ** attempt);
+    } catch (err) {
+      lastError = err;
+      if (err.name === "AbortError") {
+        lastError = new Error(`LLM request timed out after ${timeoutMs}ms`);
+      }
+      if (attempt < maxRetries) {
+        await sleep(RETRY_BASE_MS * 2 ** attempt);
+      }
+    }
+  }
+  throw lastError;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 /**
  * Resolve LLM configuration from environment variables.
@@ -66,8 +119,11 @@ export async function requestClaudeContexts({
   model = DEFAULT_CLAUDE_MODEL,
   prompt,
   fetchImpl = globalThis.fetch,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  maxRetries = DEFAULT_MAX_RETRIES,
 }) {
-  const response = await fetchImpl("https://api.anthropic.com/v1/messages", {
+  const url = "https://api.anthropic.com/v1/messages";
+  const opts = {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -77,15 +133,11 @@ export async function requestClaudeContexts({
     body: JSON.stringify({
       model,
       max_tokens: 2048,
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+      messages: [{ role: "user", content: prompt }],
     }),
-  });
+  };
 
+  const response = await fetchWithRetry(fetchImpl, url, opts, { timeoutMs, maxRetries });
   const result = await response.json();
   if (!response.ok) {
     const message =
@@ -104,8 +156,11 @@ export async function requestOpenAIContexts({
   model = DEFAULT_OPENAI_MODEL,
   prompt,
   fetchImpl = globalThis.fetch,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  maxRetries = DEFAULT_MAX_RETRIES,
 }) {
-  const response = await fetchImpl("https://api.openai.com/v1/responses", {
+  const url = "https://api.openai.com/v1/responses";
+  const opts = {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -120,8 +175,9 @@ export async function requestOpenAIContexts({
         },
       ],
     }),
-  });
+  };
 
+  const response = await fetchWithRetry(fetchImpl, url, opts, { timeoutMs, maxRetries });
   const result = await response.json();
   if (!response.ok) {
     const message =
